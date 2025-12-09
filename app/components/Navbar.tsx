@@ -2,13 +2,41 @@
 
 import Link from "next/link";
 import { supabase } from "@/lib/supabaseClient";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 
 export default function Navbar() {
   const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const attemptedProfiles = useRef<Set<string>>(new Set());
   const router = useRouter();
+
+  async function ensureProfileFromMetadata(currentUser: any) {
+    if (!currentUser) return;
+
+    const userId = currentUser.id as string | undefined;
+    if (!userId || attemptedProfiles.current.has(userId)) return;
+
+    const metadata = currentUser.user_metadata || {};
+    const { display_name, first_name, last_name } = metadata;
+    if (!display_name && !first_name && !last_name) return;
+
+    const { error } = await supabase.from("profiles").upsert(
+      [
+        {
+          id: userId,
+          display_name: display_name ?? null,
+          first_name: first_name ?? null,
+          last_name: last_name ?? null,
+        },
+      ],
+      { onConflict: "id" }
+    );
+
+    if (!error) {
+      attemptedProfiles.current.add(userId);
+    }
+  }
 
   useEffect(() => {
     let isMounted = true;
@@ -41,6 +69,10 @@ export default function Navbar() {
     await supabase.auth.signOut();
     router.push("/auth");
   }
+
+  useEffect(() => {
+    ensureProfileFromMetadata(user);
+  }, [user]);
 
   return (
     <nav

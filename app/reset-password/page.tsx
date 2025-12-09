@@ -140,6 +140,7 @@ export default function ResetPasswordPage() {
                 borderRadius: '0.25rem',
                 border: '1px solid #ccc',
                 backgroundColor: '#f3f4f6',
+                color: '#0366d6',
                 cursor: 'pointer',
               }}
             >
@@ -165,6 +166,7 @@ export default function ResetPasswordPage() {
                 borderRadius: '0.25rem',
                 border: '1px solid #ccc',
                 backgroundColor: '#f3f4f6',
+                color: '#0366d6',
                 cursor: 'pointer',
               }}
             >

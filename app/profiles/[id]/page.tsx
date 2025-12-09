@@ -230,52 +230,6 @@ const rows: MatchRowForStats[] = rawRows.map((r) => ({
       });
 
       // 3) Load last 5 matches for this player (full match detail, same as matches page)
-      const { data: playerMatchRows, error: playerMatchError } = await supabase
-        .from('match_players')
-        .select(
-          `
-          match_id,
-          matches!inner (
-            id,
-            played_at
-          )
-        `
-        )
-        .eq('player_id', id)
-        .order('played_at', {
-          ascending: false,
-          foreignTable: 'matches',
-        })
-        .limit(5);
-
-if (playerMatchError) {
-  console.error(
-    'Error loading recent match IDs for profile:',
-    playerMatchError
-  );
-  setRecentMatches([]);
-  setLoading(false);
-  return;
-}
-
-      const normalizedPlayerMatchRows = (playerMatchRows || []).map((r: any) => ({
-        ...r,
-        matches: Array.isArray(r.matches)
-          ? (r.matches[0] ?? null)
-          : (r.matches ?? null),
-      }));
-
-      const matchIds = normalizedPlayerMatchRows
-        .filter((r: any) => r.matches)
-        .map((r: any) => r.match_id)
-        .filter((mId: any) => mId != null);
-
-      if (matchIds.length === 0) {
-        setRecentMatches([]);
-        setLoading(false);
-        return;
-      }
-
       const { data: matchesDetailData, error: matchesDetailError } =
         await supabase
           .from('matches')
@@ -288,7 +242,7 @@ if (playerMatchError) {
             board_type,
             venue,
             created_by,
-            match_players (
+            match_players!inner (
               id,
               match_id,
               player_id,
@@ -301,8 +255,9 @@ if (playerMatchError) {
             )
           `
           )
-          .in('id', matchIds)
-          .order('played_at', { ascending: false });
+          .eq('match_players.player_id', id)
+          .order('played_at', { ascending: false })
+          .limit(5);
 
       if (matchesDetailError) {
         console.error('Error loading recent matches for profile:', matchesDetailError);
@@ -313,17 +268,17 @@ if (playerMatchError) {
 
       const rawMatchDetails = (matchesDetailData || []) as any[];
 
-const normalizedMatchDetails: MatchSummary[] = rawMatchDetails.map((m) => ({
-  ...m,
-  match_players: (m.match_players || []).map((mp: any) => ({
-    ...mp,
-    profiles: Array.isArray(mp.profiles)
-      ? (mp.profiles[0] ?? null)
-      : (mp.profiles ?? null),
-  })),
-}));
+      const normalizedMatchDetails: MatchSummary[] = rawMatchDetails.map((m) => ({
+        ...m,
+        match_players: (m.match_players || []).map((mp: any) => ({
+          ...mp,
+          profiles: Array.isArray(mp.profiles)
+            ? (mp.profiles[0] ?? null)
+            : (mp.profiles ?? null),
+        })),
+      }));
 
-setRecentMatches(normalizedMatchDetails);
+      setRecentMatches(normalizedMatchDetails);
       setLoading(false);
     }
 

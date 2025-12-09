@@ -8,6 +8,8 @@ export default function ResetPasswordPage() {
   const router = useRouter();
   const [newPassword, setNewPassword] = useState('');
   const [confirm, setConfirm] = useState('');
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [checkingSession, setCheckingSession] = useState(true);
@@ -121,28 +123,54 @@ export default function ResetPasswordPage() {
           }}
         >
           <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', gap: '0.5rem' }}>
-    <label style={{ width: '140px' }}>
-      New password:
-    </label>
-    <input
-      type="password"
-      value={newPassword}
-      onChange={(e) => setNewPassword(e.target.value)}
-      style={{ flex: 1 }}
-    />
-  </div>
+            <label style={{ width: '140px' }}>
+              New password:
+            </label>
+            <input
+              type={showNewPassword ? 'text' : 'password'}
+              value={newPassword}
+              onChange={(e) => setNewPassword(e.target.value)}
+              style={{ flex: 1 }}
+            />
+            <button
+              type="button"
+              onClick={() => setShowNewPassword((prev) => !prev)}
+              style={{
+                padding: '0.25rem 0.5rem',
+                borderRadius: '0.25rem',
+                border: '1px solid #ccc',
+                backgroundColor: '#f3f4f6',
+                cursor: 'pointer',
+              }}
+            >
+              {showNewPassword ? 'Hide' : 'Show'}
+            </button>
+          </div>
 
-  <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', gap: '0.5rem' }}>
-    <label style={{ width: '140px' }}>
-      Confirm password:
-    </label>
-    <input
-      type="password"
-      value={confirm}
-      onChange={(e) => setConfirm(e.target.value)}
-      style={{ flex: 1 }}
-    />
-  </div>
+          <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', gap: '0.5rem' }}>
+            <label style={{ width: '140px' }}>
+              Confirm password:
+            </label>
+            <input
+              type={showConfirm ? 'text' : 'password'}
+              value={confirm}
+              onChange={(e) => setConfirm(e.target.value)}
+              style={{ flex: 1 }}
+            />
+            <button
+              type="button"
+              onClick={() => setShowConfirm((prev) => !prev)}
+              style={{
+                padding: '0.25rem 0.5rem',
+                borderRadius: '0.25rem',
+                border: '1px solid #ccc',
+                backgroundColor: '#f3f4f6',
+                cursor: 'pointer',
+              }}
+            >
+              {showConfirm ? 'Hide' : 'Show'}
+            </button>
+          </div>
           <button
             type="submit"
             style={{

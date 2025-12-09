@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { supabase } from '@/lib/supabaseClient';
 import { formatPlayerName } from '@/lib/playerName';
 import { LinkedPlayerName } from '@/components/LinkedPlayerName';
+import type { User } from '@supabase/supabase-js';
 
 type Profile = {
   id: string;
@@ -47,6 +48,33 @@ export default function Home() {
   const [mprStats, setMprStats] = useState<AverageStats[]>([]);
   const [loading, setLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [user, setUser] = useState<User | null>(null);
+  const [authLoading, setAuthLoading] = useState(true);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    async function loadUser() {
+      const { data } = await supabase.auth.getUser();
+      if (!isMounted) return;
+      setUser(data.user ?? null);
+      setAuthLoading(false);
+    }
+
+    loadUser();
+
+    const { data: subscription } = supabase.auth.onAuthStateChange(
+      (_event, session) => {
+        if (!isMounted) return;
+        setUser(session?.user ?? null);
+      }
+    );
+
+    return () => {
+      isMounted = false;
+      subscription?.subscription.unsubscribe();
+    };
+  }, []);
 
   useEffect(() => {
     async function loadStats() {
@@ -323,23 +351,25 @@ export default function Home() {
         </p>
 
         <p>
-          <Link
-            href="/auth"
-            style={{
-              cursor: 'pointer',
-              padding: '0.6rem 1rem',
-              borderRadius: '0.5rem',
-              border: '1px solid #ccc',
-              backgroundColor: '#0366d6',
-              color: 'white',
-              fontWeight: 500,
-              textDecoration: 'none',
-              display: 'inline-block',
-              marginRight: '0.5rem',
-            }}
-          >
-            Go to sign in / sign up
-          </Link>
+          {!authLoading && !user && (
+            <Link
+              href="/auth"
+              style={{
+                cursor: 'pointer',
+                padding: '0.6rem 1rem',
+                borderRadius: '0.5rem',
+                border: '1px solid #ccc',
+                backgroundColor: '#0366d6',
+                color: 'white',
+                fontWeight: 500,
+                textDecoration: 'none',
+                display: 'inline-block',
+                marginRight: '0.5rem',
+              }}
+            >
+              Go to sign in / sign up
+            </Link>
+          )}
 
           <Link
             href="/matches"

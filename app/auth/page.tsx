@@ -67,8 +67,10 @@ export default function AuthPage() {
     }
 
     try {
+      const trimmedEmail = email.trim();
+
       const { data, error } = await supabase.auth.signUp({
-        email,
+        email: trimmedEmail,
         password,
         options: {
           data: {
@@ -87,12 +89,10 @@ export default function AuthPage() {
       const userId = data.user?.id;
       if (userId) {
         await ensureProfile(userId);
-        setUser(data.user);
-        router.push('/matches');
-        return;
-      } else {
-        setMessage('Sign up successful! Check your email to confirm your account.');
       }
+
+      router.push(`/auth/verify-email?email=${encodeURIComponent(trimmedEmail)}`);
+      return;
     } finally {
       setLoading(false);
     }

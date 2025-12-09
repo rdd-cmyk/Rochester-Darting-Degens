@@ -231,22 +231,22 @@ const rows: MatchRowForStats[] = rawRows.map((r) => ({
 
       // 3) Load last 5 matches for this player (full match detail, same as matches page)
       const { data: playerMatchRows, error: playerMatchError } = await supabase
-  .from('match_players')
-  .select(
-    `
-    match_id,
-    matches (
-      id,
-      played_at
-    )
-  `
-  )
-  .eq('player_id', id)
-  .order('played_at', {
-    ascending: false,
-    foreignTable: 'matches',
-  })
-  .limit(5);
+        .from('match_players')
+        .select(
+          `
+          match_id,
+          matches!inner (
+            id,
+            played_at
+          )
+        `
+        )
+        .eq('player_id', id)
+        .order('played_at', {
+          ascending: false,
+          foreignTable: 'matches',
+        })
+        .limit(5);
 
 if (playerMatchError) {
   console.error(
@@ -258,7 +258,15 @@ if (playerMatchError) {
   return;
 }
 
-      const matchIds = (playerMatchRows || [])
+      const normalizedPlayerMatchRows = (playerMatchRows || []).map((r: any) => ({
+        ...r,
+        matches: Array.isArray(r.matches)
+          ? (r.matches[0] ?? null)
+          : (r.matches ?? null),
+      }));
+
+      const matchIds = normalizedPlayerMatchRows
+        .filter((r: any) => r.matches)
         .map((r: any) => r.match_id)
         .filter((mId: any) => mId != null);
 

@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { supabase } from '@/lib/supabaseClient';
 import { formatPlayerName } from '@/lib/playerName';
 import { LinkedPlayerName } from '@/components/LinkedPlayerName';
+import { clearMatchesState } from '@/lib/matchState';
 
 // Simple types
 type Profile = {
@@ -203,6 +204,12 @@ export default function MatchesPage() {
       const { data: userData, error: userError } = await supabase.auth.getUser();
       if (userError || !userData.user) {
         setUser(null);
+        clearMatchesState({
+          setMatches,
+          setProfiles,
+          setCurrentPage,
+          setTotalPages,
+        });
         setLoading(false);
         return;
       }

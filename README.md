@@ -1,17 +1,23 @@
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
-## Getting Started
+## Configuration
 
-First, run the development server:
+This project relies on Supabase for authentication and data. Create a `.env.local` file in the project root and add the following environment variables before running the app:
 
 ```bash
+NEXT_PUBLIC_SUPABASE_URL="<your Supabase project URL>"
+NEXT_PUBLIC_SUPABASE_ANON_KEY="<your Supabase anon/public API key>"
+```
+
+If you do not have a Supabase project yet, create one at [supabase.com](https://supabase.com), then copy the project URL and anon key from Project Settings → API.
+
+## Getting Started
+
+First, install dependencies and start the development server:
+
+```bash
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.

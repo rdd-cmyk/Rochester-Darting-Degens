@@ -4,22 +4,24 @@ import { supabase } from "@/lib/supabaseClient";
 
 type Props = {
   children: React.ReactNode;
-  params: { id: string };
+  params: Promise<{ id: string }>;
 };
 
 export async function generateMetadata({
   params,
 }: {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }): Promise<Metadata> {
-  if (!params?.id) {
+  const resolvedParams = await params;
+
+  if (!resolvedParams?.id) {
     return { title: "Profile" };
   }
 
   const { data, error } = await supabase
     .from("profiles")
     .select("display_name, first_name")
-    .eq("id", params.id)
+    .eq("id", resolvedParams.id)
     .single();
 
   if (error) {
@@ -35,6 +37,6 @@ export async function generateMetadata({
   };
 }
 
-export default function ProfileLayout({ children }: Props) {
+export default async function ProfileLayout({ children }: Props) {
   return <>{children}</>;
 }

@@ -15,6 +15,7 @@ export default function AuthPage() {
   const [displayName, setDisplayName] = useState('');
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [user, setUser] = useState<any>(null);
@@ -327,15 +328,29 @@ export default function AuthPage() {
         </div>
 
         <div style={{ marginBottom: '0.5rem' }}>
-          <label>
-            Password:{' '}
+          <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <span>Password:</span>
             <input
-              type="password"
+              type={showPassword ? 'text' : 'password'}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               autoComplete={isSignUp ? 'new-password' : 'current-password'}
               required
             />
+            <button
+              type="button"
+              onClick={() => setShowPassword((prev) => !prev)}
+              style={{
+                padding: '0.25rem 0.5rem',
+                borderRadius: '0.25rem',
+                border: '1px solid #ccc',
+                backgroundColor: '#f3f4f6',
+                color: '#0366d6',
+                cursor: 'pointer',
+              }}
+            >
+              {showPassword ? 'Hide' : 'Show'}
+            </button>
           </label>
         </div>
 

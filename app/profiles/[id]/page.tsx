@@ -107,7 +107,7 @@ export default function ProfilePage() {
           `
           is_winner,
           score,
-          matches (
+          matches!inner (
             game_type,
             played_at
           )

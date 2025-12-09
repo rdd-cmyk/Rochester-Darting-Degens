@@ -93,7 +93,7 @@ export default function Home() {
             display_name,
             first_name
           ),
-          matches (
+          matches!inner (
             game_type,
             played_at
           )

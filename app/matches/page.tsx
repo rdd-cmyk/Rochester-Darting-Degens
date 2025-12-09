@@ -50,6 +50,7 @@ export default function MatchesPage() {
   const [profiles, setProfiles] = useState<Profile[]>([]);
   const [matches, setMatches] = useState<Match[]>([]);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [isDarkMode, setIsDarkMode] = useState(false);
 
   // Form state
   const [gameType, setGameType] = useState('501');
@@ -72,6 +73,8 @@ export default function MatchesPage() {
   const PAGE_SIZE = 10;
 
   const isCricket = gameType === 'Cricket';
+  const selectTextColor = isDarkMode ? '#fff' : '#000';
+  const optionTextColor = '#000';
 
   const player1Profile =
     profiles.find((p) => p.id === playerEntries[0]?.playerId) || null;
@@ -233,6 +236,22 @@ export default function MatchesPage() {
     }
 
     load();
+  }, []);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+
+    const handleChange = (event: MediaQueryListEvent) => {
+      setIsDarkMode(event.matches);
+    };
+
+    setIsDarkMode(mediaQuery.matches);
+
+    mediaQuery.addEventListener('change', handleChange);
+
+    return () => mediaQuery.removeEventListener('change', handleChange);
   }, []);
 
   function resetForm() {
@@ -589,27 +608,27 @@ export default function MatchesPage() {
         >
           {/* Game type */}
           <div>
-            <label>
-              Game type:{' '}
-              <select
-                value={gameType}
-                onChange={(e) => setGameType(e.target.value)}
-                style={{ color: '#fff' }}
-              >
-                <option value="501" style={{ color: '#000' }}>
-                  501
-                </option>
-                <option value="301" style={{ color: '#000' }}>
-                  301
-                </option>
-                <option value="Cricket" style={{ color: '#000' }}>
-                  Cricket
-                </option>
-                <option value="Other" style={{ color: '#000' }}>
-                  Other
-                </option>
-              </select>
-            </label>
+              <label>
+                Game type:{' '}
+                <select
+                  value={gameType}
+                  onChange={(e) => setGameType(e.target.value)}
+                style={{ color: selectTextColor }}
+                >
+                  <option value="501" style={{ color: optionTextColor }}>
+                    501
+                  </option>
+                  <option value="301" style={{ color: optionTextColor }}>
+                    301
+                  </option>
+                  <option value="Cricket" style={{ color: optionTextColor }}>
+                    Cricket
+                  </option>
+                  <option value="Other" style={{ color: optionTextColor }}>
+                    Other
+                  </option>
+                </select>
+              </label>
           </div>
 
           {/* Notes */}
@@ -627,20 +646,20 @@ export default function MatchesPage() {
 
           {/* Number of players */}
           <div>
-            <label>
-              Number of players:{' '}
-              <select
-                value={numPlayers}
-                onChange={(e) => handleNumPlayersChange(e.target.value)}
-                style={{ color: '#fff' }}
-              >
-                {Array.from({ length: 9 }, (_, i) => i + 2).map((n) => (
-                  <option key={n} value={n} style={{ color: '#000' }}>
-                    {n}
-                  </option>
-                ))}
-              </select>
-            </label>
+              <label>
+                Number of players:{' '}
+                <select
+                  value={numPlayers}
+                  onChange={(e) => handleNumPlayersChange(e.target.value)}
+                style={{ color: selectTextColor }}
+                >
+                  {Array.from({ length: 9 }, (_, i) => i + 2).map((n) => (
+                    <option key={n} value={n} style={{ color: optionTextColor }}>
+                      {n}
+                    </option>
+                  ))}
+                </select>
+              </label>
           </div>
 
           {/* Dynamic players */}
@@ -668,16 +687,16 @@ export default function MatchesPage() {
                       onChange={(e) =>
                         handlePlayerChange(index, e.target.value)
                       }
-                      style={{ color: '#fff' }}
+                      style={{ color: selectTextColor }}
                     >
-                      <option value="" style={{ color: '#000' }}>
+                      <option value="" style={{ color: optionTextColor }}>
                         -- choose player --
                       </option>
                       {profiles.map((p) => (
                         <option
                           key={p.id}
                           value={p.id}
-                          style={{ color: '#000' }}
+                          style={{ color: optionTextColor }}
                         >
                           {formatPlayerName(p.display_name, p.first_name)}
                         </option>
@@ -708,9 +727,9 @@ export default function MatchesPage() {
               <select
                 value={winnerPlayerId}
                 onChange={(e) => setWinnerPlayerId(e.target.value)}
-                style={{ color: '#fff' }}
+                style={{ color: selectTextColor }}
               >
-                <option value="" style={{ color: '#000' }}>
+                <option value="" style={{ color: optionTextColor }}>
                   -- select winner --
                 </option>
                 {playerEntries.slice(0, numPlayers).map((entry, index) => {
@@ -724,16 +743,16 @@ export default function MatchesPage() {
                     ? `Player ${index + 1}`
                     : `Player ${index + 1} (select player above)`;
 
-                  return (
-                    <option
-                      key={entry.playerId || `winner-${index}`}
-                      value={entry.playerId}
-                      disabled={!entry.playerId}
-                      style={{ color: '#000' }}
-                    >
-                      {label}
-                    </option>
-                  );
+                    return (
+                      <option
+                        key={entry.playerId || `winner-${index}`}
+                        value={entry.playerId}
+                        disabled={!entry.playerId}
+                        style={{ color: optionTextColor }}
+                      >
+                        {label}
+                      </option>
+                    );
                 })}
               </select>
             </label>
@@ -746,15 +765,15 @@ export default function MatchesPage() {
               <select
                 value={boardType}
                 onChange={(e) => setBoardType(e.target.value)}
-                style={{ color: '#fff' }}
+                style={{ color: selectTextColor }}
               >
-                <option value="" style={{ color: '#000' }}>
+                <option value="" style={{ color: optionTextColor }}>
                   -- choose --
                 </option>
-                <option value="Soft Tip" style={{ color: '#000' }}>
+                <option value="Soft Tip" style={{ color: optionTextColor }}>
                   Soft Tip
                 </option>
-                <option value="Steel Tip" style={{ color: '#000' }}>
+                <option value="Steel Tip" style={{ color: optionTextColor }}>
                   Steel Tip
                 </option>
               </select>

@@ -79,7 +79,20 @@ export default function Home() {
         return;
       }
 
-      const rows = (data || []) as MatchRow[];
+      // Normalize Supabase response so profiles/matches are single objects, not arrays
+      const rawRows = (data || []) as any[];
+
+      const rows: MatchRow[] = rawRows.map((r) => ({
+        player_id: r.player_id,
+        is_winner: r.is_winner,
+        score: r.score,
+        profiles: Array.isArray(r.profiles)
+          ? (r.profiles[0] ?? null)
+          : (r.profiles ?? null),
+        matches: Array.isArray(r.matches)
+          ? (r.matches[0] ?? null)
+          : (r.matches ?? null),
+      }));
 
       // Overall W/L + games
       const wlMap = new Map<

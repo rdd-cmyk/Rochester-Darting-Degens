@@ -122,7 +122,15 @@ export default function ProfilePage() {
         // We'll still try to load recent matches below
       }
 
-      const rows = (matchesData || []) as MatchRowForStats[];
+      const rawRows = (matchesData || []) as any[];
+
+const rows: MatchRowForStats[] = rawRows.map((r) => ({
+  is_winner: r.is_winner,
+  score: r.score,
+  matches: Array.isArray(r.matches)
+    ? (r.matches[0] ?? null)
+    : (r.matches ?? null),
+}));
 
       // Aggregate stats for this player
       let games = 0;
@@ -295,7 +303,19 @@ if (playerMatchError) {
         return;
       }
 
-      setRecentMatches((matchesDetailData as MatchSummary[]) || []);
+      const rawMatchDetails = (matchesDetailData || []) as any[];
+
+const normalizedMatchDetails: MatchSummary[] = rawMatchDetails.map((m) => ({
+  ...m,
+  match_players: (m.match_players || []).map((mp: any) => ({
+    ...mp,
+    profiles: Array.isArray(mp.profiles)
+      ? (mp.profiles[0] ?? null)
+      : (mp.profiles ?? null),
+  })),
+}));
+
+setRecentMatches(normalizedMatchDetails);
       setLoading(false);
     }
 

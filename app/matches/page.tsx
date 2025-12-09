@@ -13,16 +13,19 @@ type Profile = {
   first_name: string | null;
 };
 
+type MatchPlayerProfile = {
+  display_name: string | null;
+  first_name: string | null;
+};
+
 type MatchPlayer = {
   id: number;
   match_id: number;
   player_id: string;
   score: number | null;
   is_winner: boolean | null;
-  profiles?: {
-    display_name: string | null;
-    first_name: string | null;
-  } | null;
+  // Supabase returns an ARRAY of profiles for this relation
+  profiles?: MatchPlayerProfile[] | null;
 };
 
 type Match = {
@@ -177,7 +180,7 @@ export default function MatchesPage() {
       throw matchesError;
     }
 
-    setMatches((matchesData as Match[]) || []);
+    setMatches((matchesData ?? []) as Match[]);
 
     if (typeof count === 'number') {
       const pages = Math.max(1, Math.ceil(count / PAGE_SIZE));
@@ -886,7 +889,9 @@ export default function MatchesPage() {
                       Players:
                       <ul style={{ margin: '0.25rem 0 0 1rem' }}>
                         {(m.match_players || []).map((mp) => {
-                          const prof = mp.profiles;
+                          const prof = (Array.isArray(mp.profiles)
+  ? mp.profiles[0]
+  : mp.profiles) as { display_name: string | null; first_name: string | null } | null;
 
                           return (
                             <li key={mp.id}>

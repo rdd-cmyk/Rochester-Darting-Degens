@@ -5,6 +5,11 @@
   --foreground: #171717;
   --font-geist-sans: Arial, Helvetica, sans-serif;
   --font-geist-mono: "Courier New", monospace;
+  --input-border: #d1d5db;
+  --input-bg: #ffffff;
+  --input-text: #0f172a;
+  --input-placeholder: #6b7280;
+  --focus-ring: #0366d6;
 }
 
 @theme inline {
@@ -18,6 +23,11 @@
   :root {
     --background: #0a0a0a;
     --foreground: #ededed;
+    --input-border: #4b5563;
+    --input-bg: #0f172a;
+    --input-text: #e5e7eb;
+    --input-placeholder: #9ca3af;
+    --focus-ring: #60a5fa;
   }
 }
 
@@ -25,4 +35,41 @@ body {
   background: var(--background);
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
+}
+
+input,
+select,
+textarea {
+  border: 1px solid var(--input-border);
+  background-color: var(--input-bg);
+  color: var(--input-text);
+  border-radius: 0.5rem;
+  padding: 0.45rem 0.6rem;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease,
+    background-color 0.15s ease, color 0.15s ease;
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: var(--input-placeholder);
+  opacity: 1;
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+  outline: none;
+  border-color: var(--focus-ring);
+  box-shadow: 0 0 0 3px color-mix(
+      in srgb,
+      var(--focus-ring) 35%,
+      transparent
+    );
+}
+
+input:disabled,
+select:disabled,
+textarea:disabled {
+  cursor: not-allowed;
+  opacity: 0.7;
 }

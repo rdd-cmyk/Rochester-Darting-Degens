@@ -2,8 +2,9 @@
 
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
+import { Suspense } from 'react';
 
-export default function VerifyEmailPage() {
+function VerifyEmailContent() {
   const searchParams = useSearchParams();
   const email = searchParams.get('email');
 
@@ -31,5 +32,13 @@ export default function VerifyEmailPage() {
         to access matches and more.
       </p>
     </main>
+  );
+}
+
+export default function VerifyEmailPage() {
+  return (
+    <Suspense fallback={<main style={{ padding: '2rem', fontFamily: 'sans-serif' }}>Loading...</main>}>
+      <VerifyEmailContent />
+    </Suspense>
   );
 }

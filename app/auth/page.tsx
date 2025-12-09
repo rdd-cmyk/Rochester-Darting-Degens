@@ -66,7 +66,17 @@ export default function AuthPage() {
     }
 
     try {
-      const { data, error } = await supabase.auth.signUp({ email, password });
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: {
+            display_name: displayName.trim(),
+            first_name: firstName.trim(),
+            last_name: lastName.trim(),
+          },
+        },
+      });
 
       if (error) {
         setMessage('Sign up error: ' + error.message);

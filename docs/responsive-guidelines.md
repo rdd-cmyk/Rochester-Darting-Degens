@@ -33,3 +33,8 @@ These guidelines apply across the app (home, matches, profiles, auth, leaderboar
   - Tables have a stacked fallback.
   - Buttons and links remain comfortably tappable.
   - Typography remains legible and consistent.
+
+## Coverage checklist for merges
+- Confirm every page is considered when making responsive adjustments: home, matches, profiles (list and detail), auth, reset-password, test-supabase, and any new routes.
+- Re-run `npm run lint` and `npm run build` after resolving merge conflicts in `app/page.tsx`, `app/matches/page.tsx`, `app/profile/page.tsx`, `app/profiles/[id]/page.tsx`, `app/test-supabase/page.tsx`, and `lib/matchState.test.js` to ensure no regressions slip in.
+- When conflicts arise, prefer keeping shared utility classes and Supabase type definitions consistent across files to avoid reintroducing mobile or typing regressions.

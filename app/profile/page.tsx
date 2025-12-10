@@ -315,7 +315,7 @@ export default function ProfilePage() {
             fontSize: '1.35rem',
             fontWeight: 800,
             marginBottom: '0.25rem',
-            color: '#0f172a',
+            color: 'var(--foreground)',
           }}
         >
           Profile Details

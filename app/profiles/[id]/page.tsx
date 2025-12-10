@@ -24,6 +24,10 @@ type MatchRowForStats = {
   } | null;
 };
 
+type MatchRow = MatchRowForStats & {
+  matches: MatchRowForStats['matches'] | MatchRowForStats['matches'][] | null;
+};
+
 type MatchPlayerSummary = {
   id: number;
   match_id: number;
@@ -45,6 +49,13 @@ type MatchSummary = {
   venue: string | null;
   created_by: string | null;
   match_players: MatchPlayerSummary[] | null;
+};
+
+type MatchPlayerRow = MatchPlayerSummary & {
+  profiles:
+    | MatchPlayerSummary['profiles']
+    | MatchPlayerSummary['profiles'][]
+    | undefined;
 };
 
 type PlayerStatsSummary = {
@@ -122,15 +133,25 @@ export default function ProfilePage() {
         // We'll still try to load recent matches below
       }
 
-      const rawRows = (matchesData || []) as any[];
+      const isMatchRow = (row: unknown): row is MatchRow =>
+        typeof row === 'object' && row !== null && 'matches' in row;
 
-const rows: MatchRowForStats[] = rawRows.map((r) => ({
-  is_winner: r.is_winner,
-  score: r.score,
-  matches: Array.isArray(r.matches)
-    ? (r.matches[0] ?? null)
-    : (r.matches ?? null),
-}));
+      const rows: MatchRowForStats[] = (matchesData ?? []).map((r) => {
+        if (isMatchRow(r)) {
+          return {
+            ...r,
+            matches: Array.isArray(r.matches)
+              ? r.matches[0] ?? null
+              : r.matches ?? null,
+          };
+        }
+
+        return {
+          is_winner: null,
+          score: null,
+          matches: null,
+        };
+      });
 
       // Aggregate stats for this player
       let games = 0;
@@ -267,17 +288,32 @@ const rows: MatchRowForStats[] = rawRows.map((r) => ({
         return;
       }
 
-      const rawMatchDetails = (matchesDetailData || []) as any[];
+      const isMatchPlayerRow = (mp: unknown): mp is MatchPlayerRow =>
+        typeof mp === 'object' && mp !== null && 'profiles' in mp;
 
-      const normalizedMatchDetails: MatchSummary[] = rawMatchDetails.map((m) => ({
-        ...m,
-        match_players: (m.match_players || []).map((mp: any) => ({
-          ...mp,
-          profiles: Array.isArray(mp.profiles)
-            ? (mp.profiles[0] ?? null)
-            : (mp.profiles ?? null),
-        })),
-      }));
+      const normalizeProfile = (
+        profiles: MatchPlayerRow['profiles']
+      ): MatchPlayerSummary['profiles'] =>
+        Array.isArray(profiles) ? profiles[0] ?? null : profiles ?? null;
+
+      const normalizedMatchDetails: MatchSummary[] = (matchesDetailData ?? []).map(
+        (m) => ({
+          ...m,
+          match_players: (m.match_players || []).map((mp) => {
+            if (isMatchPlayerRow(mp)) {
+              return {
+                ...mp,
+                profiles: normalizeProfile(mp.profiles),
+              };
+            }
+
+            return {
+              ...(mp as MatchPlayerSummary),
+              profiles: null,
+            };
+          }),
+        })
+      );
 
       setRecentMatches(normalizedMatchDetails);
       setLoading(false);

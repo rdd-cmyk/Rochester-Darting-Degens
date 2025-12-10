@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { User } from '@supabase/supabase-js';
 import { supabase } from '@/lib/supabaseClient';
 
 type AuthMode = 'signIn' | 'signUp';
@@ -18,7 +19,7 @@ export default function AuthPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
-  const [user, setUser] = useState<any>(null);
+  const [user, setUser] = useState<User | null>(null);
 
   useEffect(() => {
     async function loadUser() {

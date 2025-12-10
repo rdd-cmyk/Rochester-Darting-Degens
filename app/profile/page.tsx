@@ -36,13 +36,15 @@ export default function ProfilePage() {
     flexDirection: 'column' as const,
     gap: '0.75rem',
     maxWidth: '520px',
+    width: '100%',
   };
 
   const fieldRowStyle = {
     display: 'grid',
-    gridTemplateColumns: '150px 1fr',
+    gridTemplateColumns: 'var(--form-grid-columns)',
     alignItems: 'center',
     columnGap: '0.75rem',
+    rowGap: '0.35rem',
     width: '100%',
   } as const;
 
@@ -53,7 +55,7 @@ export default function ProfilePage() {
 
   const controlStyle = {
     width: '100%',
-    maxWidth: '260px',
+    maxWidth: 'var(--form-control-max)',
   } as const;
 
   useEffect(() => {
@@ -196,12 +198,7 @@ export default function ProfilePage() {
 
   if (loadingUser || loadingProfile) {
     return (
-      <main
-        style={{
-          padding: '2rem',
-          fontFamily: 'sans-serif',
-        }}
-      >
+      <main className="page-shell" style={{ maxWidth: '680px' }}>
         <h1>My Profile</h1>
         <p>Loading...</p>
       </main>
@@ -210,12 +207,7 @@ export default function ProfilePage() {
 
   if (!user) {
     return (
-      <main
-        style={{
-          padding: '2rem',
-          fontFamily: 'sans-serif',
-        }}
-      >
+      <main className="page-shell" style={{ maxWidth: '680px' }}>
         <h1>My Profile</h1>
         <p>You must be signed in to view or edit your profile.</p>
         <p>
@@ -237,14 +229,12 @@ export default function ProfilePage() {
 
   return (
     <main
+      className="page-shell"
       style={{
-        padding: '2rem',
-        fontFamily: 'sans-serif',
-        maxWidth: '600px',
-        margin: '0 auto',
+        maxWidth: '680px',
         display: 'flex',
         flexDirection: 'column',
-        gap: '1.5rem',
+        gap: 'var(--section-gap)',
       }}
     >
       <header>
@@ -395,13 +385,7 @@ export default function ProfilePage() {
           </div>
 
           {editMode && (
-            <div
-              style={{
-                display: 'flex',
-                gap: '0.5rem',
-                marginTop: '0.5rem',
-              }}
-            >
+            <div className="button-row" style={{ marginTop: '0.5rem' }}>
               <button
                 type="submit"
                 disabled={saving}

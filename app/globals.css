@@ -10,6 +10,17 @@
   --input-text: #0f172a;
   --input-placeholder: #6b7280;
   --focus-ring: #0366d6;
+  --page-padding: 2rem;
+  --page-max-width: 1100px;
+  --section-gap: 2rem;
+  --form-grid-columns: 150px 1fr;
+  --form-control-max: 260px;
+  --nav-direction: row;
+  --nav-align: center;
+  --nav-gap: 1rem;
+  --nav-row-gap: 0;
+  --nav-actions-justify: flex-end;
+  --nav-actions-margin-left: auto;
 }
 
 @theme inline {
@@ -28,6 +39,45 @@
     --input-text: #e5e7eb;
     --input-placeholder: #9ca3af;
     --focus-ring: #60a5fa;
+  }
+}
+
+@media (max-width: 900px) {
+  :root {
+    --page-padding: 1.5rem;
+  }
+}
+
+@media (max-width: 768px) {
+  :root {
+    --page-padding: 1.25rem;
+    --nav-gap: 0.75rem;
+    --nav-row-gap: 0.5rem;
+  }
+}
+
+@media (max-width: 640px) {
+  :root {
+    --page-padding: 1rem;
+    --section-gap: 1.25rem;
+    --form-grid-columns: 1fr;
+    --form-control-max: 100%;
+    --nav-direction: column;
+    --nav-align: stretch;
+    --nav-row-gap: 0.75rem;
+    --nav-actions-justify: flex-start;
+    --nav-actions-margin-left: 0;
+  }
+
+  .button-row,
+  .card-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .card-actions button,
+  .button-row button {
+    width: 100%;
   }
 }
 
@@ -72,4 +122,67 @@ select:disabled,
 textarea:disabled {
   cursor: not-allowed;
   opacity: 0.7;
+}
+
+.page-shell {
+  padding: var(--page-padding);
+  font-family: var(--font-geist-sans);
+  max-width: var(--page-max-width);
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: var(--section-gap);
+  width: 100%;
+}
+
+.section-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: var(--form-grid-columns);
+  align-items: center;
+  column-gap: 0.75rem;
+  row-gap: 0.35rem;
+  width: 100%;
+}
+
+.form-label {
+  min-width: 150px;
+  font-weight: 600;
+}
+
+.form-control {
+  width: 100%;
+  max-width: var(--form-control-max);
+}
+
+.button-row {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.navbar-shell {
+  display: flex;
+  flex-direction: var(--nav-direction);
+  padding: 1rem;
+  background-color: #222;
+  color: white;
+  align-items: var(--nav-align);
+  gap: var(--nav-gap);
+  row-gap: var(--nav-row-gap);
+}
+
+.navbar-actions {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+  justify-content: var(--nav-actions-justify);
+  margin-left: var(--nav-actions-margin-left);
+  flex-wrap: wrap;
 }

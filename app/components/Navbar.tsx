@@ -76,16 +76,7 @@ export default function Navbar() {
   }, [user]);
 
   return (
-    <nav
-      style={{
-        display: "flex",
-        padding: "1rem",
-        backgroundColor: "#222",
-        color: "white",
-        alignItems: "center",
-        gap: "1rem",
-      }}
-    >
+    <nav className="navbar-shell">
       <Link style={linkStyle} href="/">
         Home
       </Link>
@@ -96,9 +87,9 @@ export default function Navbar() {
         <Link style={linkStyle} href="/profile">
           My Profile
         </Link>
-	  )}
+          )}
 
-      <div style={{ marginLeft: "auto" }}>
+      <div className="navbar-actions">
         {loading ? null : user ? (
           <button
             onClick={handleSignOut}

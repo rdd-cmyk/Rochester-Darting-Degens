@@ -185,13 +185,15 @@ export default function AuthPage() {
     flexDirection: 'column' as const,
     gap: '0.75rem',
     maxWidth: '520px',
+    width: '100%',
   };
 
   const fieldRowStyle = {
     display: 'grid',
-    gridTemplateColumns: '150px 1fr',
+    gridTemplateColumns: 'var(--form-grid-columns)',
     alignItems: 'center',
     columnGap: '0.75rem',
+    rowGap: '0.35rem',
     width: '100%',
   } as const;
 
@@ -202,13 +204,13 @@ export default function AuthPage() {
 
   const controlStyle = {
     width: '100%',
-    maxWidth: '260px',
+    maxWidth: 'var(--form-control-max)',
   } as const;
 
   // Logged-in view (brief because we redirect, but kept as fallback)
   if (user) {
     return (
-      <main style={{ padding: '2rem', fontFamily: 'sans-serif' }}>
+      <main className="page-shell" style={{ maxWidth: '700px' }}>
         <h1>Rochester Darting Degens – Account</h1>
         <p>
           Logged in as <strong>{user.email}</strong>
@@ -238,7 +240,7 @@ export default function AuthPage() {
 
   // Logged-out view
   return (
-    <main style={{ padding: '2rem', fontFamily: 'sans-serif' }}>
+    <main className="page-shell" style={{ maxWidth: '720px' }}>
       <h1>
         {isSignUp
           ? 'Create your RDD account'

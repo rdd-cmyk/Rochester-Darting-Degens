@@ -83,13 +83,14 @@ export default function MatchesPage() {
     flexDirection: 'column' as const,
     gap: '0.75rem',
     maxWidth: '520px',
+    width: '100%',
   };
 
   const fieldRowStyle = {
-    display: 'flex',
+    display: 'grid',
     alignItems: 'center',
     gap: '0.75rem',
-    justifyContent: 'space-between',
+    gridTemplateColumns: 'var(--form-grid-columns)',
     width: '100%',
   } as const;
 
@@ -99,8 +100,8 @@ export default function MatchesPage() {
   };
 
   const controlStyle = {
-    flex: 1,
-    maxWidth: '260px',
+    width: '100%',
+    maxWidth: 'var(--form-control-max)',
   } as const;
 
   const selectStyle = {
@@ -539,7 +540,7 @@ export default function MatchesPage() {
 
   if (loading) {
     return (
-      <main style={{ padding: '2rem', fontFamily: 'sans-serif' }}>
+      <main className="page-shell" style={{ maxWidth: '820px' }}>
         <h1>Matches</h1>
         <p>Loading...</p>
       </main>
@@ -548,7 +549,7 @@ export default function MatchesPage() {
 
   if (!user) {
     return (
-      <main style={{ padding: '2rem', fontFamily: 'sans-serif' }}>
+      <main className="page-shell" style={{ maxWidth: '820px' }}>
         <h1>Matches</h1>
         <p>You must be signed in to view and add matches.</p>
         <p>
@@ -570,14 +571,12 @@ export default function MatchesPage() {
 
   return (
     <main
+      className="page-shell"
       style={{
-        padding: '2rem',
-        fontFamily: 'sans-serif',
         display: 'flex',
         flexDirection: 'column',
-        gap: '2rem',
+        gap: 'var(--section-gap)',
         maxWidth: '800px',
-        margin: '0 auto',
       }}
     >
       <header>
@@ -825,14 +824,7 @@ export default function MatchesPage() {
             />
           </div>
 
-          <div
-            style={{
-              display: 'flex',
-              gap: '0.5rem',
-              alignItems: 'center',
-              marginTop: '0.5rem',
-            }}
-          >
+          <div className="button-row" style={{ marginTop: '0.5rem' }}>
             <button
               type="submit"
               style={{
@@ -846,7 +838,7 @@ export default function MatchesPage() {
               }}
             >
               {editingMatchId ? 'Save changes' : 'Save match'}
-            </button>
+              </button>
 
             {editingMatchId && (
               <button
@@ -921,6 +913,7 @@ export default function MatchesPage() {
                         justifyContent: 'space-between',
                         alignItems: 'center',
                         gap: '0.5rem',
+                        flexWrap: 'wrap',
                       }}
                     >
                       <div>

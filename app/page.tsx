@@ -338,15 +338,11 @@ export default function Home() {
 
   return (
     <main
+      className="page-shell"
       style={{
-        padding: '2rem',
-        fontFamily: 'sans-serif',
         minHeight: '100vh',
-        display: 'flex',
-        flexDirection: 'column',
-        gap: '2rem',
+        gap: 'var(--section-gap)',
         maxWidth: '1000px',
-        margin: '0 auto',
       }}
     >
       {/* Intro / hero */}

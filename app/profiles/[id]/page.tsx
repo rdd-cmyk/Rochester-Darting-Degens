@@ -333,7 +333,7 @@ export default function ProfilePage() {
 
   if (loading) {
     return (
-      <main style={{ padding: '2rem', fontFamily: 'sans-serif' }}>
+      <main className="page-shell" style={{ maxWidth: '820px' }}>
         <h1>Player Profile</h1>
         <p>Loading...</p>
       </main>
@@ -342,7 +342,7 @@ export default function ProfilePage() {
 
   if (errorMessage || !profile) {
     return (
-      <main style={{ padding: '2rem', fontFamily: 'sans-serif' }}>
+      <main className="page-shell" style={{ maxWidth: '820px' }}>
         <h1>Player Profile</h1>
         <p style={{ color: 'red' }}>
           {errorMessage || 'Profile not found.'}
@@ -377,14 +377,12 @@ export default function ProfilePage() {
 
   return (
     <main
+      className="page-shell"
       style={{
-        padding: '2rem',
-        fontFamily: 'sans-serif',
-        maxWidth: '800px',
-        margin: '0 auto',
+        maxWidth: '820px',
         display: 'flex',
         flexDirection: 'column',
-        gap: '1.5rem',
+        gap: 'var(--section-gap)',
       }}
     >
       <header>

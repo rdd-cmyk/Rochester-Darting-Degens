@@ -77,6 +77,31 @@ export default function MatchesPage() {
   const selectTextColor = isDarkMode ? '#fff' : '#000';
   const optionTextColor = '#000';
 
+  const formStyle = {
+    display: 'flex',
+    flexDirection: 'column' as const,
+    gap: '0.75rem',
+    maxWidth: '520px',
+  };
+
+  const fieldRowStyle = {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '0.75rem',
+    justifyContent: 'space-between',
+    width: '100%',
+  } as const;
+
+  const labelTextStyle = {
+    minWidth: '150px',
+    fontWeight: 600,
+  };
+
+  const controlStyle = {
+    flex: 1,
+    maxWidth: '260px',
+  } as const;
+
   const player1Profile =
     profiles.find((p) => p.id === playerEntries[0]?.playerId) || null;
   const player2Profile =
@@ -584,7 +609,17 @@ export default function MatchesPage() {
 
       {/* Add / Edit Match Form */}
       <section>
-        <h2>{editingMatchId ? 'Edit Match' : 'Record a New Match'}</h2>
+        <h2
+          style={{
+            fontSize: '1.6rem',
+            fontWeight: 800,
+            marginBottom: '0.75rem',
+            paddingBottom: '0.35rem',
+            borderBottom: '2px solid #e2e8f0',
+          }}
+        >
+          {editingMatchId ? 'Edit Match' : 'Record a New Match'}
+        </h2>
         {profiles.length < 2 && (
           <p style={{ color: 'orange' }}>
             You currently have fewer than 2 profiles. Ask your friends to sign
@@ -604,69 +639,56 @@ export default function MatchesPage() {
           </p>
         )}
 
-        <form
-          onSubmit={handleSaveMatch}
-          style={{
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '0.75rem',
-            maxWidth: '400px',
-          }}
-        >
+        <form onSubmit={handleSaveMatch} style={formStyle}>
           {/* Game type */}
-          <div>
-              <label>
-                Game type:{' '}
-                <select
-                  value={gameType}
-                  onChange={(e) => setGameType(e.target.value)}
-                style={{ color: selectTextColor }}
-                >
-                  <option value="501" style={{ color: optionTextColor }}>
-                    501
-                  </option>
-                  <option value="301" style={{ color: optionTextColor }}>
-                    301
-                  </option>
-                  <option value="Cricket" style={{ color: optionTextColor }}>
-                    Cricket
-                  </option>
-                  <option value="Other" style={{ color: optionTextColor }}>
-                    Other
-                  </option>
-                </select>
-              </label>
+          <div style={fieldRowStyle}>
+            <span style={labelTextStyle}>Game type</span>
+            <select
+              value={gameType}
+              onChange={(e) => setGameType(e.target.value)}
+              style={{ ...controlStyle, color: selectTextColor }}
+            >
+              <option value="501" style={{ color: optionTextColor }}>
+                501
+              </option>
+              <option value="301" style={{ color: optionTextColor }}>
+                301
+              </option>
+              <option value="Cricket" style={{ color: optionTextColor }}>
+                Cricket
+              </option>
+              <option value="Other" style={{ color: optionTextColor }}>
+                Other
+              </option>
+            </select>
           </div>
 
           {/* Notes */}
-          <div>
-            <label>
-              Notes:{' '}
-              <input
-                type="text"
-                value={notes}
-                onChange={(e) => setNotes(e.target.value)}
-                placeholder="'Other' game type, e.g."
-              />
-            </label>
+          <div style={fieldRowStyle}>
+            <span style={labelTextStyle}>Notes</span>
+            <input
+              type="text"
+              value={notes}
+              onChange={(e) => setNotes(e.target.value)}
+              placeholder="'Other' game type, e.g."
+              style={controlStyle}
+            />
           </div>
 
           {/* Number of players */}
-          <div>
-              <label>
-                Number of players:{' '}
-                <select
-                  value={numPlayers}
-                  onChange={(e) => handleNumPlayersChange(e.target.value)}
-                style={{ color: selectTextColor }}
-                >
-                  {Array.from({ length: 9 }, (_, i) => i + 2).map((n) => (
-                    <option key={n} value={n} style={{ color: optionTextColor }}>
-                      {n}
-                    </option>
-                  ))}
-                </select>
-              </label>
+          <div style={fieldRowStyle}>
+            <span style={labelTextStyle}>Number of players</span>
+            <select
+              value={numPlayers}
+              onChange={(e) => handleNumPlayersChange(e.target.value)}
+              style={{ ...controlStyle, color: selectTextColor }}
+            >
+              {Array.from({ length: 9 }, (_, i) => i + 2).map((n) => (
+                <option key={n} value={n} style={{ color: optionTextColor }}>
+                  {n}
+                </option>
+              ))}
+            </select>
           </div>
 
           {/* Dynamic players */}
@@ -686,118 +708,105 @@ export default function MatchesPage() {
                   marginTop: '0.25rem',
                 }}
               >
-                <div>
-                  <label>
-                    {playerLabel}:{' '}
-                    <select
-                      value={entry.playerId}
-                      onChange={(e) =>
-                        handlePlayerChange(index, e.target.value)
-                      }
-                      style={{ color: selectTextColor }}
-                    >
-                      <option value="" style={{ color: optionTextColor }}>
-                        -- choose player --
+                <div style={fieldRowStyle}>
+                  <span style={labelTextStyle}>{playerLabel}</span>
+                  <select
+                    value={entry.playerId}
+                    onChange={(e) => handlePlayerChange(index, e.target.value)}
+                    style={{ ...controlStyle, color: selectTextColor }}
+                  >
+                    <option value="" style={{ color: optionTextColor }}>
+                      -- choose player --
+                    </option>
+                    {profiles.map((p) => (
+                      <option
+                        key={p.id}
+                        value={p.id}
+                        style={{ color: optionTextColor }}
+                      >
+                        {formatPlayerName(p.display_name, p.first_name)}
                       </option>
-                      {profiles.map((p) => (
-                        <option
-                          key={p.id}
-                          value={p.id}
-                          style={{ color: optionTextColor }}
-                        >
-                          {formatPlayerName(p.display_name, p.first_name)}
-                        </option>
-                      ))}
-                    </select>
-                  </label>
+                    ))}
+                  </select>
                 </div>
-                <div style={{ marginTop: '0.25rem' }}>
-                  <label>
-                    {statLabel}:{' '}
-                    <input
-                      type="number"
-                      step="0.01"
-                      value={entry.stat}
-                      onChange={(e) => handleStatChange(index, e.target.value)}
-                      placeholder={isCricket ? 'e.g. 3.25' : 'e.g. 87.50'}
-                    />
-                  </label>
+                <div style={{ ...fieldRowStyle, marginTop: '0.25rem' }}>
+                  <span style={labelTextStyle}>{statLabel}</span>
+                  <input
+                    type="number"
+                    step="0.01"
+                    value={entry.stat}
+                    onChange={(e) => handleStatChange(index, e.target.value)}
+                    placeholder={isCricket ? 'e.g. 3.25' : 'e.g. 87.50'}
+                    style={controlStyle}
+                  />
                 </div>
               </div>
             );
           })}
 
           {/* Winner selection */}
-          <div>
-            <label>
-              Winner:{' '}
-              <select
-                value={winnerPlayerId}
-                onChange={(e) => setWinnerPlayerId(e.target.value)}
-                style={{ color: selectTextColor }}
-              >
-                <option value="" style={{ color: optionTextColor }}>
-                  -- select winner --
-                </option>
-                {playerEntries.slice(0, numPlayers).map((entry, index) => {
-                  const profile = profiles.find((p) => p.id === entry.playerId);
-                  const label = profile
-                    ? formatPlayerName(
-                        profile.display_name,
-                        profile.first_name
-                      )
-                    : entry.playerId
-                    ? `Player ${index + 1}`
-                    : `Player ${index + 1} (select player above)`;
+          <div style={fieldRowStyle}>
+            <span style={labelTextStyle}>Winner</span>
+            <select
+              value={winnerPlayerId}
+              onChange={(e) => setWinnerPlayerId(e.target.value)}
+              style={{ ...controlStyle, color: selectTextColor }}
+            >
+              <option value="" style={{ color: optionTextColor }}>
+                -- select winner --
+              </option>
+              {playerEntries.slice(0, numPlayers).map((entry, index) => {
+                const profile = profiles.find((p) => p.id === entry.playerId);
+                const label = profile
+                  ? formatPlayerName(profile.display_name, profile.first_name)
+                  : entry.playerId
+                  ? `Player ${index + 1}`
+                  : `Player ${index + 1} (select player above)`;
 
-                    return (
-                      <option
-                        key={entry.playerId || `winner-${index}`}
-                        value={entry.playerId}
-                        disabled={!entry.playerId}
-                        style={{ color: optionTextColor }}
-                      >
-                        {label}
-                      </option>
-                    );
-                })}
-              </select>
-            </label>
+                return (
+                  <option
+                    key={entry.playerId || `winner-${index}`}
+                    value={entry.playerId}
+                    disabled={!entry.playerId}
+                    style={{ color: optionTextColor }}
+                  >
+                    {label}
+                  </option>
+                );
+              })}
+            </select>
           </div>
 
           {/* Board type */}
-          <div>
-            <label>
-              Board type:{' '}
-              <select
-                value={boardType}
-                onChange={(e) => setBoardType(e.target.value)}
-                style={{ color: selectTextColor }}
-              >
-                <option value="" style={{ color: optionTextColor }}>
-                  -- choose --
-                </option>
-                <option value="Soft Tip" style={{ color: optionTextColor }}>
-                  Soft Tip
-                </option>
-                <option value="Steel Tip" style={{ color: optionTextColor }}>
-                  Steel Tip
-                </option>
-              </select>
-            </label>
+          <div style={fieldRowStyle}>
+            <span style={labelTextStyle}>Board type</span>
+            <select
+              value={boardType}
+              onChange={(e) => setBoardType(e.target.value)}
+              style={{ ...controlStyle, color: selectTextColor }}
+            >
+              <option value="" style={{ color: optionTextColor }}>
+                -- choose --
+              </option>
+              <option value="Soft Tip" style={{ color: optionTextColor }}>
+                Soft Tip
+              </option>
+              <option value="Steel Tip" style={{ color: optionTextColor }}>
+                Steel Tip
+              </option>
+            </select>
           </div>
 
           {/* Venue */}
-          <div>
-            <label>
-              Venue:{' '}
-              <input
-                type="text"
-                value={venue}
-                onChange={(e) => setVenue(e.target.value)}
-                placeholder="Radio Social, e.g."
-              />
-            </label>
+          <div style={fieldRowStyle}>
+            <span style={labelTextStyle}>Venue</span>
+            <input
+              type="text"
+              value={venue}
+              onChange={(e) => setVenue(e.target.value)}
+              placeholder="Radio Social, e.g."
+              style={controlStyle}
+            />
           </div>
 
           <div

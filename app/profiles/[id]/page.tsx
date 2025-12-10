@@ -296,6 +296,20 @@ export default function ProfilePage() {
       ): MatchPlayerSummary['profiles'] =>
         Array.isArray(profiles) ? profiles[0] ?? null : profiles ?? null;
 
+      const fallbackMatchPlayer = (mp: unknown): MatchPlayerSummary => {
+        const candidate = mp as Partial<MatchPlayerSummary>;
+
+        return {
+          id: typeof candidate.id === 'number' ? candidate.id : 0,
+          match_id: typeof candidate.match_id === 'number' ? candidate.match_id : 0,
+          player_id: typeof candidate.player_id === 'string' ? candidate.player_id : '',
+          score: typeof candidate.score === 'number' ? candidate.score : null,
+          is_winner:
+            typeof candidate.is_winner === 'boolean' ? candidate.is_winner : null,
+          profiles: null,
+        };
+      };
+
       const normalizedMatchDetails: MatchSummary[] = (matchesDetailData ?? []).map(
         (m) => ({
           ...m,
@@ -307,10 +321,7 @@ export default function ProfilePage() {
               };
             }
 
-            return {
-              ...(mp as MatchPlayerSummary),
-              profiles: null,
-            };
+            return fallbackMatchPlayer(mp);
           }),
         })
       );

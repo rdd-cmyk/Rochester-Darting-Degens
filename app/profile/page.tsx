@@ -30,6 +30,31 @@ export default function ProfilePage() {
   // Edit mode
   const [editMode, setEditMode] = useState(false);
 
+  const formStyle = {
+    display: 'flex',
+    flexDirection: 'column' as const,
+    gap: '0.75rem',
+    maxWidth: '520px',
+  };
+
+  const fieldRowStyle = {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '0.75rem',
+    justifyContent: 'space-between',
+    width: '100%',
+  } as const;
+
+  const labelTextStyle = {
+    minWidth: '150px',
+    fontWeight: 600,
+  };
+
+  const controlStyle = {
+    flex: 1,
+    maxWidth: '260px',
+  } as const;
+
   useEffect(() => {
     async function loadUserAndProfile() {
       setLoadingUser(true);
@@ -289,65 +314,69 @@ export default function ProfilePage() {
 
         <form
           onSubmit={handleSave}
-          style={{
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '0.75rem',
-          }}
+          style={formStyle}
         >
-          <div>
-            <label>
-              First name:{' '}
-              <input
-                type="text"
-                value={firstName}
-                onChange={(e) => setFirstName(e.target.value)}
-                disabled={!editMode}
-                required
-              />
+          <div style={fieldRowStyle}>
+            <label htmlFor="firstName" style={labelTextStyle}>
+              First name
             </label>
+            <input
+              id="firstName"
+              type="text"
+              value={firstName}
+              onChange={(e) => setFirstName(e.target.value)}
+              disabled={!editMode}
+              required
+              style={controlStyle}
+            />
           </div>
 
-          <div>
-            <label>
-              Last name:{' '}
-              <input
-                type="text"
-                value={lastName}
-                onChange={(e) => setLastName(e.target.value)}
-                disabled={!editMode}
-                required
-              />
+          <div style={fieldRowStyle}>
+            <label htmlFor="lastName" style={labelTextStyle}>
+              Last name
             </label>
+            <input
+              id="lastName"
+              type="text"
+              value={lastName}
+              onChange={(e) => setLastName(e.target.value)}
+              disabled={!editMode}
+              required
+              style={controlStyle}
+            />
           </div>
 
-          <div>
-            <label>
-              Display name:{' '}
-              <input
-                type="text"
-                value={displayName}
-                onChange={(e) => setDisplayName(e.target.value)}
-                placeholder="e.g., Ton-Plus Timbo"
-                disabled={!editMode}
-                required
-              />
+          <div style={fieldRowStyle}>
+            <label htmlFor="displayName" style={labelTextStyle}>
+              Display name
             </label>
+            <input
+              id="displayName"
+              type="text"
+              value={displayName}
+              onChange={(e) => setDisplayName(e.target.value)}
+              placeholder="e.g., Ton-Plus Timbo"
+              disabled={!editMode}
+              required
+              style={controlStyle}
+            />
           </div>
 
-          <div>
-            <label>
-              Sex:{' '}
-              <select
-                value={sex}
-                onChange={(e) => setSex(e.target.value)}
-                disabled={!editMode}
-              >
-                <option value="">-- select --</option>
-                <option value="Yes">Yes</option>
-                <option value="No">No</option>
-              </select>
+          <div style={fieldRowStyle}>
+            <label htmlFor="sex" style={labelTextStyle}>
+              Sex
             </label>
+            <select
+              id="sex"
+              value={sex}
+              onChange={(e) => setSex(e.target.value)}
+              disabled={!editMode}
+              style={controlStyle}
+            >
+              <option value="">-- select --</option>
+              <option value="Yes">Yes</option>
+              <option value="No">No</option>
+            </select>
           </div>
 
           {editMode && (

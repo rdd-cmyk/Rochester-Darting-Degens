@@ -179,6 +179,31 @@ export default function AuthPage() {
 
   const isSignUp = mode === 'signUp';
 
+  const formStyle = {
+    display: 'flex',
+    flexDirection: 'column' as const,
+    gap: '0.75rem',
+    maxWidth: '520px',
+  };
+
+  const fieldRowStyle = {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '0.75rem',
+    justifyContent: 'space-between',
+    width: '100%',
+  } as const;
+
+  const labelTextStyle = {
+    minWidth: '150px',
+    fontWeight: 600,
+  };
+
+  const controlStyle = {
+    flex: 1,
+    maxWidth: '260px',
+  } as const;
+
   // Logged-in view (brief because we redirect, but kept as fallback)
   if (user) {
     return (
@@ -272,86 +297,107 @@ export default function AuthPage() {
             handleSignIn();
           }
         }}
+        style={formStyle}
       >
         {isSignUp && (
           <>
-            <div style={{ marginBottom: '0.5rem' }}>
-              <label>
-                First name:{' '}
-                <input
-                  type="text"
-                  value={firstName}
-                  onChange={(e) => setFirstName(e.target.value)}
-                  required
-                />
+            <div style={fieldRowStyle}>
+              <label htmlFor="firstName" style={labelTextStyle}>
+                First name
               </label>
+              <input
+                id="firstName"
+                type="text"
+                value={firstName}
+                onChange={(e) => setFirstName(e.target.value)}
+                required
+                style={controlStyle}
+              />
             </div>
 
-            <div style={{ marginBottom: '0.5rem' }}>
-              <label>
-                Last name:{' '}
-                <input
-                  type="text"
-                  value={lastName}
-                  onChange={(e) => setLastName(e.target.value)}
-                  required
-                />
+            <div style={fieldRowStyle}>
+              <label htmlFor="lastName" style={labelTextStyle}>
+                Last name
               </label>
+              <input
+                id="lastName"
+                type="text"
+                value={lastName}
+                onChange={(e) => setLastName(e.target.value)}
+                required
+                style={controlStyle}
+              />
             </div>
 
-            <div style={{ marginBottom: '0.5rem' }}>
-              <label>
-                Display name:{' '}
-                <input
-                  type="text"
-                  value={displayName}
-                  onChange={(e) => setDisplayName(e.target.value)}
-                  placeholder="e.g., Ton-Plus Timbo"
-                  required
-                />
+            <div style={fieldRowStyle}>
+              <label htmlFor="displayName" style={labelTextStyle}>
+                Display name
               </label>
+              <input
+                id="displayName"
+                type="text"
+                value={displayName}
+                onChange={(e) => setDisplayName(e.target.value)}
+                placeholder="e.g., Ton-Plus Timbo"
+                required
+                style={controlStyle}
+              />
             </div>
           </>
         )}
 
-        <div style={{ marginBottom: '0.5rem' }}>
-          <label>
-            Email:{' '}
-            <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              autoComplete="email"
-              required
-            />
+        <div style={fieldRowStyle}>
+          <label htmlFor="email" style={labelTextStyle}>
+            Email
           </label>
+          <input
+            id="email"
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            autoComplete="email"
+            required
+            style={controlStyle}
+          />
         </div>
 
-        <div style={{ marginBottom: '0.5rem' }}>
-          <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            <span>Password:</span>
+        <div style={fieldRowStyle}>
+          <label htmlFor="password" style={labelTextStyle}>
+            Password
+          </label>
+          <div
+            style={{
+              ...controlStyle,
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.5rem',
+            }}
+          >
             <input
+              id="password"
               type={showPassword ? 'text' : 'password'}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               autoComplete={isSignUp ? 'new-password' : 'current-password'}
               required
+              style={{ flex: 1 }}
             />
             <button
               type="button"
               onClick={() => setShowPassword((prev) => !prev)}
               style={{
-                padding: '0.25rem 0.5rem',
-                borderRadius: '0.25rem',
+                padding: '0.35rem 0.65rem',
+                borderRadius: '0.4rem',
                 border: '1px solid #ccc',
                 backgroundColor: '#f3f4f6',
                 color: '#0366d6',
                 cursor: 'pointer',
+                whiteSpace: 'nowrap',
               }}
             >
               {showPassword ? 'Hide' : 'Show'}
             </button>
-          </label>
+          </div>
         </div>
 
         <div style={{ marginBottom: '0.75rem' }}>

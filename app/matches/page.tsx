@@ -73,6 +73,7 @@ export default function MatchesPage() {
   const PAGE_SIZE = 10;
 
   const isCricket = gameType === 'Cricket';
+  const isOther = gameType === 'Other';
 
   const formStyle = {
     display: 'flex',
@@ -338,36 +339,56 @@ export default function MatchesPage() {
     const parsedStats: number[] = [];
     for (let i = 0; i < activePlayers.length; i++) {
       const statStr = activePlayers[i].stat;
-      const statNum = parseFloat(statStr);
-      if (Number.isNaN(statNum)) {
-        setErrorMessage(
-          'Stats must be valid numbers (e.g., 101.85, 5.23) for all players.'
-        );
-        return;
-      }
+      let statNum: number;
 
-      // Apply caps only for 501, 301, and Cricket
-      let maxStat: number | null = null;
-      if (gameType === '501') {
-        maxStat = 167;
-      } else if (gameType === '301') {
-        maxStat = 150.5;
-      } else if (gameType === 'Cricket') {
-        maxStat = 9;
-      }
+      if (gameType === 'Other') {
+        statNum = Number(statStr);
 
-      if (maxStat !== null) {
-        // No negative numbers allowed
-        if (statNum < 0) {
-          setErrorMessage('Stats cannot be negative.');
-          return;
-        }
-        // Over absolute cap
-        if (statNum > maxStat) {
+        if (Number.isNaN(statNum) || !Number.isInteger(statNum)) {
           setErrorMessage(
-            'Put in the actual score, you lying sack of shit'
+            'Scores for Other game types must be whole numbers (e.g., 250).'
           );
           return;
+        }
+
+        if (statNum < 1 || statNum > 9999) {
+          setErrorMessage(
+            'Scores for Other game types must be between 1 and 9999.'
+          );
+          return;
+        }
+      } else {
+        statNum = parseFloat(statStr);
+        if (Number.isNaN(statNum)) {
+          setErrorMessage(
+            'Stats must be valid numbers (e.g., 101.85, 5.23) for all players.'
+          );
+          return;
+        }
+
+        // Apply caps only for 501, 301, and Cricket
+        let maxStat: number | null = null;
+        if (gameType === '501') {
+          maxStat = 167;
+        } else if (gameType === '301') {
+          maxStat = 150.5;
+        } else if (gameType === 'Cricket') {
+          maxStat = 9;
+        }
+
+        if (maxStat !== null) {
+          // No negative numbers allowed
+          if (statNum < 0) {
+            setErrorMessage('Stats cannot be negative.');
+            return;
+          }
+          // Over absolute cap
+          if (statNum > maxStat) {
+            setErrorMessage(
+              'Put in the actual score, you lying sack of shit'
+            );
+            return;
+          }
         }
       }
 
@@ -688,6 +709,8 @@ export default function MatchesPage() {
             const playerLabel = `Player ${index + 1}`;
             const statLabel = isCricket
               ? `${playerLabel} MPR`
+              : isOther
+              ? `${playerLabel} Score`
               : `${playerLabel} 3-Dart Average`;
 
             return (
@@ -725,10 +748,14 @@ export default function MatchesPage() {
                   <span style={labelTextStyle}>{statLabel}</span>
                   <input
                     type="number"
-                    step="0.01"
+                    step={isOther ? 1 : 0.01}
+                    min={isOther ? 1 : undefined}
+                    max={isOther ? 9999 : undefined}
                     value={entry.stat}
                     onChange={(e) => handleStatChange(index, e.target.value)}
-                    placeholder={isCricket ? 'e.g. 3.25' : 'e.g. 87.50'}
+                    placeholder={
+                      isCricket ? 'e.g. 3.25' : isOther ? 'e.g. 250' : 'e.g. 87.50'
+                    }
                     style={controlStyle}
                   />
                 </div>

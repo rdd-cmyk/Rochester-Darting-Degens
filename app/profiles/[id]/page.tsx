@@ -150,6 +150,7 @@ const rows: MatchRowForStats[] = rawRows.map((r) => ({
         const playedAt =
           row.matches?.played_at || '1970-01-01T00:00:00.000Z';
         const isCricket = gameType === 'Cricket';
+        const isX01Game = gameType === '501' || gameType === '301';
         const score = row.score ?? null;
         const isWin = row.is_winner === true;
 
@@ -163,8 +164,8 @@ const rows: MatchRowForStats[] = rawRows.map((r) => ({
 
         outcomes.push({ playedAt, isWin });
 
-        // 3-dart average (non-Cricket)
-        if (!isCricket && typeof score === 'number') {
+        // 3-dart average (501 / 301 only)
+        if (isX01Game && typeof score === 'number') {
           threeTotal += score;
           threeGames += 1;
         }
@@ -421,9 +422,9 @@ const rows: MatchRowForStats[] = rawRows.map((r) => ({
             </div>
 
             <div style={{ marginBottom: '1rem' }}>
-              <h3>3-Dart Average (501 / 301 / Other)</h3>
+              <h3>3-Dart Average (501 / 301)</h3>
               {stats.threeGames === 0 ? (
-                <p>No non-Cricket matches recorded.</p>
+                <p>No 501 or 301 matches recorded.</p>
               ) : (
                 <ul style={{ listStyle: 'none', padding: 0 }}>
                   <li>

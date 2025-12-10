@@ -164,6 +164,7 @@ export default function Home() {
         const playedAt =
           row.matches?.played_at || '1970-01-01T00:00:00.000Z';
         const isCricket = gameType === 'Cricket';
+        const isX01Game = gameType === '501' || gameType === '301';
         const score = row.score ?? null;
         const isWin = row.is_winner === true;
 
@@ -195,8 +196,8 @@ export default function Home() {
         }
         outcomes.push({ playedAt, isWin });
 
-        // ---- 3-Dart Average (non-Cricket) ----
-        if (!isCricket && typeof score === 'number') {
+        // ---- 3-Dart Average (501 / 301 only) ----
+        if (isX01Game && typeof score === 'number') {
           let three = threeMap.get(playerId);
           if (!three) {
             three = {
@@ -568,13 +569,13 @@ export default function Home() {
         )}
       </section>
 
-      {/* 3-Dart Average Leaderboard (non-Cricket) */}
+      {/* 3-Dart Average Leaderboard (501 / 301) */}
       <section>
-        <h2>3-Dart Average Leaderboard (501 / 301 / Other)</h2>
+        <h2>3-Dart Average Leaderboard (501 / 301)</h2>
         {loading ? (
           <p>Loading 3-dart averages...</p>
         ) : threeDartStats.length === 0 ? (
-          <p>No non-Cricket matches recorded yet.</p>
+          <p>No 501 or 301 matches recorded yet.</p>
         ) : (
           <div style={{ overflowX: 'auto', marginTop: '0.75rem' }}>
             <table

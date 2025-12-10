@@ -847,7 +847,18 @@ export default function MatchesPage() {
 
       {/* Recent Matches */}
       <section>
-        <h2>Recent Matches</h2>
+        <h2
+          style={{
+            fontSize: '1.35rem',
+            fontWeight: 800,
+            borderBottom: '3px solid #0366d6',
+            paddingBottom: '0.35rem',
+            display: 'inline-block',
+            marginBottom: '0.5rem',
+          }}
+        >
+          Recent Matches
+        </h2>
         {matches.length === 0 ? (
           <p>No matches recorded yet.</p>
         ) : (

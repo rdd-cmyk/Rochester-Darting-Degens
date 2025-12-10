@@ -474,7 +474,11 @@ const rows: MatchRowForStats[] = rawRows.map((r) => ({
           >
             {recentMatches.map((m) => {
               const metricLabel =
-                m.game_type === 'Cricket' ? 'MPR' : '3-Dart Avg';
+                m.game_type === 'Cricket'
+                  ? 'MPR'
+                  : m.game_type === 'Other'
+                    ? 'Score'
+                    : '3-Dart Avg';
 
               return (
                 <li

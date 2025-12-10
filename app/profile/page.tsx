@@ -3,6 +3,7 @@
 import { useEffect, useState, FormEvent } from 'react';
 import Link from 'next/link';
 import { supabase } from '@/lib/supabaseClient';
+import type { User } from '@supabase/supabase-js';
 
 type Profile = {
   id: string;
@@ -13,7 +14,7 @@ type Profile = {
 };
 
 export default function ProfilePage() {
-  const [user, setUser] = useState<any>(null);
+  const [user, setUser] = useState<User | null>(null);
   const [loadingUser, setLoadingUser] = useState(true);
   const [loadingProfile, setLoadingProfile] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -77,7 +78,7 @@ export default function ProfilePage() {
 
       // 2) Load profile row (including sex)
       const { data: profileData, error: profileError } = await supabase
-        .from('profiles')
+        .from<Profile>('profiles')
         .select('id, display_name, first_name, last_name, sex')
         .eq('id', currentUser.id)
         .maybeSingle();
@@ -104,7 +105,7 @@ export default function ProfilePage() {
         setDisplayName('');
         setSex('');
       } else {
-        setProfile(profileData as Profile);
+        setProfile(profileData);
         setFirstName(profileData.first_name ?? '');
         setLastName(profileData.last_name ?? '');
         setDisplayName(profileData.display_name ?? '');
@@ -180,9 +181,10 @@ export default function ProfilePage() {
         sex: sex || null,
       });
       setEditMode(false);
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Error saving profile:', err);
-      setErrorMessage('Error saving profile: ' + err.message);
+      const message = err instanceof Error ? err.message : String(err);
+      setErrorMessage('Error saving profile: ' + message);
     } finally {
       setSaving(false);
     }

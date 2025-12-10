@@ -24,6 +24,20 @@ type MatchRow = {
   } | null;
 };
 
+type MatchRowResult = {
+  player_id: string;
+  is_winner: boolean | null;
+  score: number | null;
+  profiles: Profile | Profile[] | null;
+  matches:
+    | {
+        game_type: string | null;
+        played_at: string;
+      }
+    | { game_type: string | null; played_at: string }[]
+    | null;
+};
+
 type WinLossStats = {
   playerId: string;
   displayName: string;
@@ -108,7 +122,7 @@ export default function Home() {
       }
 
       // Normalize Supabase response so profiles/matches are single objects, not arrays
-      const rawRows = (data || []) as any[];
+      const rawRows: MatchRowResult[] = data ?? [];
 
       const rows: MatchRow[] = rawRows.map((r) => ({
         player_id: r.player_id,
@@ -329,44 +343,26 @@ export default function Home() {
   }, []);
 
   return (
-    <main
-      style={{
-        padding: '2rem',
-        fontFamily: 'sans-serif',
-        minHeight: '100vh',
-        display: 'flex',
-        flexDirection: 'column',
-        gap: '2rem',
-        maxWidth: '1000px',
-        margin: '0 auto',
-      }}
-    >
+    <main className="mx-auto flex min-h-screen max-w-5xl flex-col gap-8 px-4 py-8 font-[var(--font-geist-sans)] md:px-6 lg:px-10">
       {/* Intro / hero */}
-      <section style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-        <h1>Rochester Darting Degens - Darts Night Tracker</h1>
-        <p>
-          Welcome! This will be the home for stats, matches, and leaderboards.
-        </p>
-        <p>
-          Next RDD Dart Night - Thursday, 12/18, 6:00 PM, Radio Social.
-        </p>
+      <section className="space-y-3 rounded-xl bg-[var(--background)]/60 px-3 py-4 shadow-sm ring-1 ring-[var(--input-border)]/70 md:px-5 md:py-6">
+        <div className="space-y-2">
+          <h1 className="text-2xl font-semibold tracking-tight md:text-3xl">
+            Rochester Darting Degens - Darts Night Tracker
+          </h1>
+          <p className="text-base text-[var(--foreground)]/90">
+            Welcome! This will be the home for stats, matches, and leaderboards.
+          </p>
+          <p className="text-base font-medium text-[var(--foreground)]/90">
+            Next RDD Dart Night - Thursday, 12/18, 6:00 PM, Radio Social.
+          </p>
+        </div>
 
-        <p>
+        <div className="flex flex-wrap gap-3 text-sm font-medium sm:text-base">
           {!authLoading && !user && (
             <Link
               href="/auth"
-              style={{
-                cursor: 'pointer',
-                padding: '0.6rem 1rem',
-                borderRadius: '0.5rem',
-                border: '1px solid #ccc',
-                backgroundColor: '#0366d6',
-                color: 'white',
-                fontWeight: 500,
-                textDecoration: 'none',
-                display: 'inline-block',
-                marginRight: '0.5rem',
-              }}
+              className="inline-flex items-center justify-center rounded-lg border border-transparent bg-[#0366d6] px-4 py-2 text-white shadow-sm transition hover:bg-[#035ac0] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0366d6]"
             >
               Go to sign in / sign up
             </Link>
@@ -374,404 +370,256 @@ export default function Home() {
 
           <Link
             href="/matches"
-            style={{
-              cursor: 'pointer',
-              padding: '0.6rem 1rem',
-              borderRadius: '0.5rem',
-              border: '1px solid #ccc',
-              backgroundColor: '#eee',
-              color: '#333',
-              fontWeight: 500,
-              textDecoration: 'none',
-              display: 'inline-block',
-            }}
+            className="inline-flex items-center justify-center rounded-lg border border-[var(--input-border)] bg-[#f1f5f9] px-4 py-2 text-[var(--foreground)] shadow-sm transition hover:bg-[#e5e7eb] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--input-border)]"
           >
             View recent matches
           </Link>
-        </p>
+        </div>
       </section>
 
       {/* Overall W/L Leaderboard */}
-      <section>
-        <h2>Overall Leaderboard (All Match Types)</h2>
+      <section className="space-y-3">
+        <h2 className="text-xl font-semibold">Overall Leaderboard (All Match Types)</h2>
 
         {loading ? (
           <p>Loading leaderboard...</p>
         ) : errorMessage ? (
-          <p style={{ color: 'red' }}>{errorMessage}</p>
+          <p className="text-red-600">{errorMessage}</p>
         ) : winLossStats.length === 0 ? (
           <p>No matches recorded yet.</p>
         ) : (
-          <div style={{ overflowX: 'auto', marginTop: '0.75rem' }}>
-            <table
-              style={{
-                width: '100%',
-                borderCollapse: 'collapse',
-              }}
-            >
-              <thead>
-                <tr>
-                  <th
-                    style={{
-                      textAlign: 'left',
-                      borderBottom: '1px solid #ccc',
-                      padding: '0.5rem',
-                    }}
-                  >
-                    #
-                  </th>
-                  <th
-                    style={{
-                      textAlign: 'left',
-                      borderBottom: '1px solid #ccc',
-                      padding: '0.5rem',
-                    }}
-                  >
-                    Player
-                  </th>
-                  <th
-                    style={{
-                      textAlign: 'right',
-                      borderBottom: '1px solid #ccc',
-                      padding: '0.5rem',
-                    }}
-                  >
-                    Wins
-                  </th>
-                  <th
-                    style={{
-                      textAlign: 'right',
-                      borderBottom: '1px solid #ccc',
-                      padding: '0.5rem',
-                    }}
-                  >
-                    Losses
-                  </th>
-                  <th
-                    style={{
-                      textAlign: 'right',
-                      borderBottom: '1px solid #ccc',
-                      padding: '0.5rem',
-                    }}
-                  >
-                    Games
-                  </th>
-                  <th
-                    style={{
-                      textAlign: 'right',
-                      borderBottom: '1px solid #ccc',
-                      padding: '0.5rem',
-                    }}
-                  >
-                    Win %
-                  </th>
-                  <th
-                    style={{
-                      textAlign: 'right',
-                      borderBottom: '1px solid #ccc',
-                      padding: '0.5rem',
-                    }}
-                  >
-                    Streak
-                  </th>
-                  <th
-                    style={{
-                      textAlign: 'right',
-                      borderBottom: '1px solid #ccc',
-                      padding: '0.5rem',
-                    }}
-                  >
-                    Last 5
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {winLossStats.map((s, index) => (
-                  <tr key={s.playerId}>
-                    <td
-                      style={{
-                        padding: '0.5rem',
-                        borderBottom: '1px solid #eee',
-                      }}
-                    >
-                      {index + 1}
-                    </td>
-                    <td
-                      style={{
-                        padding: '0.5rem',
-                        borderBottom: '1px solid #eee',
-                      }}
-                    >
+          <>
+            <div className="flex flex-col gap-3 md:hidden">
+              {winLossStats.map((s, index) => (
+                <article
+                  key={s.playerId}
+                  className="rounded-lg border border-[var(--input-border)] bg-[var(--background)] px-4 py-3 shadow-sm"
+                >
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2 text-sm text-[var(--foreground)]/80">
+                      <span className="rounded-full bg-[#e5e7eb] px-2 py-1 text-xs font-semibold text-[#111827]">
+                        #{index + 1}
+                      </span>
                       <LinkedPlayerName
                         playerId={s.playerId}
                         preformattedName={s.displayName}
                       />
-                    </td>
-                    <td
-                      style={{
-                        padding: '0.5rem',
-                        borderBottom: '1px solid #eee',
-                        textAlign: 'right',
-                      }}
-                    >
-                      {s.wins}
-                    </td>
-                    <td
-                      style={{
-                        padding: '0.5rem',
-                        borderBottom: '1px solid #eee',
-                        textAlign: 'right',
-                      }}
-                    >
-                      {s.losses}
-                    </td>
-                    <td
-                      style={{
-                        padding: '0.5rem',
-                        borderBottom: '1px solid #eee',
-                        textAlign: 'right',
-                      }}
-                    >
-                      {s.games}
-                    </td>
-                    <td
-                      style={{
-                        padding: '0.5rem',
-                        borderBottom: '1px solid #eee',
-                        textAlign: 'right',
-                      }}
-                    >
+                    </div>
+                    <span className="text-sm font-semibold text-[var(--foreground)]/80">
                       {s.winPct.toFixed(1)}%
-                    </td>
-                    <td
-                      style={{
-                        padding: '0.5rem',
-                        borderBottom: '1px solid #eee',
-                        textAlign: 'right',
-                      }}
-                    >
-                      {s.streak || '—'}
-                    </td>
-                    <td
-                      style={{
-                        padding: '0.5rem',
-                        borderBottom: '1px solid #eee',
-                        textAlign: 'right',
-                      }}
-                    >
-                      {s.last5 || '—'}
-                    </td>
+                    </span>
+                  </div>
+                  <div className="mt-2 grid grid-cols-2 gap-2 text-sm text-[var(--foreground)]/80">
+                    <div className="flex items-center justify-between rounded-lg bg-[#f8fafc] px-3 py-2">
+                      <span className="font-medium">Wins</span>
+                      <span>{s.wins}</span>
+                    </div>
+                    <div className="flex items-center justify-between rounded-lg bg-[#f8fafc] px-3 py-2">
+                      <span className="font-medium">Losses</span>
+                      <span>{s.losses}</span>
+                    </div>
+                    <div className="flex items-center justify-between rounded-lg bg-[#f8fafc] px-3 py-2">
+                      <span className="font-medium">Games</span>
+                      <span>{s.games}</span>
+                    </div>
+                    <div className="flex items-center justify-between rounded-lg bg-[#f8fafc] px-3 py-2">
+                      <span className="font-medium">Streak</span>
+                      <span>{s.streak || '—'}</span>
+                    </div>
+                    <div className="col-span-2 flex items-center justify-between rounded-lg bg-[#f8fafc] px-3 py-2">
+                      <span className="font-medium">Last 5</span>
+                      <span>{s.last5 || '—'}</span>
+                    </div>
+                  </div>
+                </article>
+              ))}
+            </div>
+
+            <div className="hidden overflow-x-auto md:block">
+              <table className="min-w-full border-collapse text-sm">
+                <thead>
+                  <tr className="border-b border-[var(--input-border)] text-left text-[var(--foreground)]/80">
+                    <th className="px-3 py-2 font-semibold">#</th>
+                    <th className="px-3 py-2 font-semibold">Player</th>
+                    <th className="px-3 py-2 text-right font-semibold">Wins</th>
+                    <th className="px-3 py-2 text-right font-semibold">Losses</th>
+                    <th className="px-3 py-2 text-right font-semibold">Games</th>
+                    <th className="px-3 py-2 text-right font-semibold">Win %</th>
+                    <th className="px-3 py-2 text-right font-semibold">Streak</th>
+                    <th className="px-3 py-2 text-right font-semibold">Last 5</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                </thead>
+                <tbody>
+                  {winLossStats.map((s, index) => (
+                    <tr
+                      key={s.playerId}
+                      className="border-b border-[#e5e7eb] text-[var(--foreground)]"
+                    >
+                      <td className="px-3 py-2">{index + 1}</td>
+                      <td className="px-3 py-2">
+                        <LinkedPlayerName
+                          playerId={s.playerId}
+                          preformattedName={s.displayName}
+                        />
+                      </td>
+                      <td className="px-3 py-2 text-right">{s.wins}</td>
+                      <td className="px-3 py-2 text-right">{s.losses}</td>
+                      <td className="px-3 py-2 text-right">{s.games}</td>
+                      <td className="px-3 py-2 text-right">{s.winPct.toFixed(1)}%</td>
+                      <td className="px-3 py-2 text-right">{s.streak || '—'}</td>
+                      <td className="px-3 py-2 text-right">{s.last5 || '—'}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </>
         )}
       </section>
 
-      {/* 3-Dart Average Leaderboard (501 / 301) */}
-      <section>
-        <h2>3-Dart Average Leaderboard (501 / 301)</h2>
+      {/* 3-Dart Average Leaderboard */}
+      <section className="space-y-3">
+        <h2 className="text-xl font-semibold">3-Dart Average Leaderboard (501 / 301)</h2>
         {loading ? (
-          <p>Loading 3-dart averages...</p>
+          <p>Loading 3-dart stats...</p>
         ) : threeDartStats.length === 0 ? (
-          <p>No 501 or 301 matches recorded yet.</p>
+          <p>No 501/301 matches recorded yet.</p>
         ) : (
-          <div style={{ overflowX: 'auto', marginTop: '0.75rem' }}>
-            <table
-              style={{
-                width: '100%',
-                borderCollapse: 'collapse',
-              }}
-            >
-              <thead>
-                <tr>
-                  <th
-                    style={{
-                      textAlign: 'left',
-                      borderBottom: '1px solid #ccc',
-                      padding: '0.5rem',
-                    }}
-                  >
-                    #
-                  </th>
-                  <th
-                    style={{
-                      textAlign: 'left',
-                      borderBottom: '1px solid #ccc',
-                      padding: '0.5rem',
-                    }}
-                  >
-                    Player
-                  </th>
-                  <th
-                    style={{
-                      textAlign: 'right',
-                      borderBottom: '1px solid #ccc',
-                      padding: '0.5rem',
-                    }}
-                  >
-                    3-Dart Avg
-                  </th>
-                  <th
-                    style={{
-                      textAlign: 'right',
-                      borderBottom: '1px solid #ccc',
-                      padding: '0.5rem',
-                    }}
-                  >
-                    Games
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {threeDartStats.map((s, index) => (
-                  <tr key={s.playerId}>
-                    <td
-                      style={{
-                        padding: '0.5rem',
-                        borderBottom: '1px solid #eee',
-                      }}
-                    >
-                      {index + 1}
-                    </td>
-                    <td
-                      style={{
-                        padding: '0.5rem',
-                        borderBottom: '1px solid #eee',
-                      }}
-                    >
+          <>
+            <div className="flex flex-col gap-3 md:hidden">
+              {threeDartStats.map((s, index) => (
+                <article
+                  key={s.playerId}
+                  className="rounded-lg border border-[var(--input-border)] bg-[var(--background)] px-4 py-3 shadow-sm"
+                >
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2 text-sm text-[var(--foreground)]/80">
+                      <span className="rounded-full bg-[#e5e7eb] px-2 py-1 text-xs font-semibold text-[#111827]">
+                        #{index + 1}
+                      </span>
                       <LinkedPlayerName
                         playerId={s.playerId}
                         preformattedName={s.displayName}
                       />
-                    </td>
-                    <td
-                      style={{
-                        padding: '0.5rem',
-                        borderBottom: '1px solid #eee',
-                        textAlign: 'right',
-                      }}
-                    >
+                    </div>
+                    <span className="text-sm font-semibold text-[var(--foreground)]/80">
                       {s.avg.toFixed(2)}
-                    </td>
-                    <td
-                      style={{
-                        padding: '0.5rem',
-                        borderBottom: '1px solid #eee',
-                        textAlign: 'right',
-                      }}
-                    >
-                      {s.games}
-                    </td>
+                    </span>
+                  </div>
+                  <div className="mt-2 grid grid-cols-2 gap-2 text-sm text-[var(--foreground)]/80">
+                    <div className="flex items-center justify-between rounded-lg bg-[#f8fafc] px-3 py-2">
+                      <span className="font-medium">Games</span>
+                      <span>{s.games}</span>
+                    </div>
+                  </div>
+                </article>
+              ))}
+            </div>
+
+            <div className="hidden overflow-x-auto md:block">
+              <table className="min-w-full border-collapse text-sm">
+                <thead>
+                  <tr className="border-b border-[var(--input-border)] text-left text-[var(--foreground)]/80">
+                    <th className="px-3 py-2 font-semibold">#</th>
+                    <th className="px-3 py-2 font-semibold">Player</th>
+                    <th className="px-3 py-2 text-right font-semibold">3-Dart Avg</th>
+                    <th className="px-3 py-2 text-right font-semibold">Games</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                </thead>
+                <tbody>
+                  {threeDartStats.map((s, index) => (
+                    <tr
+                      key={s.playerId}
+                      className="border-b border-[#e5e7eb] text-[var(--foreground)]"
+                    >
+                      <td className="px-3 py-2">{index + 1}</td>
+                      <td className="px-3 py-2">
+                        <LinkedPlayerName
+                          playerId={s.playerId}
+                          preformattedName={s.displayName}
+                        />
+                      </td>
+                      <td className="px-3 py-2 text-right">{s.avg.toFixed(2)}</td>
+                      <td className="px-3 py-2 text-right">{s.games}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </>
         )}
       </section>
 
       {/* MPR Leaderboard (Cricket) */}
-      <section>
-        <h2>MPR Leaderboard (Cricket)</h2>
+      <section className="space-y-3">
+        <h2 className="text-xl font-semibold">MPR Leaderboard (Cricket)</h2>
         {loading ? (
           <p>Loading MPR stats...</p>
         ) : mprStats.length === 0 ? (
           <p>No Cricket matches recorded yet.</p>
         ) : (
-          <div style={{ overflowX: 'auto', marginTop: '0.75rem' }}>
-            <table
-              style={{
-                width: '100%',
-                borderCollapse: 'collapse',
-              }}
-            >
-              <thead>
-                <tr>
-                  <th
-                    style={{
-                      textAlign: 'left',
-                      borderBottom: '1px solid #ccc',
-                      padding: '0.5rem',
-                    }}
-                  >
-                    #
-                  </th>
-                  <th
-                    style={{
-                      textAlign: 'left',
-                      borderBottom: '1px solid #ccc',
-                      padding: '0.5rem',
-                    }}
-                  >
-                    Player
-                  </th>
-                  <th
-                    style={{
-                      textAlign: 'right',
-                      borderBottom: '1px solid #ccc',
-                      padding: '0.5rem',
-                    }}
-                  >
-                    MPR
-                  </th>
-                  <th
-                    style={{
-                      textAlign: 'right',
-                      borderBottom: '1px solid #ccc',
-                      padding: '0.5rem',
-                    }}
-                  >
-                    Games
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {mprStats.map((s, index) => (
-                  <tr key={s.playerId}>
-                    <td
-                      style={{
-                        padding: '0.5rem',
-                        borderBottom: '1px solid #eee',
-                      }}
-                    >
-                      {index + 1}
-                    </td>
-                    <td
-                      style={{
-                        padding: '0.5rem',
-                        borderBottom: '1px solid #eee',
-                      }}
-                    >
+          <>
+            <div className="flex flex-col gap-3 md:hidden">
+              {mprStats.map((s, index) => (
+                <article
+                  key={s.playerId}
+                  className="rounded-lg border border-[var(--input-border)] bg-[var(--background)] px-4 py-3 shadow-sm"
+                >
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2 text-sm text-[var(--foreground)]/80">
+                      <span className="rounded-full bg-[#e5e7eb] px-2 py-1 text-xs font-semibold text-[#111827]">
+                        #{index + 1}
+                      </span>
                       <LinkedPlayerName
                         playerId={s.playerId}
                         preformattedName={s.displayName}
                       />
-                    </td>
-                    <td
-                      style={{
-                        padding: '0.5rem',
-                        borderBottom: '1px solid #eee',
-                        textAlign: 'right',
-                      }}
-                    >
+                    </div>
+                    <span className="text-sm font-semibold text-[var(--foreground)]/80">
                       {s.avg.toFixed(2)}
-                    </td>
-                    <td
-                      style={{
-                        padding: '0.5rem',
-                        borderBottom: '1px solid #eee',
-                        textAlign: 'right',
-                      }}
-                    >
-                      {s.games}
-                    </td>
+                    </span>
+                  </div>
+                  <div className="mt-2 grid grid-cols-2 gap-2 text-sm text-[var(--foreground)]/80">
+                    <div className="flex items-center justify-between rounded-lg bg-[#f8fafc] px-3 py-2">
+                      <span className="font-medium">Games</span>
+                      <span>{s.games}</span>
+                    </div>
+                  </div>
+                </article>
+              ))}
+            </div>
+
+            <div className="hidden overflow-x-auto md:block">
+              <table className="min-w-full border-collapse text-sm">
+                <thead>
+                  <tr className="border-b border-[var(--input-border)] text-left text-[var(--foreground)]/80">
+                    <th className="px-3 py-2 font-semibold">#</th>
+                    <th className="px-3 py-2 font-semibold">Player</th>
+                    <th className="px-3 py-2 text-right font-semibold">MPR</th>
+                    <th className="px-3 py-2 text-right font-semibold">Games</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                </thead>
+                <tbody>
+                  {mprStats.map((s, index) => (
+                    <tr
+                      key={s.playerId}
+                      className="border-b border-[#e5e7eb] text-[var(--foreground)]"
+                    >
+                      <td className="px-3 py-2">{index + 1}</td>
+                      <td className="px-3 py-2">
+                        <LinkedPlayerName
+                          playerId={s.playerId}
+                          preformattedName={s.displayName}
+                        />
+                      </td>
+                      <td className="px-3 py-2 text-right">{s.avg.toFixed(2)}</td>
+                      <td className="px-3 py-2 text-right">{s.games}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </>
         )}
       </section>
     </main>

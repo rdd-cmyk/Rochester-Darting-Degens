@@ -24,6 +24,15 @@ type MatchRowForStats = {
   } | null;
 };
 
+type MatchRowRaw = {
+  is_winner: boolean | null;
+  score: number | null;
+  matches:
+    | MatchRowForStats['matches']
+    | MatchRowForStats['matches'][]
+    | null;
+};
+
 type MatchPlayerSummary = {
   id: number;
   match_id: number;
@@ -36,6 +45,18 @@ type MatchPlayerSummary = {
   } | null;
 };
 
+type MatchPlayerRow = {
+  id: number;
+  match_id: number;
+  player_id: string;
+  score: number | null;
+  is_winner: boolean | null;
+  profiles:
+    | MatchPlayerSummary['profiles']
+    | MatchPlayerSummary['profiles'][]
+    | null;
+};
+
 type MatchSummary = {
   id: number;
   played_at: string;
@@ -45,6 +66,17 @@ type MatchSummary = {
   venue: string | null;
   created_by: string | null;
   match_players: MatchPlayerSummary[] | null;
+};
+
+type MatchDetailRow = {
+  id: number;
+  played_at: string;
+  game_type: string | null;
+  notes: string | null;
+  board_type: string | null;
+  venue: string | null;
+  created_by: string | null;
+  match_players: MatchPlayerRow[] | null;
 };
 
 type PlayerStatsSummary = {
@@ -71,13 +103,11 @@ export default function ProfilePage() {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!id) {
-      setErrorMessage('No profile id provided.');
-      setLoading(false);
-      return;
-    }
-
     async function loadProfileAndStatsAndMatches() {
+      if (!id) {
+        return;
+      }
+
       setLoading(true);
       setErrorMessage(null);
 
@@ -122,15 +152,15 @@ export default function ProfilePage() {
         // We'll still try to load recent matches below
       }
 
-      const rawRows = (matchesData || []) as any[];
+      const rawRows: MatchRowRaw[] = (matchesData ?? []) as MatchRowRaw[];
 
-const rows: MatchRowForStats[] = rawRows.map((r) => ({
-  is_winner: r.is_winner,
-  score: r.score,
-  matches: Array.isArray(r.matches)
-    ? (r.matches[0] ?? null)
-    : (r.matches ?? null),
-}));
+      const rows: MatchRowForStats[] = rawRows.map((row) => ({
+        is_winner: row.is_winner,
+        score: row.score,
+        matches: Array.isArray(row.matches)
+          ? row.matches[0] ?? null
+          : row.matches ?? null,
+      }));
 
       // Aggregate stats for this player
       let games = 0;
@@ -267,17 +297,33 @@ const rows: MatchRowForStats[] = rawRows.map((r) => ({
         return;
       }
 
-      const rawMatchDetails = (matchesDetailData || []) as any[];
+      const normalizeProfile = (
+        profile: MatchPlayerRow['profiles']
+      ): MatchPlayerSummary['profiles'] | null =>
+        Array.isArray(profile) ? profile[0] ?? null : profile ?? null;
 
-      const normalizedMatchDetails: MatchSummary[] = rawMatchDetails.map((m) => ({
-        ...m,
-        match_players: (m.match_players || []).map((mp: any) => ({
-          ...mp,
-          profiles: Array.isArray(mp.profiles)
-            ? (mp.profiles[0] ?? null)
-            : (mp.profiles ?? null),
-        })),
-      }));
+      const rawMatchDetails: MatchDetailRow[] =
+        (matchesDetailData ?? []) as MatchDetailRow[];
+
+      const normalizedMatchDetails: MatchSummary[] = rawMatchDetails.map(
+        (match) => ({
+          id: match.id,
+          played_at: match.played_at,
+          game_type: match.game_type,
+          notes: match.notes,
+          board_type: match.board_type,
+          venue: match.venue,
+          created_by: match.created_by,
+          match_players: (match.match_players ?? []).map((mp) => ({
+            id: mp.id,
+            match_id: mp.match_id,
+            player_id: mp.player_id,
+            score: mp.score,
+            is_winner: mp.is_winner,
+            profiles: normalizeProfile(mp.profiles),
+          })),
+        })
+      );
 
       setRecentMatches(normalizedMatchDetails);
       setLoading(false);
@@ -285,6 +331,32 @@ const rows: MatchRowForStats[] = rawRows.map((r) => ({
 
     loadProfileAndStatsAndMatches();
   }, [id]);
+
+  if (!id) {
+    return (
+      <main style={{ padding: '2rem', fontFamily: 'sans-serif' }}>
+        <h1>Player Profile</h1>
+        <p style={{ color: 'red' }}>No profile id provided.</p>
+        <p>
+          <Link
+            href="/matches"
+            style={{
+              cursor: 'pointer',
+              padding: '0.3rem 0.7rem',
+              borderRadius: '0.5rem',
+              border: '1px solid #ccc',
+              backgroundColor: '#0366d6',
+              color: 'white',
+              fontWeight: 500,
+              textDecoration: 'none',
+            }}
+          >
+            Back to matches
+          </Link>
+        </p>
+      </main>
+    );
+  }
 
   if (loading) {
     return (

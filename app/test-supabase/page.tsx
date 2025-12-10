@@ -10,14 +10,15 @@ export default function TestSupabasePage() {
     async function check() {
       try {
         // This doesn't call your DB yet; it just checks auth/session API works
-        const { data, error } = await supabase.auth.getSession();
+        const { error } = await supabase.auth.getSession();
         if (error) {
           setStatus('Error: ' + error.message);
         } else {
           setStatus('Supabase client initialized successfully ✅');
         }
-      } catch (e: any) {
-        setStatus('Error: ' + e.message);
+      } catch (e: unknown) {
+        const message = e instanceof Error ? e.message : String(e);
+        setStatus('Error: ' + message);
       }
     }
 

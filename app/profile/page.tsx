@@ -78,10 +78,10 @@ export default function ProfilePage() {
 
       // 2) Load profile row (including sex)
       const { data: profileData, error: profileError } = await supabase
-        .from<Profile>('profiles')
+        .from('profiles')
         .select('id, display_name, first_name, last_name, sex')
         .eq('id', currentUser.id)
-        .maybeSingle();
+        .maybeSingle<Profile>();
 
       if (profileError) {
         setErrorMessage('Error loading profile: ' + profileError.message);

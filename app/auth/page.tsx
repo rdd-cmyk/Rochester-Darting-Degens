@@ -187,10 +187,10 @@ export default function AuthPage() {
   };
 
   const fieldRowStyle = {
-    display: 'flex',
+    display: 'grid',
+    gridTemplateColumns: '150px 1fr',
     alignItems: 'center',
-    gap: '0.75rem',
-    justifyContent: 'space-between',
+    columnGap: '0.75rem',
     width: '100%',
   } as const;
 
@@ -200,7 +200,7 @@ export default function AuthPage() {
   };
 
   const controlStyle = {
-    flex: 1,
+    width: '100%',
     maxWidth: '260px',
   } as const;
 
@@ -367,10 +367,11 @@ export default function AuthPage() {
           </label>
           <div
             style={{
-              ...controlStyle,
               display: 'flex',
               alignItems: 'center',
               gap: '0.5rem',
+              width: '100%',
+              maxWidth: '260px',
             }}
           >
             <input

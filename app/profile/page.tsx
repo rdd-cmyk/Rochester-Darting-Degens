@@ -38,10 +38,10 @@ export default function ProfilePage() {
   };
 
   const fieldRowStyle = {
-    display: 'flex',
+    display: 'grid',
+    gridTemplateColumns: '150px 1fr',
     alignItems: 'center',
-    gap: '0.75rem',
-    justifyContent: 'space-between',
+    columnGap: '0.75rem',
     width: '100%',
   } as const;
 
@@ -51,7 +51,7 @@ export default function ProfilePage() {
   };
 
   const controlStyle = {
-    flex: 1,
+    width: '100%',
     maxWidth: '260px',
   } as const;
 
@@ -310,7 +310,16 @@ export default function ProfilePage() {
       )}
 
       <section>
-        <h2>Profile Details</h2>
+        <h2
+          style={{
+            fontSize: '1.35rem',
+            fontWeight: 800,
+            marginBottom: '0.25rem',
+            color: '#0f172a',
+          }}
+        >
+          Profile Details
+        </h2>
 
         <form
           onSubmit={handleSave}

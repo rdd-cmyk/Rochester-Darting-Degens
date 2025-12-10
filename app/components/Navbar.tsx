@@ -4,14 +4,15 @@ import Link from "next/link";
 import { supabase } from "@/lib/supabaseClient";
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
+import type { User } from "@supabase/supabase-js";
 
 export default function Navbar() {
-  const [user, setUser] = useState<any>(null);
+  const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const attemptedProfiles = useRef<Set<string>>(new Set());
   const router = useRouter();
 
-  async function ensureProfileFromMetadata(currentUser: any) {
+  async function ensureProfileFromMetadata(currentUser: User | null) {
     if (!currentUser) return;
 
     const userId = currentUser.id as string | undefined;

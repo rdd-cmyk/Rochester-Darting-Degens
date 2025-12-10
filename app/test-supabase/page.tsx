@@ -30,7 +30,7 @@ export default function TestSupabasePage() {
   }, []);
 
   return (
-    <main style={{ padding: '2rem', fontFamily: 'sans-serif' }}>
+    <main className="page-shell" style={{ maxWidth: '720px' }}>
       <h1>Supabase Test</h1>
       <p>{status}</p>
     </main>

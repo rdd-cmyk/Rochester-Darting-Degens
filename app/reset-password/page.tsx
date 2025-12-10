@@ -88,7 +88,7 @@ export default function ResetPasswordPage() {
 
   if (checkingSession) {
     return (
-      <main style={{ padding: '2rem', fontFamily: 'sans-serif' }}>
+      <main className="page-shell" style={{ maxWidth: '720px' }}>
         <h1>Reset Password</h1>
         <p>Checking reset session…</p>
       </main>
@@ -96,7 +96,7 @@ export default function ResetPasswordPage() {
   }
 
   return (
-    <main style={{ padding: '2rem', fontFamily: 'sans-serif' }}>
+    <main className="page-shell" style={{ maxWidth: '720px' }}>
       <h1>Reset Your Password</h1>
 
       <p style={{ marginTop: '0.5rem', color: '#555', maxWidth: '480px' }}>
@@ -119,18 +119,19 @@ export default function ResetPasswordPage() {
             flexDirection: 'column',
             gap: '0.75rem',
             marginTop: '1rem',
-            maxWidth: '320px',
+            maxWidth: '520px',
+            width: '100%',
           }}
         >
-          <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', gap: '0.5rem' }}>
-            <label style={{ width: '140px' }}>
+          <div className="form-row">
+            <label className="form-label">
               New password:
             </label>
             <input
               type={showNewPassword ? 'text' : 'password'}
               value={newPassword}
               onChange={(e) => setNewPassword(e.target.value)}
-              style={{ flex: 1 }}
+              className="form-control"
             />
             <button
               type="button"
@@ -148,15 +149,15 @@ export default function ResetPasswordPage() {
             </button>
           </div>
 
-          <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', gap: '0.5rem' }}>
-            <label style={{ width: '140px' }}>
+          <div className="form-row">
+            <label className="form-label">
               Confirm password:
             </label>
             <input
               type={showConfirm ? 'text' : 'password'}
               value={confirm}
               onChange={(e) => setConfirm(e.target.value)}
-              style={{ flex: 1 }}
+              className="form-control"
             />
             <button
               type="button"

@@ -9,7 +9,7 @@ function VerifyEmailContent() {
   const email = searchParams.get('email');
 
   return (
-    <main style={{ padding: '2rem', fontFamily: 'sans-serif' }}>
+    <main className="page-shell" style={{ maxWidth: '720px' }}>
       <h1>Check your email to verify your account</h1>
 
       <p style={{ marginTop: '1rem' }}>
@@ -37,7 +37,7 @@ function VerifyEmailContent() {
 
 export default function VerifyEmailPage() {
   return (
-    <Suspense fallback={<main style={{ padding: '2rem', fontFamily: 'sans-serif' }}>Loading...</main>}>
+    <Suspense fallback={<main className="page-shell" style={{ maxWidth: '720px' }}>Loading...</main>}>
       <VerifyEmailContent />
     </Suspense>
   );

@@ -6,6 +6,7 @@ import { supabase } from '@/lib/supabaseClient';
 import { formatPlayerName } from '@/lib/playerName';
 import { LinkedPlayerName } from '@/components/LinkedPlayerName';
 import { clearMatchesState } from '@/lib/matchState';
+import type { User } from '@supabase/supabase-js';
 
 // Simple types
 type Profile = {
@@ -45,8 +46,10 @@ type PlayerEntry = {
   stat: string; // raw string, parsed on save
 };
 
+type MatchesError = { message?: string };
+
 export default function MatchesPage() {
-  const [user, setUser] = useState<any>(null);
+  const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [profiles, setProfiles] = useState<Profile[]>([]);
   const [matches, setMatches] = useState<Match[]>([]);
@@ -110,19 +113,6 @@ export default function MatchesPage() {
     color: 'var(--input-text)',
     backgroundColor: 'var(--input-bg)',
   } as const;
-
-  const player1Profile =
-    profiles.find((p) => p.id === playerEntries[0]?.playerId) || null;
-  const player2Profile =
-    profiles.find((p) => p.id === playerEntries[1]?.playerId) || null;
-
-  const player1Name = player1Profile
-    ? formatPlayerName(player1Profile.display_name, player1Profile.first_name)
-    : 'Player 1';
-
-  const player2Name = player2Profile
-    ? formatPlayerName(player2Profile.display_name, player2Profile.first_name)
-    : 'Player 2';
 
   // Helper to resize playerEntries when numPlayers changes
   function ensurePlayerEntriesSize(targetSize: number) {
@@ -265,11 +255,13 @@ export default function MatchesPage() {
       // 3) Load recent matches (with players) - first page
       try {
         await reloadMatches(1);
-      } catch (matchesError: any) {
+      } catch (matchesError: unknown) {
         setErrorMessage((prev) =>
           (prev ? prev + ' | ' : '') +
           'Error loading matches: ' +
-          (matchesError?.message ?? String(matchesError))
+          (matchesError && typeof matchesError === 'object'
+            ? (matchesError as MatchesError).message ?? String(matchesError)
+            : String(matchesError))
         );
       }
 
@@ -489,9 +481,14 @@ export default function MatchesPage() {
 
       // Reset form back to "new match"
       resetForm();
-    } catch (err: any) {
+    } catch (err: unknown) {
+      const message =
+        err && typeof err === 'object' && 'message' in err
+          ? String((err as MatchesError).message)
+          : String(err);
+
       console.error('Error saving match:', err);
-      setErrorMessage('Error saving match: ' + err.message);
+      setErrorMessage('Error saving match: ' + message);
     }
   }
 

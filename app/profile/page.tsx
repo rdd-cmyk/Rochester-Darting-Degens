@@ -3,6 +3,7 @@
 import { useEffect, useState, FormEvent } from 'react';
 import Link from 'next/link';
 import { supabase } from '@/lib/supabaseClient';
+import type { User } from '@supabase/supabase-js';
 
 type Profile = {
   id: string;
@@ -13,7 +14,7 @@ type Profile = {
 };
 
 export default function ProfilePage() {
-  const [user, setUser] = useState<any>(null);
+  const [user, setUser] = useState<User | null>(null);
   const [loadingUser, setLoadingUser] = useState(true);
   const [loadingProfile, setLoadingProfile] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -180,9 +181,14 @@ export default function ProfilePage() {
         sex: sex || null,
       });
       setEditMode(false);
-    } catch (err: any) {
+    } catch (err: unknown) {
+      const message =
+        err && typeof err === 'object' && 'message' in err
+          ? String((err as { message?: string }).message)
+          : String(err);
+
       console.error('Error saving profile:', err);
-      setErrorMessage('Error saving profile: ' + err.message);
+      setErrorMessage('Error saving profile: ' + message);
     } finally {
       setSaving(false);
     }

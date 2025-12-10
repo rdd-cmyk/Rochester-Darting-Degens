@@ -78,16 +78,12 @@ export default function ProfilePage() {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [stats, setStats] = useState<PlayerStatsSummary | null>(null);
   const [recentMatches, setRecentMatches] = useState<MatchSummary[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [loading, setLoading] = useState<boolean>(() => Boolean(id));
+  const [errorMessage, setErrorMessage] = useState<string | null>(
+    id ? null : 'No profile id provided.'
+  );
 
   useEffect(() => {
-    if (!id) {
-      setErrorMessage('No profile id provided.');
-      setLoading(false);
-      return;
-    }
-
     async function loadProfileAndStatsAndMatches() {
       setLoading(true);
       setErrorMessage(null);
@@ -329,6 +325,8 @@ export default function ProfilePage() {
       setRecentMatches(normalizedMatchDetails);
       setLoading(false);
     }
+
+    if (!id) return;
 
     loadProfileAndStatsAndMatches();
   }, [id]);

@@ -107,8 +107,16 @@ export default function Home() {
         return;
       }
 
+      type RawMatchRow = {
+        player_id: string;
+        is_winner: boolean | null;
+        score: number | null;
+        profiles: Profile | Profile[] | null;
+        matches: MatchRow['matches'] | MatchRow['matches'][] | null;
+      };
+
       // Normalize Supabase response so profiles/matches are single objects, not arrays
-      const rawRows = (data || []) as any[];
+      const rawRows = (data || []) as RawMatchRow[];
 
       const rows: MatchRow[] = rawRows.map((r) => ({
         player_id: r.player_id,

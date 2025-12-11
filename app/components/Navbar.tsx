@@ -88,6 +88,9 @@ export default function Navbar({ snowEnabled, onToggleSnow }: NavbarProps) {
       <Link style={linkStyle} href="/matches">
         Matches
       </Link>
+      <Link style={linkStyle} href="/profiles">
+        All Profiles
+      </Link>
       {user && (
         <Link style={linkStyle} href="/profile">
           My Profile

@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { supabase } from '@/lib/supabaseClient';
 import { formatPlayerName } from '@/lib/playerName';
@@ -43,6 +44,7 @@ type AverageStats = {
 };
 
 export default function Home() {
+  const router = useRouter();
   const [winLossStats, setWinLossStats] = useState<WinLossStats[]>([]);
   const [threeDartStats, setThreeDartStats] = useState<AverageStats[]>([]);
   const [mprStats, setMprStats] = useState<AverageStats[]>([]);
@@ -50,6 +52,51 @@ export default function Home() {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [user, setUser] = useState<User | null>(null);
   const [authLoading, setAuthLoading] = useState(true);
+  const [authErrorMessage, setAuthErrorMessage] = useState<string | null>(null);
+
+  useEffect(() => {
+    async function handleRecoveryFromHash() {
+      const hash = window.location.hash;
+      if (!hash || hash.length < 2) return;
+
+      const params = new URLSearchParams(hash.slice(1));
+      const error = params.get('error');
+      const errorDescription = params.get('error_description');
+
+      if (error) {
+        setAuthErrorMessage(
+          errorDescription ||
+            'Password reset link is invalid or has expired. Please request a new email.'
+        );
+        window.history.replaceState(null, '', window.location.pathname);
+        return;
+      }
+
+      const type = params.get('type');
+      const accessToken = params.get('access_token');
+      const refreshToken = params.get('refresh_token');
+
+      if (type === 'recovery' && accessToken && refreshToken) {
+        const { error: sessionError } = await supabase.auth.setSession({
+          access_token: accessToken,
+          refresh_token: refreshToken,
+        });
+
+        window.history.replaceState(null, '', window.location.pathname);
+
+        if (sessionError) {
+          setAuthErrorMessage(
+            'Could not start password reset session. Please request a new password reset email.'
+          );
+          return;
+        }
+
+        router.replace('/reset-password');
+      }
+    }
+
+    handleRecoveryFromHash();
+  }, [router]);
 
   useEffect(() => {
     let isMounted = true;
@@ -345,6 +392,10 @@ export default function Home() {
         maxWidth: '1000px',
       }}
     >
+      {authErrorMessage && (
+        <p style={{ color: 'red' }}>{authErrorMessage}</p>
+      )}
+
       {/* Intro / hero */}
       <section style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
         <h1>Rochester Darting Degens - Darts Night Tracker</h1>

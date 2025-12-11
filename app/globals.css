@@ -180,6 +180,7 @@ textarea:disabled {
   gap: var(--nav-gap);
   row-gap: var(--nav-row-gap);
   flex-wrap: wrap;
+  position: relative;
 }
 
 .navbar-main {
@@ -246,7 +247,7 @@ textarea:disabled {
   }
 
   .navbar-shell {
-    align-items: flex-start;
+    align-items: center;
   }
 
   .navbar-main {
@@ -265,7 +266,14 @@ textarea:disabled {
     width: 100%;
     flex-direction: column;
     align-items: flex-start;
-    padding-top: 0.5rem;
+    padding: 0.75rem 1rem 1rem;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: #222;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.45);
+    z-index: 20;
   }
 
   .navbar-links.open {
@@ -273,9 +281,9 @@ textarea:disabled {
   }
 
   .navbar-actions {
-    width: 100%;
-    margin-left: 0;
-    justify-content: flex-start;
+    width: auto;
+    margin-left: auto;
+    justify-content: flex-end;
   }
 }
 

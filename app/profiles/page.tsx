@@ -1,0 +1,196 @@
+'use client';
+
+import { useEffect, useMemo, useState } from 'react';
+import Link from 'next/link';
+import { supabase } from '@/lib/supabaseClient';
+import { formatPlayerName } from '@/lib/playerName';
+
+type ProfileListItem = {
+  id: string;
+  display_name: string | null;
+  first_name: string | null;
+  last_name: string | null;
+};
+
+function buildSortableName(profile: ProfileListItem) {
+  const display = profile.display_name?.trim();
+  const fullName = `${profile.first_name ?? ''} ${profile.last_name ?? ''}`
+    .trim()
+    .replace(/\s+/g, ' ');
+
+  return display || fullName || 'Unknown player';
+}
+
+export default function AllProfilesPage() {
+  const [profiles, setProfiles] = useState<ProfileListItem[]>([]);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [loading, setLoading] = useState(true);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    async function loadProfiles() {
+      setLoading(true);
+      setErrorMessage(null);
+
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('id, display_name, first_name, last_name');
+
+      if (!isMounted) return;
+
+      if (error) {
+        console.error('Error loading profiles list:', error);
+        setErrorMessage('Could not load profiles. Please try again later.');
+        setProfiles([]);
+        setLoading(false);
+        return;
+      }
+
+      setProfiles((data as ProfileListItem[]) || []);
+      setLoading(false);
+    }
+
+    loadProfiles();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  const sortedAndFilteredProfiles = useMemo(() => {
+    const sorted = [...profiles].sort((a, b) =>
+      buildSortableName(a).localeCompare(buildSortableName(b), undefined, {
+        sensitivity: 'base',
+      })
+    );
+
+    const term = searchTerm.trim().toLowerCase();
+    if (!term) return sorted;
+
+    return sorted.filter((profile) => {
+      const fields = [
+        profile.display_name ?? '',
+        profile.first_name ?? '',
+        profile.last_name ?? '',
+      ]
+        .map((field) => field.toLowerCase())
+        .join(' ');
+
+      return fields.includes(term);
+    });
+  }, [profiles, searchTerm]);
+
+  return (
+    <main
+      className="page-shell"
+      style={{
+        maxWidth: '800px',
+        display: 'flex',
+        flexDirection: 'column',
+        gap: 'var(--section-gap)',
+      }}
+    >
+      <header>
+        <h1>All Profiles</h1>
+        <p>
+          Browse every profile in the league, including players with and
+          without recorded matches.
+        </p>
+      </header>
+
+      <section
+        style={{
+          padding: '1rem',
+          borderRadius: '0.5rem',
+          border: '1px solid #ddd',
+          backgroundColor: '#f9f9f9',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '0.5rem',
+        }}
+      >
+        <label htmlFor="profile-search" style={{ fontWeight: 600 }}>
+          Search profiles
+        </label>
+        <input
+          id="profile-search"
+          type="search"
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          placeholder="Start typing a display name or real name"
+          style={{
+            padding: '0.6rem 0.8rem',
+            borderRadius: '0.5rem',
+            border: '1px solid #ccc',
+          }}
+        />
+      </section>
+
+      {errorMessage && (
+        <div style={{ color: 'red' }}>
+          <strong>Error:</strong> {errorMessage}
+        </div>
+      )}
+
+      {loading ? (
+        <p>Loading profiles...</p>
+      ) : sortedAndFilteredProfiles.length === 0 ? (
+        <p>No profiles found.</p>
+      ) : (
+        <ul
+          style={{
+            listStyle: 'none',
+            padding: 0,
+            margin: 0,
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '0.5rem',
+          }}
+        >
+          {sortedAndFilteredProfiles.map((profile) => {
+            const primaryName = formatPlayerName(
+              profile.display_name,
+              profile.first_name
+            );
+            const hasSecondary = profile.last_name || profile.first_name;
+            const secondaryName = [profile.first_name, profile.last_name]
+              .filter(Boolean)
+              .join(' ');
+
+            return (
+              <li key={profile.id}>
+                <Link
+                  href={`/profiles/${profile.id}`}
+                  style={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    padding: '0.9rem 1rem',
+                    borderRadius: '0.5rem',
+                    border: '1px solid #e5e7eb',
+                    backgroundColor: '#fff',
+                    color: 'inherit',
+                    textDecoration: 'none',
+                    transition: 'border-color 0.2s ease, box-shadow 0.2s ease',
+                  }}
+                >
+                  <div>
+                    <div style={{ fontWeight: 700 }}>{primaryName}</div>
+                    {hasSecondary && (
+                      <div style={{ color: '#4b5563' }}>{secondaryName}</div>
+                    )}
+                  </div>
+                  <span aria-hidden style={{ color: '#9ca3af' }}>
+                    ➜
+                  </span>
+                </Link>
+              </li>
+            );
+          })}
+        </ul>
+      )}
+    </main>
+  );
+}

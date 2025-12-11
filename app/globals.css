@@ -62,11 +62,11 @@
     --section-gap: 1.25rem;
     --form-grid-columns: 1fr;
     --form-control-max: 100%;
-    --nav-direction: column;
-    --nav-align: stretch;
-    --nav-row-gap: 0.75rem;
-    --nav-actions-justify: flex-start;
-    --nav-actions-margin-left: 0;
+    --nav-direction: row;
+    --nav-align: center;
+    --nav-row-gap: 0.5rem;
+    --nav-actions-justify: flex-end;
+    --nav-actions-margin-left: auto;
   }
 
   .button-row,
@@ -176,6 +176,7 @@ textarea:disabled {
   align-items: var(--nav-align);
   gap: var(--nav-gap);
   row-gap: var(--nav-row-gap);
+  flex-wrap: wrap;
 }
 
 .navbar-actions {

@@ -73,25 +73,9 @@ export default function Home() {
       }
 
       const type = params.get('type');
-      const accessToken = params.get('access_token');
-      const refreshToken = params.get('refresh_token');
 
-      if (type === 'recovery' && accessToken && refreshToken) {
-        const { error: sessionError } = await supabase.auth.setSession({
-          access_token: accessToken,
-          refresh_token: refreshToken,
-        });
-
-        window.history.replaceState(null, '', window.location.pathname);
-
-        if (sessionError) {
-          setAuthErrorMessage(
-            'Could not start password reset session. Please request a new password reset email.'
-          );
-          return;
-        }
-
-        router.replace('/reset-password');
+      if (type === 'recovery' && hash.length > 1) {
+        router.replace(`/reset-password${hash}`);
       }
     }
 

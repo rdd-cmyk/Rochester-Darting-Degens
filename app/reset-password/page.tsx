@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, FormEvent } from 'react';
+import { useEffect, useState, FormEvent, startTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabaseClient';
 
@@ -12,20 +12,44 @@ export default function ResetPasswordPage() {
   const [showConfirm, setShowConfirm] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const [checkingSession, setCheckingSession] = useState(true);
+  const [checkingTokens, setCheckingTokens] = useState(true);
+  const [recoveryTokens, setRecoveryTokens] = useState<
+    | { accessToken: string; refreshToken: string }
+    | null
+  >(null);
 
   useEffect(() => {
-    // Check if we actually have a recovery session
-    async function checkSession() {
-      const { data, error } = await supabase.auth.getSession();
-      if (error || !data.session) {
+    const hash = window.location.hash;
+    if (!hash || hash.length < 2) {
+      startTransition(() => {
         setErrorMessage(
           'No active reset session found. Please use the password reset link from your email again.'
         );
-      }
-      setCheckingSession(false);
+        setCheckingTokens(false);
+      });
+      return;
     }
-    checkSession();
+
+    const params = new URLSearchParams(hash.slice(1));
+    const type = params.get('type');
+    const accessToken = params.get('access_token');
+    const refreshToken = params.get('refresh_token');
+
+    if (type !== 'recovery' || !accessToken || !refreshToken) {
+      startTransition(() => {
+        setErrorMessage(
+          'No active reset session found. Please use the password reset link from your email again.'
+        );
+        setCheckingTokens(false);
+      });
+      return;
+    }
+
+    startTransition(() => {
+      setRecoveryTokens({ accessToken, refreshToken });
+      setCheckingTokens(false);
+    });
+    window.history.replaceState(null, '', window.location.pathname);
   }, []);
 
   // Local password validation so we don't even call Supabase
@@ -59,6 +83,25 @@ export default function ResetPasswordPage() {
       return;
     }
 
+    if (!recoveryTokens) {
+      setErrorMessage(
+        'Reset link is invalid or has expired. Please request a new password reset email.'
+      );
+      return;
+    }
+
+    const { error: sessionError } = await supabase.auth.setSession({
+      access_token: recoveryTokens.accessToken,
+      refresh_token: recoveryTokens.refreshToken,
+    });
+
+    if (sessionError) {
+      setErrorMessage(
+        'Could not start password reset session. Please request a new password reset email.'
+      );
+      return;
+    }
+
     // If we get here, we *think* the password meets policy
     const { error } = await supabase.auth.updateUser({
       password: newPassword,
@@ -77,7 +120,7 @@ export default function ResetPasswordPage() {
     }, 2000);
   }
 
-  if (checkingSession) {
+  if (checkingTokens) {
     return (
       <main className="page-shell" style={{ maxWidth: '720px' }}>
         <h1>Reset Password</h1>

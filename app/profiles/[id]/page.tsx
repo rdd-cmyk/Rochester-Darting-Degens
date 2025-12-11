@@ -408,7 +408,7 @@ export default function ProfilePage() {
 
       {/* Basic profile details */}
       <section>
-        <h2>Player details</h2>
+        <h2 className="section-heading">Player Details</h2>
         <ul style={{ listStyle: 'none', padding: 0, marginTop: '0.5rem' }}>
           {hasDisplayName && (
             <li style={{ marginBottom: '0.25rem' }}>
@@ -438,13 +438,13 @@ export default function ProfilePage() {
 
       {/* Stats summary */}
       <section>
-        <h2>Stats summary</h2>
+        <h2 className="section-heading">Stats Summary</h2>
         {!stats || stats.games === 0 ? (
           <p>No matches recorded for this player yet.</p>
         ) : (
           <>
             <div style={{ marginBottom: '1rem' }}>
-              <h3>Overall record (all match types)</h3>
+              <h3 className="subsection-heading">Overall record (all match types)</h3>
               <ul style={{ listStyle: 'none', padding: 0 }}>
                 <li>
                   <strong>Games:</strong> {stats.games}
@@ -465,7 +465,7 @@ export default function ProfilePage() {
             </div>
 
             <div style={{ marginBottom: '1rem' }}>
-              <h3>3-Dart Average (501 / 301)</h3>
+              <h3 className="subsection-heading">3-Dart Average (501 / 301)</h3>
               {stats.threeGames === 0 ? (
                 <p>No 501 or 301 matches recorded.</p>
               ) : (
@@ -481,7 +481,7 @@ export default function ProfilePage() {
             </div>
 
             <div>
-              <h3>MPR (Cricket)</h3>
+              <h3 className="subsection-heading">MPR (Cricket)</h3>
               {stats.mprGames === 0 ? (
                 <p>No Cricket matches recorded.</p>
               ) : (
@@ -501,7 +501,7 @@ export default function ProfilePage() {
 
       {/* Last 5 matches (same format as matches page) */}
       <section>
-        <h2>Last 5 matches</h2>
+        <h2 className="section-heading">Last 5 Matches</h2>
         {recentMatches.length === 0 ? (
           <p>No recent matches found for this player.</p>
         ) : (

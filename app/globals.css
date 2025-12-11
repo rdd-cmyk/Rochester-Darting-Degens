@@ -201,6 +201,24 @@ textarea:disabled {
   flex-wrap: wrap;
 }
 
+.section-heading {
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  font-weight: 800;
+  font-size: 1.3rem;
+  border-bottom: 2px solid var(--panel-border);
+  padding-bottom: 0.35rem;
+  margin-bottom: 0.5rem;
+}
+
+.subsection-heading {
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  font-weight: 750;
+  font-size: 1.05rem;
+  margin: 0 0 0.35rem;
+}
+
 .navbar-toggle {
   display: none;
   background-color: #444;

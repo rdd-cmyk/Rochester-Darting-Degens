@@ -137,7 +137,7 @@ export default function AuthPage() {
 
     try {
       const redirectBase =
-        process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
+        process.env.NEXT_PUBLIC_SITE_URL || 'https://rocdartdegens.com';
 
       const { error } = await supabase.auth.resetPasswordForEmail(
         email.trim(),

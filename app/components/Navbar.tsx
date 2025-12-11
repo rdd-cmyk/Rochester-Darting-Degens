@@ -6,7 +6,12 @@ import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import type { User } from "@supabase/supabase-js";
 
-export default function Navbar() {
+type NavbarProps = {
+  snowEnabled: boolean;
+  onToggleSnow: () => void;
+};
+
+export default function Navbar({ snowEnabled, onToggleSnow }: NavbarProps) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const attemptedProfiles = useRef<Set<string>>(new Set());
@@ -87,9 +92,24 @@ export default function Navbar() {
         <Link style={linkStyle} href="/profile">
           My Profile
         </Link>
-          )}
+      )}
 
       <div className="navbar-actions">
+        <button
+          onClick={onToggleSnow}
+          aria-pressed={snowEnabled}
+          style={{
+            cursor: "pointer",
+            padding: "0.3rem 0.7rem",
+            borderRadius: "0.5rem",
+            border: "1px solid #5a5a5a",
+            backgroundColor: snowEnabled ? "#3b82f6" : "#374151",
+            color: "white",
+            fontWeight: 600,
+          }}
+        >
+          {snowEnabled ? "Snow: On" : "Snow: Off"}
+        </button>
         {loading ? null : user ? (
           <button
             onClick={handleSignOut}

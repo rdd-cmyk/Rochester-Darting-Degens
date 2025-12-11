@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
-import Navbar from "./components/Navbar";
-import Snowfall from "./components/Snowfall";
+import LayoutShell from "./components/LayoutShell";
 
 export const metadata: Metadata = {
   title: {
@@ -26,27 +25,7 @@ export default function RootLayout({
           flexDirection: "column",
         }}
       >
-        <Snowfall />
-        {/* Top navigation */}
-        <Navbar />
-
-        {/* Main page content */}
-        <div style={{ flex: 1 }}>
-          {children}
-        </div>
-
-        {/* Global footer */}
-        <footer
-          style={{
-            padding: "1rem",
-            textAlign: "center",
-            borderTop: "1px solid #ddd",
-            fontFamily: "sans-serif",
-            color: "#555",
-          }}
-        >
-          Powered by good vibes, man 😎✌️
-        </footer>
+        <LayoutShell>{children}</LayoutShell>
       </body>
     </html>
   );

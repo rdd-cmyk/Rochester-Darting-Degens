@@ -94,15 +94,18 @@ const fallbackMatchPlayer = (mp: unknown): MatchPlayerSummary => {
 
 type RawMatchRow = Omit<Partial<MatchSummary>, 'match_players'> & {
   match_players?: MatchPlayerRow | MatchPlayerRow[] | unknown;
+  all_match_players?: MatchPlayerRow | MatchPlayerRow[] | unknown;
 };
 
 function normalizeMatchDetails(matchesData: RawMatchRow[] | null): MatchSummary[] {
   return (matchesData ?? []).map((m) => {
-    const matchPlayers = Array.isArray(m.match_players)
-      ? m.match_players
-      : m.match_players
-      ? [m.match_players]
-      : [];
+    const playerList = m.all_match_players ?? m.match_players;
+
+    const matchPlayers = Array.isArray(playerList)
+      ? playerList
+      : playerList
+        ? [playerList]
+        : [];
 
     return {
       id: typeof m.id === 'number' ? m.id : 0,
@@ -323,7 +326,8 @@ export default function ProfilePage() {
             board_type,
             venue,
             created_by,
-            match_players!inner (
+            match_players!inner (player_id),
+            all_match_players:match_players (
               id,
               match_id,
               player_id,
@@ -376,7 +380,8 @@ export default function ProfilePage() {
           board_type,
           venue,
           created_by,
-          match_players!inner (
+          match_players!inner (player_id),
+          all_match_players:match_players (
             id,
             match_id,
             player_id,

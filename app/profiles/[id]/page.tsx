@@ -92,22 +92,38 @@ const fallbackMatchPlayer = (mp: unknown): MatchPlayerSummary => {
   };
 };
 
-function normalizeMatchDetails(
-  matchesData: Array<MatchSummary & { match_players: MatchPlayerRow[] }> | null
-): MatchSummary[] {
-  return (matchesData ?? []).map((m) => ({
-    ...m,
-    match_players: (m.match_players || []).map((mp) => {
-      if (isMatchPlayerRow(mp)) {
-        return {
-          ...mp,
-          profiles: normalizeProfile(mp.profiles),
-        };
-      }
+type RawMatchRow = Partial<MatchSummary> & {
+  match_players?: MatchPlayerRow | MatchPlayerRow[] | unknown;
+};
 
-      return fallbackMatchPlayer(mp);
-    }),
-  }));
+function normalizeMatchDetails(matchesData: RawMatchRow[] | null): MatchSummary[] {
+  return (matchesData ?? []).map((m) => {
+    const matchPlayers = Array.isArray(m.match_players)
+      ? m.match_players
+      : m.match_players
+      ? [m.match_players]
+      : [];
+
+    return {
+      id: typeof m.id === 'number' ? m.id : 0,
+      played_at: typeof m.played_at === 'string' ? m.played_at : '',
+      game_type: typeof m.game_type === 'string' ? m.game_type : null,
+      notes: typeof m.notes === 'string' ? m.notes : null,
+      board_type: typeof m.board_type === 'string' ? m.board_type : null,
+      venue: typeof m.venue === 'string' ? m.venue : null,
+      created_by: typeof m.created_by === 'string' ? m.created_by : null,
+      match_players: matchPlayers.map((mp) => {
+        if (isMatchPlayerRow(mp)) {
+          return {
+            ...mp,
+            profiles: normalizeProfile(mp.profiles),
+          };
+        }
+
+        return fallbackMatchPlayer(mp);
+      }),
+    };
+  });
 }
 
 export default function ProfilePage() {

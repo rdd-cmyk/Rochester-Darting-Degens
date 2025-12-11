@@ -58,64 +58,6 @@
   }
 }
 
-@media (max-width: 640px) {
-  :root {
-    --page-padding: 1rem;
-    --section-gap: 1.25rem;
-    --form-grid-columns: 1fr;
-    --form-control-max: 100%;
-    --nav-direction: row;
-    --nav-align: center;
-    --nav-row-gap: 0.5rem;
-    --nav-actions-justify: flex-end;
-    --nav-actions-margin-left: auto;
-  }
-
-  .button-row,
-  .card-actions {
-    flex-direction: column;
-    align-items: stretch;
-  }
-
-  .card-actions button,
-  .button-row button {
-    width: 100%;
-  }
-
-  .navbar-shell {
-    align-items: flex-start;
-  }
-
-  .navbar-main {
-    width: 100%;
-    justify-content: space-between;
-  }
-
-  .navbar-toggle {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.35rem;
-  }
-
-  .navbar-links {
-    display: none;
-    width: 100%;
-    flex-direction: column;
-    align-items: flex-start;
-    padding-top: 0.5rem;
-  }
-
-  .navbar-links.open {
-    display: flex;
-  }
-
-  .navbar-actions {
-    width: 100%;
-    margin-left: 0;
-    justify-content: flex-start;
-  }
-}
-
 body {
   background: var(--background);
   color: var(--foreground);
@@ -277,6 +219,64 @@ textarea:disabled {
   justify-content: var(--nav-actions-justify);
   margin-left: var(--nav-actions-margin-left);
   flex-wrap: wrap;
+}
+
+@media (max-width: 640px) {
+  :root {
+    --page-padding: 1rem;
+    --section-gap: 1.25rem;
+    --form-grid-columns: 1fr;
+    --form-control-max: 100%;
+    --nav-direction: row;
+    --nav-align: center;
+    --nav-row-gap: 0.5rem;
+    --nav-actions-justify: flex-end;
+    --nav-actions-margin-left: auto;
+  }
+
+  .button-row,
+  .card-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .card-actions button,
+  .button-row button {
+    width: 100%;
+  }
+
+  .navbar-shell {
+    align-items: flex-start;
+  }
+
+  .navbar-main {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .navbar-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+  }
+
+  .navbar-links {
+    display: none;
+    width: 100%;
+    flex-direction: column;
+    align-items: flex-start;
+    padding-top: 0.5rem;
+  }
+
+  .navbar-links.open {
+    display: flex;
+  }
+
+  .navbar-actions {
+    width: 100%;
+    margin-left: 0;
+    justify-content: flex-start;
+  }
 }
 
 .snowfall {

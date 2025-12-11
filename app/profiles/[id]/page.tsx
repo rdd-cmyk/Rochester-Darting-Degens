@@ -92,7 +92,7 @@ const fallbackMatchPlayer = (mp: unknown): MatchPlayerSummary => {
   };
 };
 
-type RawMatchRow = Partial<MatchSummary> & {
+type RawMatchRow = Omit<Partial<MatchSummary>, 'match_players'> & {
   match_players?: MatchPlayerRow | MatchPlayerRow[] | unknown;
 };
 
@@ -405,7 +405,7 @@ export default function ProfilePage() {
       const totalPages = count ? Math.max(1, Math.ceil(count / PAGE_SIZE)) : 1;
 
       setAllMatchesTotalPages(totalPages);
-      setAllMatches(normalizeMatchDetails(data as MatchSummary[] | null));
+      setAllMatches(normalizeMatchDetails(data as RawMatchRow[] | null));
       setAllMatchesLoading(false);
     }
 

@@ -14,6 +14,7 @@ type NavbarProps = {
 export default function Navbar({ snowEnabled, onToggleSnow }: NavbarProps) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  const [menuOpen, setMenuOpen] = useState(false);
   const attemptedProfiles = useRef<Set<string>>(new Set());
   const router = useRouter();
 
@@ -80,22 +81,45 @@ export default function Navbar({ snowEnabled, onToggleSnow }: NavbarProps) {
     ensureProfileFromMetadata(user);
   }, [user]);
 
+  const handleNavSelection = () => {
+    setMenuOpen(false);
+  };
+
   return (
     <nav className="navbar-shell">
-      <Link style={linkStyle} href="/">
-        Home
-      </Link>
-      <Link style={linkStyle} href="/matches">
-        Matches
-      </Link>
-      <Link style={linkStyle} href="/profiles">
-        All Profiles
-      </Link>
-      {user && (
-        <Link style={linkStyle} href="/profile">
-          My Profile
-        </Link>
-      )}
+      <div className="navbar-main">
+        <button
+          className="navbar-toggle"
+          aria-expanded={menuOpen}
+          aria-controls="navbar-links"
+          onClick={() => setMenuOpen((open) => !open)}
+        >
+          ☰ Menu
+        </button>
+        <div
+          id="navbar-links"
+          className={`navbar-links ${menuOpen ? "open" : ""}`.trim()}
+        >
+          <Link style={linkStyle} href="/" onClick={handleNavSelection}>
+            Home
+          </Link>
+          <Link style={linkStyle} href="/matches" onClick={handleNavSelection}>
+            Matches
+          </Link>
+          <Link style={linkStyle} href="/profiles" onClick={handleNavSelection}>
+            All Profiles
+          </Link>
+          {user && (
+            <Link
+              style={linkStyle}
+              href="/profile"
+              onClick={handleNavSelection}
+            >
+              My Profile
+            </Link>
+          )}
+        </div>
+      </div>
 
       <div className="navbar-actions">
         <button

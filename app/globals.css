@@ -58,31 +58,6 @@
   }
 }
 
-@media (max-width: 640px) {
-  :root {
-    --page-padding: 1rem;
-    --section-gap: 1.25rem;
-    --form-grid-columns: 1fr;
-    --form-control-max: 100%;
-    --nav-direction: row;
-    --nav-align: center;
-    --nav-row-gap: 0.5rem;
-    --nav-actions-justify: flex-end;
-    --nav-actions-margin-left: auto;
-  }
-
-  .button-row,
-  .card-actions {
-    flex-direction: column;
-    align-items: stretch;
-  }
-
-  .card-actions button,
-  .button-row button {
-    width: 100%;
-  }
-}
-
 body {
   background: var(--background);
   color: var(--foreground);
@@ -205,6 +180,37 @@ textarea:disabled {
   gap: var(--nav-gap);
   row-gap: var(--nav-row-gap);
   flex-wrap: wrap;
+  position: relative;
+}
+
+.navbar-main {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex: 1;
+  flex-wrap: wrap;
+}
+
+.navbar-toggle {
+  display: none;
+  background-color: #444;
+  color: white;
+  border: 1px solid #555;
+  padding: 0.35rem 0.65rem;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  font-weight: 700;
+}
+
+.navbar-links {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.navbar-links.open {
+  display: flex;
 }
 
 .navbar-actions {
@@ -214,6 +220,71 @@ textarea:disabled {
   justify-content: var(--nav-actions-justify);
   margin-left: var(--nav-actions-margin-left);
   flex-wrap: wrap;
+}
+
+@media (max-width: 640px) {
+  :root {
+    --page-padding: 1rem;
+    --section-gap: 1.25rem;
+    --form-grid-columns: 1fr;
+    --form-control-max: 100%;
+    --nav-direction: row;
+    --nav-align: center;
+    --nav-row-gap: 0.5rem;
+    --nav-actions-justify: flex-end;
+    --nav-actions-margin-left: auto;
+  }
+
+  .button-row,
+  .card-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .card-actions button,
+  .button-row button {
+    width: 100%;
+  }
+
+  .navbar-shell {
+    align-items: center;
+  }
+
+  .navbar-main {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .navbar-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+  }
+
+  .navbar-links {
+    display: none;
+    width: 100%;
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 0.75rem 1rem 1rem;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: #222;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.45);
+    z-index: 20;
+  }
+
+  .navbar-links.open {
+    display: flex;
+  }
+
+  .navbar-actions {
+    width: auto;
+    margin-left: auto;
+    justify-content: flex-end;
+  }
 }
 
 .snowfall {

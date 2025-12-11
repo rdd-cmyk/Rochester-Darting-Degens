@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { supabase } from '@/lib/supabaseClient';
@@ -34,6 +34,7 @@ type WinLossStats = {
   winPct: number;
   streak: string;
   last5: string;
+  last10: string;
 };
 
 type AverageStats = {
@@ -48,6 +49,30 @@ export default function Home() {
   const [winLossStats, setWinLossStats] = useState<WinLossStats[]>([]);
   const [threeDartStats, setThreeDartStats] = useState<AverageStats[]>([]);
   const [mprStats, setMprStats] = useState<AverageStats[]>([]);
+  const [wlSort, setWlSort] = useState<{
+    column:
+      | 'player'
+      | 'wins'
+      | 'losses'
+      | 'games'
+      | 'winPct'
+      | 'streak'
+      | 'last5'
+      | 'last10';
+    direction: 'asc' | 'desc';
+  }>({ column: 'winPct', direction: 'desc' });
+  const [threeSort, setThreeSort] = useState<{ column: 'player' | 'avg' | 'games'; direction: 'asc' | 'desc' }>(
+    {
+      column: 'avg',
+      direction: 'desc',
+    }
+  );
+  const [mprSort, setMprSort] = useState<{ column: 'player' | 'avg' | 'games'; direction: 'asc' | 'desc' }>(
+    {
+      column: 'avg',
+      direction: 'desc',
+    }
+  );
   const [loading, setLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [user, setUser] = useState<User | null>(null);
@@ -282,6 +307,7 @@ export default function Home() {
 
           let streak = '';
           let last5 = '';
+          let last10 = '';
 
           if (outcomes.length > 0) {
             // ---- Streak calculation (most recent run) ----
@@ -309,6 +335,11 @@ export default function Home() {
             const wins5 = recent.filter((o) => o.isWin).length;
             const losses5 = recent.length - wins5;
             last5 = `${wins5}-${losses5}`;
+
+            const recent10 = outcomes.slice(-10);
+            const wins10 = recent10.filter((o) => o.isWin).length;
+            const losses10 = recent10.length - wins10;
+            last10 = `${wins10}-${losses10}`;
           }
 
           const winPct = e.games > 0 ? (e.wins / e.games) * 100 : 0;
@@ -322,6 +353,7 @@ export default function Home() {
             winPct,
             streak,
             last5,
+            last10,
           };
         })
         .sort((a, b) => {
@@ -366,6 +398,125 @@ export default function Home() {
 
     loadStats();
   }, []);
+
+  const toggleSort = <T extends string>(
+    current: { column: T; direction: 'asc' | 'desc' },
+    column: T,
+    defaultDirection: 'asc' | 'desc'
+  ) => {
+    if (current.column === column) {
+      return { column, direction: current.direction === 'asc' ? 'desc' : 'asc' } as const;
+    }
+    return { column, direction: defaultDirection } as const;
+  };
+
+  const parseStreakValue = (streak: string) => {
+    if (!streak) return 0;
+    const type = streak[0];
+    const count = Number(streak.slice(1)) || 0;
+    return type === 'W' ? count : -count;
+  };
+
+  const recordSortValue = (record: string) => {
+    const [winsStr, lossesStr] = record.split('-');
+    const wins = Number(winsStr);
+    const losses = Number(lossesStr);
+    const total = wins + losses;
+
+    if (Number.isNaN(wins) || Number.isNaN(losses) || total === 0) {
+      return { ratio: -Infinity, wins: 0 } as const;
+    }
+
+    return { ratio: wins / total, wins } as const;
+  };
+
+  const sortedWinLossStats = useMemo(() => {
+    const sorted = [...winLossStats];
+
+    sorted.sort((a, b) => {
+      const dir = wlSort.direction === 'asc' ? 1 : -1;
+
+      switch (wlSort.column) {
+        case 'player':
+          return a.displayName.localeCompare(b.displayName) * dir;
+        case 'wins':
+          return (a.wins - b.wins) * dir;
+        case 'losses':
+          return (a.losses - b.losses) * dir;
+        case 'games':
+          return (a.games - b.games) * dir;
+        case 'winPct':
+          return (a.winPct - b.winPct) * dir;
+        case 'streak':
+          return (parseStreakValue(a.streak) - parseStreakValue(b.streak)) * dir;
+        case 'last5': {
+          const aRec = recordSortValue(a.last5);
+          const bRec = recordSortValue(b.last5);
+          if (aRec.ratio !== bRec.ratio) return (aRec.ratio - bRec.ratio) * dir;
+          return (aRec.wins - bRec.wins) * dir;
+        }
+        case 'last10': {
+          const aRec = recordSortValue(a.last10);
+          const bRec = recordSortValue(b.last10);
+          if (aRec.ratio !== bRec.ratio) return (aRec.ratio - bRec.ratio) * dir;
+          return (aRec.wins - bRec.wins) * dir;
+        }
+        default:
+          return 0;
+      }
+    });
+
+    return sorted;
+  }, [winLossStats, wlSort]);
+
+  const sortAverageStats = (
+    stats: AverageStats[],
+    sort: { column: 'player' | 'avg' | 'games'; direction: 'asc' | 'desc' }
+  ) => {
+    const dir = sort.direction === 'asc' ? 1 : -1;
+    return [...stats].sort((a, b) => {
+      switch (sort.column) {
+        case 'player':
+          return a.displayName.localeCompare(b.displayName) * dir;
+        case 'games':
+          return (a.games - b.games) * dir;
+        case 'avg':
+        default:
+          return (a.avg - b.avg) * dir;
+      }
+    });
+  };
+
+  const sortedThreeDartStats = useMemo(
+    () => sortAverageStats(threeDartStats, threeSort),
+    [threeDartStats, threeSort]
+  );
+
+  const sortedMprStats = useMemo(() => sortAverageStats(mprStats, mprSort), [mprStats, mprSort]);
+
+  const renderHeaderButton = <T extends string>(
+    label: string,
+    column: T,
+    sort: { column: T; direction: 'asc' | 'desc' },
+    onChange: (next: { column: T; direction: 'asc' | 'desc' }) => void,
+    defaultDirection: 'asc' | 'desc'
+  ) => (
+    <button
+      type="button"
+      onClick={() => onChange(toggleSort(sort, column, defaultDirection))}
+      style={{
+        background: 'transparent',
+        border: 'none',
+        padding: 0,
+        cursor: 'pointer',
+        color: 'inherit',
+        fontWeight: 600,
+      }}
+    >
+      {label}{' '}
+      {sort.column === column ? (sort.direction === 'asc' ? '▲' : '▼') : ''}
+    </button>
+  );
 
   return (
     <main
@@ -466,7 +617,7 @@ export default function Home() {
                       padding: '0.5rem',
                     }}
                   >
-                    Player
+                    {renderHeaderButton('Player', 'player', wlSort, setWlSort, 'asc')}
                   </th>
                   <th
                     style={{
@@ -475,7 +626,7 @@ export default function Home() {
                       padding: '0.5rem',
                     }}
                   >
-                    Wins
+                    {renderHeaderButton('Wins', 'wins', wlSort, setWlSort, 'desc')}
                   </th>
                   <th
                     style={{
@@ -484,7 +635,7 @@ export default function Home() {
                       padding: '0.5rem',
                     }}
                   >
-                    Losses
+                    {renderHeaderButton('Losses', 'losses', wlSort, setWlSort, 'asc')}
                   </th>
                   <th
                     style={{
@@ -493,7 +644,7 @@ export default function Home() {
                       padding: '0.5rem',
                     }}
                   >
-                    Games
+                    {renderHeaderButton('Games', 'games', wlSort, setWlSort, 'desc')}
                   </th>
                   <th
                     style={{
@@ -502,7 +653,7 @@ export default function Home() {
                       padding: '0.5rem',
                     }}
                   >
-                    Win %
+                    {renderHeaderButton('Win %', 'winPct', wlSort, setWlSort, 'desc')}
                   </th>
                   <th
                     style={{
@@ -511,7 +662,7 @@ export default function Home() {
                       padding: '0.5rem',
                     }}
                   >
-                    Streak
+                    {renderHeaderButton('Streak', 'streak', wlSort, setWlSort, 'desc')}
                   </th>
                   <th
                     style={{
@@ -520,12 +671,21 @@ export default function Home() {
                       padding: '0.5rem',
                     }}
                   >
-                    Last 5
+                    {renderHeaderButton('Last 5', 'last5', wlSort, setWlSort, 'desc')}
+                  </th>
+                  <th
+                    style={{
+                      textAlign: 'right',
+                      borderBottom: '1px solid #ccc',
+                      padding: '0.5rem',
+                    }}
+                  >
+                    {renderHeaderButton('Last 10', 'last10', wlSort, setWlSort, 'desc')}
                   </th>
                 </tr>
               </thead>
               <tbody>
-                {winLossStats.map((s, index) => (
+                {sortedWinLossStats.map((s, index) => (
                   <tr key={s.playerId}>
                     <td
                       style={{
@@ -600,6 +760,15 @@ export default function Home() {
                     >
                       {s.last5 || '—'}
                     </td>
+                    <td
+                      style={{
+                        padding: '0.5rem',
+                        borderBottom: '1px solid #eee',
+                        textAlign: 'right',
+                      }}
+                    >
+                      {s.last10 || '—'}
+                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -641,7 +810,7 @@ export default function Home() {
                       padding: '0.5rem',
                     }}
                   >
-                    Player
+                    {renderHeaderButton('Player', 'player', threeSort, setThreeSort, 'asc')}
                   </th>
                   <th
                     style={{
@@ -650,7 +819,7 @@ export default function Home() {
                       padding: '0.5rem',
                     }}
                   >
-                    3-Dart Avg
+                    {renderHeaderButton('3-Dart Avg', 'avg', threeSort, setThreeSort, 'desc')}
                   </th>
                   <th
                     style={{
@@ -659,12 +828,12 @@ export default function Home() {
                       padding: '0.5rem',
                     }}
                   >
-                    Games
+                    {renderHeaderButton('Games', 'games', threeSort, setThreeSort, 'desc')}
                   </th>
                 </tr>
               </thead>
               <tbody>
-                {threeDartStats.map((s, index) => (
+                {sortedThreeDartStats.map((s, index) => (
                   <tr key={s.playerId}>
                     <td
                       style={{
@@ -744,7 +913,7 @@ export default function Home() {
                       padding: '0.5rem',
                     }}
                   >
-                    Player
+                    {renderHeaderButton('Player', 'player', mprSort, setMprSort, 'asc')}
                   </th>
                   <th
                     style={{
@@ -753,7 +922,7 @@ export default function Home() {
                       padding: '0.5rem',
                     }}
                   >
-                    MPR
+                    {renderHeaderButton('MPR', 'avg', mprSort, setMprSort, 'desc')}
                   </th>
                   <th
                     style={{
@@ -762,12 +931,12 @@ export default function Home() {
                       padding: '0.5rem',
                     }}
                   >
-                    Games
+                    {renderHeaderButton('Games', 'games', mprSort, setMprSort, 'desc')}
                   </th>
                 </tr>
               </thead>
               <tbody>
-                {mprStats.map((s, index) => (
+                {sortedMprStats.map((s, index) => (
                   <tr key={s.playerId}>
                     <td
                       style={{

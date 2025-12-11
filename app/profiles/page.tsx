@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
+import type { User } from '@supabase/supabase-js';
 import { supabase } from '@/lib/supabaseClient';
 import { formatPlayerName } from '@/lib/playerName';
 
@@ -24,8 +25,35 @@ function buildSortableName(profile: ProfileListItem) {
 export default function AllProfilesPage() {
   const [profiles, setProfiles] = useState<ProfileListItem[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
+  const [user, setUser] = useState<User | null>(null);
+  const [authLoading, setAuthLoading] = useState(true);
   const [loading, setLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    async function loadUser() {
+      const { data } = await supabase.auth.getUser();
+      if (!isMounted) return;
+      setUser(data.user ?? null);
+      setAuthLoading(false);
+    }
+
+    loadUser();
+
+    const { data: subscription } = supabase.auth.onAuthStateChange(
+      (_event, session) => {
+        if (!isMounted) return;
+        setUser(session?.user ?? null);
+      }
+    );
+
+    return () => {
+      isMounted = false;
+      subscription?.subscription.unsubscribe();
+    };
+  }, []);
 
   useEffect(() => {
     let isMounted = true;
@@ -33,6 +61,12 @@ export default function AllProfilesPage() {
     async function loadProfiles() {
       setLoading(true);
       setErrorMessage(null);
+
+      if (!user) {
+        setProfiles([]);
+        setLoading(false);
+        return;
+      }
 
       const { data, error } = await supabase
         .from('profiles')
@@ -57,7 +91,7 @@ export default function AllProfilesPage() {
     return () => {
       isMounted = false;
     };
-  }, []);
+  }, [user]);
 
   const sortedAndFilteredProfiles = useMemo(() => {
     const sorted = [...profiles].sort((a, b) =>
@@ -81,6 +115,37 @@ export default function AllProfilesPage() {
       return fields.includes(term);
     });
   }, [profiles, searchTerm]);
+
+  if (authLoading || loading) {
+    return (
+      <main className="page-shell" style={{ maxWidth: '800px' }}>
+        <h1>All Profiles</h1>
+        <p>Loading...</p>
+      </main>
+    );
+  }
+
+  if (!user) {
+    return (
+      <main className="page-shell" style={{ maxWidth: '800px' }}>
+        <h1>All Profiles</h1>
+        <p>You must be signed in to view profiles.</p>
+        <p>
+          <Link
+            href="/auth"
+            style={{
+              cursor: 'pointer',
+              color: '#0366d6',
+              textDecoration: 'underline',
+              fontWeight: 500,
+            }}
+          >
+            Go to sign in / sign up
+          </Link>
+        </p>
+      </main>
+    );
+  }
 
   return (
     <main

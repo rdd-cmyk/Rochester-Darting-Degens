@@ -186,3 +186,31 @@ textarea:disabled {
   margin-left: var(--nav-actions-margin-left);
   flex-wrap: wrap;
 }
+
+.snowfall {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+  z-index: 5;
+  mix-blend-mode: screen;
+}
+
+.snowflake {
+  position: absolute;
+  top: -10%;
+  color: #fff;
+  animation-name: snowfall;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+  filter: drop-shadow(0 0 6px rgba(255, 255, 255, 0.45));
+}
+
+@keyframes snowfall {
+  0% {
+    transform: translate3d(0, -10%, 0) rotate(0deg);
+  }
+  100% {
+    transform: translate3d(var(--drift, 16px), 110vh, 0) rotate(360deg);
+  }
+}

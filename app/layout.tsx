@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import Navbar from "./components/Navbar";
+import Snowfall from "./components/Snowfall";
 
 export const metadata: Metadata = {
   title: {
@@ -25,6 +26,7 @@ export default function RootLayout({
           flexDirection: "column",
         }}
       >
+        <Snowfall />
         {/* Top navigation */}
         <Navbar />
 

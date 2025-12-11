@@ -162,6 +162,23 @@ textarea:disabled {
   max-width: var(--form-control-max);
 }
 
+.password-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.password-toggle {
+  border: 1px solid #ccc;
+  background-color: #f3f4f6;
+  color: #0366d6;
+  padding: 0.35rem 0.6rem;
+  border-radius: 0.4rem;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
 .button-row {
   display: flex;
   gap: 0.5rem;

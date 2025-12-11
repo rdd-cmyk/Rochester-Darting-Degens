@@ -118,6 +118,12 @@ export default function ResetPasswordPage() {
               New password:
             </label>
             <div className="password-row">
+              <input
+                type={showNewPassword ? 'text' : 'password'}
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+                className="form-control"
+              />
               <button
                 type="button"
                 onClick={() => setShowNewPassword((prev) => !prev)}
@@ -125,12 +131,6 @@ export default function ResetPasswordPage() {
               >
                 {showNewPassword ? 'Hide' : 'Show'}
               </button>
-              <input
-                type={showNewPassword ? 'text' : 'password'}
-                value={newPassword}
-                onChange={(e) => setNewPassword(e.target.value)}
-                className="form-control"
-              />
             </div>
           </div>
 
@@ -139,6 +139,12 @@ export default function ResetPasswordPage() {
               Confirm password:
             </label>
             <div className="password-row">
+              <input
+                type={showConfirm ? 'text' : 'password'}
+                value={confirm}
+                onChange={(e) => setConfirm(e.target.value)}
+                className="form-control"
+              />
               <button
                 type="button"
                 onClick={() => setShowConfirm((prev) => !prev)}
@@ -146,12 +152,6 @@ export default function ResetPasswordPage() {
               >
                 {showConfirm ? 'Hide' : 'Show'}
               </button>
-              <input
-                type={showConfirm ? 'text' : 'password'}
-                value={confirm}
-                onChange={(e) => setConfirm(e.target.value)}
-                className="form-control"
-              />
             </div>
           </div>
           <button

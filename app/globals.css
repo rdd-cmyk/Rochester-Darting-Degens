@@ -168,6 +168,15 @@ textarea:disabled {
   gap: 0.5rem;
 }
 
+.password-row .form-control {
+  flex: 1;
+  max-width: 100%;
+}
+
+.password-row .password-toggle {
+  flex-shrink: 0;
+}
+
 .password-toggle {
   border: 1px solid #ccc;
   background-color: #f3f4f6;

@@ -432,7 +432,7 @@ export default function Home() {
 
       {/* Overall W/L Leaderboard */}
       <section>
-        <h2>Overall Leaderboard (All Match Types)</h2>
+        <h2 className="leaderboard-title">Overall Leaderboard (All Match Types)</h2>
 
         {loading ? (
           <p>Loading leaderboard...</p>
@@ -610,7 +610,7 @@ export default function Home() {
 
       {/* 3-Dart Average Leaderboard (501 / 301) */}
       <section>
-        <h2>3-Dart Average Leaderboard (501 / 301)</h2>
+        <h2 className="leaderboard-title">3-Dart Average Leaderboard (501 / 301)</h2>
         {loading ? (
           <p>Loading 3-dart averages...</p>
         ) : threeDartStats.length === 0 ? (
@@ -713,7 +713,7 @@ export default function Home() {
 
       {/* MPR Leaderboard (Cricket) */}
       <section>
-        <h2>MPR Leaderboard (Cricket)</h2>
+        <h2 className="leaderboard-title">MPR Leaderboard (Cricket)</h2>
         {loading ? (
           <p>Loading MPR stats...</p>
         ) : mprStats.length === 0 ? (

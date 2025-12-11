@@ -30,17 +30,8 @@ export default function ResetPasswordPage() {
 
   // Local password validation so we don't even call Supabase
   function validatePassword(pwd: string): string | null {
-    if (pwd.length < 8) {
-      return 'Password must be at least 8 characters long.';
-    }
-
-    const hasLower = /[a-z]/.test(pwd);
-    const hasUpper = /[A-Z]/.test(pwd);
-    const hasDigit = /\d/.test(pwd);
-    const hasSpecial = /[!@#$%^&*()_+\-=\[\]{};':"\\|<>?,.\/`~]/.test(pwd);
-
-    if (!hasLower || !hasUpper || !hasDigit || !hasSpecial) {
-      return 'Password must include at least one lowercase letter, one uppercase letter, one number, and one special character.';
+    if (pwd.length < 16) {
+      return 'Password must be at least 16 characters long.';
     }
 
     return null;
@@ -100,8 +91,7 @@ export default function ResetPasswordPage() {
       <h1>Reset Your Password</h1>
 
       <p style={{ marginTop: '0.5rem', color: '#555', maxWidth: '480px' }}>
-        Your new password must include at least one lowercase letter, one uppercase letter,
-        one number, and one special character.
+        Your new password must be at least 16 characters long.
       </p>
 
       {errorMessage && (
@@ -127,52 +117,42 @@ export default function ResetPasswordPage() {
             <label className="form-label">
               New password:
             </label>
-            <input
-              type={showNewPassword ? 'text' : 'password'}
-              value={newPassword}
-              onChange={(e) => setNewPassword(e.target.value)}
-              className="form-control"
-            />
-            <button
-              type="button"
-              onClick={() => setShowNewPassword((prev) => !prev)}
-              style={{
-                padding: '0.25rem 0.5rem',
-                borderRadius: '0.25rem',
-                border: '1px solid #ccc',
-                backgroundColor: '#f3f4f6',
-                color: '#0366d6',
-                cursor: 'pointer',
-              }}
-            >
-              {showNewPassword ? 'Hide' : 'Show'}
-            </button>
+            <div className="password-row">
+              <input
+                type={showNewPassword ? 'text' : 'password'}
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+                className="form-control"
+              />
+              <button
+                type="button"
+                onClick={() => setShowNewPassword((prev) => !prev)}
+                className="password-toggle"
+              >
+                {showNewPassword ? 'Hide' : 'Show'}
+              </button>
+            </div>
           </div>
 
           <div className="form-row">
             <label className="form-label">
               Confirm password:
             </label>
-            <input
-              type={showConfirm ? 'text' : 'password'}
-              value={confirm}
-              onChange={(e) => setConfirm(e.target.value)}
-              className="form-control"
-            />
-            <button
-              type="button"
-              onClick={() => setShowConfirm((prev) => !prev)}
-              style={{
-                padding: '0.25rem 0.5rem',
-                borderRadius: '0.25rem',
-                border: '1px solid #ccc',
-                backgroundColor: '#f3f4f6',
-                color: '#0366d6',
-                cursor: 'pointer',
-              }}
-            >
-              {showConfirm ? 'Hide' : 'Show'}
-            </button>
+            <div className="password-row">
+              <input
+                type={showConfirm ? 'text' : 'password'}
+                value={confirm}
+                onChange={(e) => setConfirm(e.target.value)}
+                className="form-control"
+              />
+              <button
+                type="button"
+                onClick={() => setShowConfirm((prev) => !prev)}
+                className="password-toggle"
+              >
+                {showConfirm ? 'Hide' : 'Show'}
+              </button>
+            </div>
           </div>
           <button
             type="submit"

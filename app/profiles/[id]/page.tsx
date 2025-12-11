@@ -648,7 +648,10 @@ export default function ProfilePage() {
                   padding: '0.4rem 0.8rem',
                   borderRadius: '0.5rem',
                   border: '1px solid #ccc',
-                  backgroundColor: 'white',
+                  backgroundColor:
+                    allMatchesPage === 1 ? '#8cbce8' : '#0366d6',
+                  color: 'white',
+                  fontWeight: 500,
                   cursor: allMatchesPage === 1 ? 'not-allowed' : 'pointer',
                 }}
               >
@@ -669,7 +672,10 @@ export default function ProfilePage() {
                   padding: '0.4rem 0.8rem',
                   borderRadius: '0.5rem',
                   border: '1px solid #ccc',
-                  backgroundColor: 'white',
+                  backgroundColor:
+                    allMatchesPage === allMatchesTotalPages ? '#8cbce8' : '#0366d6',
+                  color: 'white',
+                  fontWeight: 500,
                   cursor:
                     allMatchesPage === allMatchesTotalPages
                       ? 'not-allowed'

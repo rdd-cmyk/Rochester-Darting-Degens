@@ -135,7 +135,7 @@ export default function AllProfilesPage() {
             href="/auth"
             style={{
               cursor: 'pointer',
-              color: '#0366d6',
+              color: 'var(--link-color)',
               textDecoration: 'underline',
               fontWeight: 500,
             }}
@@ -169,8 +169,8 @@ export default function AllProfilesPage() {
         style={{
           padding: '1rem',
           borderRadius: '0.5rem',
-          border: '1px solid #ddd',
-          backgroundColor: '#f9f9f9',
+          border: '1px solid var(--panel-border)',
+          backgroundColor: 'var(--panel-bg)',
           display: 'flex',
           flexDirection: 'column',
           gap: '0.5rem',
@@ -188,7 +188,9 @@ export default function AllProfilesPage() {
           style={{
             padding: '0.6rem 0.8rem',
             borderRadius: '0.5rem',
-            border: '1px solid #ccc',
+            border: '1px solid var(--input-border)',
+            backgroundColor: 'var(--input-bg)',
+            color: 'var(--input-text)',
           }}
         />
       </section>
@@ -234,8 +236,8 @@ export default function AllProfilesPage() {
                     alignItems: 'center',
                     padding: '0.9rem 1rem',
                     borderRadius: '0.5rem',
-                    border: '1px solid #e5e7eb',
-                    backgroundColor: '#fff',
+                    border: '1px solid var(--panel-border)',
+                    backgroundColor: 'var(--panel-bg)',
                     color: 'inherit',
                     textDecoration: 'none',
                     transition: 'border-color 0.2s ease, box-shadow 0.2s ease',
@@ -244,10 +246,12 @@ export default function AllProfilesPage() {
                   <div>
                     <div style={{ fontWeight: 700 }}>{primaryName}</div>
                     {hasSecondary && (
-                      <div style={{ color: '#4b5563' }}>{secondaryName}</div>
+                      <div style={{ color: 'var(--muted-foreground)' }}>
+                        {secondaryName}
+                      </div>
                     )}
                   </div>
-                  <span aria-hidden style={{ color: '#9ca3af' }}>
+                  <span aria-hidden style={{ color: 'var(--muted-icon)' }}>
                     ➜
                   </span>
                 </Link>

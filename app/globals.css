@@ -10,6 +10,11 @@
   --input-text: #0f172a;
   --input-placeholder: #6b7280;
   --focus-ring: #0366d6;
+  --panel-bg: #f9fafb;
+  --panel-border: #e5e7eb;
+  --muted-foreground: #4b5563;
+  --muted-icon: #9ca3af;
+  --link-color: #0366d6;
   --page-padding: 2rem;
   --page-max-width: 1100px;
   --section-gap: 2rem;
@@ -40,6 +45,11 @@
     --input-text: #e5e7eb;
     --input-placeholder: #9ca3af;
     --focus-ring: #60a5fa;
+    --panel-bg: #111827;
+    --panel-border: #1f2937;
+    --muted-foreground: #cbd5e1;
+    --muted-icon: #9ca3af;
+    --link-color: #93c5fd;
     --snowflake-color: #ffffff;
   }
 }

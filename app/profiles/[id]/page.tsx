@@ -374,6 +374,14 @@ export default function ProfilePage() {
   const hasFirstName = !!profile.first_name?.trim();
   const hasLastName = !!profile.last_name?.trim();
   const hasSex = !!profile.sex?.trim();
+  const sectionScrollMarginTop = '120px';
+
+  const scrollToSection = (id: string) => {
+    const el = document.getElementById(id);
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  };
 
   return (
     <main
@@ -406,8 +414,48 @@ export default function ProfilePage() {
         </p>
       </header>
 
+      <nav
+        aria-label="Profile sections"
+        style={{
+          display: 'flex',
+          gap: '0.5rem',
+          flexWrap: 'nowrap',
+          overflowX: 'auto',
+          padding: '0.25rem 0',
+          position: 'sticky',
+          top: 0,
+          backgroundColor: 'var(--background)',
+          zIndex: 1,
+        }}
+      >
+        {[
+          { id: 'player-details', label: 'Profile' },
+          { id: 'stats-summary', label: 'Stats' },
+          { id: 'match-info', label: 'Match Info' },
+        ].map((tab) => (
+          <button
+            key={tab.id}
+            type="button"
+            onClick={() => scrollToSection(tab.id)}
+            style={{
+              padding: '0.5rem 0.85rem',
+              borderRadius: '999px',
+              border: '1px solid var(--panel-border)',
+              backgroundColor: 'var(--panel-bg)',
+              color: 'inherit',
+              fontWeight: 700,
+              cursor: 'pointer',
+              whiteSpace: 'nowrap',
+              boxShadow: '0 1px 3px rgba(0,0,0,0.08)',
+            }}
+          >
+            {tab.label}
+          </button>
+        ))}
+      </nav>
+
       {/* Basic profile details */}
-      <section>
+      <section id="player-details" style={{ scrollMarginTop: sectionScrollMarginTop }}>
         <h2 className="section-heading">Player Details</h2>
         <ul style={{ listStyle: 'none', padding: 0, marginTop: '0.5rem' }}>
           {hasDisplayName && (
@@ -437,7 +485,7 @@ export default function ProfilePage() {
       </section>
 
       {/* Stats summary */}
-      <section>
+      <section id="stats-summary" style={{ scrollMarginTop: sectionScrollMarginTop }}>
         <h2 className="section-heading">Stats Summary</h2>
         {!stats || stats.games === 0 ? (
           <p>No matches recorded for this player yet.</p>
@@ -500,7 +548,7 @@ export default function ProfilePage() {
       </section>
 
       {/* Last 5 matches (same format as matches page) */}
-      <section>
+      <section id="match-info" style={{ scrollMarginTop: sectionScrollMarginTop }}>
         <h2 className="section-heading">Last 5 Matches</h2>
         {recentMatches.length === 0 ? (
           <p>No recent matches found for this player.</p>

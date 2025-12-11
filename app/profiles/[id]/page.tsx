@@ -71,6 +71,45 @@ type PlayerStatsSummary = {
   mprGames: number;
 };
 
+const isMatchPlayerRow = (mp: unknown): mp is MatchPlayerRow =>
+  typeof mp === 'object' && mp !== null && 'profiles' in mp;
+
+const normalizeProfile = (
+  profiles: MatchPlayerRow['profiles']
+): MatchPlayerSummary['profiles'] =>
+  Array.isArray(profiles) ? profiles[0] ?? null : profiles ?? null;
+
+const fallbackMatchPlayer = (mp: unknown): MatchPlayerSummary => {
+  const candidate = mp as Partial<MatchPlayerSummary>;
+
+  return {
+    id: typeof candidate.id === 'number' ? candidate.id : 0,
+    match_id: typeof candidate.match_id === 'number' ? candidate.match_id : 0,
+    player_id: typeof candidate.player_id === 'string' ? candidate.player_id : '',
+    score: typeof candidate.score === 'number' ? candidate.score : null,
+    is_winner: typeof candidate.is_winner === 'boolean' ? candidate.is_winner : null,
+    profiles: null,
+  };
+};
+
+function normalizeMatchDetails(
+  matchesData: Array<MatchSummary & { match_players: MatchPlayerRow[] }> | null
+): MatchSummary[] {
+  return (matchesData ?? []).map((m) => ({
+    ...m,
+    match_players: (m.match_players || []).map((mp) => {
+      if (isMatchPlayerRow(mp)) {
+        return {
+          ...mp,
+          profiles: normalizeProfile(mp.profiles),
+        };
+      }
+
+      return fallbackMatchPlayer(mp);
+    }),
+  }));
+}
+
 export default function ProfilePage() {
   const params = useParams();
   const id = params?.id as string | undefined;
@@ -78,10 +117,18 @@ export default function ProfilePage() {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [stats, setStats] = useState<PlayerStatsSummary | null>(null);
   const [recentMatches, setRecentMatches] = useState<MatchSummary[]>([]);
+  const [allMatches, setAllMatches] = useState<MatchSummary[]>([]);
   const [loading, setLoading] = useState<boolean>(() => Boolean(id));
+  const [allMatchesLoading, setAllMatchesLoading] = useState<boolean>(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(
     id ? null : 'No profile id provided.'
   );
+  const [allMatchesError, setAllMatchesError] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<'recent' | 'all'>('recent');
+  const [allMatchesPage, setAllMatchesPage] = useState(1);
+  const [allMatchesTotalPages, setAllMatchesTotalPages] = useState(1);
+
+  const PAGE_SIZE = 10;
 
   useEffect(() => {
     async function loadProfileAndStatsAndMatches() {
@@ -284,45 +331,7 @@ export default function ProfilePage() {
         return;
       }
 
-      const isMatchPlayerRow = (mp: unknown): mp is MatchPlayerRow =>
-        typeof mp === 'object' && mp !== null && 'profiles' in mp;
-
-      const normalizeProfile = (
-        profiles: MatchPlayerRow['profiles']
-      ): MatchPlayerSummary['profiles'] =>
-        Array.isArray(profiles) ? profiles[0] ?? null : profiles ?? null;
-
-      const fallbackMatchPlayer = (mp: unknown): MatchPlayerSummary => {
-        const candidate = mp as Partial<MatchPlayerSummary>;
-
-        return {
-          id: typeof candidate.id === 'number' ? candidate.id : 0,
-          match_id: typeof candidate.match_id === 'number' ? candidate.match_id : 0,
-          player_id: typeof candidate.player_id === 'string' ? candidate.player_id : '',
-          score: typeof candidate.score === 'number' ? candidate.score : null,
-          is_winner:
-            typeof candidate.is_winner === 'boolean' ? candidate.is_winner : null,
-          profiles: null,
-        };
-      };
-
-      const normalizedMatchDetails: MatchSummary[] = (matchesDetailData ?? []).map(
-        (m) => ({
-          ...m,
-          match_players: (m.match_players || []).map((mp) => {
-            if (isMatchPlayerRow(mp)) {
-              return {
-                ...mp,
-                profiles: normalizeProfile(mp.profiles),
-              };
-            }
-
-            return fallbackMatchPlayer(mp);
-          }),
-        })
-      );
-
-      setRecentMatches(normalizedMatchDetails);
+      setRecentMatches(normalizeMatchDetails(matchesDetailData));
       setLoading(false);
     }
 
@@ -330,6 +339,64 @@ export default function ProfilePage() {
 
     loadProfileAndStatsAndMatches();
   }, [id]);
+
+  useEffect(() => {
+    async function loadAllMatches(page: number) {
+      if (!id) return;
+      setAllMatchesLoading(true);
+      setAllMatchesError(null);
+
+      const from = (page - 1) * PAGE_SIZE;
+      const to = from + PAGE_SIZE - 1;
+
+      const { data, error, count } = await supabase
+        .from('matches')
+        .select(
+          `
+          id,
+          played_at,
+          game_type,
+          notes,
+          board_type,
+          venue,
+          created_by,
+          match_players!inner (
+            id,
+            match_id,
+            player_id,
+            score,
+            is_winner,
+            profiles (
+              display_name,
+              first_name
+            )
+          )
+        `,
+          { count: 'exact' }
+        )
+        .eq('match_players.player_id', id)
+        .order('played_at', { ascending: false })
+        .range(from, to);
+
+      if (error) {
+        console.error('Error loading all matches for profile:', error);
+        setAllMatchesError('Could not load match history.');
+        setAllMatches([]);
+        setAllMatchesLoading(false);
+        return;
+      }
+
+      const totalPages = count ? Math.max(1, Math.ceil(count / PAGE_SIZE)) : 1;
+
+      setAllMatchesTotalPages(totalPages);
+      setAllMatches(normalizeMatchDetails(data as MatchSummary[] | null));
+      setAllMatchesLoading(false);
+    }
+
+    if (activeTab === 'all') {
+      loadAllMatches(allMatchesPage);
+    }
+  }, [activeTab, allMatchesPage, id]);
 
   if (loading) {
     return (
@@ -499,89 +566,190 @@ export default function ProfilePage() {
         )}
       </section>
 
-      {/* Last 5 matches (same format as matches page) */}
+      {/* Match history tabs */}
       <section>
-        <h2 className="section-heading">Last 5 Matches</h2>
-        {recentMatches.length === 0 ? (
-          <p>No recent matches found for this player.</p>
-        ) : (
-          <ul
+        <h2 className="section-heading">Match History</h2>
+
+        <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1rem' }}>
+          <button
+            type="button"
+            onClick={() => setActiveTab('recent')}
             style={{
-              listStyle: 'none',
-              padding: 0,
-              display: 'flex',
-              flexDirection: 'column',
-              gap: '1rem',
-              marginTop: '0.5rem',
+              padding: '0.4rem 0.8rem',
+              borderRadius: '0.5rem',
+              border: '1px solid #ccc',
+              backgroundColor: activeTab === 'recent' ? '#0366d6' : 'white',
+              color: activeTab === 'recent' ? 'white' : 'black',
+              cursor: 'pointer',
             }}
           >
-            {recentMatches.map((m) => {
-              const metricLabel =
-                m.game_type === 'Cricket'
-                  ? 'MPR'
-                  : m.game_type === 'Other'
-                    ? 'Score'
-                    : '3-Dart Avg';
+            Last 5 Matches
+          </button>
+          <button
+            type="button"
+            onClick={() => setActiveTab('all')}
+            style={{
+              padding: '0.4rem 0.8rem',
+              borderRadius: '0.5rem',
+              border: '1px solid #ccc',
+              backgroundColor: activeTab === 'all' ? '#0366d6' : 'white',
+              color: activeTab === 'all' ? 'white' : 'black',
+              cursor: 'pointer',
+            }}
+          >
+            All Matches
+          </button>
+        </div>
 
-              return (
-                <li
-                  key={m.id}
-                  style={{
-                    border: '1px solid #ccc',
-                    padding: '0.75rem',
-                    borderRadius: '0.5rem',
-                  }}
-                >
-                  <div
-                    style={{
-                      display: 'flex',
-                      justifyContent: 'space-between',
-                      alignItems: 'center',
-                      gap: '0.5rem',
-                    }}
-                  >
-                    <div>
-                      <strong>
-                        {m.game_type || 'Unknown game'} –{' '}
-                        {new Date(m.played_at).toLocaleString()}
-                      </strong>
-                      {m.notes && <div>Notes: {m.notes}</div>}
-                      {m.board_type && <div>Board: {m.board_type}</div>}
-                      {m.venue && <div>Venue: {m.venue}</div>}
-                    </div>
-                  </div>
-
-                  <div style={{ marginTop: '0.5rem' }}>
-                    Players:
-                    <ul style={{ margin: '0.25rem 0 0 1rem' }}>
-                      {(m.match_players || []).map((mp) => {
-                        const prof = mp.profiles;
-
-                        return (
-                          <li key={mp.id}>
-                            {prof ? (
-                              <LinkedPlayerName
-                                playerId={mp.player_id}
-                                display_name={prof.display_name}
-                                first_name={prof.first_name}
-                              />
-                            ) : (
-                              'Unknown player'
-                            )}{' '}
-                            – {metricLabel}:{' '}
-                            {mp.score != null ? mp.score.toString() : '0'}{' '}
-                            {mp.is_winner ? <strong>(winner)</strong> : null}
-                          </li>
-                        );
-                      })}
-                    </ul>
-                  </div>
-                </li>
-              );
-            })}
-          </ul>
+        {activeTab === 'recent' ? (
+          recentMatches.length === 0 ? (
+            <p>No recent matches found for this player.</p>
+          ) : (
+            <MatchList matches={recentMatches} />
+          )
+        ) : allMatchesLoading ? (
+          <p>Loading matches...</p>
+        ) : allMatchesError ? (
+          <p style={{ color: 'red' }}>{allMatchesError}</p>
+        ) : allMatches.length === 0 ? (
+          <p>No matches found for this player.</p>
+        ) : (
+          <>
+            <MatchList matches={allMatches} />
+            <div
+              style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                marginTop: '1rem',
+              }}
+            >
+              <button
+                type="button"
+                disabled={allMatchesPage === 1}
+                onClick={() => setAllMatchesPage((p) => Math.max(1, p - 1))}
+                style={{
+                  padding: '0.4rem 0.8rem',
+                  borderRadius: '0.5rem',
+                  border: '1px solid #ccc',
+                  backgroundColor: 'white',
+                  cursor: allMatchesPage === 1 ? 'not-allowed' : 'pointer',
+                }}
+              >
+                Previous
+              </button>
+              <span>
+                Page {allMatchesPage} of {allMatchesTotalPages}
+              </span>
+              <button
+                type="button"
+                disabled={allMatchesPage === allMatchesTotalPages}
+                onClick={() =>
+                  setAllMatchesPage((p) =>
+                    p >= allMatchesTotalPages ? allMatchesTotalPages : p + 1
+                  )
+                }
+                style={{
+                  padding: '0.4rem 0.8rem',
+                  borderRadius: '0.5rem',
+                  border: '1px solid #ccc',
+                  backgroundColor: 'white',
+                  cursor:
+                    allMatchesPage === allMatchesTotalPages
+                      ? 'not-allowed'
+                      : 'pointer',
+                }}
+              >
+                Next
+              </button>
+            </div>
+          </>
         )}
       </section>
     </main>
+  );
+}
+
+type MatchListProps = {
+  matches: MatchSummary[];
+};
+
+function MatchList({ matches }: MatchListProps) {
+  return (
+    <ul
+      style={{
+        listStyle: 'none',
+        padding: 0,
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '1rem',
+        marginTop: '0.5rem',
+      }}
+    >
+      {matches.map((m) => {
+        const metricLabel =
+          m.game_type === 'Cricket'
+            ? 'MPR'
+            : m.game_type === 'Other'
+              ? 'Score'
+              : '3-Dart Avg';
+
+        return (
+          <li
+            key={m.id}
+            style={{
+              border: '1px solid #ccc',
+              padding: '0.75rem',
+              borderRadius: '0.5rem',
+            }}
+          >
+            <div
+              style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                gap: '0.5rem',
+              }}
+            >
+              <div>
+                <strong>
+                  {m.game_type || 'Unknown game'} –{' '}
+                  {new Date(m.played_at).toLocaleString()}
+                </strong>
+                {m.notes && <div>Notes: {m.notes}</div>}
+                {m.board_type && <div>Board: {m.board_type}</div>}
+                {m.venue && <div>Venue: {m.venue}</div>}
+              </div>
+            </div>
+
+            <div style={{ marginTop: '0.5rem' }}>
+              Players:
+              <ul style={{ margin: '0.25rem 0 0 1rem' }}>
+                {(m.match_players || []).map((mp) => {
+                  const prof = mp.profiles;
+
+                  return (
+                    <li key={mp.id}>
+                      {prof ? (
+                        <LinkedPlayerName
+                          playerId={mp.player_id}
+                          display_name={prof.display_name}
+                          first_name={prof.first_name}
+                        />
+                      ) : (
+                        'Unknown player'
+                      )}{' '}
+                      – {metricLabel}:{' '}
+                      {mp.score != null ? mp.score.toString() : '0'}{' '}
+                      {mp.is_winner ? <strong>(winner)</strong> : null}
+                    </li>
+                  );
+                })}
+              </ul>
+            </div>
+          </li>
+        );
+      })}
+    </ul>
   );
 }

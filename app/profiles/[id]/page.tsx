@@ -154,6 +154,12 @@ export default function ProfilePage() {
   );
   const scrollPositionRef = useRef(0);
 
+  const recordScrollPosition = () => {
+    if (typeof window !== 'undefined') {
+      scrollPositionRef.current = window.scrollY;
+    }
+  };
+
   const PAGE_SIZE = 10;
 
   useEffect(() => {
@@ -412,6 +418,8 @@ export default function ProfilePage() {
         query = query.eq('match_players.is_winner', resultFilter === 'wins');
       }
 
+      recordScrollPosition();
+
       const { data, error, count } = await query
         .order('played_at', { ascending: false })
         .range(from, to);
@@ -445,9 +453,7 @@ export default function ProfilePage() {
   }, [activeTab, allMatchesLoading]);
 
   const handleTabChange = (tab: 'recent' | 'all') => {
-    if (typeof window !== 'undefined') {
-      scrollPositionRef.current = window.scrollY;
-    }
+    recordScrollPosition();
 
     setActiveTab(tab);
   };
@@ -665,6 +671,7 @@ export default function ProfilePage() {
               id="gameTypeFilter"
               value={gameTypeFilter}
               onChange={(e) => {
+                recordScrollPosition();
                 setGameTypeFilter(e.target.value as typeof gameTypeFilter);
                 setAllMatchesPage(1);
               }}
@@ -683,6 +690,7 @@ export default function ProfilePage() {
               id="resultFilter"
               value={resultFilter}
               onChange={(e) => {
+                recordScrollPosition();
                 setResultFilter(e.target.value as typeof resultFilter);
                 setAllMatchesPage(1);
               }}
@@ -731,69 +739,93 @@ export default function ProfilePage() {
           ) : (
             <MatchList matches={filteredRecentMatches} />
           )
-        ) : allMatchesLoading ? (
-          <p>Loading matches...</p>
-        ) : allMatchesError ? (
-          <p style={{ color: 'red' }}>{allMatchesError}</p>
-        ) : filteredAllMatches.length === 0 ? (
-          <p>No matches found for this player.</p>
         ) : (
-          <>
-            <MatchList matches={filteredAllMatches} />
-            <div
-              style={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-                marginTop: '1rem',
-              }}
-            >
-              <button
-                type="button"
-                disabled={allMatchesPage === 1}
-                onClick={() => setAllMatchesPage((p) => Math.max(1, p - 1))}
+          <div style={{ position: 'relative' }}>
+            {allMatchesError ? (
+              <p style={{ color: 'red' }}>{allMatchesError}</p>
+            ) : filteredAllMatches.length === 0 && !allMatchesLoading ? (
+              <p>No matches found for this player.</p>
+            ) : (
+              <MatchList matches={filteredAllMatches} />
+            )}
+
+            {filteredAllMatches.length > 0 && (
+              <div
                 style={{
-                  padding: '0.4rem 0.8rem',
-                  borderRadius: '0.5rem',
-                  border: '1px solid #ccc',
-                  backgroundColor:
-                    allMatchesPage === 1 ? '#8cbce8' : '#0366d6',
-                  color: 'white',
-                  fontWeight: 500,
-                  cursor: allMatchesPage === 1 ? 'not-allowed' : 'pointer',
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  marginTop: '1rem',
                 }}
               >
-                Previous
-              </button>
-              <span>
-                Page {allMatchesPage} of {allMatchesTotalPages}
-              </span>
-              <button
-                type="button"
-                disabled={allMatchesPage === allMatchesTotalPages}
-                onClick={() =>
-                  setAllMatchesPage((p) =>
-                    p >= allMatchesTotalPages ? allMatchesTotalPages : p + 1
-                  )
-                }
+                <button
+                  type="button"
+                  disabled={allMatchesPage === 1 || allMatchesLoading}
+                  onClick={() => {
+                    recordScrollPosition();
+                    setAllMatchesPage((p) => Math.max(1, p - 1));
+                  }}
+                  style={{
+                    padding: '0.4rem 0.8rem',
+                    borderRadius: '0.5rem',
+                    border: '1px solid #ccc',
+                    backgroundColor:
+                      allMatchesPage === 1 ? '#8cbce8' : '#0366d6',
+                    color: 'white',
+                    fontWeight: 500,
+                    cursor: allMatchesPage === 1 ? 'not-allowed' : 'pointer',
+                  }}
+                >
+                  Previous
+                </button>
+                <span>
+                  Page {allMatchesPage} of {allMatchesTotalPages}
+                </span>
+                <button
+                  type="button"
+                  disabled={allMatchesPage === allMatchesTotalPages || allMatchesLoading}
+                  onClick={() => {
+                    recordScrollPosition();
+                    setAllMatchesPage((p) =>
+                      p >= allMatchesTotalPages ? allMatchesTotalPages : p + 1
+                    );
+                  }}
+                  style={{
+                    padding: '0.4rem 0.8rem',
+                    borderRadius: '0.5rem',
+                    border: '1px solid #ccc',
+                    backgroundColor:
+                      allMatchesPage === allMatchesTotalPages ? '#8cbce8' : '#0366d6',
+                    color: 'white',
+                    fontWeight: 500,
+                    cursor:
+                      allMatchesPage === allMatchesTotalPages
+                        ? 'not-allowed'
+                        : 'pointer',
+                  }}
+                >
+                  Next
+                </button>
+              </div>
+            )}
+
+            {allMatchesLoading && (
+              <div
                 style={{
-                  padding: '0.4rem 0.8rem',
+                  position: 'absolute',
+                  inset: 0,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  backgroundColor: 'rgba(255, 255, 255, 0.8)',
                   borderRadius: '0.5rem',
-                  border: '1px solid #ccc',
-                  backgroundColor:
-                    allMatchesPage === allMatchesTotalPages ? '#8cbce8' : '#0366d6',
-                  color: 'white',
-                  fontWeight: 500,
-                  cursor:
-                    allMatchesPage === allMatchesTotalPages
-                      ? 'not-allowed'
-                      : 'pointer',
+                  zIndex: 1,
                 }}
               >
-                Next
-              </button>
-            </div>
-          </>
+                <p style={{ margin: 0 }}>Loading matches...</p>
+              </div>
+            )}
+          </div>
         )}
       </section>
     </main>

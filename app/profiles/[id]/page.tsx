@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import { supabase } from '@/lib/supabaseClient';
@@ -146,6 +146,12 @@ export default function ProfilePage() {
   const [activeTab, setActiveTab] = useState<'recent' | 'all'>('recent');
   const [allMatchesPage, setAllMatchesPage] = useState(1);
   const [allMatchesTotalPages, setAllMatchesTotalPages] = useState(1);
+  const [gameTypeFilter, setGameTypeFilter] = useState<
+    'all' | 'Cricket' | '501' | '301' | 'Other'
+  >('all');
+  const [resultFilter, setResultFilter] = useState<'all' | 'win' | 'loss'>(
+    'all'
+  );
   const scrollPositionRef = useRef(0);
 
   const PAGE_SIZE = 10;
@@ -370,7 +376,7 @@ export default function ProfilePage() {
       const from = (page - 1) * PAGE_SIZE;
       const to = from + PAGE_SIZE - 1;
 
-      const { data, error, count } = await supabase
+      let query = supabase
         .from('matches')
         .select(
           `
@@ -381,7 +387,7 @@ export default function ProfilePage() {
           board_type,
           venue,
           created_by,
-          match_players!inner (player_id),
+          match_players!inner (player_id, is_winner),
           all_match_players:match_players (
             id,
             match_id,
@@ -396,7 +402,23 @@ export default function ProfilePage() {
         `,
           { count: 'exact' }
         )
-        .eq('match_players.player_id', id)
+        .eq('match_players.player_id', id);
+
+      if (gameTypeFilter !== 'all') {
+        if (gameTypeFilter === 'Other') {
+          query = query.or(
+            'game_type.is.null,game_type.eq.Other,not(game_type.in.(Cricket,501,301))'
+          );
+        } else {
+          query = query.eq('game_type', gameTypeFilter);
+        }
+      }
+
+      if (resultFilter !== 'all') {
+        query = query.eq('match_players.is_winner', resultFilter === 'win');
+      }
+
+      const { data, error, count } = await query
         .order('played_at', { ascending: false })
         .range(from, to);
 
@@ -418,7 +440,7 @@ export default function ProfilePage() {
     if (activeTab === 'all') {
       loadAllMatches(allMatchesPage);
     }
-  }, [activeTab, allMatchesPage, id]);
+  }, [activeTab, allMatchesPage, gameTypeFilter, id, resultFilter]);
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -427,6 +449,62 @@ export default function ProfilePage() {
       window.scrollTo({ top: scrollPositionRef.current });
     }
   }, [activeTab, allMatchesLoading]);
+
+  const handleGameTypeFilterChange = (
+    value: 'all' | 'Cricket' | '501' | '301' | 'Other'
+  ) => {
+    setGameTypeFilter(value);
+    setAllMatchesPage(1);
+  };
+
+  const handleResultFilterChange = (value: 'all' | 'win' | 'loss') => {
+    setResultFilter(value);
+    setAllMatchesPage(1);
+  };
+
+  const filterMatches = useCallback(
+    (matches: MatchSummary[], playerId: string): MatchSummary[] => {
+      return matches.filter((match) => {
+        const gameType = match.game_type ?? 'Other';
+        if (gameTypeFilter !== 'all') {
+          const isOther =
+            gameType !== 'Cricket' && gameType !== '501' && gameType !== '301';
+
+        if (
+          (gameTypeFilter === 'Other' && !isOther) ||
+          (gameTypeFilter !== 'Other' && gameType !== gameTypeFilter)
+        ) {
+          return false;
+        }
+      }
+
+      if (resultFilter !== 'all') {
+        const playerMatch = (match.match_players ?? []).find(
+          (mp) => mp.player_id === playerId
+        );
+
+        if (!playerMatch) return false;
+
+        if (playerMatch.is_winner == null) return false;
+
+        const isWin = playerMatch.is_winner === true;
+        if (resultFilter === 'win' && !isWin) return false;
+        if (resultFilter === 'loss' && isWin) return false;
+      }
+
+      return true;
+    });
+  }, [gameTypeFilter, resultFilter]);
+
+  const filteredRecentMatches = useMemo(
+    () => (id ? filterMatches(recentMatches, id) : []),
+    [id, recentMatches, filterMatches]
+  );
+
+  const filteredAllMatches = useMemo(
+    () => (id ? filterMatches(allMatches, id) : []),
+    [id, allMatches, filterMatches]
+  );
 
   const handleTabChange = (tab: 'recent' | 'all') => {
     if (typeof window !== 'undefined') {
@@ -608,6 +686,49 @@ export default function ProfilePage() {
       <section>
         <h2 className="section-heading">Match History</h2>
 
+        <div
+          style={{
+            display: 'flex',
+            gap: '1rem',
+            flexWrap: 'wrap',
+            margin: '0.5rem 0 1rem',
+          }}
+        >
+          <label style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+            <span style={{ fontWeight: 600 }}>Game Type</span>
+            <select
+              value={gameTypeFilter}
+              onChange={(e) =>
+                handleGameTypeFilterChange(
+                  e.target.value as 'all' | 'Cricket' | '501' | '301' | 'Other'
+                )
+              }
+              style={{ padding: '0.4rem', borderRadius: '0.4rem' }}
+            >
+              <option value="all">All</option>
+              <option value="Cricket">Cricket</option>
+              <option value="501">501</option>
+              <option value="301">301</option>
+              <option value="Other">Other</option>
+            </select>
+          </label>
+
+          <label style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+            <span style={{ fontWeight: 600 }}>Result</span>
+            <select
+              value={resultFilter}
+              onChange={(e) =>
+                handleResultFilterChange(e.target.value as 'all' | 'win' | 'loss')
+              }
+              style={{ padding: '0.4rem', borderRadius: '0.4rem' }}
+            >
+              <option value="all">All</option>
+              <option value="win">Win</option>
+              <option value="loss">Loss</option>
+            </select>
+          </label>
+        </div>
+
         <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1rem' }}>
           <button
             type="button"
@@ -640,20 +761,20 @@ export default function ProfilePage() {
         </div>
 
         {activeTab === 'recent' ? (
-          recentMatches.length === 0 ? (
-            <p>No recent matches found for this player.</p>
+          filteredRecentMatches.length === 0 ? (
+            <p>No recent matches found for these filters.</p>
           ) : (
-            <MatchList matches={recentMatches} />
+            <MatchList matches={filteredRecentMatches} />
           )
         ) : allMatchesLoading ? (
           <p>Loading matches...</p>
         ) : allMatchesError ? (
           <p style={{ color: 'red' }}>{allMatchesError}</p>
-        ) : allMatches.length === 0 ? (
-          <p>No matches found for this player.</p>
+        ) : filteredAllMatches.length === 0 ? (
+          <p>No matches found for these filters.</p>
         ) : (
           <>
-            <MatchList matches={allMatches} />
+            <MatchList matches={filteredAllMatches} />
             <div
               style={{
                 display: 'flex',

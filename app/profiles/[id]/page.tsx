@@ -146,6 +146,12 @@ export default function ProfilePage() {
   const [activeTab, setActiveTab] = useState<'recent' | 'all'>('recent');
   const [allMatchesPage, setAllMatchesPage] = useState(1);
   const [allMatchesTotalPages, setAllMatchesTotalPages] = useState(1);
+  const [gameTypeFilter, setGameTypeFilter] = useState<
+    'all' | '501' | '301' | 'Cricket' | 'Other'
+  >('all');
+  const [resultFilter, setResultFilter] = useState<'all' | 'wins' | 'losses'>(
+    'all'
+  );
   const scrollPositionRef = useRef(0);
 
   const PAGE_SIZE = 10;
@@ -436,6 +442,29 @@ export default function ProfilePage() {
     setActiveTab(tab);
   };
 
+  const applyMatchFilters = (matches: MatchSummary[]) => {
+    if (!id) return matches;
+
+    return matches.filter((match) => {
+      const matchesGameType =
+        gameTypeFilter === 'all' || match.game_type === gameTypeFilter;
+
+      if (resultFilter === 'all') {
+        return matchesGameType;
+      }
+
+      const playerEntry = match.match_players?.find(
+        (mp) => mp.player_id === id
+      );
+
+      const isWin = playerEntry?.is_winner ?? null;
+      const matchesResult =
+        resultFilter === 'wins' ? isWin === true : isWin === false;
+
+      return matchesGameType && matchesResult;
+    });
+  };
+
   if (loading) {
     return (
       <main className="page-shell" style={{ maxWidth: '820px' }}>
@@ -479,6 +508,9 @@ export default function ProfilePage() {
   const hasFirstName = !!profile.first_name?.trim();
   const hasLastName = !!profile.last_name?.trim();
   const hasSex = !!profile.sex?.trim();
+
+  const filteredRecentMatches = applyMatchFilters(recentMatches);
+  const filteredAllMatches = applyMatchFilters(allMatches);
 
   return (
     <main
@@ -608,6 +640,48 @@ export default function ProfilePage() {
       <section>
         <h2 className="section-heading">Match History</h2>
 
+        <div
+          style={{
+            display: 'flex',
+            gap: '0.75rem',
+            flexWrap: 'wrap',
+            alignItems: 'flex-end',
+            marginBottom: '0.85rem',
+          }}
+        >
+          <label className="match-filter-control" htmlFor="gameTypeFilter">
+            <span style={{ fontWeight: 600 }}>Game Type</span>
+            <select
+              id="gameTypeFilter"
+              value={gameTypeFilter}
+              onChange={(e) =>
+                setGameTypeFilter(e.target.value as typeof gameTypeFilter)
+              }
+            >
+              <option value="all">All</option>
+              <option value="501">501</option>
+              <option value="301">301</option>
+              <option value="Cricket">Cricket</option>
+              <option value="Other">Other</option>
+            </select>
+          </label>
+
+          <label className="match-filter-control" htmlFor="resultFilter">
+            <span style={{ fontWeight: 600 }}>Result</span>
+            <select
+              id="resultFilter"
+              value={resultFilter}
+              onChange={(e) =>
+                setResultFilter(e.target.value as typeof resultFilter)
+              }
+            >
+              <option value="all">All</option>
+              <option value="wins">Wins</option>
+              <option value="losses">Losses</option>
+            </select>
+          </label>
+        </div>
+
         <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1rem' }}>
           <button
             type="button"
@@ -640,20 +714,20 @@ export default function ProfilePage() {
         </div>
 
         {activeTab === 'recent' ? (
-          recentMatches.length === 0 ? (
+          filteredRecentMatches.length === 0 ? (
             <p>No recent matches found for this player.</p>
           ) : (
-            <MatchList matches={recentMatches} />
+            <MatchList matches={filteredRecentMatches} />
           )
         ) : allMatchesLoading ? (
           <p>Loading matches...</p>
         ) : allMatchesError ? (
           <p style={{ color: 'red' }}>{allMatchesError}</p>
-        ) : allMatches.length === 0 ? (
+        ) : filteredAllMatches.length === 0 ? (
           <p>No matches found for this player.</p>
         ) : (
           <>
-            <MatchList matches={allMatches} />
+            <MatchList matches={filteredAllMatches} />
             <div
               style={{
                 display: 'flex',

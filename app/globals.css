@@ -111,6 +111,16 @@ textarea:disabled {
   opacity: 0.7;
 }
 
+.match-filter-control {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.match-filter-control select {
+  padding: 0.3rem 0.55rem;
+}
+
 .page-shell {
   padding: var(--page-padding);
   font-family: var(--font-geist-sans);

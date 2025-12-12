@@ -152,6 +152,7 @@ export default function ProfilePage() {
   const [resultFilter, setResultFilter] = useState<'all' | 'wins' | 'losses'>(
     'all'
   );
+  const [visibleAllMatches, setVisibleAllMatches] = useState<MatchSummary[]>([]);
   const scrollPositionRef = useRef(0);
 
   const recordScrollPosition = () => {
@@ -454,6 +455,9 @@ export default function ProfilePage() {
 
   const handleTabChange = (tab: 'recent' | 'all') => {
     recordScrollPosition();
+    if (tab === 'all') {
+      setAllMatchesLoading(true);
+    }
 
     setActiveTab(tab);
   };
@@ -480,6 +484,12 @@ export default function ProfilePage() {
       return matchesGameType && matchesResult;
     });
   };
+
+  useEffect(() => {
+    if (!allMatchesLoading) {
+      setVisibleAllMatches(applyMatchFilters(allMatches));
+    }
+  }, [allMatches, allMatchesLoading, gameTypeFilter, resultFilter]);
 
   if (loading) {
     return (
@@ -526,7 +536,7 @@ export default function ProfilePage() {
   const hasSex = !!profile.sex?.trim();
 
   const filteredRecentMatches = applyMatchFilters(recentMatches);
-  const filteredAllMatches = applyMatchFilters(allMatches);
+  const filteredAllMatches = visibleAllMatches;
 
   return (
     <main
@@ -672,6 +682,9 @@ export default function ProfilePage() {
               value={gameTypeFilter}
               onChange={(e) => {
                 recordScrollPosition();
+                if (activeTab === 'all') {
+                  setAllMatchesLoading(true);
+                }
                 setGameTypeFilter(e.target.value as typeof gameTypeFilter);
                 setAllMatchesPage(1);
               }}
@@ -691,6 +704,9 @@ export default function ProfilePage() {
               value={resultFilter}
               onChange={(e) => {
                 recordScrollPosition();
+                if (activeTab === 'all') {
+                  setAllMatchesLoading(true);
+                }
                 setResultFilter(e.target.value as typeof resultFilter);
                 setAllMatchesPage(1);
               }}
@@ -763,6 +779,7 @@ export default function ProfilePage() {
                   disabled={allMatchesPage === 1 || allMatchesLoading}
                   onClick={() => {
                     recordScrollPosition();
+                    setAllMatchesLoading(true);
                     setAllMatchesPage((p) => Math.max(1, p - 1));
                   }}
                   style={{
@@ -786,6 +803,7 @@ export default function ProfilePage() {
                   disabled={allMatchesPage === allMatchesTotalPages || allMatchesLoading}
                   onClick={() => {
                     recordScrollPosition();
+                    setAllMatchesLoading(true);
                     setAllMatchesPage((p) =>
                       p >= allMatchesTotalPages ? allMatchesTotalPages : p + 1
                     );

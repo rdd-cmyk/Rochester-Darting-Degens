@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import { supabase } from '@/lib/supabaseClient';
@@ -152,7 +152,14 @@ export default function ProfilePage() {
   const [resultFilter, setResultFilter] = useState<'all' | 'wins' | 'losses'>(
     'all'
   );
-  const scrollPositionRef = useRef(0);
+  const [visibleAllMatches, setVisibleAllMatches] = useState<MatchSummary[]>([]);
+  const scrollPositionRef = useRef<number | null>(null);
+
+  const recordScrollPosition = () => {
+    if (typeof window !== 'undefined') {
+      scrollPositionRef.current = window.scrollY;
+    }
+  };
 
   const PAGE_SIZE = 10;
 
@@ -412,6 +419,8 @@ export default function ProfilePage() {
         query = query.eq('match_players.is_winner', resultFilter === 'wins');
       }
 
+      recordScrollPosition();
+
       const { data, error, count } = await query
         .order('played_at', { ascending: false })
         .range(from, to);
@@ -436,17 +445,36 @@ export default function ProfilePage() {
     }
   }, [activeTab, allMatchesPage, gameTypeFilter, id, resultFilter]);
 
-  useEffect(() => {
+  const restoreScrollPositionIfSaved = () => {
     if (typeof window === 'undefined') return;
 
-    if (activeTab === 'all' && !allMatchesLoading) {
-      window.scrollTo({ top: scrollPositionRef.current });
+    if (scrollPositionRef.current === null) return;
+
+    const savedTop = scrollPositionRef.current;
+
+    requestAnimationFrame(() => {
+      window.scrollTo({ top: savedTop });
+    });
+  };
+
+  useLayoutEffect(() => {
+    if (activeTab === 'all') {
+      restoreScrollPositionIfSaved();
+    }
+  }, [activeTab]);
+
+  useLayoutEffect(() => {
+    if (activeTab === 'all') {
+      restoreScrollPositionIfSaved();
     }
   }, [activeTab, allMatchesLoading]);
 
   const handleTabChange = (tab: 'recent' | 'all') => {
-    if (typeof window !== 'undefined') {
-      scrollPositionRef.current = window.scrollY;
+    if (tab === activeTab) return;
+
+    recordScrollPosition();
+    if (tab === 'all') {
+      setAllMatchesLoading(true);
     }
 
     setActiveTab(tab);
@@ -474,6 +502,12 @@ export default function ProfilePage() {
       return matchesGameType && matchesResult;
     });
   };
+
+  useEffect(() => {
+    if (!allMatchesLoading) {
+      setVisibleAllMatches(applyMatchFilters(allMatches));
+    }
+  }, [allMatches, allMatchesLoading, gameTypeFilter, resultFilter]);
 
   if (loading) {
     return (
@@ -520,7 +554,11 @@ export default function ProfilePage() {
   const hasSex = !!profile.sex?.trim();
 
   const filteredRecentMatches = applyMatchFilters(recentMatches);
-  const filteredAllMatches = applyMatchFilters(allMatches);
+  const filteredAllMatches = visibleAllMatches;
+  const matchesToDisplay =
+    filteredAllMatches.length === 0 && allMatchesLoading
+      ? filteredRecentMatches
+      : filteredAllMatches;
 
   return (
     <main
@@ -665,6 +703,10 @@ export default function ProfilePage() {
               id="gameTypeFilter"
               value={gameTypeFilter}
               onChange={(e) => {
+                recordScrollPosition();
+                if (activeTab === 'all') {
+                  setAllMatchesLoading(true);
+                }
                 setGameTypeFilter(e.target.value as typeof gameTypeFilter);
                 setAllMatchesPage(1);
               }}
@@ -683,6 +725,10 @@ export default function ProfilePage() {
               id="resultFilter"
               value={resultFilter}
               onChange={(e) => {
+                recordScrollPosition();
+                if (activeTab === 'all') {
+                  setAllMatchesLoading(true);
+                }
                 setResultFilter(e.target.value as typeof resultFilter);
                 setAllMatchesPage(1);
               }}
@@ -731,69 +777,96 @@ export default function ProfilePage() {
           ) : (
             <MatchList matches={filteredRecentMatches} />
           )
-        ) : allMatchesLoading ? (
-          <p>Loading matches...</p>
-        ) : allMatchesError ? (
-          <p style={{ color: 'red' }}>{allMatchesError}</p>
-        ) : filteredAllMatches.length === 0 ? (
-          <p>No matches found for this player.</p>
         ) : (
-          <>
-            <MatchList matches={filteredAllMatches} />
-            <div
-              style={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-                marginTop: '1rem',
-              }}
-            >
-              <button
-                type="button"
-                disabled={allMatchesPage === 1}
-                onClick={() => setAllMatchesPage((p) => Math.max(1, p - 1))}
+          <div style={{ position: 'relative' }}>
+            {allMatchesError ? (
+              <p style={{ color: 'red' }}>{allMatchesError}</p>
+            ) :
+              filteredAllMatches.length === 0 && !allMatchesLoading ? (
+              <p>No matches found for this player.</p>
+            ) : (
+              <MatchList matches={matchesToDisplay} />
+            )}
+
+            {filteredAllMatches.length > 0 && (
+              <div
                 style={{
-                  padding: '0.4rem 0.8rem',
-                  borderRadius: '0.5rem',
-                  border: '1px solid #ccc',
-                  backgroundColor:
-                    allMatchesPage === 1 ? '#8cbce8' : '#0366d6',
-                  color: 'white',
-                  fontWeight: 500,
-                  cursor: allMatchesPage === 1 ? 'not-allowed' : 'pointer',
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  marginTop: '1rem',
                 }}
               >
-                Previous
-              </button>
-              <span>
-                Page {allMatchesPage} of {allMatchesTotalPages}
-              </span>
-              <button
-                type="button"
-                disabled={allMatchesPage === allMatchesTotalPages}
-                onClick={() =>
-                  setAllMatchesPage((p) =>
-                    p >= allMatchesTotalPages ? allMatchesTotalPages : p + 1
-                  )
-                }
+                <button
+                  type="button"
+                  disabled={allMatchesPage === 1 || allMatchesLoading}
+                  onClick={() => {
+                    recordScrollPosition();
+                    setAllMatchesLoading(true);
+                    setAllMatchesPage((p) => Math.max(1, p - 1));
+                  }}
+                  style={{
+                    padding: '0.4rem 0.8rem',
+                    borderRadius: '0.5rem',
+                    border: '1px solid #ccc',
+                    backgroundColor:
+                      allMatchesPage === 1 ? '#8cbce8' : '#0366d6',
+                    color: 'white',
+                    fontWeight: 500,
+                    cursor: allMatchesPage === 1 ? 'not-allowed' : 'pointer',
+                  }}
+                >
+                  Previous
+                </button>
+                <span>
+                  Page {allMatchesPage} of {allMatchesTotalPages}
+                </span>
+                <button
+                  type="button"
+                  disabled={allMatchesPage === allMatchesTotalPages || allMatchesLoading}
+                  onClick={() => {
+                    recordScrollPosition();
+                    setAllMatchesLoading(true);
+                    setAllMatchesPage((p) =>
+                      p >= allMatchesTotalPages ? allMatchesTotalPages : p + 1
+                    );
+                  }}
+                  style={{
+                    padding: '0.4rem 0.8rem',
+                    borderRadius: '0.5rem',
+                    border: '1px solid #ccc',
+                    backgroundColor:
+                      allMatchesPage === allMatchesTotalPages ? '#8cbce8' : '#0366d6',
+                    color: 'white',
+                    fontWeight: 500,
+                    cursor:
+                      allMatchesPage === allMatchesTotalPages
+                        ? 'not-allowed'
+                        : 'pointer',
+                  }}
+                >
+                  Next
+                </button>
+              </div>
+            )}
+
+            {allMatchesLoading && (
+              <div
                 style={{
-                  padding: '0.4rem 0.8rem',
+                  position: 'absolute',
+                  inset: 0,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  backgroundColor: 'rgba(255, 255, 255, 0.8)',
                   borderRadius: '0.5rem',
-                  border: '1px solid #ccc',
-                  backgroundColor:
-                    allMatchesPage === allMatchesTotalPages ? '#8cbce8' : '#0366d6',
-                  color: 'white',
-                  fontWeight: 500,
-                  cursor:
-                    allMatchesPage === allMatchesTotalPages
-                      ? 'not-allowed'
-                      : 'pointer',
+                  zIndex: 1,
                 }}
               >
-                Next
-              </button>
-            </div>
-          </>
+                <p style={{ margin: 0 }}>Loading matches...</p>
+              </div>
+            )}
+          </div>
         )}
       </section>
     </main>

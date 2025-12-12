@@ -448,6 +448,14 @@ export default function ProfilePage() {
   useEffect(() => {
     if (typeof window === 'undefined') return;
 
+    if (activeTab === 'all') {
+      window.scrollTo({ top: scrollPositionRef.current });
+    }
+  }, [activeTab]);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+
     if (activeTab === 'all' && !allMatchesLoading) {
       window.scrollTo({ top: scrollPositionRef.current });
     }
@@ -537,6 +545,10 @@ export default function ProfilePage() {
 
   const filteredRecentMatches = applyMatchFilters(recentMatches);
   const filteredAllMatches = visibleAllMatches;
+  const matchesToDisplay =
+    filteredAllMatches.length === 0 && allMatchesLoading
+      ? filteredRecentMatches
+      : filteredAllMatches;
 
   return (
     <main
@@ -759,10 +771,11 @@ export default function ProfilePage() {
           <div style={{ position: 'relative' }}>
             {allMatchesError ? (
               <p style={{ color: 'red' }}>{allMatchesError}</p>
-            ) : filteredAllMatches.length === 0 && !allMatchesLoading ? (
+            ) :
+              filteredAllMatches.length === 0 && !allMatchesLoading ? (
               <p>No matches found for this player.</p>
             ) : (
-              <MatchList matches={filteredAllMatches} />
+              <MatchList matches={matchesToDisplay} />
             )}
 
             {filteredAllMatches.length > 0 && (

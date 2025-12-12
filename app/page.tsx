@@ -557,14 +557,14 @@ export default function Home() {
     { width: '3.5rem', align: 'right' },
     { width: '3.5rem', align: 'right' },
     { width: '4rem', align: 'right' },
-  ];
+  ] satisfies { width?: string; align?: 'left' | 'right' }[];
 
   const averageSkeletonColumns = [
     { width: '1.5rem', align: 'left' },
     { width: '70%', align: 'left' },
     { width: '4rem', align: 'right' },
     { width: '3rem', align: 'right' },
-  ];
+  ] satisfies { width?: string; align?: 'left' | 'right' }[];
 
   return (
     <main

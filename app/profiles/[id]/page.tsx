@@ -692,6 +692,7 @@ export default function ProfilePage() {
             gap: '1rem',
             flexWrap: 'wrap',
             margin: '0.5rem 0 1rem',
+            justifyContent: 'flex-end',
           }}
         >
           <label style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>

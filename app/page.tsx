@@ -20,6 +20,7 @@ type MatchRow = {
   score: number | null;
   profiles: Profile | null;
   matches: {
+    id: string;
     game_type: string | null;
     played_at: string;
   } | null;

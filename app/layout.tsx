@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Analytics } from "@vercel/analytics/next";
 import "./globals.css";
 import LayoutShell from "./components/LayoutShell";
 
@@ -26,6 +27,7 @@ export default function RootLayout({
         }}
       >
         <LayoutShell>{children}</LayoutShell>
+        <Analytics />
       </body>
     </html>
   );

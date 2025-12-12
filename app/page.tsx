@@ -19,6 +19,7 @@ type MatchRow = {
   is_winner: boolean | null;
   score: number | null;
   profiles: Profile | null;
+  match_id: string;
   matches: {
     game_type: string | null;
     played_at: string;
@@ -44,12 +45,34 @@ type AverageStats = {
   games: number;
 };
 
+type HeadToHeadOutcomes = {
+  displayName: string;
+  outcomes: { playedAt: string; isWin: boolean }[];
+};
+
+type HeadToHeadMap = Map<string, Map<string, HeadToHeadOutcomes>>;
+
 export default function Home() {
   const router = useRouter();
   const [winLossStats, setWinLossStats] = useState<WinLossStats[]>([]);
   const [threeDartStats, setThreeDartStats] = useState<AverageStats[]>([]);
   const [mprStats, setMprStats] = useState<AverageStats[]>([]);
+  const [headToHeadMap, setHeadToHeadMap] = useState<HeadToHeadMap>(new Map());
+  const [selectedHeadPlayer, setSelectedHeadPlayer] = useState<string>('');
+  const [playerNames, setPlayerNames] = useState<Map<string, string>>(new Map());
   const [wlSort, setWlSort] = useState<{
+    column:
+      | 'player'
+      | 'wins'
+      | 'losses'
+      | 'games'
+      | 'winPct'
+      | 'streak'
+      | 'last5'
+      | 'last10';
+    direction: 'asc' | 'desc';
+  }>({ column: 'winPct', direction: 'desc' });
+  const [headSort, setHeadSort] = useState<{
     column:
       | 'player'
       | 'wins'
@@ -144,6 +167,7 @@ export default function Home() {
           player_id,
           is_winner,
           score,
+          match_id,
           profiles (
             id,
             display_name,
@@ -167,6 +191,7 @@ export default function Home() {
         player_id: string;
         is_winner: boolean | null;
         score: number | null;
+        match_id: string;
         profiles: Profile | Profile[] | null;
         matches: MatchRow['matches'] | MatchRow['matches'][] | null;
       };
@@ -178,6 +203,7 @@ export default function Home() {
         player_id: r.player_id,
         is_winner: r.is_winner,
         score: r.score,
+        match_id: r.match_id,
         profiles: Array.isArray(r.profiles)
           ? (r.profiles[0] ?? null)
           : (r.profiles ?? null),
@@ -215,6 +241,16 @@ export default function Home() {
         { playerId: string; displayName: string; total: number; games: number }
       >();
 
+      const matchParticipants = new Map<
+        string,
+        {
+          playedAt: string;
+          participants: { playerId: string; isWinner: boolean; displayName: string }[];
+        }
+      >();
+
+      const playerNameMap = new Map<string, string>();
+
       for (const row of rows) {
         const playerId = row.player_id;
         if (!playerId) continue;
@@ -224,6 +260,8 @@ export default function Home() {
           ? formatPlayerName(prof.display_name, prof.first_name)
           : 'Unknown player';
 
+        playerNameMap.set(playerId, displayName);
+
         const gameType = row.matches?.game_type || null;
         const playedAt =
           row.matches?.played_at || '1970-01-01T00:00:00.000Z';
@@ -231,6 +269,19 @@ export default function Home() {
         const isX01Game = gameType === '501' || gameType === '301';
         const score = row.score ?? null;
         const isWin = row.is_winner === true;
+
+        if (row.match_id) {
+          let match = matchParticipants.get(row.match_id);
+          if (!match) {
+            match = { playedAt, participants: [] };
+            matchParticipants.set(row.match_id, match);
+          }
+          match.participants.push({
+            playerId,
+            isWinner: isWin,
+            displayName,
+          });
+        }
 
         // ---- Wins / Losses / Games ----
         let wl = wlMap.get(playerId);
@@ -390,14 +441,89 @@ export default function Home() {
           return b.games - a.games;
         });
 
+      const headMap: HeadToHeadMap = new Map();
+
+      for (const match of matchParticipants.values()) {
+        for (const participant of match.participants) {
+          for (const opponent of match.participants) {
+            if (participant.playerId === opponent.playerId) continue;
+
+            let playerMap = headMap.get(participant.playerId);
+            if (!playerMap) {
+              playerMap = new Map();
+              headMap.set(participant.playerId, playerMap);
+            }
+
+            let entry = playerMap.get(opponent.playerId);
+            if (!entry) {
+              entry = { displayName: opponent.displayName, outcomes: [] };
+            } else if (!entry.displayName && opponent.displayName) {
+              entry.displayName = opponent.displayName;
+            }
+
+            entry.outcomes.push({
+              playedAt: match.playedAt,
+              isWin: participant.isWinner,
+            });
+
+            playerMap.set(opponent.playerId, entry);
+          }
+        }
+      }
+
       setWinLossStats(wlList);
       setThreeDartStats(threeList);
       setMprStats(mprList);
+      setHeadToHeadMap(headMap);
+      setPlayerNames(playerNameMap);
       setLoading(false);
     }
 
     loadStats();
   }, []);
+
+  const summarizeOutcomes = (outcomes: { playedAt: string; isWin: boolean }[]) => {
+    if (outcomes.length === 0) {
+      return { streak: '', last5: '', last10: '' };
+    }
+
+    const sorted = [...outcomes].sort(
+      (a, b) => new Date(a.playedAt).getTime() - new Date(b.playedAt).getTime()
+    );
+
+    let streak = '';
+
+    let streakType: 'W' | 'L' | null = null;
+    let streakCount = 0;
+
+    for (let i = sorted.length - 1; i >= 0; i--) {
+      const res = sorted[i].isWin ? 'W' : 'L';
+      if (streakType === null) {
+        streakType = res;
+        streakCount = 1;
+      } else if (streakType === res) {
+        streakCount += 1;
+      } else {
+        break;
+      }
+    }
+
+    if (streakType) {
+      streak = `${streakType}${streakCount}`;
+    }
+
+    const recent5 = sorted.slice(-5);
+    const wins5 = recent5.filter((o) => o.isWin).length;
+    const losses5 = recent5.length - wins5;
+    const last5 = `${wins5}-${losses5}`;
+
+    const recent10 = sorted.slice(-10);
+    const wins10 = recent10.filter((o) => o.isWin).length;
+    const losses10 = recent10.length - wins10;
+    const last10 = `${wins10}-${losses10}`;
+
+    return { streak, last5, last10 };
+  };
 
   const toggleSort = <T extends string>(
     current: { column: T; direction: 'asc' | 'desc' },
@@ -468,6 +594,108 @@ export default function Home() {
 
     return sorted;
   }, [winLossStats, wlSort]);
+
+  const headToHeadOptions = useMemo(
+    () =>
+      Array.from(headToHeadMap.keys())
+        .map((id) => ({ id, name: playerNames.get(id) || 'Unknown player' }))
+        .sort((a, b) => a.name.localeCompare(b.name)),
+    [headToHeadMap, playerNames]
+  );
+
+  const effectiveHeadPlayer = useMemo(() => {
+    if (selectedHeadPlayer && headToHeadMap.has(selectedHeadPlayer)) {
+      return selectedHeadPlayer;
+    }
+
+    if (user?.id && headToHeadMap.has(user.id)) {
+      return user.id;
+    }
+
+    return headToHeadOptions[0]?.id ?? '';
+  }, [headToHeadMap, headToHeadOptions, selectedHeadPlayer, user]);
+
+  const headToHeadStats = useMemo<WinLossStats[]>(() => {
+    const opponentMap = headToHeadMap.get(effectiveHeadPlayer);
+
+    if (!opponentMap) return [];
+
+    const stats: WinLossStats[] = Array.from(opponentMap.entries()).map(
+      ([opponentId, data]) => {
+        const sortedOutcomes = [...data.outcomes].sort(
+          (a, b) =>
+            new Date(a.playedAt).getTime() - new Date(b.playedAt).getTime()
+        );
+
+        const wins = sortedOutcomes.filter((o) => o.isWin).length;
+        const games = sortedOutcomes.length;
+        const losses = games - wins;
+        const { streak, last5, last10 } = summarizeOutcomes(sortedOutcomes);
+        const winPct = games > 0 ? (wins / games) * 100 : 0;
+
+        return {
+          playerId: opponentId,
+          displayName:
+            data.displayName ||
+            playerNames.get(opponentId) ||
+            'Unknown player',
+          wins,
+          losses,
+          games,
+          winPct,
+          streak,
+          last5,
+          last10,
+        };
+      }
+    );
+
+    stats.sort((a, b) => {
+      if (b.winPct !== a.winPct) return b.winPct - a.winPct;
+      if (b.wins !== a.wins) return b.wins - a.wins;
+      return b.games - a.games;
+    });
+
+    return stats;
+  }, [effectiveHeadPlayer, headToHeadMap, playerNames]);
+
+  const sortedHeadToHeadStats = useMemo(() => {
+    const sorted = [...headToHeadStats];
+    const dir = headSort.direction === 'asc' ? 1 : -1;
+
+    sorted.sort((a, b) => {
+      switch (headSort.column) {
+        case 'player':
+          return a.displayName.localeCompare(b.displayName) * dir;
+        case 'wins':
+          return (a.wins - b.wins) * dir;
+        case 'losses':
+          return (a.losses - b.losses) * dir;
+        case 'games':
+          return (a.games - b.games) * dir;
+        case 'winPct':
+          return (a.winPct - b.winPct) * dir;
+        case 'streak':
+          return (parseStreakValue(a.streak) - parseStreakValue(b.streak)) * dir;
+        case 'last5': {
+          const aRec = recordSortValue(a.last5);
+          const bRec = recordSortValue(b.last5);
+          if (aRec.ratio !== bRec.ratio) return (aRec.ratio - bRec.ratio) * dir;
+          return (aRec.wins - bRec.wins) * dir;
+        }
+        case 'last10': {
+          const aRec = recordSortValue(a.last10);
+          const bRec = recordSortValue(b.last10);
+          if (aRec.ratio !== bRec.ratio) return (aRec.ratio - bRec.ratio) * dir;
+          return (aRec.wins - bRec.wins) * dir;
+        }
+        default:
+          return 0;
+      }
+    });
+
+    return sorted;
+  }, [headSort, headToHeadStats]);
 
   const sortAverageStats = (
     stats: AverageStats[],
@@ -1217,6 +1445,321 @@ export default function Home() {
                       }}
                     >
                       {s.games}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </section>
+
+      <section>
+        <h2 className="leaderboard-title">Head-to-Head Leaderboard</h2>
+
+        <div style={{ marginTop: '0.75rem', maxWidth: '420px' }}>
+          <label style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
+            <span style={{ fontWeight: 600 }}>Select player</span>
+            <select
+              value={effectiveHeadPlayer}
+              onChange={(e) => setSelectedHeadPlayer(e.target.value)}
+              disabled={loading || headToHeadOptions.length === 0}
+              style={{
+                padding: '0.5rem',
+                borderRadius: '0.4rem',
+                border: '1px solid #ccc',
+                fontSize: '1rem',
+              }}
+            >
+              {headToHeadOptions.map((option) => (
+                <option key={option.id} value={option.id}>
+                  {option.name}
+                </option>
+              ))}
+            </select>
+          </label>
+        </div>
+
+        {loading ? (
+          <div style={{ overflowX: 'auto', marginTop: '0.75rem' }}>
+            <table
+              style={{
+                width: '100%',
+                borderCollapse: 'collapse',
+                minHeight: '240px',
+              }}
+            >
+              <thead>
+                <tr>
+                  <th
+                    style={{
+                      textAlign: 'left',
+                      borderBottom: '1px solid #ccc',
+                      padding: '0.5rem',
+                    }}
+                  >
+                    #
+                  </th>
+                  <th
+                    style={{
+                      textAlign: 'left',
+                      borderBottom: '1px solid #ccc',
+                      padding: '0.5rem',
+                    }}
+                  >
+                    {renderHeaderButton('Player', 'player', headSort, setHeadSort, 'asc')}
+                  </th>
+                  <th
+                    style={{
+                      textAlign: 'right',
+                      borderBottom: '1px solid #ccc',
+                      padding: '0.5rem',
+                    }}
+                  >
+                    {renderHeaderButton('Wins', 'wins', headSort, setHeadSort, 'desc')}
+                  </th>
+                  <th
+                    style={{
+                      textAlign: 'right',
+                      borderBottom: '1px solid #ccc',
+                      padding: '0.5rem',
+                    }}
+                  >
+                    {renderHeaderButton('Losses', 'losses', headSort, setHeadSort, 'asc')}
+                  </th>
+                  <th
+                    style={{
+                      textAlign: 'right',
+                      borderBottom: '1px solid #ccc',
+                      padding: '0.5rem',
+                    }}
+                  >
+                    {renderHeaderButton('Games', 'games', headSort, setHeadSort, 'desc')}
+                  </th>
+                  <th
+                    style={{
+                      textAlign: 'right',
+                      borderBottom: '1px solid #ccc',
+                      padding: '0.5rem',
+                    }}
+                  >
+                    {renderHeaderButton('Win %', 'winPct', headSort, setHeadSort, 'desc')}
+                  </th>
+                  <th
+                    style={{
+                      textAlign: 'right',
+                      borderBottom: '1px solid #ccc',
+                      padding: '0.5rem',
+                    }}
+                  >
+                    {renderHeaderButton('Streak', 'streak', headSort, setHeadSort, 'desc')}
+                  </th>
+                  <th
+                    style={{
+                      textAlign: 'right',
+                      borderBottom: '1px solid #ccc',
+                      padding: '0.5rem',
+                    }}
+                  >
+                    {renderHeaderButton('Last 5', 'last5', headSort, setHeadSort, 'desc')}
+                  </th>
+                  <th
+                    style={{
+                      textAlign: 'right',
+                      borderBottom: '1px solid #ccc',
+                      padding: '0.5rem',
+                    }}
+                  >
+                    {renderHeaderButton('Last 10', 'last10', headSort, setHeadSort, 'desc')}
+                  </th>
+                </tr>
+              </thead>
+              <tbody>{renderSkeletonRows(winLossSkeletonColumns, 7)}</tbody>
+            </table>
+          </div>
+        ) : headToHeadOptions.length === 0 ? (
+          <p style={{ marginTop: '0.75rem' }}>No head-to-head data available yet.</p>
+        ) : headToHeadStats.length === 0 ? (
+          <p style={{ marginTop: '0.75rem' }}>
+            No head-to-head matches found for the selected player.
+          </p>
+        ) : (
+          <div style={{ overflowX: 'auto', marginTop: '0.75rem' }}>
+            <table
+              style={{
+                width: '100%',
+                borderCollapse: 'collapse',
+              }}
+            >
+              <thead>
+                <tr>
+                  <th
+                    style={{
+                      textAlign: 'left',
+                      borderBottom: '1px solid #ccc',
+                      padding: '0.5rem',
+                    }}
+                  >
+                    #
+                  </th>
+                  <th
+                    style={{
+                      textAlign: 'left',
+                      borderBottom: '1px solid #ccc',
+                      padding: '0.5rem',
+                    }}
+                  >
+                    {renderHeaderButton('Player', 'player', headSort, setHeadSort, 'asc')}
+                  </th>
+                  <th
+                    style={{
+                      textAlign: 'right',
+                      borderBottom: '1px solid #ccc',
+                      padding: '0.5rem',
+                    }}
+                  >
+                    {renderHeaderButton('Wins', 'wins', headSort, setHeadSort, 'desc')}
+                  </th>
+                  <th
+                    style={{
+                      textAlign: 'right',
+                      borderBottom: '1px solid #ccc',
+                      padding: '0.5rem',
+                    }}
+                  >
+                    {renderHeaderButton('Losses', 'losses', headSort, setHeadSort, 'asc')}
+                  </th>
+                  <th
+                    style={{
+                      textAlign: 'right',
+                      borderBottom: '1px solid #ccc',
+                      padding: '0.5rem',
+                    }}
+                  >
+                    {renderHeaderButton('Games', 'games', headSort, setHeadSort, 'desc')}
+                  </th>
+                  <th
+                    style={{
+                      textAlign: 'right',
+                      borderBottom: '1px solid #ccc',
+                      padding: '0.5rem',
+                    }}
+                  >
+                    {renderHeaderButton('Win %', 'winPct', headSort, setHeadSort, 'desc')}
+                  </th>
+                  <th
+                    style={{
+                      textAlign: 'right',
+                      borderBottom: '1px solid #ccc',
+                      padding: '0.5rem',
+                    }}
+                  >
+                    {renderHeaderButton('Streak', 'streak', headSort, setHeadSort, 'desc')}
+                  </th>
+                  <th
+                    style={{
+                      textAlign: 'right',
+                      borderBottom: '1px solid #ccc',
+                      padding: '0.5rem',
+                    }}
+                  >
+                    {renderHeaderButton('Last 5', 'last5', headSort, setHeadSort, 'desc')}
+                  </th>
+                  <th
+                    style={{
+                      textAlign: 'right',
+                      borderBottom: '1px solid #ccc',
+                      padding: '0.5rem',
+                    }}
+                  >
+                    {renderHeaderButton('Last 10', 'last10', headSort, setHeadSort, 'desc')}
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {sortedHeadToHeadStats.map((s, index) => (
+                  <tr key={s.playerId}>
+                    <td
+                      style={{
+                        padding: '0.5rem',
+                        borderBottom: '1px solid #eee',
+                      }}
+                    >
+                      {index + 1}
+                    </td>
+                    <td
+                      style={{
+                        padding: '0.5rem',
+                        borderBottom: '1px solid #eee',
+                      }}
+                    >
+                      <LinkedPlayerName
+                        playerId={s.playerId}
+                        preformattedName={s.displayName}
+                      />
+                    </td>
+                    <td
+                      style={{
+                        padding: '0.5rem',
+                        borderBottom: '1px solid #eee',
+                        textAlign: 'right',
+                      }}
+                    >
+                      {s.wins}
+                    </td>
+                    <td
+                      style={{
+                        padding: '0.5rem',
+                        borderBottom: '1px solid #eee',
+                        textAlign: 'right',
+                      }}
+                    >
+                      {s.losses}
+                    </td>
+                    <td
+                      style={{
+                        padding: '0.5rem',
+                        borderBottom: '1px solid #eee',
+                        textAlign: 'right',
+                      }}
+                    >
+                      {s.games}
+                    </td>
+                    <td
+                      style={{
+                        padding: '0.5rem',
+                        borderBottom: '1px solid #eee',
+                        textAlign: 'right',
+                      }}
+                    >
+                      {s.winPct.toFixed(1)}%
+                    </td>
+                    <td
+                      style={{
+                        padding: '0.5rem',
+                        borderBottom: '1px solid #eee',
+                        textAlign: 'right',
+                      }}
+                    >
+                      {s.streak || '—'}
+                    </td>
+                    <td
+                      style={{
+                        padding: '0.5rem',
+                        borderBottom: '1px solid #eee',
+                        textAlign: 'right',
+                      }}
+                    >
+                      {s.last5 || '—'}
+                    </td>
+                    <td
+                      style={{
+                        padding: '0.5rem',
+                        borderBottom: '1px solid #eee',
+                        textAlign: 'right',
+                      }}
+                    >
+                      {s.last10 || '—'}
                     </td>
                   </tr>
                 ))}

@@ -518,6 +518,54 @@ export default function Home() {
     </button>
   );
 
+  const renderSkeletonRows = (
+    columns: { width?: string; align?: 'left' | 'right' }[],
+    count = 6
+  ) =>
+    Array.from({ length: count }).map((_, rowIndex) => (
+      <tr key={rowIndex}>
+        {columns.map((col, colIndex) => (
+          <td
+            key={`${rowIndex}-${colIndex}`}
+            style={{
+              padding: '0.5rem',
+              borderBottom: '1px solid #eee',
+              textAlign: col.align ?? 'left',
+            }}
+          >
+            <div
+              aria-hidden
+              style={{
+                height: '1rem',
+                width: col.width ?? '100%',
+                backgroundColor: '#2f2f2f',
+                borderRadius: '0.35rem',
+              }}
+            />
+          </td>
+        ))}
+      </tr>
+    ));
+
+  const winLossSkeletonColumns = [
+    { width: '1.5rem', align: 'left' },
+    { width: '70%', align: 'left' },
+    { width: '2.5rem', align: 'right' },
+    { width: '3rem', align: 'right' },
+    { width: '3rem', align: 'right' },
+    { width: '3.5rem', align: 'right' },
+    { width: '3.5rem', align: 'right' },
+    { width: '3.5rem', align: 'right' },
+    { width: '4rem', align: 'right' },
+  ];
+
+  const averageSkeletonColumns = [
+    { width: '1.5rem', align: 'left' },
+    { width: '70%', align: 'left' },
+    { width: '4rem', align: 'right' },
+    { width: '3rem', align: 'right' },
+  ];
+
   return (
     <main
       className="page-shell"
@@ -586,7 +634,102 @@ export default function Home() {
         <h2 className="leaderboard-title">Overall Leaderboard (All Match Types)</h2>
 
         {loading ? (
-          <p>Loading leaderboard...</p>
+          <div style={{ overflowX: 'auto', marginTop: '0.75rem' }}>
+            <table
+              style={{
+                width: '100%',
+                borderCollapse: 'collapse',
+                minHeight: '320px',
+              }}
+            >
+              <thead>
+                <tr>
+                  <th
+                    style={{
+                      textAlign: 'left',
+                      borderBottom: '1px solid #ccc',
+                      padding: '0.5rem',
+                    }}
+                  >
+                    #
+                  </th>
+                  <th
+                    style={{
+                      textAlign: 'left',
+                      borderBottom: '1px solid #ccc',
+                      padding: '0.5rem',
+                    }}
+                  >
+                    {renderHeaderButton('Player', 'player', wlSort, setWlSort, 'asc')}
+                  </th>
+                  <th
+                    style={{
+                      textAlign: 'right',
+                      borderBottom: '1px solid #ccc',
+                      padding: '0.5rem',
+                    }}
+                  >
+                    {renderHeaderButton('Wins', 'wins', wlSort, setWlSort, 'desc')}
+                  </th>
+                  <th
+                    style={{
+                      textAlign: 'right',
+                      borderBottom: '1px solid #ccc',
+                      padding: '0.5rem',
+                    }}
+                  >
+                    {renderHeaderButton('Losses', 'losses', wlSort, setWlSort, 'asc')}
+                  </th>
+                  <th
+                    style={{
+                      textAlign: 'right',
+                      borderBottom: '1px solid #ccc',
+                      padding: '0.5rem',
+                    }}
+                  >
+                    {renderHeaderButton('Games', 'games', wlSort, setWlSort, 'desc')}
+                  </th>
+                  <th
+                    style={{
+                      textAlign: 'right',
+                      borderBottom: '1px solid #ccc',
+                      padding: '0.5rem',
+                    }}
+                  >
+                    {renderHeaderButton('Win %', 'winPct', wlSort, setWlSort, 'desc')}
+                  </th>
+                  <th
+                    style={{
+                      textAlign: 'right',
+                      borderBottom: '1px solid #ccc',
+                      padding: '0.5rem',
+                    }}
+                  >
+                    {renderHeaderButton('Streak', 'streak', wlSort, setWlSort, 'desc')}
+                  </th>
+                  <th
+                    style={{
+                      textAlign: 'right',
+                      borderBottom: '1px solid #ccc',
+                      padding: '0.5rem',
+                    }}
+                  >
+                    {renderHeaderButton('Last 5', 'last5', wlSort, setWlSort, 'desc')}
+                  </th>
+                  <th
+                    style={{
+                      textAlign: 'right',
+                      borderBottom: '1px solid #ccc',
+                      padding: '0.5rem',
+                    }}
+                  >
+                    {renderHeaderButton('Last 10', 'last10', wlSort, setWlSort, 'desc')}
+                  </th>
+                </tr>
+              </thead>
+              <tbody>{renderSkeletonRows(winLossSkeletonColumns, 7)}</tbody>
+            </table>
+          </div>
         ) : errorMessage ? (
           <p style={{ color: 'red' }}>{errorMessage}</p>
         ) : winLossStats.length === 0 ? (
@@ -781,7 +924,57 @@ export default function Home() {
       <section>
         <h2 className="leaderboard-title">3-Dart Average Leaderboard (501 / 301)</h2>
         {loading ? (
-          <p>Loading 3-dart averages...</p>
+          <div style={{ overflowX: 'auto', marginTop: '0.75rem' }}>
+            <table
+              style={{
+                width: '100%',
+                borderCollapse: 'collapse',
+                minHeight: '240px',
+              }}
+            >
+              <thead>
+                <tr>
+                  <th
+                    style={{
+                      textAlign: 'left',
+                      borderBottom: '1px solid #ccc',
+                      padding: '0.5rem',
+                    }}
+                  >
+                    #
+                  </th>
+                  <th
+                    style={{
+                      textAlign: 'left',
+                      borderBottom: '1px solid #ccc',
+                      padding: '0.5rem',
+                    }}
+                  >
+                    {renderHeaderButton('Player', 'player', threeSort, setThreeSort, 'asc')}
+                  </th>
+                  <th
+                    style={{
+                      textAlign: 'right',
+                      borderBottom: '1px solid #ccc',
+                      padding: '0.5rem',
+                    }}
+                  >
+                    {renderHeaderButton('3-Dart Avg', 'avg', threeSort, setThreeSort, 'desc')}
+                  </th>
+                  <th
+                    style={{
+                      textAlign: 'right',
+                      borderBottom: '1px solid #ccc',
+                      padding: '0.5rem',
+                    }}
+                  >
+                    {renderHeaderButton('Games', 'games', threeSort, setThreeSort, 'desc')}
+                  </th>
+                </tr>
+              </thead>
+              <tbody>{renderSkeletonRows(averageSkeletonColumns, 6)}</tbody>
+            </table>
+          </div>
         ) : threeDartStats.length === 0 ? (
           <p>No 501 or 301 matches recorded yet.</p>
         ) : (
@@ -884,7 +1077,57 @@ export default function Home() {
       <section>
         <h2 className="leaderboard-title">MPR Leaderboard (Cricket)</h2>
         {loading ? (
-          <p>Loading MPR stats...</p>
+          <div style={{ overflowX: 'auto', marginTop: '0.75rem' }}>
+            <table
+              style={{
+                width: '100%',
+                borderCollapse: 'collapse',
+                minHeight: '240px',
+              }}
+            >
+              <thead>
+                <tr>
+                  <th
+                    style={{
+                      textAlign: 'left',
+                      borderBottom: '1px solid #ccc',
+                      padding: '0.5rem',
+                    }}
+                  >
+                    #
+                  </th>
+                  <th
+                    style={{
+                      textAlign: 'left',
+                      borderBottom: '1px solid #ccc',
+                      padding: '0.5rem',
+                    }}
+                  >
+                    {renderHeaderButton('Player', 'player', mprSort, setMprSort, 'asc')}
+                  </th>
+                  <th
+                    style={{
+                      textAlign: 'right',
+                      borderBottom: '1px solid #ccc',
+                      padding: '0.5rem',
+                    }}
+                  >
+                    {renderHeaderButton('MPR', 'avg', mprSort, setMprSort, 'desc')}
+                  </th>
+                  <th
+                    style={{
+                      textAlign: 'right',
+                      borderBottom: '1px solid #ccc',
+                      padding: '0.5rem',
+                    }}
+                  >
+                    {renderHeaderButton('Games', 'games', mprSort, setMprSort, 'desc')}
+                  </th>
+                </tr>
+              </thead>
+              <tbody>{renderSkeletonRows(averageSkeletonColumns, 6)}</tbody>
+            </table>
+          </div>
         ) : mprStats.length === 0 ? (
           <p>No Cricket matches recorded yet.</p>
         ) : (

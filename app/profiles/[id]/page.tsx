@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import { supabase } from '@/lib/supabaseClient';
@@ -445,7 +445,7 @@ export default function ProfilePage() {
     }
   }, [activeTab, allMatchesPage, gameTypeFilter, id, resultFilter]);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (typeof window === 'undefined') return;
 
     if (activeTab === 'all') {
@@ -453,7 +453,7 @@ export default function ProfilePage() {
     }
   }, [activeTab]);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (typeof window === 'undefined') return;
 
     if (activeTab === 'all' && !allMatchesLoading) {
@@ -462,6 +462,8 @@ export default function ProfilePage() {
   }, [activeTab, allMatchesLoading]);
 
   const handleTabChange = (tab: 'recent' | 'all') => {
+    if (tab === activeTab) return;
+
     recordScrollPosition();
     if (tab === 'all') {
       setAllMatchesLoading(true);

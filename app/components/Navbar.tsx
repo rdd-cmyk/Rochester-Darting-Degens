@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { supabase } from "@/lib/supabaseClient";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type CSSProperties } from "react";
 import { useRouter } from "next/navigation";
 import type { User } from "@supabase/supabase-js";
 
@@ -85,6 +85,19 @@ export default function Navbar({ snowEnabled, onToggleSnow }: NavbarProps) {
     setMenuOpen(false);
   };
 
+  const authControlWidth = 120;
+  const visuallyHidden: CSSProperties = {
+    position: "absolute",
+    width: 1,
+    height: 1,
+    padding: 0,
+    margin: -1,
+    overflow: "hidden",
+    clip: "rect(0, 0, 0, 0)",
+    whiteSpace: "nowrap",
+    border: 0,
+  };
+
   return (
     <nav className="navbar-shell">
       <div className="navbar-main">
@@ -137,32 +150,64 @@ export default function Navbar({ snowEnabled, onToggleSnow }: NavbarProps) {
         >
           {snowEnabled ? "Snow: On" : "Snow: Off"}
         </button>
-        {loading ? null : user ? (
-          <button
-            onClick={handleSignOut}
-            style={{
-              cursor: "pointer",
-              padding: "0.3rem 0.7rem",
-              borderRadius: "0.5rem",
-              border: "1px solid #555",
-              backgroundColor: "#444",
-              color: "white",
-              fontWeight: 500,
-            }}
-          >
-            Sign Out
-          </button>
-        ) : (
-          <Link style={linkStyle} href="/auth">
-            Sign In
-          </Link>
-        )}
+        <div
+          style={{
+            width: authControlWidth,
+            display: "flex",
+            justifyContent: "flex-end",
+          }}
+        >
+          {loading ? (
+            <div
+              aria-hidden
+              style={{
+                height: "2.2rem",
+                width: "100%",
+                backgroundColor: "#444", 
+                borderRadius: "0.5rem",
+              }}
+            />
+          ) : user ? (
+            <button
+              onClick={handleSignOut}
+              style={{
+                cursor: "pointer",
+                padding: "0.3rem 0.7rem",
+                borderRadius: "0.5rem",
+                border: "1px solid #555",
+                backgroundColor: "#444",
+                color: "white",
+                fontWeight: 500,
+                width: "100%",
+              }}
+            >
+              Sign Out
+            </button>
+          ) : (
+            <Link
+              style={{
+                ...linkStyle,
+                display: "inline-block",
+                padding: "0.3rem 0.7rem",
+                borderRadius: "0.5rem",
+                border: "1px solid #555",
+                backgroundColor: "#444",
+                width: "100%",
+                textAlign: "center",
+              }}
+              href="/auth"
+            >
+              Sign In
+            </Link>
+          )}
+          {loading && <span style={visuallyHidden}>Loading authentication controls</span>}
+        </div>
       </div>
     </nav>
   );
 }
 
-const linkStyle: React.CSSProperties = {
+const linkStyle: CSSProperties = {
   color: "white",
   textDecoration: "none",
   fontWeight: 500,

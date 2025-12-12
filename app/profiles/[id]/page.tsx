@@ -691,7 +691,7 @@ export default function ProfilePage() {
             display: 'flex',
             gap: '1rem',
             flexWrap: 'wrap',
-            margin: '0.5rem 0 1rem',
+            margin: '0.25rem 0 0.75rem',
             justifyContent: 'flex-end',
           }}
         >

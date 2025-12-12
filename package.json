@@ -10,6 +10,7 @@
     "test": "node --test"
   },
   "dependencies": {
+    "@vercel/analytics": "^1.4.1",
     "@supabase/supabase-js": "^2.86.2",
     "next": "16.0.7",
     "react": "19.2.0",

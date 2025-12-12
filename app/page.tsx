@@ -1528,7 +1528,13 @@ export default function Home() {
                       padding: '0.5rem',
                     }}
                   >
-                    {renderHeaderButton('Player', 'player', headSort, setHeadSort, 'asc')}
+                    {renderHeaderButton(
+                      'Opponent',
+                      'player',
+                      headSort,
+                      setHeadSort,
+                      'asc'
+                    )}
                   </th>
                   <th
                     style={{

@@ -152,6 +152,7 @@ export default function ProfilePage() {
   const [resultFilter, setResultFilter] = useState<'all' | 'wins' | 'losses'>(
     'all'
   );
+  const [visibleAllMatches, setVisibleAllMatches] = useState<MatchSummary[]>([]);
   const scrollPositionRef = useRef<number | null>(null);
 
   const recordScrollPosition = () => {
@@ -502,6 +503,13 @@ export default function ProfilePage() {
     });
   };
 
+  useEffect(() => {
+    if (!allMatchesLoading) {
+      setVisibleAllMatches(applyMatchFilters(allMatches));
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [allMatches, allMatchesLoading, gameTypeFilter, resultFilter]);
+
   if (loading) {
     return (
       <main className="page-shell" style={{ maxWidth: '820px' }}>
@@ -547,7 +555,7 @@ export default function ProfilePage() {
   const hasSex = !!profile.sex?.trim();
 
   const filteredRecentMatches = applyMatchFilters(recentMatches);
-  const filteredAllMatches = applyMatchFilters(allMatches);
+  const filteredAllMatches = visibleAllMatches;
   const matchesToDisplay =
     filteredAllMatches.length === 0 && allMatchesLoading
       ? filteredRecentMatches

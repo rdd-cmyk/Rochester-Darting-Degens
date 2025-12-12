@@ -689,13 +689,14 @@ export default function ProfilePage() {
         <div
           style={{
             display: 'flex',
-            gap: '1rem',
+            gap: '0.75rem',
             flexWrap: 'wrap',
-            margin: '0.25rem 0 0.75rem',
+            margin: '0.2rem 0 0.35rem',
             justifyContent: 'flex-end',
+            alignItems: 'center',
           }}
         >
-          <label style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+          <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
             <span style={{ fontWeight: 600 }}>Game Type</span>
             <select
               value={gameTypeFilter}
@@ -704,7 +705,7 @@ export default function ProfilePage() {
                   e.target.value as 'all' | 'Cricket' | '501' | '301' | 'Other'
                 )
               }
-              style={{ padding: '0.4rem', borderRadius: '0.4rem' }}
+              style={{ padding: '0.35rem 0.5rem', borderRadius: '0.4rem' }}
             >
               <option value="all">All</option>
               <option value="Cricket">Cricket</option>
@@ -714,14 +715,14 @@ export default function ProfilePage() {
             </select>
           </label>
 
-          <label style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+          <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
             <span style={{ fontWeight: 600 }}>Result</span>
             <select
               value={resultFilter}
               onChange={(e) =>
                 handleResultFilterChange(e.target.value as 'all' | 'win' | 'loss')
               }
-              style={{ padding: '0.4rem', borderRadius: '0.4rem' }}
+              style={{ padding: '0.35rem 0.5rem', borderRadius: '0.4rem' }}
             >
               <option value="all">All</option>
               <option value="win">Win</option>

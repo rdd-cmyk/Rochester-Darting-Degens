@@ -153,7 +153,7 @@ export default function ProfilePage() {
     'all'
   );
   const [visibleAllMatches, setVisibleAllMatches] = useState<MatchSummary[]>([]);
-  const scrollPositionRef = useRef(0);
+  const scrollPositionRef = useRef<number | null>(null);
 
   const recordScrollPosition = () => {
     if (typeof window !== 'undefined') {
@@ -448,9 +448,13 @@ export default function ProfilePage() {
   const restoreScrollPositionIfSaved = () => {
     if (typeof window === 'undefined') return;
 
-    if (scrollPositionRef.current > 0) {
-      window.scrollTo({ top: scrollPositionRef.current });
-    }
+    if (scrollPositionRef.current === null) return;
+
+    const savedTop = scrollPositionRef.current;
+
+    requestAnimationFrame(() => {
+      window.scrollTo({ top: savedTop });
+    });
   };
 
   useLayoutEffect(() => {
@@ -460,7 +464,7 @@ export default function ProfilePage() {
   }, [activeTab]);
 
   useLayoutEffect(() => {
-    if (activeTab === 'all' && !allMatchesLoading) {
+    if (activeTab === 'all') {
       restoreScrollPositionIfSaved();
     }
   }, [activeTab, allMatchesLoading]);

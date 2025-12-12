@@ -376,7 +376,7 @@ export default function ProfilePage() {
       const from = (page - 1) * PAGE_SIZE;
       const to = from + PAGE_SIZE - 1;
 
-      const { data, error, count } = await supabase
+      let query = supabase
         .from('matches')
         .select(
           `
@@ -387,7 +387,7 @@ export default function ProfilePage() {
           board_type,
           venue,
           created_by,
-          match_players!inner (player_id),
+          match_players!inner (player_id, is_winner),
           all_match_players:match_players (
             id,
             match_id,
@@ -402,7 +402,17 @@ export default function ProfilePage() {
         `,
           { count: 'exact' }
         )
-        .eq('match_players.player_id', id)
+        .eq('match_players.player_id', id);
+
+      if (gameTypeFilter !== 'all') {
+        query = query.eq('game_type', gameTypeFilter);
+      }
+
+      if (resultFilter !== 'all') {
+        query = query.eq('match_players.is_winner', resultFilter === 'wins');
+      }
+
+      const { data, error, count } = await query
         .order('played_at', { ascending: false })
         .range(from, to);
 
@@ -424,7 +434,7 @@ export default function ProfilePage() {
     if (activeTab === 'all') {
       loadAllMatches(allMatchesPage);
     }
-  }, [activeTab, allMatchesPage, id]);
+  }, [activeTab, allMatchesPage, gameTypeFilter, id, resultFilter]);
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -654,9 +664,10 @@ export default function ProfilePage() {
             <select
               id="gameTypeFilter"
               value={gameTypeFilter}
-              onChange={(e) =>
-                setGameTypeFilter(e.target.value as typeof gameTypeFilter)
-              }
+              onChange={(e) => {
+                setGameTypeFilter(e.target.value as typeof gameTypeFilter);
+                setAllMatchesPage(1);
+              }}
             >
               <option value="all">All</option>
               <option value="501">501</option>
@@ -671,9 +682,10 @@ export default function ProfilePage() {
             <select
               id="resultFilter"
               value={resultFilter}
-              onChange={(e) =>
-                setResultFilter(e.target.value as typeof resultFilter)
-              }
+              onChange={(e) => {
+                setResultFilter(e.target.value as typeof resultFilter);
+                setAllMatchesPage(1);
+              }}
             >
               <option value="all">All</option>
               <option value="wins">Wins</option>

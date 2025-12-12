@@ -445,19 +445,23 @@ export default function ProfilePage() {
     }
   }, [activeTab, allMatchesPage, gameTypeFilter, id, resultFilter]);
 
-  useLayoutEffect(() => {
+  const restoreScrollPositionIfSaved = () => {
     if (typeof window === 'undefined') return;
 
-    if (activeTab === 'all') {
+    if (scrollPositionRef.current > 0) {
       window.scrollTo({ top: scrollPositionRef.current });
+    }
+  };
+
+  useLayoutEffect(() => {
+    if (activeTab === 'all') {
+      restoreScrollPositionIfSaved();
     }
   }, [activeTab]);
 
   useLayoutEffect(() => {
-    if (typeof window === 'undefined') return;
-
     if (activeTab === 'all' && !allMatchesLoading) {
-      window.scrollTo({ top: scrollPositionRef.current });
+      restoreScrollPositionIfSaved();
     }
   }, [activeTab, allMatchesLoading]);
 

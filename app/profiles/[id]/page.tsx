@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import { supabase } from '@/lib/supabaseClient';
@@ -146,6 +146,7 @@ export default function ProfilePage() {
   const [activeTab, setActiveTab] = useState<'recent' | 'all'>('recent');
   const [allMatchesPage, setAllMatchesPage] = useState(1);
   const [allMatchesTotalPages, setAllMatchesTotalPages] = useState(1);
+  const scrollPositionRef = useRef(0);
 
   const PAGE_SIZE = 10;
 
@@ -419,6 +420,22 @@ export default function ProfilePage() {
     }
   }, [activeTab, allMatchesPage, id]);
 
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    if (activeTab === 'all' && !allMatchesLoading) {
+      window.scrollTo({ top: scrollPositionRef.current });
+    }
+  }, [activeTab, allMatchesLoading]);
+
+  const handleTabChange = (tab: 'recent' | 'all') => {
+    if (typeof window !== 'undefined') {
+      scrollPositionRef.current = window.scrollY;
+    }
+
+    setActiveTab(tab);
+  };
+
   if (loading) {
     return (
       <main className="page-shell" style={{ maxWidth: '820px' }}>
@@ -594,7 +611,7 @@ export default function ProfilePage() {
         <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1rem' }}>
           <button
             type="button"
-            onClick={() => setActiveTab('recent')}
+            onClick={() => handleTabChange('recent')}
             style={{
               padding: '0.4rem 0.8rem',
               borderRadius: '0.5rem',
@@ -608,7 +625,7 @@ export default function ProfilePage() {
           </button>
           <button
             type="button"
-            onClick={() => setActiveTab('all')}
+            onClick={() => handleTabChange('all')}
             style={{
               padding: '0.4rem 0.8rem',
               borderRadius: '0.5rem',

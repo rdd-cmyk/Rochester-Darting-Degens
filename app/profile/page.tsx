@@ -2,6 +2,7 @@
 
 import { useEffect, useState, FormEvent } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabaseClient';
 import type { User } from '@supabase/supabase-js';
 
@@ -21,6 +22,10 @@ export default function ProfilePage() {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [message, setMessage] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [deleteConfirm, setDeleteConfirm] = useState('');
+  const [deleteMessage, setDeleteMessage] = useState<string | null>(null);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
   // Local form fields
   const [firstName, setFirstName] = useState('');
@@ -30,6 +35,8 @@ export default function ProfilePage() {
 
   // Edit mode
   const [editMode, setEditMode] = useState(false);
+
+  const router = useRouter();
 
   const formStyle = {
     display: 'flex',
@@ -140,6 +147,8 @@ export default function ProfilePage() {
   async function handleSave(e: FormEvent) {
     e.preventDefault();
     setMessage(null);
+    setDeleteMessage(null);
+    setDeleteError(null);
     setErrorMessage(null);
 
     if (!user) {
@@ -193,6 +202,59 @@ export default function ProfilePage() {
       setErrorMessage('Error saving profile: ' + message);
     } finally {
       setSaving(false);
+    }
+  }
+
+  async function handleDeleteAccount() {
+    setDeleteError(null);
+    setDeleteMessage(null);
+    setMessage(null);
+
+    if (deleteConfirm.trim() !== 'CONFIRM') {
+      setDeleteError('Type CONFIRM in the box to enable account deletion.');
+      return;
+    }
+
+    setDeleting(true);
+    try {
+      const { data: sessionData, error: sessionError } =
+        await supabase.auth.getSession();
+
+      if (sessionError || !sessionData.session) {
+        setDeleteError('You must be signed in to delete your account.');
+        return;
+      }
+
+      const token = sessionData.session.access_token;
+      const response = await fetch('/api/delete-account', {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      const result = await response.json().catch(() => ({}));
+
+      if (!response.ok) {
+        const detail = result?.error || response.statusText;
+        setDeleteError('Error deleting account: ' + detail);
+        return;
+      }
+
+      setDeleteMessage('Account deleted. Signing you out...');
+      await supabase.auth.signOut();
+      router.push('/');
+    } catch (err: unknown) {
+      const message =
+        err && typeof err === 'object' && 'message' in err
+          ? String((err as { message?: string }).message)
+          : String(err);
+
+      console.error('Error deleting account:', err);
+      setDeleteError('Error deleting account: ' + message);
+    } finally {
+      setDeleting(false);
+      setDeleteConfirm('');
     }
   }
 
@@ -275,9 +337,19 @@ export default function ProfilePage() {
           <strong>Error:</strong> {errorMessage}
         </div>
       )}
+      {deleteError && (
+        <div style={{ color: 'red' }}>
+          <strong>Error:</strong> {deleteError}
+        </div>
+      )}
       {message && (
         <div style={{ color: 'green' }}>
           <strong>{message}</strong>
+        </div>
+      )}
+      {deleteMessage && (
+        <div style={{ color: 'green' }}>
+          <strong>{deleteMessage}</strong>
         </div>
       )}
 
@@ -426,6 +498,77 @@ export default function ProfilePage() {
             </div>
           )}
         </form>
+      </section>
+
+      <section
+        style={{
+          border: '1px solid #f0c2c2',
+          borderRadius: '0.75rem',
+          padding: '1rem',
+          backgroundColor: '#fff6f6',
+          color: '#5c0000',
+        }}
+      >
+        <h2
+          style={{
+            fontSize: '1.35rem',
+            fontWeight: 800,
+            marginBottom: '0.5rem',
+            color: '#5c0000',
+          }}
+        >
+          Delete Account
+        </h2>
+        <p style={{ marginBottom: '0.5rem' }}>
+          This will permanently delete your account and profile information. This
+          action cannot be undone.
+        </p>
+
+        <label
+          htmlFor="delete-confirm"
+          style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600 }}
+        >
+          Type <code>CONFIRM</code> to enable deletion:
+        </label>
+        <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
+          <input
+            id="delete-confirm"
+            type="text"
+            value={deleteConfirm}
+            onChange={(e) => setDeleteConfirm(e.target.value)}
+            placeholder="CONFIRM"
+            style={{
+              flex: 1,
+              maxWidth: '240px',
+              padding: '0.5rem 0.75rem',
+              borderRadius: '0.5rem',
+              border: '1px solid #e0b4b4',
+            }}
+          />
+          <button
+            type="button"
+            onClick={handleDeleteAccount}
+            disabled={deleteConfirm.trim() !== 'CONFIRM' || deleting}
+            style={{
+              cursor:
+                deleteConfirm.trim() !== 'CONFIRM' || deleting
+                  ? 'not-allowed'
+                  : 'pointer',
+              padding: '0.6rem 1rem',
+              borderRadius: '0.5rem',
+              border: '1px solid #d9534f',
+              backgroundColor:
+                deleteConfirm.trim() !== 'CONFIRM' || deleting
+                  ? '#f2dede'
+                  : '#d9534f',
+              color: '#fff',
+              fontWeight: 600,
+              opacity: deleteConfirm.trim() !== 'CONFIRM' || deleting ? 0.7 : 1,
+            }}
+          >
+            {deleting ? 'Deleting…' : 'Delete my account'}
+          </button>
+        </div>
       </section>
     </main>
   );

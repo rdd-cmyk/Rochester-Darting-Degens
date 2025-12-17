@@ -51,6 +51,18 @@ type PlayerEntry = {
 type MatchesError = { message?: string };
 
 export default function MatchesPage() {
+  const createEmptyPlayerEntry = (): PlayerEntry => ({
+    playerId: '',
+    stat: '',
+    cricketPoints: '',
+  });
+
+  const normalizePlayerEntry = (entry?: PlayerEntry): PlayerEntry => ({
+    playerId: entry?.playerId ?? '',
+    stat: entry?.stat ?? '',
+    cricketPoints: entry?.cricketPoints ?? '',
+  });
+
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [profiles, setProfiles] = useState<Profile[]>([]);
@@ -83,18 +95,6 @@ export default function MatchesPage() {
   const isCricket = gameType === 'Cricket';
   const isOther = gameType === 'Other';
   const isO1 = gameType === '501' || gameType === '301';
-
-  const createEmptyPlayerEntry = (): PlayerEntry => ({
-    playerId: '',
-    stat: '',
-    cricketPoints: '',
-  });
-
-  const normalizePlayerEntry = (entry?: PlayerEntry): PlayerEntry => ({
-    playerId: entry?.playerId ?? '',
-    stat: entry?.stat ?? '',
-    cricketPoints: entry?.cricketPoints ?? '',
-  });
 
   const formStyle = {
     display: 'flex',

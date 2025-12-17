@@ -708,10 +708,12 @@ export default function MatchesPage() {
                     Points Per Dart (PPD)
                   </option>
                 </select>
-                <span style={{ color: '#555', fontSize: '0.95rem' }}>
-                  PPD values are multiplied by 3 to store a 3-dart average for
-                  leaderboards.
-                </span>
+                {o1StatInputMode === 'ppd' && (
+                  <span style={{ color: '#555', fontSize: '0.95rem' }}>
+                    PPD values are multiplied by 3 to store a 3-dart average for
+                    leaderboards.
+                  </span>
+                )}
               </div>
             </div>
           )}

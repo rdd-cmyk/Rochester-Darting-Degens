@@ -103,6 +103,18 @@ export default function Home() {
       | 'last10';
     direction: 'asc' | 'desc';
   }>({ column: 'winPct', direction: 'desc' });
+  const [gameTypeSort, setGameTypeSort] = useState<{
+    column:
+      | 'player'
+      | 'wins'
+      | 'losses'
+      | 'games'
+      | 'winPct'
+      | 'streak'
+      | 'last5'
+      | 'last10';
+    direction: 'asc' | 'desc';
+  }>({ column: 'winPct', direction: 'desc' });
   const [threeSort, setThreeSort] = useState<{ column: 'player' | 'avg' | 'games'; direction: 'asc' | 'desc' }>(
     {
       column: 'avg',
@@ -748,15 +760,48 @@ export default function Home() {
           last10,
         };
       })
-      .filter((row) => row.games > 0)
-      .sort((a, b) => {
-        if (b.winPct !== a.winPct) return b.winPct - a.winPct;
-        if (b.wins !== a.wins) return b.wins - a.wins;
-        return b.games - a.games;
-      });
+      .filter((row) => row.games > 0);
 
     return stats;
   }, [effectiveGameType, gameTypeMap, playerNames]);
+
+  const sortedGameTypeStats = useMemo(() => {
+    const sorted = [...gameTypeStats];
+    const dir = gameTypeSort.direction === 'asc' ? 1 : -1;
+
+    sorted.sort((a, b) => {
+      switch (gameTypeSort.column) {
+        case 'player':
+          return a.displayName.localeCompare(b.displayName) * dir;
+        case 'wins':
+          return (a.wins - b.wins) * dir;
+        case 'losses':
+          return (a.losses - b.losses) * dir;
+        case 'games':
+          return (a.games - b.games) * dir;
+        case 'winPct':
+          return (a.winPct - b.winPct) * dir;
+        case 'streak':
+          return (parseStreakValue(a.streak) - parseStreakValue(b.streak)) * dir;
+        case 'last5': {
+          const aRec = recordSortValue(a.last5);
+          const bRec = recordSortValue(b.last5);
+          if (aRec.ratio !== bRec.ratio) return (aRec.ratio - bRec.ratio) * dir;
+          return (aRec.wins - bRec.wins) * dir;
+        }
+        case 'last10': {
+          const aRec = recordSortValue(a.last10);
+          const bRec = recordSortValue(b.last10);
+          if (aRec.ratio !== bRec.ratio) return (aRec.ratio - bRec.ratio) * dir;
+          return (aRec.wins - bRec.wins) * dir;
+        }
+        default:
+          return 0;
+      }
+    });
+
+    return sorted;
+  }, [gameTypeSort, gameTypeStats]);
 
   const sortedHeadToHeadStats = useMemo(() => {
     const sorted = [...headToHeadStats];
@@ -1300,7 +1345,7 @@ export default function Home() {
                       padding: '0.5rem',
                     }}
                   >
-                    Player
+                    {renderHeaderButton('Player', 'player', gameTypeSort, setGameTypeSort, 'asc')}
                   </th>
                   <th
                     style={{
@@ -1309,7 +1354,7 @@ export default function Home() {
                       padding: '0.5rem',
                     }}
                   >
-                    Wins
+                    {renderHeaderButton('Wins', 'wins', gameTypeSort, setGameTypeSort, 'desc')}
                   </th>
                   <th
                     style={{
@@ -1318,7 +1363,7 @@ export default function Home() {
                       padding: '0.5rem',
                     }}
                   >
-                    Losses
+                    {renderHeaderButton('Losses', 'losses', gameTypeSort, setGameTypeSort, 'asc')}
                   </th>
                   <th
                     style={{
@@ -1327,7 +1372,7 @@ export default function Home() {
                       padding: '0.5rem',
                     }}
                   >
-                    Games
+                    {renderHeaderButton('Games', 'games', gameTypeSort, setGameTypeSort, 'desc')}
                   </th>
                   <th
                     style={{
@@ -1336,7 +1381,7 @@ export default function Home() {
                       padding: '0.5rem',
                     }}
                   >
-                    Win %
+                    {renderHeaderButton('Win %', 'winPct', gameTypeSort, setGameTypeSort, 'desc')}
                   </th>
                   <th
                     style={{
@@ -1345,7 +1390,7 @@ export default function Home() {
                       padding: '0.5rem',
                     }}
                   >
-                    Streak
+                    {renderHeaderButton('Streak', 'streak', gameTypeSort, setGameTypeSort, 'desc')}
                   </th>
                   <th
                     style={{
@@ -1354,7 +1399,7 @@ export default function Home() {
                       padding: '0.5rem',
                     }}
                   >
-                    Last 5
+                    {renderHeaderButton('Last 5', 'last5', gameTypeSort, setGameTypeSort, 'desc')}
                   </th>
                   <th
                     style={{
@@ -1363,7 +1408,7 @@ export default function Home() {
                       padding: '0.5rem',
                     }}
                   >
-                    Last 10
+                    {renderHeaderButton('Last 10', 'last10', gameTypeSort, setGameTypeSort, 'desc')}
                   </th>
                 </tr>
               </thead>
@@ -1400,7 +1445,7 @@ export default function Home() {
                       padding: '0.5rem',
                     }}
                   >
-                    Player
+                    {renderHeaderButton('Player', 'player', gameTypeSort, setGameTypeSort, 'asc')}
                   </th>
                   <th
                     style={{
@@ -1409,7 +1454,7 @@ export default function Home() {
                       padding: '0.5rem',
                     }}
                   >
-                    Wins
+                    {renderHeaderButton('Wins', 'wins', gameTypeSort, setGameTypeSort, 'desc')}
                   </th>
                   <th
                     style={{
@@ -1418,7 +1463,7 @@ export default function Home() {
                       padding: '0.5rem',
                     }}
                   >
-                    Losses
+                    {renderHeaderButton('Losses', 'losses', gameTypeSort, setGameTypeSort, 'asc')}
                   </th>
                   <th
                     style={{
@@ -1427,7 +1472,7 @@ export default function Home() {
                       padding: '0.5rem',
                     }}
                   >
-                    Games
+                    {renderHeaderButton('Games', 'games', gameTypeSort, setGameTypeSort, 'desc')}
                   </th>
                   <th
                     style={{
@@ -1436,7 +1481,7 @@ export default function Home() {
                       padding: '0.5rem',
                     }}
                   >
-                    Win %
+                    {renderHeaderButton('Win %', 'winPct', gameTypeSort, setGameTypeSort, 'desc')}
                   </th>
                   <th
                     style={{
@@ -1445,7 +1490,7 @@ export default function Home() {
                       padding: '0.5rem',
                     }}
                   >
-                    Streak
+                    {renderHeaderButton('Streak', 'streak', gameTypeSort, setGameTypeSort, 'desc')}
                   </th>
                   <th
                     style={{
@@ -1454,7 +1499,7 @@ export default function Home() {
                       padding: '0.5rem',
                     }}
                   >
-                    Last 5
+                    {renderHeaderButton('Last 5', 'last5', gameTypeSort, setGameTypeSort, 'desc')}
                   </th>
                   <th
                     style={{
@@ -1463,12 +1508,12 @@ export default function Home() {
                       padding: '0.5rem',
                     }}
                   >
-                    Last 10
+                    {renderHeaderButton('Last 10', 'last10', gameTypeSort, setGameTypeSort, 'desc')}
                   </th>
                 </tr>
               </thead>
               <tbody>
-                {gameTypeStats.map((s, index) => (
+                {sortedGameTypeStats.map((s, index) => (
                   <tr key={s.playerId}>
                     <td
                       style={{

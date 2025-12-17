@@ -719,20 +719,12 @@ export default function Home() {
   );
 
   const effectiveGameType = useMemo<GameTypeLabel>(() => {
-    if (selectedGameType && gameTypeMap.has(selectedGameType)) {
+    if (selectedGameType) {
       return selectedGameType;
     }
 
-    const firstWithResults =
-      GAME_TYPE_ORDER.find((type) => (gameTypeMap.get(type)?.size ?? 0) > 0) ??
-      gameTypeOptions[0]?.id;
-
-    if (firstWithResults) {
-      return firstWithResults;
-    }
-
-    return 'Cricket';
-  }, [gameTypeMap, gameTypeOptions, selectedGameType]);
+    return gameTypeOptions[0]?.id ?? 'Cricket';
+  }, [gameTypeOptions, selectedGameType]);
 
   const gameTypeStats = useMemo<GameTypeStatsRow[]>(() => {
     const playerGameMap = gameTypeMap.get(effectiveGameType);
@@ -1380,7 +1372,7 @@ export default function Home() {
           </div>
         ) : gameTypeStats.length === 0 ? (
           <p style={{ marginTop: '0.75rem' }}>
-            No matches found for the selected game type.
+            No results to display yet for the selected game type.
           </p>
         ) : (
           <div style={{ overflowX: 'auto', marginTop: '0.75rem' }}>

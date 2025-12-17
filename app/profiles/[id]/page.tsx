@@ -33,6 +33,7 @@ type MatchPlayerSummary = {
   match_id: number;
   player_id: string;
   score: number | null;
+  points_scored: number | null;
   is_winner: boolean | null;
   profiles?: {
     display_name: string | null;
@@ -87,6 +88,8 @@ const fallbackMatchPlayer = (mp: unknown): MatchPlayerSummary => {
     match_id: typeof candidate.match_id === 'number' ? candidate.match_id : 0,
     player_id: typeof candidate.player_id === 'string' ? candidate.player_id : '',
     score: typeof candidate.score === 'number' ? candidate.score : null,
+    points_scored:
+      typeof candidate.points_scored === 'number' ? candidate.points_scored : null,
     is_winner: typeof candidate.is_winner === 'boolean' ? candidate.is_winner : null,
     profiles: null,
   };
@@ -346,6 +349,7 @@ export default function ProfilePage() {
               match_id,
               player_id,
               score,
+              points_scored,
               is_winner,
               profiles (
                 display_name,
@@ -400,6 +404,7 @@ export default function ProfilePage() {
             match_id,
             player_id,
             score,
+            points_scored,
             is_winner,
             profiles (
               display_name,
@@ -930,6 +935,10 @@ function MatchList({ matches }: MatchListProps) {
               <ul style={{ margin: '0.25rem 0 0 1rem' }}>
                 {(m.match_players || []).map((mp) => {
                   const prof = mp.profiles;
+                  const pointsText =
+                    m.game_type === 'Cricket' && mp.points_scored != null
+                      ? ` (Points: ${mp.points_scored})`
+                      : '';
 
                   return (
                     <li key={mp.id}>
@@ -943,7 +952,8 @@ function MatchList({ matches }: MatchListProps) {
                         'Unknown player'
                       )}{' '}
                       – {metricLabel}:{' '}
-                      {mp.score != null ? mp.score.toString() : '0'}{' '}
+                      {mp.score != null ? mp.score.toString() : '0'}
+                      {pointsText}{' '}
                       {mp.is_winner ? <strong>(winner)</strong> : null}
                     </li>
                   );

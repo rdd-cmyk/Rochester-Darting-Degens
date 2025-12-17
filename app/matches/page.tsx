@@ -25,6 +25,7 @@ type MatchPlayer = {
   match_id: number;
   player_id: string;
   score: number | null;
+  points_scored: number | null;
   is_winner: boolean | null;
   // Supabase returns an ARRAY of profiles for this relation
   profiles?: MatchPlayerProfile[] | null;
@@ -44,6 +45,7 @@ type Match = {
 type PlayerEntry = {
   playerId: string;
   stat: string; // raw string, parsed on save
+  cricketPoints: string;
 };
 
 type MatchesError = { message?: string };
@@ -60,8 +62,8 @@ export default function MatchesPage() {
   const [notes, setNotes] = useState('');
   const [numPlayers, setNumPlayers] = useState(2);
   const [playerEntries, setPlayerEntries] = useState<PlayerEntry[]>([
-    { playerId: '', stat: '' },
-    { playerId: '', stat: '' },
+    createEmptyPlayerEntry(),
+    createEmptyPlayerEntry(),
   ]);
   const [winnerPlayerId, setWinnerPlayerId] = useState<string>('');
   const [boardType, setBoardType] = useState('');
@@ -81,6 +83,18 @@ export default function MatchesPage() {
   const isCricket = gameType === 'Cricket';
   const isOther = gameType === 'Other';
   const isO1 = gameType === '501' || gameType === '301';
+
+  const createEmptyPlayerEntry = (): PlayerEntry => ({
+    playerId: '',
+    stat: '',
+    cricketPoints: '',
+  });
+
+  const normalizePlayerEntry = (entry?: PlayerEntry): PlayerEntry => ({
+    playerId: entry?.playerId ?? '',
+    stat: entry?.stat ?? '',
+    cricketPoints: entry?.cricketPoints ?? '',
+  });
 
   const formStyle = {
     display: 'flex',
@@ -122,11 +136,11 @@ export default function MatchesPage() {
   // Helper to resize playerEntries when numPlayers changes
   function ensurePlayerEntriesSize(targetSize: number) {
     setPlayerEntries((prev) => {
-      const copy = [...prev];
+      const copy = prev.map((entry) => normalizePlayerEntry(entry));
       if (copy.length < targetSize) {
         const toAdd = targetSize - copy.length;
         for (let i = 0; i < toAdd; i++) {
-          copy.push({ playerId: '', stat: '' });
+          copy.push(createEmptyPlayerEntry());
         }
       } else if (copy.length > targetSize) {
         copy.length = targetSize;
@@ -152,8 +166,8 @@ export default function MatchesPage() {
 
   function handlePlayerChange(index: number, playerId: string) {
     setPlayerEntries((prev) => {
-      const copy = [...prev];
-      if (!copy[index]) copy[index] = { playerId: '', stat: '' };
+      const copy = prev.map((entry) => normalizePlayerEntry(entry));
+      if (!copy[index]) copy[index] = createEmptyPlayerEntry();
       copy[index] = { ...copy[index], playerId };
       return copy;
     });
@@ -192,9 +206,18 @@ export default function MatchesPage() {
 
   function handleStatChange(index: number, stat: string) {
     setPlayerEntries((prev) => {
-      const copy = [...prev];
-      if (!copy[index]) copy[index] = { playerId: '', stat: '' };
+      const copy = prev.map((entry) => normalizePlayerEntry(entry));
+      if (!copy[index]) copy[index] = createEmptyPlayerEntry();
       copy[index] = { ...copy[index], stat };
+      return copy;
+    });
+  }
+
+  function handleCricketPointsChange(index: number, cricketPoints: string) {
+    setPlayerEntries((prev) => {
+      const copy = prev.map((entry) => normalizePlayerEntry(entry));
+      if (!copy[index]) copy[index] = createEmptyPlayerEntry();
+      copy[index] = { ...copy[index], cricketPoints };
       return copy;
     });
   }
@@ -220,6 +243,7 @@ export default function MatchesPage() {
           match_id,
           player_id,
           score,
+          points_scored,
           is_winner,
           profiles (
             display_name,
@@ -304,8 +328,8 @@ export default function MatchesPage() {
     setNotes('');
     setNumPlayers(2);
     setPlayerEntries([
-      { playerId: '', stat: '' },
-      { playerId: '', stat: '' },
+      createEmptyPlayerEntry(),
+      createEmptyPlayerEntry(),
     ]);
     setWinnerPlayerId('');
     setBoardType('');
@@ -358,6 +382,7 @@ export default function MatchesPage() {
 
     // Validate stats (including caps & no negatives for 501 / 301 / Cricket)
     const parsedStats: number[] = [];
+    const parsedCricketPoints: (number | null)[] = [];
     for (let i = 0; i < activePlayers.length; i++) {
       const statStr = activePlayers[i].stat;
       let statNum: number;
@@ -419,6 +444,31 @@ export default function MatchesPage() {
       }
 
       parsedStats.push(statNum);
+
+      if (isCricket) {
+        const rawPoints = activePlayers[i].cricketPoints?.trim() ?? '';
+        if (!rawPoints) {
+          parsedCricketPoints.push(null);
+        } else {
+          const pointsNum = Number(rawPoints);
+
+          if (
+            Number.isNaN(pointsNum) ||
+            !Number.isInteger(pointsNum) ||
+            pointsNum < 0 ||
+            pointsNum > 9999
+          ) {
+            setErrorMessage(
+              'Cricket points scored must be a whole number between 0 and 9999.'
+            );
+            return;
+          }
+
+          parsedCricketPoints.push(pointsNum);
+        }
+      } else {
+        parsedCricketPoints.push(null);
+      }
     }
 
     try {
@@ -448,6 +498,7 @@ export default function MatchesPage() {
           match_id: matchId,
           player_id: p.playerId,
           score: parsedStats[index],
+          points_scored: isCricket ? parsedCricketPoints[index] : null,
           is_winner: p.playerId === winnerPlayerId,
         }));
 
@@ -498,6 +549,7 @@ export default function MatchesPage() {
           match_id: editingMatchId,
           player_id: p.playerId,
           score: parsedStats[index],
+          points_scored: isCricket ? parsedCricketPoints[index] : null,
           is_winner: p.playerId === winnerPlayerId,
         }));
 
@@ -552,11 +604,12 @@ export default function MatchesPage() {
       .map((mp) => ({
         playerId: mp.player_id,
         stat: mp.score != null ? mp.score.toString() : '',
+        cricketPoints: mp.points_scored != null ? mp.points_scored.toString() : '',
       }));
 
     // If fewer than clampedCount, pad
     while (entries.length < clampedCount) {
-      entries.push({ playerId: '', stat: '' });
+      entries.push(createEmptyPlayerEntry());
     }
 
     setPlayerEntries(entries);
@@ -834,6 +887,25 @@ export default function MatchesPage() {
                     style={controlStyle}
                   />
                 </div>
+                {isCricket && (
+                  <div style={{ ...fieldRowStyle, marginTop: '0.35rem' }}>
+                    <span style={labelTextStyle}>
+                      {playerLabel} points scored (optional)
+                    </span>
+                    <input
+                      type="number"
+                      step={1}
+                      min={0}
+                      max={9999}
+                      value={entry.cricketPoints}
+                      onChange={(e) =>
+                        handleCricketPointsChange(index, e.target.value)
+                      }
+                      placeholder="e.g. 120"
+                      style={controlStyle}
+                    />
+                  </div>
+                )}
               </div>
             );
           })}
@@ -1041,14 +1113,17 @@ export default function MatchesPage() {
                                 />
                               ) : (
                                 'Unknown player'
-                              )}{' '}
-                              – {metricLabel}:{' '}
-                              {mp.score != null ? mp.score.toString() : '0'}{' '}
-                              {mp.is_winner ? <strong>(winner)</strong> : null}
-                            </li>
-                          );
-                        })}
-                      </ul>
+                          )}{' '}
+                          – {metricLabel}:{' '}
+                          {mp.score != null ? mp.score.toString() : '0'}
+                          {m.game_type === 'Cricket' && mp.points_scored != null
+                            ? ` (Points: ${mp.points_scored})`
+                            : ''}{' '}
+                          {mp.is_winner ? <strong>(winner)</strong> : null}
+                        </li>
+                      );
+                    })}
+                  </ul>
                     </div>
                   </li>
                 );

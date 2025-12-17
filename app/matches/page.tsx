@@ -66,6 +66,9 @@ export default function MatchesPage() {
   const [winnerPlayerId, setWinnerPlayerId] = useState<string>('');
   const [boardType, setBoardType] = useState('');
   const [venue, setVenue] = useState('');
+  const [o1StatInputMode, setO1StatInputMode] = useState<'3da' | 'ppd'>(
+    '3da'
+  );
 
   // Edit state
   const [editingMatchId, setEditingMatchId] = useState<number | null>(null);
@@ -77,6 +80,7 @@ export default function MatchesPage() {
 
   const isCricket = gameType === 'Cricket';
   const isOther = gameType === 'Other';
+  const isO1 = gameType === '501' || gameType === '301';
 
   const formStyle = {
     display: 'flex',
@@ -283,6 +287,7 @@ export default function MatchesPage() {
     setWinnerPlayerId('');
     setBoardType('');
     setVenue('');
+    setO1StatInputMode('3da');
     setEditingMatchId(null);
   }
 
@@ -367,6 +372,11 @@ export default function MatchesPage() {
           maxStat = 150.5;
         } else if (gameType === 'Cricket') {
           maxStat = 9;
+        }
+
+        // Convert PPD to 3-dart average when entering 01 games
+        if (isO1 && o1StatInputMode === 'ppd') {
+          statNum = statNum * 3;
         }
 
         if (maxStat !== null) {
@@ -533,10 +543,17 @@ export default function MatchesPage() {
 
     setEditingMatchId(match.id);
     setGameType(match.game_type || '501');
+    setO1StatInputMode('3da');
     setNotes(match.notes || '');
     setBoardType(match.board_type || '');
     setVenue(match.venue || '');
   }
+
+  useEffect(() => {
+    if (!isO1 && o1StatInputMode !== '3da') {
+      setO1StatInputMode('3da');
+    }
+  }, [isO1, o1StatInputMode]);
 
   if (loading) {
     return (
@@ -672,6 +689,33 @@ export default function MatchesPage() {
             </select>
           </div>
 
+          {/* Stat entry mode for 01 games */}
+          {isO1 && (
+            <div style={fieldRowStyle}>
+              <span style={labelTextStyle}>Stat entry</span>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
+                <select
+                  value={o1StatInputMode}
+                  onChange={(e) =>
+                    setO1StatInputMode(e.target.value as '3da' | 'ppd')
+                  }
+                  style={selectStyle}
+                >
+                  <option value="3da" style={optionStyle}>
+                    3-Dart Average
+                  </option>
+                  <option value="ppd" style={optionStyle}>
+                    Points Per Dart (PPD)
+                  </option>
+                </select>
+                <span style={{ color: '#555', fontSize: '0.95rem' }}>
+                  PPD values are multiplied by 3 to store a 3-dart average for
+                  leaderboards.
+                </span>
+              </div>
+            </div>
+          )}
+
           {/* Notes */}
           <div style={fieldRowStyle}>
             <span style={labelTextStyle}>Notes</span>
@@ -707,6 +751,8 @@ export default function MatchesPage() {
               ? `${playerLabel} MPR`
               : isOther
               ? `${playerLabel} Score`
+              : isO1 && o1StatInputMode === 'ppd'
+              ? `${playerLabel} PPD`
               : `${playerLabel} 3-Dart Average`;
 
             return (
@@ -750,7 +796,13 @@ export default function MatchesPage() {
                     value={entry.stat}
                     onChange={(e) => handleStatChange(index, e.target.value)}
                     placeholder={
-                      isCricket ? 'e.g. 3.25' : isOther ? 'e.g. 250' : 'e.g. 87.50'
+                      isCricket
+                        ? 'e.g. 3.25'
+                        : isOther
+                        ? 'e.g. 250'
+                        : o1StatInputMode === 'ppd'
+                        ? 'e.g. 29.17'
+                        : 'e.g. 87.50'
                     }
                     style={controlStyle}
                   />

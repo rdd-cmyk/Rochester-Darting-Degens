@@ -167,6 +167,29 @@ export default function MatchesPage() {
     });
   }
 
+  function convertO1Stats(prevMode: '3da' | 'ppd', nextMode: '3da' | 'ppd') {
+    if (prevMode === nextMode) return;
+
+    const factor = prevMode === '3da' && nextMode === 'ppd' ? 1 / 3 : 3;
+
+    setPlayerEntries((prev) =>
+      prev.map((entry) => {
+        const trimmed = entry.stat?.trim() ?? '';
+        if (!trimmed) return entry;
+
+        const num = parseFloat(trimmed);
+        if (Number.isNaN(num)) return entry;
+
+        const converted = num * factor;
+        const normalized = Number.isFinite(converted)
+          ? Number(converted.toFixed(2)).toString()
+          : entry.stat;
+
+        return { ...entry, stat: normalized };
+      })
+    );
+  }
+
   function handleStatChange(index: number, stat: string) {
     setPlayerEntries((prev) => {
       const copy = [...prev];
@@ -696,9 +719,11 @@ export default function MatchesPage() {
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
                 <select
                   value={o1StatInputMode}
-                  onChange={(e) =>
-                    setO1StatInputMode(e.target.value as '3da' | 'ppd')
-                  }
+                  onChange={(e) => {
+                    const nextMode = e.target.value as '3da' | 'ppd';
+                    convertO1Stats(o1StatInputMode, nextMode);
+                    setO1StatInputMode(nextMode);
+                  }}
                   style={selectStyle}
                 >
                   <option value="3da" style={optionStyle}>

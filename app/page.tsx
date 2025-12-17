@@ -52,13 +52,30 @@ type HeadToHeadOutcomes = {
 
 type HeadToHeadMap = Map<string, Map<string, HeadToHeadOutcomes>>;
 
+type GameTypeStatsRow = {
+  type: string;
+  wins: number;
+  losses: number;
+  games: number;
+  winPct: number;
+  streak: string;
+  last5: string;
+  last10: string;
+};
+
+const GAME_TYPE_ORDER = ['Cricket', '501', '301', 'Other'] as const;
+
 export default function Home() {
   const router = useRouter();
   const [winLossStats, setWinLossStats] = useState<WinLossStats[]>([]);
   const [threeDartStats, setThreeDartStats] = useState<AverageStats[]>([]);
   const [mprStats, setMprStats] = useState<AverageStats[]>([]);
   const [headToHeadMap, setHeadToHeadMap] = useState<HeadToHeadMap>(new Map());
+  const [gameTypeMap, setGameTypeMap] = useState<
+    Map<string, Map<string, { wins: number; losses: number; games: number; outcomes: { playedAt: string; isWin: boolean }[] }>>
+  >(new Map());
   const [selectedHeadPlayer, setSelectedHeadPlayer] = useState<string>('');
+  const [selectedGameTypePlayer, setSelectedGameTypePlayer] = useState<string>('');
   const [playerNames, setPlayerNames] = useState<Map<string, string>>(new Map());
   const [wlSort, setWlSort] = useState<{
     column:
@@ -101,6 +118,13 @@ export default function Home() {
   const [user, setUser] = useState<User | null>(null);
   const [authLoading, setAuthLoading] = useState(true);
   const [authErrorMessage, setAuthErrorMessage] = useState<string | null>(null);
+
+  const categorizeGameType = (gameType: string | null) => {
+    if (gameType === 'Cricket') return 'Cricket';
+    if (gameType === '501') return '501';
+    if (gameType === '301') return '301';
+    return 'Other';
+  };
 
   useEffect(() => {
     async function handleRecoveryFromHash() {
@@ -250,6 +274,10 @@ export default function Home() {
       >();
 
       const playerNameMap = new Map<string, string>();
+      const perGameTypeMap = new Map<
+        string,
+        Map<string, { wins: number; losses: number; games: number; outcomes: { playedAt: string; isWin: boolean }[] }>
+      >();
 
       for (const row of rows) {
         const playerId = row.player_id;
@@ -269,6 +297,7 @@ export default function Home() {
         const isX01Game = gameType === '501' || gameType === '301';
         const score = row.score ?? null;
         const isWin = row.is_winner === true;
+        const gameTypeLabel = categorizeGameType(gameType);
 
         if (row.match_id) {
           let match = matchParticipants.get(row.match_id);
@@ -342,6 +371,27 @@ export default function Home() {
           mpr.total += score;
           mpr.games += 1;
         }
+
+        // ---- Game type breakdown ----
+        let playerGameMap = perGameTypeMap.get(playerId);
+        if (!playerGameMap) {
+          playerGameMap = new Map();
+          perGameTypeMap.set(playerId, playerGameMap);
+        }
+
+        let gameEntry = playerGameMap.get(gameTypeLabel);
+        if (!gameEntry) {
+          gameEntry = { wins: 0, losses: 0, games: 0, outcomes: [] };
+          playerGameMap.set(gameTypeLabel, gameEntry);
+        }
+
+        gameEntry.games += 1;
+        if (isWin) {
+          gameEntry.wins += 1;
+        } else {
+          gameEntry.losses += 1;
+        }
+        gameEntry.outcomes.push({ playedAt, isWin });
       }
 
       // Finalize win/loss stats with streak + last 5
@@ -475,6 +525,7 @@ export default function Home() {
       setThreeDartStats(threeList);
       setMprStats(mprList);
       setHeadToHeadMap(headMap);
+      setGameTypeMap(perGameTypeMap);
       setPlayerNames(playerNameMap);
       setLoading(false);
     }
@@ -658,6 +709,52 @@ export default function Home() {
 
     return stats;
   }, [effectiveHeadPlayer, headToHeadMap, playerNames]);
+
+  const gameTypeOptions = useMemo(
+    () =>
+      Array.from(gameTypeMap.keys())
+        .map((id) => ({ id, name: playerNames.get(id) || 'Unknown player' }))
+        .sort((a, b) => a.name.localeCompare(b.name)),
+    [gameTypeMap, playerNames]
+  );
+
+  const effectiveGameTypePlayer = useMemo(() => {
+    if (selectedGameTypePlayer && gameTypeMap.has(selectedGameTypePlayer)) {
+      return selectedGameTypePlayer;
+    }
+
+    if (user?.id && gameTypeMap.has(user.id)) {
+      return user.id;
+    }
+
+    return gameTypeOptions[0]?.id ?? '';
+  }, [gameTypeMap, gameTypeOptions, selectedGameTypePlayer, user]);
+
+  const gameTypeStats = useMemo<GameTypeStatsRow[]>(() => {
+    const playerGameMap = gameTypeMap.get(effectiveGameTypePlayer);
+
+    if (!playerGameMap) return [];
+
+    const stats: GameTypeStatsRow[] = GAME_TYPE_ORDER.map((type) => {
+      const entry =
+        playerGameMap.get(type) || ({ wins: 0, losses: 0, games: 0, outcomes: [] } as const);
+      const { streak, last5, last10 } = summarizeOutcomes(entry.outcomes);
+      const winPct = entry.games > 0 ? (entry.wins / entry.games) * 100 : 0;
+
+      return {
+        type,
+        wins: entry.wins,
+        losses: entry.losses,
+        games: entry.games,
+        winPct,
+        streak,
+        last5,
+        last10,
+      };
+    });
+
+    return stats;
+  }, [effectiveGameTypePlayer, gameTypeMap]);
 
   const sortedHeadToHeadStats = useMemo(() => {
     const sorted = [...headToHeadStats];
@@ -1076,6 +1173,318 @@ export default function Home() {
                         playerId={s.playerId}
                         preformattedName={s.displayName}
                       />
+                    </td>
+                    <td
+                      style={{
+                        padding: '0.5rem',
+                        borderBottom: '1px solid #eee',
+                        textAlign: 'right',
+                      }}
+                    >
+                      {s.wins}
+                    </td>
+                    <td
+                      style={{
+                        padding: '0.5rem',
+                        borderBottom: '1px solid #eee',
+                        textAlign: 'right',
+                      }}
+                    >
+                      {s.losses}
+                    </td>
+                    <td
+                      style={{
+                        padding: '0.5rem',
+                        borderBottom: '1px solid #eee',
+                        textAlign: 'right',
+                      }}
+                    >
+                      {s.games}
+                    </td>
+                    <td
+                      style={{
+                        padding: '0.5rem',
+                        borderBottom: '1px solid #eee',
+                        textAlign: 'right',
+                      }}
+                    >
+                      {s.winPct.toFixed(1)}%
+                    </td>
+                    <td
+                      style={{
+                        padding: '0.5rem',
+                        borderBottom: '1px solid #eee',
+                        textAlign: 'right',
+                      }}
+                    >
+                      {s.streak || '—'}
+                    </td>
+                    <td
+                      style={{
+                        padding: '0.5rem',
+                        borderBottom: '1px solid #eee',
+                        textAlign: 'right',
+                      }}
+                    >
+                      {s.last5 || '—'}
+                    </td>
+                    <td
+                      style={{
+                        padding: '0.5rem',
+                        borderBottom: '1px solid #eee',
+                        textAlign: 'right',
+                      }}
+                    >
+                      {s.last10 || '—'}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </section>
+
+      <section>
+        <h2 className="leaderboard-title">Game Type Leaderboard</h2>
+
+        <div style={{ marginTop: '0.75rem', maxWidth: '420px' }}>
+          <label style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
+            <span style={{ fontWeight: 600 }}>Select player</span>
+            <select
+              value={effectiveGameTypePlayer}
+              onChange={(e) => setSelectedGameTypePlayer(e.target.value)}
+              disabled={loading || gameTypeOptions.length === 0}
+              style={{
+                padding: '0.5rem',
+                borderRadius: '0.4rem',
+                border: '1px solid #ccc',
+                fontSize: '1rem',
+              }}
+            >
+              {gameTypeOptions.map((option) => (
+                <option key={option.id} value={option.id}>
+                  {option.name}
+                </option>
+              ))}
+            </select>
+          </label>
+        </div>
+
+        {loading ? (
+          <div style={{ overflowX: 'auto', marginTop: '0.75rem' }}>
+            <table
+              style={{
+                width: '100%',
+                borderCollapse: 'collapse',
+                minHeight: '240px',
+              }}
+            >
+              <thead>
+                <tr>
+                  <th
+                    style={{
+                      textAlign: 'left',
+                      borderBottom: '1px solid #ccc',
+                      padding: '0.5rem',
+                    }}
+                  >
+                    #
+                  </th>
+                  <th
+                    style={{
+                      textAlign: 'left',
+                      borderBottom: '1px solid #ccc',
+                      padding: '0.5rem',
+                    }}
+                  >
+                    Game Type
+                  </th>
+                  <th
+                    style={{
+                      textAlign: 'right',
+                      borderBottom: '1px solid #ccc',
+                      padding: '0.5rem',
+                    }}
+                  >
+                    Wins
+                  </th>
+                  <th
+                    style={{
+                      textAlign: 'right',
+                      borderBottom: '1px solid #ccc',
+                      padding: '0.5rem',
+                    }}
+                  >
+                    Losses
+                  </th>
+                  <th
+                    style={{
+                      textAlign: 'right',
+                      borderBottom: '1px solid #ccc',
+                      padding: '0.5rem',
+                    }}
+                  >
+                    Games
+                  </th>
+                  <th
+                    style={{
+                      textAlign: 'right',
+                      borderBottom: '1px solid #ccc',
+                      padding: '0.5rem',
+                    }}
+                  >
+                    Win %
+                  </th>
+                  <th
+                    style={{
+                      textAlign: 'right',
+                      borderBottom: '1px solid #ccc',
+                      padding: '0.5rem',
+                    }}
+                  >
+                    Streak
+                  </th>
+                  <th
+                    style={{
+                      textAlign: 'right',
+                      borderBottom: '1px solid #ccc',
+                      padding: '0.5rem',
+                    }}
+                  >
+                    Last 5
+                  </th>
+                  <th
+                    style={{
+                      textAlign: 'right',
+                      borderBottom: '1px solid #ccc',
+                      padding: '0.5rem',
+                    }}
+                  >
+                    Last 10
+                  </th>
+                </tr>
+              </thead>
+              <tbody>{renderSkeletonRows(winLossSkeletonColumns, 4)}</tbody>
+            </table>
+          </div>
+        ) : gameTypeOptions.length === 0 ? (
+          <p style={{ marginTop: '0.75rem' }}>No game type records available yet.</p>
+        ) : gameTypeStats.length === 0 ? (
+          <p style={{ marginTop: '0.75rem' }}>
+            No matches found for the selected player.
+          </p>
+        ) : (
+          <div style={{ overflowX: 'auto', marginTop: '0.75rem' }}>
+            <table
+              style={{
+                width: '100%',
+                borderCollapse: 'collapse',
+              }}
+            >
+              <thead>
+                <tr>
+                  <th
+                    style={{
+                      textAlign: 'left',
+                      borderBottom: '1px solid #ccc',
+                      padding: '0.5rem',
+                    }}
+                  >
+                    #
+                  </th>
+                  <th
+                    style={{
+                      textAlign: 'left',
+                      borderBottom: '1px solid #ccc',
+                      padding: '0.5rem',
+                    }}
+                  >
+                    Game Type
+                  </th>
+                  <th
+                    style={{
+                      textAlign: 'right',
+                      borderBottom: '1px solid #ccc',
+                      padding: '0.5rem',
+                    }}
+                  >
+                    Wins
+                  </th>
+                  <th
+                    style={{
+                      textAlign: 'right',
+                      borderBottom: '1px solid #ccc',
+                      padding: '0.5rem',
+                    }}
+                  >
+                    Losses
+                  </th>
+                  <th
+                    style={{
+                      textAlign: 'right',
+                      borderBottom: '1px solid #ccc',
+                      padding: '0.5rem',
+                    }}
+                  >
+                    Games
+                  </th>
+                  <th
+                    style={{
+                      textAlign: 'right',
+                      borderBottom: '1px solid #ccc',
+                      padding: '0.5rem',
+                    }}
+                  >
+                    Win %
+                  </th>
+                  <th
+                    style={{
+                      textAlign: 'right',
+                      borderBottom: '1px solid #ccc',
+                      padding: '0.5rem',
+                    }}
+                  >
+                    Streak
+                  </th>
+                  <th
+                    style={{
+                      textAlign: 'right',
+                      borderBottom: '1px solid #ccc',
+                      padding: '0.5rem',
+                    }}
+                  >
+                    Last 5
+                  </th>
+                  <th
+                    style={{
+                      textAlign: 'right',
+                      borderBottom: '1px solid #ccc',
+                      padding: '0.5rem',
+                    }}
+                  >
+                    Last 10
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {gameTypeStats.map((s, index) => (
+                  <tr key={s.type}>
+                    <td
+                      style={{
+                        padding: '0.5rem',
+                        borderBottom: '1px solid #eee',
+                      }}
+                    >
+                      {index + 1}
+                    </td>
+                    <td
+                      style={{
+                        padding: '0.5rem',
+                        borderBottom: '1px solid #eee',
+                      }}
+                    >
+                      {s.type}
                     </td>
                     <td
                       style={{

@@ -871,7 +871,7 @@ export default function MatchesPage() {
                   <input
                     type="number"
                     step={isOther ? 1 : 0.01}
-                    min={isOther ? 1 : undefined}
+                    min={isOther ? 1 : 0}
                     max={isOther ? 9999 : undefined}
                     value={entry.stat}
                     onChange={(e) => handleStatChange(index, e.target.value)}

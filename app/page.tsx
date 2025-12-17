@@ -53,7 +53,8 @@ type HeadToHeadOutcomes = {
 type HeadToHeadMap = Map<string, Map<string, HeadToHeadOutcomes>>;
 
 type GameTypeStatsRow = {
-  type: string;
+  playerId: string;
+  displayName: string;
   wins: number;
   losses: number;
   games: number;
@@ -64,6 +65,7 @@ type GameTypeStatsRow = {
 };
 
 const GAME_TYPE_ORDER = ['Cricket', '501', '301', 'Other'] as const;
+type GameTypeLabel = (typeof GAME_TYPE_ORDER)[number];
 
 export default function Home() {
   const router = useRouter();
@@ -72,10 +74,10 @@ export default function Home() {
   const [mprStats, setMprStats] = useState<AverageStats[]>([]);
   const [headToHeadMap, setHeadToHeadMap] = useState<HeadToHeadMap>(new Map());
   const [gameTypeMap, setGameTypeMap] = useState<
-    Map<string, Map<string, { wins: number; losses: number; games: number; outcomes: { playedAt: string; isWin: boolean }[] }>>
+    Map<GameTypeLabel, Map<string, { wins: number; losses: number; games: number; outcomes: { playedAt: string; isWin: boolean }[] }>>
   >(new Map());
   const [selectedHeadPlayer, setSelectedHeadPlayer] = useState<string>('');
-  const [selectedGameTypePlayer, setSelectedGameTypePlayer] = useState<string>('');
+  const [selectedGameType, setSelectedGameType] = useState<GameTypeLabel | ''>('');
   const [playerNames, setPlayerNames] = useState<Map<string, string>>(new Map());
   const [wlSort, setWlSort] = useState<{
     column:
@@ -119,7 +121,7 @@ export default function Home() {
   const [authLoading, setAuthLoading] = useState(true);
   const [authErrorMessage, setAuthErrorMessage] = useState<string | null>(null);
 
-  const categorizeGameType = (gameType: string | null) => {
+  const categorizeGameType = (gameType: string | null): GameTypeLabel => {
     if (gameType === 'Cricket') return 'Cricket';
     if (gameType === '501') return '501';
     if (gameType === '301') return '301';
@@ -275,7 +277,7 @@ export default function Home() {
 
       const playerNameMap = new Map<string, string>();
       const perGameTypeMap = new Map<
-        string,
+        GameTypeLabel,
         Map<string, { wins: number; losses: number; games: number; outcomes: { playedAt: string; isWin: boolean }[] }>
       >();
 
@@ -373,16 +375,16 @@ export default function Home() {
         }
 
         // ---- Game type breakdown ----
-        let playerGameMap = perGameTypeMap.get(playerId);
+        let playerGameMap = perGameTypeMap.get(gameTypeLabel);
         if (!playerGameMap) {
           playerGameMap = new Map();
-          perGameTypeMap.set(playerId, playerGameMap);
+          perGameTypeMap.set(gameTypeLabel, playerGameMap);
         }
 
-        let gameEntry = playerGameMap.get(gameTypeLabel);
+        let gameEntry = playerGameMap.get(playerId);
         if (!gameEntry) {
           gameEntry = { wins: 0, losses: 0, games: 0, outcomes: [] };
-          playerGameMap.set(gameTypeLabel, gameEntry);
+          playerGameMap.set(playerId, gameEntry);
         }
 
         gameEntry.games += 1;
@@ -712,49 +714,57 @@ export default function Home() {
 
   const gameTypeOptions = useMemo(
     () =>
-      Array.from(gameTypeMap.keys())
-        .map((id) => ({ id, name: playerNames.get(id) || 'Unknown player' }))
-        .sort((a, b) => a.name.localeCompare(b.name)),
-    [gameTypeMap, playerNames]
+      GAME_TYPE_ORDER.map((type) => ({ id: type, name: type })),
+    []
   );
 
-  const effectiveGameTypePlayer = useMemo(() => {
-    if (selectedGameTypePlayer && gameTypeMap.has(selectedGameTypePlayer)) {
-      return selectedGameTypePlayer;
+  const effectiveGameType = useMemo<GameTypeLabel>(() => {
+    if (selectedGameType && gameTypeMap.has(selectedGameType)) {
+      return selectedGameType;
     }
 
-    if (user?.id && gameTypeMap.has(user.id)) {
-      return user.id;
+    const firstWithResults =
+      GAME_TYPE_ORDER.find((type) => (gameTypeMap.get(type)?.size ?? 0) > 0) ??
+      gameTypeOptions[0]?.id;
+
+    if (firstWithResults) {
+      return firstWithResults;
     }
 
-    return gameTypeOptions[0]?.id ?? '';
-  }, [gameTypeMap, gameTypeOptions, selectedGameTypePlayer, user]);
+    return 'Cricket';
+  }, [gameTypeMap, gameTypeOptions, selectedGameType]);
 
   const gameTypeStats = useMemo<GameTypeStatsRow[]>(() => {
-    const playerGameMap = gameTypeMap.get(effectiveGameTypePlayer);
+    const playerGameMap = gameTypeMap.get(effectiveGameType);
 
     if (!playerGameMap) return [];
 
-    const stats: GameTypeStatsRow[] = GAME_TYPE_ORDER.map((type) => {
-      const entry =
-        playerGameMap.get(type) || ({ wins: 0, losses: 0, games: 0, outcomes: [] } as const);
-      const { streak, last5, last10 } = summarizeOutcomes(entry.outcomes);
-      const winPct = entry.games > 0 ? (entry.wins / entry.games) * 100 : 0;
+    const stats: GameTypeStatsRow[] = Array.from(playerGameMap.entries())
+      .map(([playerId, entry]) => {
+        const { streak, last5, last10 } = summarizeOutcomes(entry.outcomes);
+        const winPct = entry.games > 0 ? (entry.wins / entry.games) * 100 : 0;
 
-      return {
-        type,
-        wins: entry.wins,
-        losses: entry.losses,
-        games: entry.games,
-        winPct,
-        streak,
-        last5,
-        last10,
-      };
-    });
+        return {
+          playerId,
+          displayName: playerNames.get(playerId) || 'Unknown player',
+          wins: entry.wins,
+          losses: entry.losses,
+          games: entry.games,
+          winPct,
+          streak,
+          last5,
+          last10,
+        };
+      })
+      .filter((row) => row.games > 0)
+      .sort((a, b) => {
+        if (b.winPct !== a.winPct) return b.winPct - a.winPct;
+        if (b.wins !== a.wins) return b.wins - a.wins;
+        return b.games - a.games;
+      });
 
     return stats;
-  }, [effectiveGameTypePlayer, gameTypeMap]);
+  }, [effectiveGameType, gameTypeMap, playerNames]);
 
   const sortedHeadToHeadStats = useMemo(() => {
     const sorted = [...headToHeadStats];
@@ -1250,11 +1260,11 @@ export default function Home() {
 
         <div style={{ marginTop: '0.75rem', maxWidth: '420px' }}>
           <label style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
-            <span style={{ fontWeight: 600 }}>Select player</span>
+            <span style={{ fontWeight: 600 }}>Select game type</span>
             <select
-              value={effectiveGameTypePlayer}
-              onChange={(e) => setSelectedGameTypePlayer(e.target.value)}
-              disabled={loading || gameTypeOptions.length === 0}
+              value={effectiveGameType}
+              onChange={(e) => setSelectedGameType(e.target.value as GameTypeLabel)}
+              disabled={loading}
               style={{
                 padding: '0.5rem',
                 borderRadius: '0.4rem',
@@ -1298,7 +1308,7 @@ export default function Home() {
                       padding: '0.5rem',
                     }}
                   >
-                    Game Type
+                    Player
                   </th>
                   <th
                     style={{
@@ -1368,11 +1378,9 @@ export default function Home() {
               <tbody>{renderSkeletonRows(winLossSkeletonColumns, 4)}</tbody>
             </table>
           </div>
-        ) : gameTypeOptions.length === 0 ? (
-          <p style={{ marginTop: '0.75rem' }}>No game type records available yet.</p>
         ) : gameTypeStats.length === 0 ? (
           <p style={{ marginTop: '0.75rem' }}>
-            No matches found for the selected player.
+            No matches found for the selected game type.
           </p>
         ) : (
           <div style={{ overflowX: 'auto', marginTop: '0.75rem' }}>
@@ -1400,7 +1408,7 @@ export default function Home() {
                       padding: '0.5rem',
                     }}
                   >
-                    Game Type
+                    Player
                   </th>
                   <th
                     style={{
@@ -1469,7 +1477,7 @@ export default function Home() {
               </thead>
               <tbody>
                 {gameTypeStats.map((s, index) => (
-                  <tr key={s.type}>
+                  <tr key={s.playerId}>
                     <td
                       style={{
                         padding: '0.5rem',
@@ -1484,7 +1492,10 @@ export default function Home() {
                         borderBottom: '1px solid #eee',
                       }}
                     >
-                      {s.type}
+                      <LinkedPlayerName
+                        playerId={s.playerId}
+                        preformattedName={s.displayName}
+                      />
                     </td>
                     <td
                       style={{

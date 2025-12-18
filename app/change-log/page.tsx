@@ -1,10 +1,10 @@
 import Link from "next/link";
 import type { Metadata } from "next";
 
-const REVALIDATE_SECONDS = 900;
-const PER_PAGE = 15;
+export const revalidate = 900;
 
-export const revalidate = REVALIDATE_SECONDS;
+const REVALIDATE_SECONDS = revalidate;
+const PER_PAGE = 15;
 
 export const metadata: Metadata = {
   title: "Change Log",

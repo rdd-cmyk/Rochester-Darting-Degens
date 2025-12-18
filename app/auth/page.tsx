@@ -43,6 +43,7 @@ export default function AuthPage() {
           display_name: displayName,
           first_name: firstName,
           last_name: lastName,
+          include_first_name_in_display: true,
         },
       ],
       { onConflict: 'id' }
@@ -78,6 +79,7 @@ export default function AuthPage() {
             display_name: displayName.trim(),
             first_name: firstName.trim(),
             last_name: lastName.trim(),
+            include_first_name_in_display: true,
           },
         },
       });

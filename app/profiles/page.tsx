@@ -11,6 +11,7 @@ type ProfileListItem = {
   display_name: string | null;
   first_name: string | null;
   last_name: string | null;
+  include_first_name_in_display: boolean | null;
 };
 
 function buildSortableName(profile: ProfileListItem) {
@@ -70,7 +71,9 @@ export default function AllProfilesPage() {
 
       const { data, error } = await supabase
         .from('profiles')
-        .select('id, display_name, first_name, last_name');
+        .select(
+          'id, display_name, first_name, last_name, include_first_name_in_display'
+        );
 
       if (!isMounted) return;
 
@@ -219,7 +222,8 @@ export default function AllProfilesPage() {
           {sortedAndFilteredProfiles.map((profile) => {
             const primaryName = formatPlayerName(
               profile.display_name,
-              profile.first_name
+              profile.first_name,
+              profile.include_first_name_in_display
             );
             const hasSecondary = profile.last_name || profile.first_name;
             const secondaryName = [profile.first_name, profile.last_name]

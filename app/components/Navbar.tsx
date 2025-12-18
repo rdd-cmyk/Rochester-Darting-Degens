@@ -25,7 +25,12 @@ export default function Navbar({ snowEnabled, onToggleSnow }: NavbarProps) {
     if (!userId || attemptedProfiles.current.has(userId)) return;
 
     const metadata = currentUser.user_metadata || {};
-    const { display_name, first_name, last_name } = metadata;
+    const {
+      display_name,
+      first_name,
+      last_name,
+      include_first_name_in_display,
+    } = metadata;
     if (!display_name && !first_name && !last_name) return;
 
     const { error } = await supabase.from("profiles").upsert(
@@ -35,6 +40,8 @@ export default function Navbar({ snowEnabled, onToggleSnow }: NavbarProps) {
           display_name: display_name ?? null,
           first_name: first_name ?? null,
           last_name: last_name ?? null,
+          include_first_name_in_display:
+            include_first_name_in_display ?? true,
         },
       ],
       { onConflict: "id" }

@@ -13,11 +13,13 @@ type Profile = {
   id: string;
   display_name: string | null;
   first_name: string | null;
+  include_first_name_in_display: boolean | null;
 };
 
 type MatchPlayerProfile = {
   display_name: string | null;
   first_name: string | null;
+  include_first_name_in_display?: boolean | null;
 };
 
 type MatchPlayer = {
@@ -247,7 +249,8 @@ export default function MatchesPage() {
           is_winner,
           profiles (
             display_name,
-            first_name
+            first_name,
+            include_first_name_in_display
           )
         )
       `,
@@ -295,7 +298,7 @@ export default function MatchesPage() {
       // 2) Load profiles (players)
       const { data: profilesData, error: profilesError } = await supabase
         .from('profiles')
-        .select('id, display_name, first_name')
+        .select('id, display_name, first_name, include_first_name_in_display')
         .order('display_name', { ascending: true });
 
       if (profilesError) {
@@ -861,7 +864,11 @@ export default function MatchesPage() {
                         value={p.id}
                         style={optionStyle}
                       >
-                        {formatPlayerName(p.display_name, p.first_name)}
+                        {formatPlayerName(
+                          p.display_name,
+                          p.first_name,
+                          p.include_first_name_in_display
+                        )}
                       </option>
                     ))}
                   </select>
@@ -924,7 +931,11 @@ export default function MatchesPage() {
               {playerEntries.slice(0, numPlayers).map((entry, index) => {
                 const profile = profiles.find((p) => p.id === entry.playerId);
                 const label = profile
-                  ? formatPlayerName(profile.display_name, profile.first_name)
+                  ? formatPlayerName(
+                      profile.display_name,
+                      profile.first_name,
+                      profile.include_first_name_in_display
+                    )
                   : entry.playerId
                   ? `Player ${index + 1}`
                   : `Player ${index + 1} (select player above)`;
@@ -1100,8 +1111,12 @@ export default function MatchesPage() {
                       <ul style={{ margin: '0.25rem 0 0 1rem' }}>
                         {(m.match_players || []).map((mp) => {
                           const prof = (Array.isArray(mp.profiles)
-  ? mp.profiles[0]
-  : mp.profiles) as { display_name: string | null; first_name: string | null } | null;
+                            ? mp.profiles[0]
+                            : mp.profiles) as {
+                            display_name: string | null;
+                            first_name: string | null;
+                            include_first_name_in_display?: boolean | null;
+                          } | null;
 
                           return (
                             <li key={mp.id}>
@@ -1110,20 +1125,23 @@ export default function MatchesPage() {
                                   playerId={mp.player_id}
                                   display_name={prof.display_name}
                                   first_name={prof.first_name}
+                                  includeFirstNameInDisplay={
+                                    prof.include_first_name_in_display
+                                  }
                                 />
                               ) : (
                                 'Unknown player'
-                          )}{' '}
-                          – {metricLabel}:{' '}
-                          {mp.score != null ? mp.score.toString() : '0'}
-                          {m.game_type === 'Cricket' && mp.points_scored != null
-                            ? ` (Points: ${mp.points_scored})`
-                            : ''}{' '}
-                          {mp.is_winner ? <strong>(winner)</strong> : null}
-                        </li>
-                      );
-                    })}
-                  </ul>
+                              )}{' '}
+                              – {metricLabel}:{' '}
+                              {mp.score != null ? mp.score.toString() : '0'}
+                              {m.game_type === 'Cricket' && mp.points_scored != null
+                                ? ` (Points: ${mp.points_scored})`
+                                : ''}{' '}
+                              {mp.is_winner ? <strong>(winner)</strong> : null}
+                            </li>
+                          );
+                        })}
+                      </ul>
                     </div>
                   </li>
                 );

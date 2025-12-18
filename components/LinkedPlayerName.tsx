@@ -8,6 +8,7 @@ type LinkedPlayerNameProps =
       playerId: string;
       display_name: string | null | undefined;
       first_name: string | null | undefined;
+      includeFirstNameInDisplay?: boolean | null | undefined;
       preformattedName?: undefined;
     }
   | {
@@ -23,7 +24,11 @@ export function LinkedPlayerName(props: LinkedPlayerNameProps) {
   const name =
     'preformattedName' in props
       ? props.preformattedName
-      : formatPlayerName(props.display_name, props.first_name);
+      : formatPlayerName(
+          props.display_name,
+          props.first_name,
+          props.includeFirstNameInDisplay
+        );
 
   return (
     <Link

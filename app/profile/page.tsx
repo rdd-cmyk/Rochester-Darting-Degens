@@ -3,6 +3,7 @@
 import { useEffect, useState, FormEvent } from 'react';
 import Link from 'next/link';
 import { supabase } from '@/lib/supabaseClient';
+import { formatPlayerName } from '@/lib/playerName';
 import type { User } from '@supabase/supabase-js';
 
 type Profile = {
@@ -11,6 +12,7 @@ type Profile = {
   first_name: string | null;
   last_name: string | null;
   sex: string | null;
+  include_first_name_in_display: boolean | null;
 };
 
 export default function ProfilePage() {
@@ -26,6 +28,8 @@ export default function ProfilePage() {
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [displayName, setDisplayName] = useState('');
+  const [includeFirstNameInDisplay, setIncludeFirstNameInDisplay] =
+    useState(true);
   const [sex, setSex] = useState(''); // "Yes" | "No" | ""
 
   // Edit mode
@@ -81,7 +85,9 @@ export default function ProfilePage() {
       // 2) Load profile row (including sex)
       const { data: profileData, error: profileError } = await supabase
         .from('profiles')
-        .select('id, display_name, first_name, last_name, sex')
+        .select(
+          'id, display_name, first_name, last_name, sex, include_first_name_in_display'
+        )
         .eq('id', currentUser.id)
         .maybeSingle();
 
@@ -100,17 +106,25 @@ export default function ProfilePage() {
           first_name: null,
           last_name: null,
           sex: null,
+          include_first_name_in_display: true,
         };
         setProfile(emptyProfile);
         setFirstName('');
         setLastName('');
         setDisplayName('');
+        setIncludeFirstNameInDisplay(true);
         setSex('');
       } else {
-        setProfile(profileData as Profile);
+        const includeFirstNamePref =
+          profileData.include_first_name_in_display ?? true;
+        setProfile({
+          ...(profileData as Profile),
+          include_first_name_in_display: includeFirstNamePref,
+        });
         setFirstName(profileData.first_name ?? '');
         setLastName(profileData.last_name ?? '');
         setDisplayName(profileData.display_name ?? '');
+        setIncludeFirstNameInDisplay(includeFirstNamePref);
         setSex(profileData.sex ?? '');
       }
 
@@ -121,12 +135,15 @@ export default function ProfilePage() {
   }, []);
 
   function formattedLeagueName() {
-    const d = displayName.trim();
-    const f = firstName.trim();
-    if (d && f) return `${d} (${f})`;
-    if (d) return d;
-    if (f) return f;
-    return 'Your name as it will appear here';
+    const formatted = formatPlayerName(
+      displayName,
+      firstName,
+      includeFirstNameInDisplay
+    );
+    if (formatted === 'Unknown player') {
+      return 'Your name as it will appear here';
+    }
+    return formatted;
   }
 
   function resetFormFromProfile() {
@@ -134,6 +151,7 @@ export default function ProfilePage() {
     setFirstName(profile.first_name ?? '');
     setLastName(profile.last_name ?? '');
     setDisplayName(profile.display_name ?? '');
+    setIncludeFirstNameInDisplay(profile.include_first_name_in_display ?? true);
     setSex(profile.sex ?? '');
   }
 
@@ -163,6 +181,7 @@ export default function ProfilePage() {
             first_name: firstName.trim(),
             last_name: lastName.trim(),
             display_name: displayName.trim(),
+            include_first_name_in_display: includeFirstNameInDisplay,
             sex: sex || null, // store null if not selected
           },
         ],
@@ -180,6 +199,7 @@ export default function ProfilePage() {
         first_name: firstName.trim(),
         last_name: lastName.trim(),
         display_name: displayName.trim(),
+        include_first_name_in_display: includeFirstNameInDisplay,
         sex: sex || null,
       });
       setEditMode(false);
@@ -265,8 +285,9 @@ export default function ProfilePage() {
           {formattedLeagueName()}
         </p>
         <p style={{ marginTop: '0.5rem' }}>
-          This is shown on matches, leaderboards, and stats. Format:
-          <code> Display Name (First Name)</code>
+          This is shown on matches, leaderboards, and stats. Use the setting
+          below to choose whether your first name is shown with your display
+          name.
         </p>
       </section>
 
@@ -365,6 +386,35 @@ export default function ProfilePage() {
               required
               style={controlStyle}
             />
+          </div>
+
+          <div style={fieldRowStyle}>
+            <label htmlFor="includeFirstName" style={labelTextStyle}>
+              Show first name with display name
+            </label>
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.5rem',
+                color: 'var(--muted-foreground)',
+              }}
+            >
+              <input
+                id="includeFirstName"
+                type="checkbox"
+                checked={includeFirstNameInDisplay}
+                onChange={(e) =>
+                  setIncludeFirstNameInDisplay(e.target.checked)
+                }
+                disabled={!editMode}
+                aria-describedby="include-first-name-helptext"
+                style={{ width: '1rem', height: '1rem' }}
+              />
+              <span id="include-first-name-helptext">
+                Add your first name in parentheses after your display name
+              </span>
+            </div>
           </div>
 
           <div style={fieldRowStyle}>

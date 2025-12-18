@@ -14,6 +14,8 @@ GITHUB_REPO_NAME="<repository name>"
 
 `GITHUB_TOKEN`, `GITHUB_REPO_OWNER`, and `GITHUB_REPO_NAME` are required for the Change Log page (`/change-log`), which lists merged pull requests from the configured repository. Responses are cached for 15 minutes (see `revalidate` in `app/change-log/page.tsx`) to reduce API calls. If you expect a high volume of requests, consider using a token that benefits from higher GitHub rate limits.
 
+On Vercel, set these environment variables (without the `NEXT_PUBLIC_` prefix) in your project settings so they remain server-only and are available during build and at runtime.
+
 If you do not have a Supabase project yet, create one at [supabase.com](https://supabase.com), then copy the project URL and anon key from Project Settings → API.
 
 ## Getting Started

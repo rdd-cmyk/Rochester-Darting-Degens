@@ -6,6 +6,12 @@ export const revalidate = 900;
 const REVALIDATE_SECONDS = revalidate;
 const PER_PAGE = 15;
 
+const {
+  GITHUB_TOKEN,
+  GITHUB_REPO_OWNER,
+  GITHUB_REPO_NAME,
+} = process.env;
+
 export const metadata: Metadata = {
   title: "Change Log",
 };
@@ -57,9 +63,9 @@ function formatDate(dateString: string) {
 }
 
 async function fetchMergedPullRequests(page: number): Promise<PullRequestResult> {
-  const token = process.env.GITHUB_TOKEN;
-  const owner = process.env.GITHUB_REPO_OWNER;
-  const repo = process.env.GITHUB_REPO_NAME;
+  const token = GITHUB_TOKEN;
+  const owner = GITHUB_REPO_OWNER;
+  const repo = GITHUB_REPO_NAME;
 
   if (!token || !owner || !repo) {
     return {

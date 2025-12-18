@@ -6,29 +6,21 @@ export const revalidate = 900;
 const REVALIDATE_SECONDS = revalidate;
 const PER_PAGE = 15;
 
+export const metadata: Metadata = {
+  title: "Change Log",
+};
+
 const {
   GITHUB_TOKEN,
   GITHUB_REPO_OWNER,
   GITHUB_REPO_NAME,
 } = process.env;
 
-export const metadata: Metadata = {
-  title: "Change Log",
-};
-
-type GitHubLabel = {
-  id: number;
-  name: string;
-  color?: string | null;
-};
-
 type GitHubPullRequest = {
   id: number;
   title: string;
-  html_url: string;
+  body: string | null;
   merged_at: string | null;
-  user: { login: string };
-  labels: GitHubLabel[];
 };
 
 type PullRequestResult = {
@@ -139,7 +131,7 @@ export default async function ChangeLogPage({
             Change Log
           </p>
           <p style={{ color: "var(--muted-foreground)", marginTop: "0.35rem" }}>
-            Latest merged pull requests for {repoLabel}. Results refresh every{" "}
+            Latest merged pull requests for {repoLabel}. Results refresh every
             {Math.round(REVALIDATE_SECONDS / 60)} minutes to reduce API calls.
           </p>
         </div>
@@ -202,17 +194,17 @@ export default async function ChangeLogPage({
                     flexWrap: "wrap",
                   }}
                 >
-                  <Link
-                    href={pr.html_url}
+                  <p
                     style={{
                       fontSize: "1.05rem",
                       fontWeight: 700,
-                      color: "var(--link-color)",
+                      color: "var(--foreground)",
                       wordBreak: "break-word",
+                      margin: 0,
                     }}
                   >
                     {pr.title}
-                  </Link>
+                  </p>
                   <span
                     style={{
                       color: "var(--muted-foreground)",
@@ -225,44 +217,13 @@ export default async function ChangeLogPage({
                 </div>
                 <div
                   style={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: "0.5rem",
-                    flexWrap: "wrap",
                     color: "var(--muted-foreground)",
                     fontSize: "0.95rem",
+                    whiteSpace: "pre-line",
+                    marginTop: "0.35rem",
                   }}
                 >
-                  <span>by {pr.user.login}</span>
-                  {pr.labels.length > 0 && (
-                    <div
-                      aria-label="Pull request labels"
-                      style={{
-                        display: "flex",
-                        gap: "0.35rem",
-                        flexWrap: "wrap",
-                      }}
-                    >
-                      {pr.labels.map((label) => (
-                        <span
-                          key={label.id}
-                          style={{
-                            padding: "0.2rem 0.55rem",
-                            borderRadius: "999px",
-                            backgroundColor: label.color
-                              ? `#${label.color}`
-                              : "var(--panel-border)",
-                            color: "#111827",
-                            fontWeight: 600,
-                            fontSize: "0.85rem",
-                            border: "1px solid rgba(0,0,0,0.05)",
-                          }}
-                        >
-                          {label.name}
-                        </span>
-                      ))}
-                    </div>
-                  )}
+                  {pr.body?.trim() || "No summary provided."}
                 </div>
               </li>
             ))}

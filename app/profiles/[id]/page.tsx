@@ -13,6 +13,7 @@ type Profile = {
   last_name: string | null;
   display_name: string | null;
   sex: string | null;
+  include_first_name_in_display: boolean | null;
 };
 
 type MatchRowForStats = {
@@ -38,6 +39,7 @@ type MatchPlayerSummary = {
   profiles?: {
     display_name: string | null;
     first_name: string | null;
+    include_first_name_in_display?: boolean | null;
   } | null;
 };
 
@@ -174,7 +176,9 @@ export default function ProfilePage() {
       // 1) Load profile
       const { data: profileData, error: profileError } = await supabase
         .from('profiles')
-        .select('id, first_name, last_name, display_name, sex')
+        .select(
+          'id, first_name, last_name, display_name, sex, include_first_name_in_display'
+        )
         .eq('id', id)
         .single();
 
@@ -188,7 +192,12 @@ export default function ProfilePage() {
         return;
       }
 
-      setProfile(profileData as Profile);
+      const includeFirstNamePref =
+        profileData.include_first_name_in_display ?? true;
+      setProfile({
+        ...(profileData as Profile),
+        include_first_name_in_display: includeFirstNamePref,
+      });
 
       // 2) Load this player's match data for stats
       const { data: matchesData, error: matchesError } = await supabase
@@ -353,7 +362,8 @@ export default function ProfilePage() {
               is_winner,
               profiles (
                 display_name,
-                first_name
+                first_name,
+                include_first_name_in_display
               )
             )
           `
@@ -408,7 +418,8 @@ export default function ProfilePage() {
             is_winner,
             profiles (
               display_name,
-              first_name
+              first_name,
+              include_first_name_in_display
             )
           )
         `,
@@ -551,7 +562,11 @@ export default function ProfilePage() {
     );
   }
 
-  const title = formatPlayerName(profile.display_name, profile.first_name);
+  const title = formatPlayerName(
+    profile.display_name,
+    profile.first_name,
+    profile.include_first_name_in_display
+  );
 
   const hasDisplayName = !!profile.display_name?.trim();
   const hasFirstName = !!profile.first_name?.trim();
@@ -947,6 +962,9 @@ function MatchList({ matches }: MatchListProps) {
                           playerId={mp.player_id}
                           display_name={prof.display_name}
                           first_name={prof.first_name}
+                          includeFirstNameInDisplay={
+                            prof.include_first_name_in_display
+                          }
                         />
                       ) : (
                         'Unknown player'

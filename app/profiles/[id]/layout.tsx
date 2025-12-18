@@ -20,7 +20,7 @@ export async function generateMetadata({
 
   const { data, error } = await supabase
     .from("profiles")
-    .select("display_name, first_name")
+    .select("display_name, first_name, include_first_name_in_display")
     .eq("id", resolvedParams.id)
     .single();
 
@@ -29,7 +29,11 @@ export async function generateMetadata({
   }
 
   const displayName = data
-    ? formatPlayerName(data.display_name, data.first_name)
+    ? formatPlayerName(
+        data.display_name,
+        data.first_name,
+        data.include_first_name_in_display
+      )
     : null;
 
   return {

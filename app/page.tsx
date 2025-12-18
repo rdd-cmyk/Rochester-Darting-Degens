@@ -12,6 +12,7 @@ type Profile = {
   id: string;
   display_name: string | null;
   first_name: string | null;
+  include_first_name_in_display: boolean | null;
 };
 
 type MatchRow = {
@@ -209,7 +210,8 @@ export default function Home() {
           profiles (
             id,
             display_name,
-            first_name
+            first_name,
+            include_first_name_in_display
           ),
           matches!inner (
             game_type,
@@ -299,7 +301,11 @@ export default function Home() {
 
         const prof = row.profiles;
         const displayName = prof
-          ? formatPlayerName(prof.display_name, prof.first_name)
+          ? formatPlayerName(
+              prof.display_name,
+              prof.first_name,
+              prof.include_first_name_in_display
+            )
           : 'Unknown player';
 
         playerNameMap.set(playerId, displayName);

@@ -1,10 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 
-export const revalidate = 900;
+export const dynamic = "force-dynamic";
 
 const PER_PAGE = 15;
 const { GITHUB_TOKEN, GITHUB_REPO_OWNER, GITHUB_REPO_NAME } = process.env;
+const GITHUB_REVALIDATE_SECONDS = 900;
 
 const supabaseUrl =
   process.env.NEXT_PUBLIC_SUPABASE_URL || "http://localhost:54321";
@@ -87,7 +88,7 @@ async function fetchMergedPullRequests(
         Accept: "application/vnd.github+json",
         "User-Agent": "RDD-Change-Log",
       },
-      next: { revalidate },
+      next: { revalidate: GITHUB_REVALIDATE_SECONDS },
     }
   );
 

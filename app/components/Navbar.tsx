@@ -126,6 +126,13 @@ export default function Navbar({ snowEnabled, onToggleSnow }: NavbarProps) {
           <Link style={linkStyle} href="/matches" onClick={handleNavSelection}>
             Matches
           </Link>
+          <Link
+            style={linkStyle}
+            href="/change-log"
+            onClick={handleNavSelection}
+          >
+            Change Log
+          </Link>
           <Link style={linkStyle} href="/profiles" onClick={handleNavSelection}>
             All Profiles
           </Link>

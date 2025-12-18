@@ -54,6 +54,24 @@ function formatDate(dateString: string) {
   }).format(new Date(dateString));
 }
 
+function getSummary(body: string | null) {
+  if (!body) return null;
+  const trimmed = body.trim();
+  if (!trimmed) return null;
+
+  const testingHeaderIndex = trimmed.search(/\n#{1,6}\s*Testing\b/i);
+  const summarySection =
+    testingHeaderIndex >= 0 ? trimmed.slice(0, testingHeaderIndex) : trimmed;
+
+  const filtered = summarySection
+    .split(/\r?\n/)
+    .filter((line) => !/codex/i.test(line))
+    .join("\n")
+    .trim();
+
+  return filtered || null;
+}
+
 async function fetchMergedPullRequests(page: number): Promise<PullRequestResult> {
   const token = GITHUB_TOKEN;
   const owner = GITHUB_REPO_OWNER;
@@ -122,6 +140,7 @@ export default async function ChangeLogPage({
   const repoLabel =
     owner && repo ? `${owner}/${repo}` : "the configured repository";
   const hasPreviousPage = page > 1;
+  const showPagination = hasPreviousPage || hasNextPage;
 
   return (
     <main className="page-shell" aria-labelledby="change-log-heading">
@@ -131,7 +150,7 @@ export default async function ChangeLogPage({
             Change Log
           </p>
           <p style={{ color: "var(--muted-foreground)", marginTop: "0.35rem" }}>
-            Latest merged pull requests for {repoLabel}. Results refresh every
+            Latest merged pull requests for {repoLabel}. Results refresh every{" "}
             {Math.round(REVALIDATE_SECONDS / 60)} minutes to reduce API calls.
           </p>
         </div>
@@ -150,134 +169,144 @@ export default async function ChangeLogPage({
         >
           {errorMessage}
         </div>
-      ) : pulls.length === 0 ? (
-        <div
-          style={{
-            padding: "1rem",
-            backgroundColor: "var(--panel-bg)",
-            border: `1px solid var(--panel-border)`,
-            borderRadius: "0.75rem",
-          }}
-        >
-          No merged pull requests found.
-        </div>
       ) : (
         <>
-          <ul
-            style={{
-              listStyle: "none",
-              padding: 0,
-              display: "flex",
-              flexDirection: "column",
-              gap: "1rem",
-            }}
-          >
-            {pulls.map((pr) => (
-              <li
-                key={pr.id}
-                style={{
-                  padding: "1rem",
-                  borderRadius: "0.9rem",
-                  border: `1px solid var(--panel-border)`,
-                  backgroundColor: "var(--panel-bg)",
-                  boxShadow: "0 10px 25px rgba(0, 0, 0, 0.03)",
-                  display: "grid",
-                  gap: "0.4rem",
-                }}
-              >
-                <div
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "space-between",
-                    gap: "0.75rem",
-                    flexWrap: "wrap",
-                  }}
-                >
-                  <p
-                    style={{
-                      fontSize: "1.05rem",
-                      fontWeight: 700,
-                      color: "var(--foreground)",
-                      wordBreak: "break-word",
-                      margin: 0,
-                    }}
-                  >
-                    {pr.title}
-                  </p>
-                  <span
-                    style={{
-                      color: "var(--muted-foreground)",
-                      fontSize: "0.95rem",
-                      whiteSpace: "nowrap",
-                    }}
-                  >
-                    Merged {formatDate(pr.merged_at as string)}
-                  </span>
-                </div>
-                <div
-                  style={{
-                    color: "var(--muted-foreground)",
-                    fontSize: "0.95rem",
-                    whiteSpace: "pre-line",
-                    marginTop: "0.35rem",
-                  }}
-                >
-                  {pr.body?.trim() || "No summary provided."}
-                </div>
-              </li>
-            ))}
-          </ul>
-
-          <div
-            style={{
-              display: "flex",
-              justifyContent: "flex-end",
-              gap: "0.5rem",
-              marginTop: "0.75rem",
-              alignItems: "center",
-            }}
-            aria-label="Pagination controls"
-          >
-            {hasPreviousPage ? (
-              <Link
-                href={`/change-log?page=${page - 1}`}
-                style={{
-                  padding: "0.45rem 0.9rem",
-                  borderRadius: "0.65rem",
-                  border: "1px solid var(--panel-border)",
-                  backgroundColor: "var(--panel-bg)",
-                }}
-              >
-                Previous
-              </Link>
-            ) : (
-              <span style={{ color: "var(--muted-foreground)" }}>Previous</span>
-            )}
-            <span
+          {pulls.length === 0 ? (
+            <div
               style={{
-                color: "var(--muted-foreground)",
-                fontSize: "0.95rem",
+                padding: "1rem",
+                backgroundColor: "var(--panel-bg)",
+                border: `1px solid var(--panel-border)`,
+                borderRadius: "0.75rem",
               }}
             >
-              Page {page}
-            </span>
-            {hasNextPage ? (
-              <Link
-                href={`/change-log?page=${page + 1}`}
+              No merged pull requests found on this page. Try the next page if
+              available.
+            </div>
+          ) : (
+            <ul
+              style={{
+                listStyle: "none",
+                padding: 0,
+                display: "flex",
+                flexDirection: "column",
+                gap: "1rem",
+              }}
+            >
+              {pulls.map((pr) => {
+                const summary = getSummary(pr.body);
+                return (
+                  <li
+                    key={pr.id}
+                    style={{
+                      padding: "1rem",
+                      borderRadius: "0.9rem",
+                      border: `1px solid var(--panel-border)`,
+                      backgroundColor: "var(--panel-bg)",
+                      boxShadow: "0 10px 25px rgba(0, 0, 0, 0.03)",
+                      display: "grid",
+                      gap: "0.4rem",
+                    }}
+                  >
+                    <div
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "space-between",
+                        gap: "0.75rem",
+                        flexWrap: "wrap",
+                      }}
+                    >
+                      <p
+                        style={{
+                          fontSize: "1.05rem",
+                          fontWeight: 700,
+                          color: "var(--foreground)",
+                          wordBreak: "break-word",
+                          margin: 0,
+                        }}
+                      >
+                        {pr.title}
+                      </p>
+                      <span
+                        style={{
+                          color: "var(--muted-foreground)",
+                          fontSize: "0.95rem",
+                          whiteSpace: "nowrap",
+                        }}
+                      >
+                        Merged {formatDate(pr.merged_at as string)}
+                      </span>
+                    </div>
+                    <div
+                      style={{
+                        color: "var(--muted-foreground)",
+                        fontSize: "0.95rem",
+                        whiteSpace: "pre-line",
+                        marginTop: "0.35rem",
+                      }}
+                    >
+                      {summary ?? "No summary provided."}
+                    </div>
+                  </li>
+                );
+              })}
+            </ul>
+          )}
+
+          {showPagination && (
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "flex-end",
+                gap: "0.5rem",
+                marginTop: "0.75rem",
+                alignItems: "center",
+              }}
+              aria-label="Pagination controls"
+            >
+              {hasPreviousPage ? (
+                <Link
+                  href={`/change-log?page=${page - 1}`}
+                  style={{
+                    padding: "0.45rem 0.9rem",
+                    borderRadius: "0.65rem",
+                    border: "1px solid var(--panel-border)",
+                    backgroundColor: "var(--panel-bg)",
+                  }}
+                >
+                  Previous
+                </Link>
+              ) : (
+                <span style={{ color: "var(--muted-foreground)" }}>
+                  Previous
+                </span>
+              )}
+              <span
                 style={{
-                  padding: "0.45rem 0.9rem",
-                  borderRadius: "0.65rem",
-                  border: "1px solid var(--panel-border)",
-                  backgroundColor: "var(--panel-bg)",
+                  color: "var(--muted-foreground)",
+                  fontSize: "0.95rem",
                 }}
               >
-                Next
-              </Link>
-            ) : (
-              <span style={{ color: "var(--muted-foreground)" }}>Next</span>
-            )}
-          </div>
+                Page {page}
+              </span>
+              {hasNextPage ? (
+                <Link
+                  href={`/change-log?page=${page + 1}`}
+                  style={{
+                    padding: "0.45rem 0.9rem",
+                    borderRadius: "0.65rem",
+                    border: "1px solid var(--panel-border)",
+                    backgroundColor: "var(--panel-bg)",
+                  }}
+                >
+                  Next
+                </Link>
+              ) : (
+                <span style={{ color: "var(--muted-foreground)" }}>Next</span>
+              )}
+            </div>
+          )}
         </>
       )}
     </main>

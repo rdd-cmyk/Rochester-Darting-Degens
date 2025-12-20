@@ -74,7 +74,7 @@ async function fetchMergedPullRequests(
 
   const params = new URLSearchParams({
     state: "closed",
-    sort: "updated",
+    sort: "created",
     direction: "desc",
     per_page: String(PER_PAGE),
     page: String(page),

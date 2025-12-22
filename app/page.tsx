@@ -964,7 +964,7 @@ export default function Home() {
           Welcome! This will be the home for stats, matches, and leaderboards.
         </p>
         <p>
-          Next RDD Dart Night - Thursday, 12/18, 6:00 PM, Radio Social.
+          Next RDD Dart Night - Saturday, 1/24, 6:00 PM, location TBD.
         </p>
 
         <p>

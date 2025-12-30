@@ -1037,7 +1037,7 @@ export default function Home() {
           }}
         >
           <Image
-            src="/rdd-logo.png"
+            src="/public/rdd-logo.png"
             alt="Rochester Darting Degens logo"
             width={288}
             height={432}

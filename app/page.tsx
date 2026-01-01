@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import Image from 'next/image';
 import { supabase } from '@/lib/supabaseClient';
 import { formatPlayerName } from '@/lib/playerName';
 import { LinkedPlayerName } from '@/components/LinkedPlayerName';
@@ -958,53 +959,96 @@ export default function Home() {
       )}
 
       {/* Intro / hero */}
-      <section style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-        <h1>Rochester Darting Degens - Darts Night Tracker</h1>
-        <p>
-          Welcome! This will be the home for stats, matches, and leaderboards.
-        </p>
-        <p>
-          Next RDD Dart Night - Saturday, 1/24, 6:00 PM, location TBD.
-        </p>
+      <section
+        style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'flex-start',
+          gap: '1rem',
+          flexWrap: 'wrap',
+        }}
+      >
+        <div
+          style={{
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '0.75rem',
+            flex: '1 1 520px',
+            minWidth: '260px',
+          }}
+        >
+          <h1>Rochester Darting Degens - Darts Night Tracker</h1>
+          <p>
+            Welcome! This will be the home for stats, matches, and leaderboards.
+          </p>
+          <p>
+            Next RDD Dart Night - Saturday, 1/24, 6:00 PM, location TBD.
+          </p>
 
-        <p>
-          {!authLoading && !user && (
+          <p>
+            {!authLoading && !user && (
+              <Link
+                href="/auth"
+                style={{
+                  cursor: 'pointer',
+                  padding: '0.6rem 1rem',
+                  borderRadius: '0.5rem',
+                  border: '1px solid #ccc',
+                  backgroundColor: '#0366d6',
+                  color: 'white',
+                  fontWeight: 500,
+                  textDecoration: 'none',
+                  display: 'inline-block',
+                  marginRight: '0.5rem',
+                }}
+              >
+                Go to sign in / sign up
+              </Link>
+            )}
+
             <Link
-              href="/auth"
+              href="/matches"
               style={{
                 cursor: 'pointer',
                 padding: '0.6rem 1rem',
                 borderRadius: '0.5rem',
                 border: '1px solid #ccc',
-                backgroundColor: '#0366d6',
-                color: 'white',
+                backgroundColor: '#eee',
+                color: '#333',
                 fontWeight: 500,
                 textDecoration: 'none',
                 display: 'inline-block',
-                marginRight: '0.5rem',
               }}
             >
-              Go to sign in / sign up
+              View recent matches
             </Link>
-          )}
+          </p>
+        </div>
 
-          <Link
-            href="/matches"
+        <div
+          style={{
+            flex: '0 0 auto',
+            display: 'flex',
+            justifyContent: 'flex-end',
+            alignItems: 'flex-start',
+            marginLeft: 'auto',
+            marginRight: 'auto',
+          }}
+        >
+          <Image
+            src="/rdd-logo.png"
+            alt="Rochester Darting Degens logo"
+            width={320}
+            height={320}
             style={{
-              cursor: 'pointer',
-              padding: '0.6rem 1rem',
-              borderRadius: '0.5rem',
-              border: '1px solid #ccc',
-              backgroundColor: '#eee',
-              color: '#333',
-              fontWeight: 500,
-              textDecoration: 'none',
-              display: 'inline-block',
+              width: '100%',
+              maxWidth: 'clamp(120px, 12vw, 160px)',
+              height: 'auto',
+              objectFit: 'contain',
             }}
-          >
-            View recent matches
-          </Link>
-        </p>
+            priority
+          />
+        </div>
       </section>
 
       {/* Overall W/L Leaderboard */}

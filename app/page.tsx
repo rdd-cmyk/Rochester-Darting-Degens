@@ -733,19 +733,27 @@ export default function Home() {
 
   const gameTypeOptions = useMemo(
     () =>
-      GAME_TYPE_ORDER.map((type) => ({ id: type, name: type })),
-    []
+      GAME_TYPE_ORDER.filter((type) => {
+        const entries = gameTypeMap.get(type);
+
+        if (!entries) return false;
+
+        return Array.from(entries.values()).some((entry) => entry.games > 0);
+      }).map((type) => ({ id: type, name: type })),
+    [gameTypeMap]
   );
 
-  const effectiveGameType = useMemo<GameTypeLabel>(() => {
-    if (selectedGameType) {
+  const effectiveGameType = useMemo<GameTypeLabel | ''>(() => {
+    if (selectedGameType && gameTypeOptions.some((option) => option.id === selectedGameType)) {
       return selectedGameType;
     }
 
-    return gameTypeOptions[0]?.id ?? 'Cricket';
+    return gameTypeOptions[0]?.id ?? '';
   }, [gameTypeOptions, selectedGameType]);
 
   const gameTypeStats = useMemo<GameTypeStatsRow[]>(() => {
+    if (!effectiveGameType) return [];
+
     const playerGameMap = gameTypeMap.get(effectiveGameType);
 
     if (!playerGameMap) return [];
@@ -1351,7 +1359,7 @@ export default function Home() {
             <select
               value={effectiveGameType}
               onChange={(e) => setSelectedGameType(e.target.value as GameTypeLabel)}
-              disabled={loading}
+              disabled={loading || gameTypeOptions.length === 0}
               style={{
                 padding: '0.5rem',
                 borderRadius: '0.4rem',

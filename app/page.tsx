@@ -515,29 +515,51 @@ export default function Home() {
       const headMap: HeadToHeadMap = new Map();
 
       for (const match of matchParticipants.values()) {
-        for (const participant of match.participants) {
-          for (const opponent of match.participants) {
-            if (participant.playerId === opponent.playerId) continue;
+        const winners = match.participants.filter((p) => p.isWinner);
+        const losers = match.participants.filter((p) => !p.isWinner);
+        const isMultiPlayer = match.participants.length > 2;
+        const hasWinnerLoserSplit = winners.length > 0 && losers.length > 0;
 
-            let playerMap = headMap.get(participant.playerId);
-            if (!playerMap) {
-              playerMap = new Map();
-              headMap.set(participant.playerId, playerMap);
+        const recordOutcome = (
+          player: { playerId: string; displayName: string },
+          opponent: { playerId: string; displayName: string },
+          isWin: boolean
+        ) => {
+          let playerMap = headMap.get(player.playerId);
+          if (!playerMap) {
+            playerMap = new Map();
+            headMap.set(player.playerId, playerMap);
+          }
+
+          let entry = playerMap.get(opponent.playerId);
+          if (!entry) {
+            entry = { displayName: opponent.displayName, outcomes: [] };
+          } else if (!entry.displayName && opponent.displayName) {
+            entry.displayName = opponent.displayName;
+          }
+
+          entry.outcomes.push({
+            playedAt: match.playedAt,
+            isWin,
+          });
+
+          playerMap.set(opponent.playerId, entry);
+        };
+
+        if (isMultiPlayer && hasWinnerLoserSplit) {
+          for (const winner of winners) {
+            for (const loser of losers) {
+              recordOutcome(winner, loser, true);
+              recordOutcome(loser, winner, false);
             }
+          }
+        } else {
+          for (const participant of match.participants) {
+            for (const opponent of match.participants) {
+              if (participant.playerId === opponent.playerId) continue;
 
-            let entry = playerMap.get(opponent.playerId);
-            if (!entry) {
-              entry = { displayName: opponent.displayName, outcomes: [] };
-            } else if (!entry.displayName && opponent.displayName) {
-              entry.displayName = opponent.displayName;
+              recordOutcome(participant, opponent, participant.isWinner);
             }
-
-            entry.outcomes.push({
-              playedAt: match.playedAt,
-              isWin: participant.isWinner,
-            });
-
-            playerMap.set(opponent.playerId, entry);
           }
         }
       }

@@ -26,7 +26,6 @@
   --nav-row-gap: 0;
   --nav-actions-justify: flex-end;
   --nav-actions-margin-left: auto;
-  --snowflake-color: #7fb8ff;
 }
 
 @theme inline {
@@ -50,7 +49,6 @@
     --muted-foreground: #cbd5e1;
     --muted-icon: #9ca3af;
     --link-color: #93c5fd;
-    --snowflake-color: #ffffff;
   }
 }
 
@@ -356,18 +354,17 @@ textarea:disabled {
 .snowflake {
   position: absolute;
   top: -10%;
-  color: var(--snowflake-color);
   animation-name: snowfall;
   animation-timing-function: linear;
   animation-iteration-count: infinite;
-  filter: drop-shadow(0 0 6px color-mix(in srgb, var(--snowflake-color) 45%, transparent));
+  filter: drop-shadow(0 2px 5px rgba(0, 0, 0, 0.2));
 }
 
 @keyframes snowfall {
   0% {
-    transform: translate3d(0, -10%, 0) rotate(0deg);
+    transform: translate3d(0, -10%, 0) rotate(-8deg) scale(0.95);
   }
   100% {
-    transform: translate3d(var(--drift, 16px), 110vh, 0) rotate(360deg);
+    transform: translate3d(var(--drift, 16px), 110vh, 0) rotate(12deg) scale(1.05);
   }
 }

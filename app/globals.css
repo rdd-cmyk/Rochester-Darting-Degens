@@ -343,7 +343,7 @@ textarea:disabled {
   }
 }
 
-.snowfall {
+.summer-overlay {
   position: fixed;
   inset: 0;
   pointer-events: none;
@@ -351,20 +351,20 @@ textarea:disabled {
   z-index: 5;
 }
 
-.snowflake {
+.summer-particle {
   position: absolute;
   top: -10%;
-  animation-name: snowfall;
+  animation-name: summer-float;
   animation-timing-function: linear;
   animation-iteration-count: infinite;
-  filter: drop-shadow(0 2px 5px rgba(0, 0, 0, 0.2));
+  filter: drop-shadow(0 2px 6px rgba(251, 146, 60, 0.35));
 }
 
-@keyframes snowfall {
+@keyframes summer-float {
   0% {
-    transform: translate3d(0, -10%, 0) rotate(-8deg) scale(0.95);
+    transform: translate3d(0, -10%, 0) rotate(-10deg) scale(0.95);
   }
   100% {
-    transform: translate3d(var(--drift, 16px), 110vh, 0) rotate(12deg) scale(1.05);
+    transform: translate3d(var(--drift, 18px), 110vh, 0) rotate(18deg) scale(1.08);
   }
 }

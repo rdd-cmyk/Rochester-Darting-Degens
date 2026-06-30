@@ -2,31 +2,31 @@
 
 import React, { useEffect, useState } from "react";
 import Navbar from "./Navbar";
-import Snowfall from "./Snowfall";
+import SummerOverlay from "./SummerOverlay";
 
-const STORAGE_KEY = "snowfall-enabled";
+const STORAGE_KEY = "summer-overlay-enabled";
 
 type LayoutShellProps = {
   children: React.ReactNode;
 };
 
 export default function LayoutShell({ children }: LayoutShellProps) {
-  const [snowEnabled, setSnowEnabled] = useState(() => {
+  const [summerEnabled, setSummerEnabled] = useState(() => {
     if (typeof window === "undefined") return true;
     const stored = localStorage.getItem(STORAGE_KEY);
     return stored === null ? true : stored === "true";
   });
 
   useEffect(() => {
-    localStorage.setItem(STORAGE_KEY, String(snowEnabled));
-  }, [snowEnabled]);
+    localStorage.setItem(STORAGE_KEY, String(summerEnabled));
+  }, [summerEnabled]);
 
   return (
     <>
-      {snowEnabled && <Snowfall />}
+      {summerEnabled && <SummerOverlay />}
       <Navbar
-        snowEnabled={snowEnabled}
-        onToggleSnow={() => setSnowEnabled((prev) => !prev)}
+        summerEnabled={summerEnabled}
+        onToggleSummer={() => setSummerEnabled((prev) => !prev)}
       />
 
       {/* Main page content */}

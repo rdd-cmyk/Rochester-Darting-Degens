@@ -17,3 +17,22 @@ tokens, private personal data, or environment-file contents in tracked files.
 
 Do not apply the Supabase migration to a hosted project until the roadmap's
 schema, Row Level Security, backup, test, and rollback gate is satisfied.
+
+## Required verification
+
+Before committing an implementation change, run the checks relevant to its
+scope. A complete application change requires:
+
+```powershell
+npm test
+npm run test:coverage
+npm run lint
+npx tsc --noEmit
+npm run build
+```
+
+Report any unavailable or deferred gate explicitly; do not turn it into a
+pass. Do not describe hosted Supabase schema, policies, authentication, data, or
+migration behavior as verified unless it was exercised against an authorized
+target and the evidence was reviewed. Otherwise, label the result source-only
+or local-only.

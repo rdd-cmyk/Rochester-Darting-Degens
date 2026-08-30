@@ -3,27 +3,27 @@
   "version": "0.1.0",
   "private": true,
   "engines": {
-    "node": ">=24.20.0 <25",
-    "npm": ">=11.19.0 <12"
+    "node": ">=24.15.0 <25",
+    "npm": "11.x"
   },
   "devEngines": {
     "runtime": {
       "name": "node",
-      "version": ">=24.20.0 <25",
+      "version": ">=24.15.0 <25",
       "onFail": "error"
     },
     "packageManager": {
       "name": "npm",
-      "version": ">=11.19.0 <12",
+      "version": "11.x",
       "onFail": "error"
     }
   },
-  "packageManager": "npm@11.19.0",
   "scripts": {
     "dev": "next dev",
     "build": "next build",
     "check:install-scripts": "node scripts/check-install-scripts.mjs",
-    "ci:install": "npm ci --ignore-scripts && npm run check:install-scripts && npm rebuild --foreground-scripts sharp unrs-resolver",
+    "ci:install": "npm exec --yes --ignore-scripts --package=npm@11.19.0 -- npm --ignore-scripts=false run ci:install:trusted",
+    "ci:install:trusted": "npm ci --ignore-scripts && npm run check:install-scripts && npm rebuild --foreground-scripts sharp unrs-resolver",
     "start": "next start",
     "lint": "eslint",
     "supabase": "supabase",

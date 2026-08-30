@@ -170,13 +170,13 @@ it superseded or retired and point to the replacement.
 - **Status:** active
 - **Type:** repository fact, delivery decision, and external fact
 - **Scope:** local development, clean installs, GitHub Actions, and Vercel
-- **Statement:** Use Node.js `>=24.20.0 <25` and npm `>=11.19.0 <12`. `.nvmrc`
-  pins Node.js `24.20.0` for local development and GitHub Actions;
-  `packageManager` records bundled npm `11.19.0` as the lockfile producer and
-  minimum version with `npm install-scripts`. Vercel consumes the Node engine
-  range and advances supported minor and patch releases within 24. Clean
-  installs suppress all dependency scripts, verify exact approvals, and rebuild
-  only the reviewed Sharp and unrs-resolver versions.
+- **Statement:** Use Node.js `>=24.15.0 <25` and npm 11. `.nvmrc` pins Node.js
+  `24.20.0` for local development and GitHub Actions; the lower bound preserves
+  the installed jsdom requirement while allowing Vercel's provider-managed Node
+  24 patch. `npm run ci:install` bootstraps npm `11.19.0` with scripts disabled
+  before entering the trusted install. Clean installs suppress all dependency
+  scripts, verify exact approvals, and rebuild only the reviewed Sharp and
+  unrs-resolver versions.
 - **Evidence:** root `package.json`, `.nvmrc`, `.npmrc`, and
   `.github/workflows/ci.yml`; [Node.js releases](https://nodejs.org/en/about/previous-releases),
   [Vercel supported Node.js versions](https://vercel.com/docs/functions/runtimes/node-js/node-js-versions),
@@ -189,3 +189,33 @@ it superseded or retired and point to the replacement.
   change, npm major migration, or a dependency engine requirement outside this
   contract.
 - **Related:** `docs/dependency-modernization-plan.md`, Package 3A.
+
+### RDD-INFO-008 — Hosted runtimes require major-line engine contracts
+
+- **Status:** active
+- **Type:** delivery decision, external fact, and failure lesson
+- **Scope:** Vercel previews and future runtime upgrades
+- **Statement:** Keep `.nvmrc` exact for reproducible local and CI validation,
+  but let the package engine accept Vercel's provider-managed Node patch without
+  dropping below dependency requirements. Vercel guarantees the configured
+  major, not a particular patch. Do not combine an exact `packageManager` value
+  with a different `devEngines.packageManager` range: current package-manager
+  tooling treats those declarations as conflicting and can ignore the exact
+  value. The shared install command must bootstrap the reviewed npm version with
+  package scripts disabled so every supported local or hosted npm 11 patch can
+  enter the same trusted workflow.
+- **Evidence:** failed Vercel deployment `dpl_4CCpKcCiT9zXwsccPdvbP8QJ5nWU`
+  for commit `71dccac` (the provider log requires authentication, so the exact
+  failing check remains unconfirmed); Vercel CLI `59.10.0` compatibility warning
+  observed 2026-08-30; a local Node `24.19.0`/npm `11.12.1` simulation reproduced
+  the missing `npm install-scripts` command, while bootstrapping npm `11.19.0`
+  passed the trusted install; [Vercel supported Node.js versions](https://vercel.com/docs/functions/runtimes/node-js/node-js-versions),
+  [Vercel package managers](https://vercel.com/docs/package-managers), and
+  [pnpm issue 12797](https://github.com/pnpm/pnpm/issues/12797).
+- **Validation:** run the complete local gate under the exact `.nvmrc` release,
+  then require both GitHub Actions and a Vercel preview to pass after runtime
+  contract changes.
+- **Invalidation trigger:** Vercel begins guaranteeing patch-level runtimes or
+  package-manager tooling defines compatible precedence for exact and ranged
+  declarations.
+- **Related:** RDD-INFO-007; `docs/dependency-modernization-plan.md`, Package 3A.

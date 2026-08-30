@@ -19,11 +19,11 @@ Last reviewed: 2026-08-30
 
 ## Machine setup
 
-The repository contract is Node.js `24.20.0` or newer within the Node 24 line
-and npm `11.19.0` or newer within npm 11; `.nvmrc` pins the local and CI Node
-release and `package.json` records the lockfile-producing npm release. After
-Docker Desktop is installed, launch it once and complete its Windows setup. A
-reboot may be required when Windows enables WSL 2 or virtualization features.
+The repository contract is Node.js `>=24.15.0 <25` and npm 11; `.nvmrc` pins
+Node.js `24.20.0`, while `npm run ci:install` safely bootstraps npm `11.19.0`
+for local development, CI, and hosted builds. After Docker Desktop is installed,
+launch it once and complete its Windows setup. A reboot may be required when
+Windows enables WSL 2 or virtualization features.
 
 Verify the machine layer before starting Supabase:
 

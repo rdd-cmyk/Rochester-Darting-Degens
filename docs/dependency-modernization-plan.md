@@ -63,22 +63,24 @@ Primary references reviewed for this plan:
 
 ## Package 3A — Runtime and delivery contract
 
-Status: implemented and verified locally; CI and hosted preview evidence pending
+Status: implemented and verified locally and in GitHub Actions; hosted preview
+remediation pending verification
 
 ### Selected contract
 
-- Node.js `>=24.20.0 <25` for development, CI, and Vercel.
+- Node.js `>=24.15.0 <25` and npm 11 as the portable development and delivery
+  contract; the Node floor matches the installed jsdom requirement.
 - Node.js `24.20.0` pinned in `.nvmrc` for local and CI reproducibility.
-- npm `>=11.19.0 <12` as the supported package-manager range, with bundled npm
-  `11.19.0` recorded as the lockfile producer and minimum because the trusted
-  install depends on `npm install-scripts`.
+- `npm run ci:install` bootstraps exact npm `11.19.0` with package scripts
+  disabled before running the trusted install, regardless of the invoking npm 11
+  patch.
 - Root engine and development-engine checks fail npm commands on unsupported
   runtime or package-manager families.
 - The trusted clean install suppresses all dependency scripts, checks the exact
   reviewed script approvals, and then rebuilds only Sharp and unrs-resolver.
-- GitHub Actions runs the complete verification suite from that install;
-  Vercel uses the same install command and selects its latest supported `24.x`
-  patch from `engines.node`.
+- GitHub Actions runs the complete verification suite from that install; Vercel
+  selects its latest supported compatible `24.x` patch and invokes the same
+  trusted install command.
 
 Node.js 24 remains LTS and Vercel lists `24.x` as its default supported runtime.
 npm 12 is intentionally not introduced in this package because it is a separate
@@ -96,8 +98,14 @@ Under Node.js `24.20.0` and bundled npm `11.19.0`:
 - ESLint, TypeScript, and the production Next.js build passed.
 - The production audit remained at the pre-existing three-high Next.js chain;
   Package 3A did not change an application dependency.
-- GitHub Actions and the observed Vercel preview runtime remain post-push
-  acceptance checks and must not be described as passed before evidence exists.
+- GitHub Actions run `33326355458` passed the full gate for commit `71dccac`.
+- The first Vercel preview failed after patch-level Node/npm floors were added.
+  Vercel does not guarantee those patches, and the exact `packageManager` value
+  conflicted with the ranged `devEngines` declaration. A Node `24.19.0` and npm
+  `11.12.1` simulation then reproduced the trusted-install failure because that
+  npm patch lacks `npm install-scripts`. The contract now follows Vercel's
+  documented major-line guarantee and bootstraps npm `11.19.0`; a replacement
+  preview is still required to confirm the hosted result.
 
 ### Scope
 

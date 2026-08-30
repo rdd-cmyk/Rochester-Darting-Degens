@@ -33,8 +33,7 @@ again if its actual migration surface is larger than expected.
 
 ## Current baseline
 
-The baseline must be refreshed before Package 3A begins. As observed on
-2026-08-30:
+The baseline was refreshed before Package 3A began. As observed on 2026-08-30:
 
 - The repository uses npm and checks in `package-lock.json`.
 - Next.js `16.0.7` is the source of the remaining production audit chain; the
@@ -63,8 +62,7 @@ Primary references reviewed for this plan:
 
 ## Package 3A — Runtime and delivery contract
 
-Status: implemented and verified locally and in GitHub Actions; hosted preview
-remediation pending verification
+Status: complete; verified locally, in GitHub Actions, and in a Vercel preview
 
 ### Selected contract
 
@@ -104,8 +102,9 @@ Under Node.js `24.20.0` and bundled npm `11.19.0`:
   conflicted with the ranged `devEngines` declaration. A Node `24.19.0` and npm
   `11.12.1` simulation then reproduced the trusted-install failure because that
   npm patch lacks `npm install-scripts`. The contract now follows Vercel's
-  documented major-line guarantee and bootstraps npm `11.19.0`; a replacement
-  preview is still required to confirm the hosted result.
+  documented major-line guarantee and bootstraps npm `11.19.0`.
+- GitHub Actions run `33327531198` and Vercel deployment
+  `7Q8bJBqSjuM3hhGKYkcPNomx7ADt` both passed for corrective commit `db5816d`.
 
 ### Scope
 

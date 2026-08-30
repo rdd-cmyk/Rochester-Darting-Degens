@@ -183,8 +183,8 @@ it superseded or retired and point to the replacement.
   and [npm package metadata](https://docs.npmjs.com/files/package.json),
   reviewed 2026-08-30.
 - **Validation:** clean install and complete repository verification under
-  Node.js `24.20.0` and npm `11.19.0`; GitHub Actions and Vercel preview evidence
-  are checked separately when available.
+  Node.js `24.20.0` and npm `11.19.0`; GitHub Actions run `33327531198` and
+  Vercel deployment `7Q8bJBqSjuM3hhGKYkcPNomx7ADt` passed for commit `db5816d`.
 - **Invalidation trigger:** a Node.js 24 security release, Vercel runtime support
   change, npm major migration, or a dependency engine requirement outside this
   contract.
@@ -209,7 +209,9 @@ it superseded or retired and point to the replacement.
   failing check remains unconfirmed); Vercel CLI `59.10.0` compatibility warning
   observed 2026-08-30; a local Node `24.19.0`/npm `11.12.1` simulation reproduced
   the missing `npm install-scripts` command, while bootstrapping npm `11.19.0`
-  passed the trusted install; [Vercel supported Node.js versions](https://vercel.com/docs/functions/runtimes/node-js/node-js-versions),
+  passed the trusted install; replacement Vercel deployment
+  `7Q8bJBqSjuM3hhGKYkcPNomx7ADt` passed for corrective commit `db5816d`;
+  [Vercel supported Node.js versions](https://vercel.com/docs/functions/runtimes/node-js/node-js-versions),
   [Vercel package managers](https://vercel.com/docs/package-managers), and
   [pnpm issue 12797](https://github.com/pnpm/pnpm/issues/12797).
 - **Validation:** run the complete local gate under the exact `.nvmrc` release,

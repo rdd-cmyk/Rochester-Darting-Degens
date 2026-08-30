@@ -20,10 +20,15 @@ If you do not have a Supabase project yet, create one at [supabase.com](https://
 
 ## Getting Started
 
-First, install dependencies and start the development server:
+Use Node.js `24.20.0` or newer within the Node 24 line and npm `11.19.0` or
+newer within npm 11. The repository pins the local and CI Node release in
+`.nvmrc`, records the lockfile-producing npm release in `package.json`, and
+rejects unsupported runtime or package-manager versions during npm commands.
+
+Install the exact locked dependencies and start the development server:
 
 ```bash
-npm install
+npm run ci:install
 npm run dev
 ```
 
@@ -45,5 +50,10 @@ You can check out [the Next.js GitHub repository](https://github.com/vercel/next
 ## Deploy on Vercel
 
 The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+
+The `engines.node` declaration in `package.json` selects Vercel's latest
+supported Node.js `24.x` build/runtime. `vercel.json` uses the same fail-closed
+clean-install command as CI. Keep the Vercel project setting on `24.x` and
+confirm the actual patch version in preview build logs after runtime changes.
 
 Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.

@@ -14,7 +14,8 @@ Last updated: 2026-08-30
 | 1 — Data foundation | Implemented in source | Editable match chronology and the additive migration are ready; hosted deployment remains gated on schema/RLS review. |
 | 2 — Advanced statistics | Implemented | The pure rating and distribution engine is covered by deterministic tests. |
 | 3 — Statistics experience | Implemented | The responsive `/stats` dashboard, filters, stories, trend chart, table, and methodology are in place. |
-| 3A–3F — Dependency modernization | Planned next | Independently reviewable delivery packages are defined in `docs/dependency-modernization-plan.md`. |
+| 3A — Runtime and delivery contract | Implemented in source | Node 24/npm 11 and CI configuration pass locally; remote CI and hosted preview evidence remain pending. |
+| 3B–3F — Dependency modernization | Planned next | Remaining independently reviewable packages are defined in `docs/dependency-modernization-plan.md`. |
 
 ## Product goal
 

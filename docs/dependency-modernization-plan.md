@@ -22,8 +22,8 @@ Every package follows the same sequence:
 1. Refresh the registry and vulnerability evidence immediately before work.
 2. Record the exact versions and migration notes being proposed.
 3. Change only the package's declared scope.
-4. Run `npm ci` from the lockfile, then tests, coverage, lint, type-check, build,
-   and the package-specific checks below.
+4. Run `npm run ci:install` from the lockfile, then tests, coverage, lint,
+   type-check, build, and the package-specific checks below.
 5. Review the complete diff and generated lockfile before committing.
 6. Commit the package separately so it can be reverted independently.
 
@@ -40,12 +40,12 @@ The baseline must be refreshed before Package 3A begins. As observed on
 - Next.js `16.0.7` is the source of the remaining production audit chain; the
   audit reports three high-severity findings through Next.js, its internal
   PostCSS version, and Sharp.
-- Supabase JS is `2.86.2`; current releases require a newer Node runtime than
-  the repository presently declares.
+- Supabase JS is `2.86.2`; the Node.js 24 contract now satisfies the runtime
+  floor for its planned Package 3C upgrade.
 - React and React DOM are paired at `19.2.0`.
 - Vitest and V8 coverage are paired at `4.1.10`.
 - jsdom `30.0.1` requires Node.js `22.22.2+`, `24.15.0+`, or `26+`; the
-  repository does not yet declare that runtime contract.
+  repository's Node.js `24.x` contract satisfies that requirement.
 - `es-abstract` has no direct source import and should be validated for removal
   instead of automatically upgraded.
 
@@ -54,11 +54,50 @@ refresh triggers. They are not permanent truths.
 
 Primary references reviewed for this plan:
 
+- [Node.js release status](https://nodejs.org/en/about/previous-releases)
+- [npm package metadata](https://docs.npmjs.com/files/package.json)
+- [GitHub Actions setup-node](https://github.com/actions/setup-node)
 - [Next.js August 2026 security release](https://nextjs.org/blog/august-2026-security-release)
 - [Supabase JS runtime support policy](https://github.com/supabase/supabase-js/blob/master/packages/core/supabase-js/README.md#support-policy)
 - [Vercel supported Node.js versions](https://vercel.com/docs/functions/runtimes/node-js/node-js-versions)
 
 ## Package 3A — Runtime and delivery contract
+
+Status: implemented and verified locally; CI and hosted preview evidence pending
+
+### Selected contract
+
+- Node.js `>=24.20.0 <25` for development, CI, and Vercel.
+- Node.js `24.20.0` pinned in `.nvmrc` for local and CI reproducibility.
+- npm `>=11.19.0 <12` as the supported package-manager range, with bundled npm
+  `11.19.0` recorded as the lockfile producer and minimum because the trusted
+  install depends on `npm install-scripts`.
+- Root engine and development-engine checks fail npm commands on unsupported
+  runtime or package-manager families.
+- The trusted clean install suppresses all dependency scripts, checks the exact
+  reviewed script approvals, and then rebuilds only Sharp and unrs-resolver.
+- GitHub Actions runs the complete verification suite from that install;
+  Vercel uses the same install command and selects its latest supported `24.x`
+  patch from `engines.node`.
+
+Node.js 24 remains LTS and Vercel lists `24.x` as its default supported runtime.
+npm 12 is intentionally not introduced in this package because it is a separate
+package-manager major and is not required by Node.js 24 or the current project.
+These facts were refreshed from primary sources on 2026-08-30.
+
+### Local acceptance evidence
+
+Under Node.js `24.20.0` and bundled npm `11.19.0`:
+
+- `npm run ci:install` completed from the checked-in lockfile after suppressing
+  all dependency scripts; Sharp `0.34.5` and unrs-resolver `1.11.1` are approved
+  by exact version and are the only explicitly rebuilt packages.
+- 33 Vitest tests passed and the statistics coverage thresholds passed.
+- ESLint, TypeScript, and the production Next.js build passed.
+- The production audit remained at the pre-existing three-high Next.js chain;
+  Package 3A did not change an application dependency.
+- GitHub Actions and the observed Vercel preview runtime remain post-push
+  acceptance checks and must not be described as passed before evidence exists.
 
 ### Scope
 
@@ -71,7 +110,7 @@ Primary references reviewed for this plan:
 
 ### Acceptance
 
-- A fresh `npm ci` succeeds under the declared runtime.
+- A fresh `npm run ci:install` succeeds under the declared runtime.
 - The declared runtime satisfies the checked-in jsdom engine requirement and
   runs the required Vitest gate.
 - Tests, coverage, lint, type-check, and production build pass.

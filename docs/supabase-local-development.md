@@ -19,11 +19,11 @@ Last reviewed: 2026-08-30
 
 ## Machine setup
 
-This setup was verified with Node.js `24.19.0` and npm `11.17.0`. Package 3A of
-the dependency-modernization plan establishes the formal supported runtime and
-package-manager contract. After Docker Desktop is installed, launch it once and
-complete its Windows setup. A reboot may be required when Windows enables WSL 2
-or virtualization features.
+The repository contract is Node.js `24.20.0` or newer within the Node 24 line
+and npm `11.19.0` or newer within npm 11; `.nvmrc` pins the local and CI Node
+release and `package.json` records the lockfile-producing npm release. After
+Docker Desktop is installed, launch it once and complete its Windows setup. A
+reboot may be required when Windows enables WSL 2 or virtualization features.
 
 Verify the machine layer before starting Supabase:
 

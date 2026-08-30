@@ -24,10 +24,11 @@ Before committing an implementation change, run the checks relevant to its
 scope. A complete application change requires:
 
 ```powershell
+npm run ci:install
 npm test
 npm run test:coverage
 npm run lint
-npx tsc --noEmit
+npm run typecheck
 npm run build
 ```
 

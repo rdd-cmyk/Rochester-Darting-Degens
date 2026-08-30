@@ -151,7 +151,7 @@ it superseded or retired and point to the replacement.
 
 ### RDD-INFO-006 — The current test stack has a pending Node runtime floor
 
-- **Status:** active
+- **Status:** superseded by RDD-INFO-007
 - **Type:** repository fact and delivery constraint
 - **Scope:** required test gate and dependency modernization Package 3A
 - **Statement:** jsdom `30.0.1` requires Node.js `22.22.2+`, `24.15.0+`, or
@@ -162,4 +162,30 @@ it superseded or retired and point to the replacement.
 - **Validation:** lockfile inspection and executable test run.
 - **Invalidation trigger:** Package 3A changes the declared runtime or jsdom
   version; recheck the installed package metadata and clean test gate.
+- **Related:** superseded by RDD-INFO-007 on 2026-08-30;
+  `docs/dependency-modernization-plan.md`, Package 3A.
+
+### RDD-INFO-007 — Node 24 and npm 11 are the delivery contract
+
+- **Status:** active
+- **Type:** repository fact, delivery decision, and external fact
+- **Scope:** local development, clean installs, GitHub Actions, and Vercel
+- **Statement:** Use Node.js `>=24.20.0 <25` and npm `>=11.19.0 <12`. `.nvmrc`
+  pins Node.js `24.20.0` for local development and GitHub Actions;
+  `packageManager` records bundled npm `11.19.0` as the lockfile producer and
+  minimum version with `npm install-scripts`. Vercel consumes the Node engine
+  range and advances supported minor and patch releases within 24. Clean
+  installs suppress all dependency scripts, verify exact approvals, and rebuild
+  only the reviewed Sharp and unrs-resolver versions.
+- **Evidence:** root `package.json`, `.nvmrc`, `.npmrc`, and
+  `.github/workflows/ci.yml`; [Node.js releases](https://nodejs.org/en/about/previous-releases),
+  [Vercel supported Node.js versions](https://vercel.com/docs/functions/runtimes/node-js/node-js-versions),
+  and [npm package metadata](https://docs.npmjs.com/files/package.json),
+  reviewed 2026-08-30.
+- **Validation:** clean install and complete repository verification under
+  Node.js `24.20.0` and npm `11.19.0`; GitHub Actions and Vercel preview evidence
+  are checked separately when available.
+- **Invalidation trigger:** a Node.js 24 security release, Vercel runtime support
+  change, npm major migration, or a dependency engine requirement outside this
+  contract.
 - **Related:** `docs/dependency-modernization-plan.md`, Package 3A.

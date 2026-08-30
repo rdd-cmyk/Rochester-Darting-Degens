@@ -7,6 +7,10 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
+    "supabase": "supabase",
+    "supabase:start": "supabase start",
+    "supabase:status": "supabase status",
+    "supabase:stop": "supabase stop",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage"
@@ -32,6 +36,7 @@
     "eslint": "^9",
     "eslint-config-next": "16.0.7",
     "jsdom": "^30.0.1",
+    "supabase": "2.116.0",
     "tailwindcss": "^4",
     "typescript": "^5",
     "vitest": "^4.1.10"

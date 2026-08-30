@@ -44,6 +44,8 @@ The baseline must be refreshed before Package 3A begins. As observed on
   the repository presently declares.
 - React and React DOM are paired at `19.2.0`.
 - Vitest and V8 coverage are paired at `4.1.10`.
+- jsdom `30.0.1` requires Node.js `22.22.2+`, `24.15.0+`, or `26+`; the
+  repository does not yet declare that runtime contract.
 - `es-abstract` has no direct source import and should be validated for removal
   instead of automatically upgraded.
 
@@ -70,6 +72,8 @@ Primary references reviewed for this plan:
 ### Acceptance
 
 - A fresh `npm ci` succeeds under the declared runtime.
+- The declared runtime satisfies the checked-in jsdom engine requirement and
+  runs the required Vitest gate.
 - Tests, coverage, lint, type-check, and production build pass.
 - Hosting configuration and observed deployment runtime agree with the
   repository contract.

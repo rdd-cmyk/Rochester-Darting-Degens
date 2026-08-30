@@ -108,7 +108,10 @@ function groupMatches(facts: MatchFact[]): MatchGroup[] {
 
   return Array.from(groups.values()).sort((a, b) => {
     const dateDifference = numericDate(a.playedAt) - numericDate(b.playedAt);
-    return dateDifference || a.matchId.localeCompare(b.matchId);
+    return (
+      dateDifference ||
+      a.matchId.localeCompare(b.matchId, undefined, { numeric: true })
+    );
   });
 }
 
@@ -155,7 +158,7 @@ export function buildLeagueAdvancedStats(facts: MatchFact[]): LeagueAdvancedStat
   const players = new Map<string, PlayerAccumulator>();
   let matchesAnalyzed = 0;
   let matchesIgnored = 0;
-  let biggestUpset: UpsetStory | null = null;
+  const upsets: UpsetStory[] = [];
 
   for (const match of matches) {
     const winners = match.participants.filter((participant) => participant.isWinner);
@@ -177,19 +180,17 @@ export function buildLeagueAdvancedStats(facts: MatchFact[]): LeagueAdvancedStat
     const winnerProbability = expectedProbabilities[winnerIndex];
     const winner = participantStates[winnerIndex];
 
-    if (!biggestUpset || winnerProbability < biggestUpset.expectedWinProbability) {
-      biggestUpset = {
-        matchId: match.matchId,
-        playedAt: match.playedAt,
-        gameType: match.gameType,
-        winnerId: winner.fact.playerId,
-        winnerName: winner.player.displayName,
-        expectedWinProbability: winnerProbability,
-        opponentNames: participantStates
-          .filter((_, index) => index !== winnerIndex)
-          .map(({ player }) => player.displayName),
-      };
-    }
+    upsets.push({
+      matchId: match.matchId,
+      playedAt: match.playedAt,
+      gameType: match.gameType,
+      winnerId: winner.fact.playerId,
+      winnerName: winner.player.displayName,
+      expectedWinProbability: winnerProbability,
+      opponentNames: participantStates
+        .filter((_, index) => index !== winnerIndex)
+        .map(({ player }) => player.displayName),
+    });
 
     const ratingUpdates = participantStates.map(({ fact }, index) =>
       RATING_K_FACTOR * ((fact.isWinner ? 1 : 0) - expectedProbabilities[index])
@@ -265,11 +266,19 @@ export function buildLeagueAdvancedStats(facts: MatchFact[]): LeagueAdvancedStat
     player.rank = index + 1;
   });
 
+  upsets.sort(
+    (a, b) =>
+      a.expectedWinProbability - b.expectedWinProbability ||
+      numericDate(a.playedAt) - numericDate(b.playedAt) ||
+      a.matchId.localeCompare(b.matchId, undefined, { numeric: true })
+  );
+
   return {
     players: rankedPlayers,
     matchesAnalyzed,
     matchesIgnored,
     scoreLabel: detectScoreLabel(facts),
-    biggestUpset,
+    upsets,
+    biggestUpset: upsets[0] ?? null,
   };
 }

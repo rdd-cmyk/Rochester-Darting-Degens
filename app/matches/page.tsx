@@ -7,7 +7,7 @@ import { formatPlayerName } from '@/lib/playerName';
 import { LinkedPlayerName } from '@/components/LinkedPlayerName';
 import { clearMatchesState } from '@/lib/matchState';
 import {
-  localDateTimeInputToIso,
+  resolvePlayedAtIso,
   toLocalDateTimeInput,
 } from '@/lib/dateTime';
 import type { User } from '@supabase/supabase-js';
@@ -394,7 +394,11 @@ export default function MatchesPage() {
     // Validate stats (including caps & no negatives for 501 / 301 / Cricket)
     let playedAtIso: string;
     try {
-      playedAtIso = localDateTimeInputToIso(playedAt);
+      const originalPlayedAt =
+        editingMatchId === null
+          ? null
+          : matches.find((match) => match.id === editingMatchId)?.played_at ?? null;
+      playedAtIso = resolvePlayedAtIso(playedAt, originalPlayedAt);
     } catch (error) {
       setErrorMessage(
         error instanceof Error ? error.message : 'Choose a valid match time.'

@@ -14,3 +14,18 @@ export function localDateTimeInputToIso(value: string): string {
 
   return date.toISOString();
 }
+
+export function resolvePlayedAtIso(
+  inputValue: string,
+  originalIso: string | null
+): string {
+  if (
+    originalIso &&
+    toLocalDateTimeInput(originalIso) === inputValue &&
+    !Number.isNaN(new Date(originalIso).getTime())
+  ) {
+    return originalIso;
+  }
+
+  return localDateTimeInputToIso(inputValue);
+}

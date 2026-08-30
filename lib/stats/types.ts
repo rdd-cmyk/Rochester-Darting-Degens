@@ -64,5 +64,6 @@ export type LeagueAdvancedStats = {
   matchesAnalyzed: number;
   matchesIgnored: number;
   scoreLabel: '3DA' | 'MPR' | 'Score' | null;
+  upsets: UpsetStory[];
   biggestUpset: UpsetStory | null;
 };

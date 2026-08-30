@@ -102,6 +102,7 @@ begin
         and (darts_thrown is null or darts_thrown > 0)
         and (x01_points_scored is null or x01_points_scored >= 0)
         and (cricket_marks is null or cricket_marks >= 0)
+        and (first_nine_average is null or first_nine_average between 0 and 180)
         and (checkout_attempts is null or checkout_attempts >= 0)
         and (checkouts_made is null or checkouts_made >= 0)
         and (

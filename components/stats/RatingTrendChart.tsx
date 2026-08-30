@@ -1,6 +1,12 @@
 import type { PlayerAdvancedStats } from '@/lib/stats/types';
 
-const CHART_COLORS = ['#f47c20', '#2d7dd2', '#f3c969', '#8fb8de', '#d7dde8'];
+const CHART_COLORS = [
+  'var(--stats-series-1)',
+  'var(--stats-series-2)',
+  'var(--stats-series-3)',
+  'var(--stats-series-4)',
+  'var(--stats-series-5)',
+];
 const WIDTH = 760;
 const HEIGHT = 280;
 const PADDING = { top: 24, right: 116, bottom: 34, left: 52 };
@@ -44,17 +50,19 @@ export function RatingTrendChart({ players }: RatingTrendChartProps) {
   const guideRatings = [minRating, (minRating + maxRating) / 2, maxRating];
 
   return (
-    <div className="stats-chart-wrap">
-      <svg
-        className="stats-rating-chart"
-        viewBox={`0 0 ${WIDTH} ${HEIGHT}`}
-        role="img"
-        aria-label="Power rating by player appearance for the leading eligible players"
-      >
+    <>
+      <div className="stats-chart-wrap">
+        <svg
+          className="stats-rating-chart"
+          viewBox={`0 0 ${WIDTH} ${HEIGHT}`}
+          role="img"
+          aria-label="Power rating by player appearance for the leading eligible players"
+        >
         <title>Power rating history</title>
         <desc>
           Lines show the rating after each player appearance. The dashed reference line is
-          the starting rating of 1500.
+          the starting rating of 1500. Exact values are available in the table after the
+          chart.
         </desc>
 
         {guideRatings.map((rating) => (
@@ -128,7 +136,42 @@ export function RatingTrendChart({ players }: RatingTrendChartProps) {
         >
           Player appearances
         </text>
-      </svg>
-    </div>
+        </svg>
+      </div>
+      <details className="stats-chart-data">
+        <summary>View exact rating history</summary>
+        <div className="stats-table-scroll">
+          <table className="stats-table">
+            <caption>Exact rating history for the charted players</caption>
+            <thead>
+              <tr>
+                <th scope="col">Player</th>
+                <th scope="col">Appearance</th>
+                <th scope="col">Date</th>
+                <th scope="col">Rating</th>
+              </tr>
+            </thead>
+            <tbody>
+              {chartPlayers.flatMap((player) =>
+                player.ratingHistory.map((point, index) => (
+                  <tr key={`${player.playerId}-${point.matchId}-${index}`}>
+                    <th scope="row">{player.displayName}</th>
+                    <td className="stats-number">
+                      {index === 0 ? 'Baseline' : index}
+                    </td>
+                    <td>
+                      <time dateTime={point.playedAt}>
+                        {new Date(point.playedAt).toLocaleDateString()}
+                      </time>
+                    </td>
+                    <td className="stats-number">{point.rating.toFixed(1)}</td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
+      </details>
+    </>
   );
 }

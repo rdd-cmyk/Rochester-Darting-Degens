@@ -67,6 +67,17 @@ describe('RDD rating engine', () => {
     expect(result.matchesAnalyzed).toBe(4);
   });
 
+  test('orders numeric match IDs numerically when timestamps are equal', () => {
+    const playedAt = '2026-01-01T20:00:00.000Z';
+    const result = buildLeagueAdvancedStats([
+      ...match('10', 'B', [{ id: 'A' }, { id: 'B' }], { playedAt }),
+      ...match('2', 'A', [{ id: 'A' }, { id: 'B' }], { playedAt }),
+    ]);
+
+    expect(result.biggestUpset?.matchId).toBe('10');
+    expect(result.upsets.map((upset) => upset.matchId)).toEqual(['10', '2']);
+  });
+
   test('calculates expected record, schedule strength, form, and quality wins', () => {
     const result = buildLeagueAdvancedStats([
       ...match('1', 'A', [{ id: 'A' }, { id: 'B' }]),

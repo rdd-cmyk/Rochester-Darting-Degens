@@ -36,6 +36,13 @@
   --stats-panel: #ffffff;
   --stats-page: #f4f1eb;
   --stats-border: #d8dce3;
+  --stats-positive: #1b5f94;
+  --stats-negative: #9c4300;
+  --stats-series-1: #9a3e00;
+  --stats-series-2: #155b9b;
+  --stats-series-3: #715500;
+  --stats-series-4: #00665c;
+  --stats-series-5: #67428f;
 }
 
 @theme inline {
@@ -69,6 +76,13 @@
     --stats-panel: #111b2b;
     --stats-page: #080f1a;
     --stats-border: #2b3b52;
+    --stats-positive: #73baff;
+    --stats-negative: #ff9f5a;
+    --stats-series-1: #ff9f5a;
+    --stats-series-2: #73baff;
+    --stats-series-3: #f3cf72;
+    --stats-series-4: #61d6c7;
+    --stats-series-5: #c9a7ff;
   }
 }
 
@@ -724,6 +738,35 @@ textarea:disabled {
   font-size: 11px;
 }
 
+.stats-chart-data {
+  margin: 0 1rem 1rem;
+  border: 1px solid var(--stats-border);
+  border-radius: 0.75rem;
+  background: color-mix(in srgb, var(--stats-panel) 96%, var(--stats-page));
+}
+
+.stats-chart-data summary {
+  padding: 0.8rem 1rem;
+  cursor: pointer;
+  color: var(--stats-ink);
+  font-weight: 800;
+}
+
+.stats-chart-data[open] summary {
+  border-bottom: 1px solid var(--stats-border);
+}
+
+.stats-chart-data .stats-table-scroll {
+  padding-top: 0.75rem;
+}
+
+.stats-chart-data caption {
+  padding: 0 0 0.75rem;
+  color: var(--stats-muted);
+  font-weight: 750;
+  text-align: left;
+}
+
 .stats-chart-empty {
   min-height: 220px;
   display: grid;
@@ -776,12 +819,12 @@ textarea:disabled {
 }
 
 .stats-number[data-sign="up"] {
-  color: #2367a6;
+  color: var(--stats-positive);
   font-weight: 800;
 }
 
 .stats-number[data-sign="down"] {
-  color: #c15a18;
+  color: var(--stats-negative);
   font-weight: 800;
 }
 

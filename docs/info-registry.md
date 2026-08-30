@@ -148,3 +148,18 @@ it superseded or retired and point to the replacement.
   non-obvious branching or safety constraints, and would materially benefit
   from a reusable skill.
 - **Related:** possible future candidates in `docs/skill-governance.md`.
+
+### RDD-INFO-006 — The current test stack has a pending Node runtime floor
+
+- **Status:** active
+- **Type:** repository fact and delivery constraint
+- **Scope:** required test gate and dependency modernization Package 3A
+- **Statement:** jsdom `30.0.1` requires Node.js `22.22.2+`, `24.15.0+`, or
+  `26+`, while the root package does not yet declare a Node engine. Package 3A
+  must establish and verify the runtime contract before this branch merges.
+- **Evidence:** jsdom's `engines.node` metadata in `package-lock.json`; the
+  remediation suite passed under Node.js `24.19.0` on 2026-08-30.
+- **Validation:** lockfile inspection and executable test run.
+- **Invalidation trigger:** Package 3A changes the declared runtime or jsdom
+  version; recheck the installed package metadata and clean test gate.
+- **Related:** `docs/dependency-modernization-plan.md`, Package 3A.

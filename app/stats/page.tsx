@@ -7,6 +7,8 @@ import { RatingTrendChart } from '@/components/stats/RatingTrendChart';
 import { StatsStoryCard } from '@/components/stats/StatsStoryCard';
 import { formatPlayerName } from '@/lib/playerName';
 import { buildLeagueAdvancedStats } from '@/lib/stats/engine';
+import { collectAllStatisticsRows } from '@/lib/stats/pagination';
+import { pickEligibleUpset, pickPositiveLeader } from '@/lib/stats/stories';
 import type { MatchFact, PlayerAdvancedStats } from '@/lib/stats/types';
 import { supabase } from '@/lib/supabaseClient';
 
@@ -25,6 +27,7 @@ type MatchRelation = {
 };
 
 type RawFact = {
+  id: string | number;
   match_id: string | number;
   player_id: string;
   is_winner: boolean | null;
@@ -73,63 +76,81 @@ export default function AdvancedStatsPage() {
       setLoading(true);
       setErrorMessage(null);
 
-      const { data, error } = await supabase.from('match_players').select(`
-        match_id,
-        player_id,
-        is_winner,
-        score,
-        profiles (
-          id,
-          display_name,
-          first_name,
-          include_first_name_in_display
-        ),
-        matches!inner (
-          played_at,
-          game_type,
-          board_type,
-          venue
-        )
-      `);
+      try {
+        const data = await collectAllStatisticsRows<RawFact>(async (from, to) => {
+          const { data: pageData, error, count } = await supabase
+            .from('match_players')
+            .select(
+              `
+                id,
+                match_id,
+                player_id,
+                is_winner,
+                score,
+                profiles (
+                  id,
+                  display_name,
+                  first_name,
+                  include_first_name_in_display
+                ),
+                matches!inner (
+                  played_at,
+                  game_type,
+                  board_type,
+                  venue
+                )
+              `,
+              { count: 'exact' }
+            )
+            .order('match_id', { ascending: true })
+            .order('id', { ascending: true })
+            .range(from, to);
 
-      if (!active) return;
+          if (error) throw error;
 
-      if (error) {
+          return {
+            rows: (pageData ?? []) as RawFact[],
+            totalCount: count,
+          };
+        });
+
+        if (!active) return;
+
+        const normalized = data.flatMap((row): MatchFact[] => {
+          const profile = firstRelation(row.profiles);
+          const match = firstRelation(row.matches);
+          if (!match || !row.match_id || !row.player_id) return [];
+
+          return [
+            {
+              matchId: String(row.match_id),
+              playerId: row.player_id,
+              displayName: profile
+                ? formatPlayerName(
+                    profile.display_name,
+                    profile.first_name,
+                    profile.include_first_name_in_display
+                  )
+                : 'Unknown player',
+              playedAt: match.played_at,
+              gameType: match.game_type,
+              boardType: match.board_type,
+              venue: match.venue,
+              isWinner: row.is_winner === true,
+              score: row.score,
+            },
+          ];
+        });
+
+        setFacts(normalized);
+        setLoading(false);
+      } catch (error) {
+        if (!active) return;
         console.error('Error loading advanced statistics:', error);
         setErrorMessage('Advanced statistics could not be loaded.');
         setFacts([]);
         setLoading(false);
-        return;
       }
-
-      const normalized = ((data ?? []) as RawFact[]).flatMap((row): MatchFact[] => {
-        const profile = firstRelation(row.profiles);
-        const match = firstRelation(row.matches);
-        if (!match || !row.match_id || !row.player_id) return [];
-
-        return [
-          {
-            matchId: String(row.match_id),
-            playerId: row.player_id,
-            displayName: profile
-              ? formatPlayerName(
-                  profile.display_name,
-                  profile.first_name,
-                  profile.include_first_name_in_display
-                )
-              : 'Unknown player',
-            playedAt: match.played_at,
-            gameType: match.game_type,
-            boardType: match.board_type,
-            venue: match.venue,
-            isWinner: row.is_winner === true,
-            score: row.score,
-          },
-        ];
-      });
-
-      setFacts(normalized);
-      setLoading(false);
     }
 
     loadFacts();
@@ -157,19 +178,12 @@ export default function AdvancedStatsPage() {
   );
 
   const powerLeader = eligiblePlayers[0] ?? null;
-  const onFire =
-    [...eligiblePlayers].sort((a, b) => b.ratingDeltaLastFive - a.ratingDeltaLastFive)[0] ??
-    null;
-  const mostImproved =
-    [...eligiblePlayers].sort((a, b) => b.ratingDelta - a.ratingDelta)[0] ?? null;
+  const onFire = pickPositiveLeader(eligiblePlayers, 'ratingDeltaLastFive');
+  const mostImproved = pickPositiveLeader(eligiblePlayers, 'ratingDelta');
   const mostConsistent = leagueStats.scoreLabel
     ? pickMostConsistent(eligiblePlayers)
     : null;
-  const eligibleUpset = leagueStats.biggestUpset
-    ? eligiblePlayers.some((player) => player.playerId === leagueStats.biggestUpset?.winnerId)
-      ? leagueStats.biggestUpset
-      : null
-    : null;
+  const eligibleUpset = pickEligibleUpset(leagueStats.upsets, eligiblePlayers);
   const chartPlayers = eligiblePlayers.slice(0, 5);
   const maxConsistencyValue = Math.max(
     ...eligiblePlayers.map((player) => player.scoreDistribution?.best ?? 0),
@@ -320,16 +334,16 @@ export default function AdvancedStatsPage() {
                   detail={`Median absolute deviation across ${mostConsistent.scoreDistribution.games} scored matches`}
                   accent="silver"
                 />
-              ) : (
+              ) : eligibleUpset && mostImproved ? (
                 <StatsStoryCard
                   eyebrow="Most improved"
-                  value={mostImproved ? signed(mostImproved.ratingDelta) : '—'}
-                  playerId={mostImproved?.playerId}
-                  playerName={mostImproved?.displayName}
+                  value={signed(mostImproved.ratingDelta)}
+                  playerId={mostImproved.playerId}
+                  playerName={mostImproved.displayName}
                   detail="Rating change from the 1500 baseline"
                   accent="silver"
                 />
-              )}
+              ) : null}
             </div>
           </section>
 

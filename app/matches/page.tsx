@@ -6,6 +6,10 @@ import { supabase } from '@/lib/supabaseClient';
 import { formatPlayerName } from '@/lib/playerName';
 import { LinkedPlayerName } from '@/components/LinkedPlayerName';
 import { clearMatchesState } from '@/lib/matchState';
+import {
+  localDateTimeInputToIso,
+  toLocalDateTimeInput,
+} from '@/lib/dateTime';
 import type { User } from '@supabase/supabase-js';
 
 // Simple types
@@ -72,6 +76,9 @@ export default function MatchesPage() {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   // Form state
+  const [playedAt, setPlayedAt] = useState(() =>
+    toLocalDateTimeInput(new Date())
+  );
   const [gameType, setGameType] = useState('501');
   const [notes, setNotes] = useState('');
   const [numPlayers, setNumPlayers] = useState(2);
@@ -327,6 +334,7 @@ export default function MatchesPage() {
   }, []);
 
   function resetForm() {
+    setPlayedAt(toLocalDateTimeInput(new Date()));
     setGameType('501');
     setNotes('');
     setNumPlayers(2);
@@ -384,6 +392,21 @@ export default function MatchesPage() {
     }
 
     // Validate stats (including caps & no negatives for 501 / 301 / Cricket)
+    let playedAtIso: string;
+    try {
+      playedAtIso = localDateTimeInputToIso(playedAt);
+    } catch (error) {
+      setErrorMessage(
+        error instanceof Error ? error.message : 'Choose a valid match time.'
+      );
+      return;
+    }
+
+    if (new Date(playedAtIso).getTime() > Date.now() + 5 * 60_000) {
+      setErrorMessage('Match time cannot be in the future.');
+      return;
+    }
+
     const parsedStats: number[] = [];
     const parsedCricketPoints: (number | null)[] = [];
     for (let i = 0; i < activePlayers.length; i++) {
@@ -482,6 +505,7 @@ export default function MatchesPage() {
           .insert([
             {
               game_type: gameType,
+              played_at: playedAtIso,
               notes,
               created_by: user.id,
               board_type: boardType || null,
@@ -526,6 +550,7 @@ export default function MatchesPage() {
           .from('matches')
           .update({
             game_type: gameType,
+            played_at: playedAtIso,
             notes,
             board_type: boardType || null,
             venue: venue || null,
@@ -621,6 +646,7 @@ export default function MatchesPage() {
     setWinnerPlayerId(winnerMp ? winnerMp.player_id : '');
 
     setEditingMatchId(match.id);
+    setPlayedAt(toLocalDateTimeInput(match.played_at));
     setGameType(match.game_type || '501');
     setO1StatInputMode('3da');
     setNotes(match.notes || '');
@@ -745,6 +771,21 @@ export default function MatchesPage() {
         )}
 
         <form onSubmit={handleSaveMatch} style={formStyle}>
+          <div style={fieldRowStyle}>
+            <label htmlFor="playedAt" style={labelTextStyle}>
+              Match date and time
+            </label>
+            <input
+              id="playedAt"
+              type="datetime-local"
+              value={playedAt}
+              max={toLocalDateTimeInput(new Date())}
+              onChange={(event) => setPlayedAt(event.target.value)}
+              required
+              style={controlStyle}
+            />
+          </div>
+
           {/* Game type */}
           <div style={fieldRowStyle}>
             <span style={labelTextStyle}>Game type</span>

@@ -1,10 +1,10 @@
 # Dependency Modernization Delivery Plan
 
-Status: planned next; implementation requires an explicit go-ahead
+Status: 3A complete; 3B implemented and locally verified; 3C–3F require approval
 
 Branch: `advanced-statistics`
 
-Last reviewed: 2026-08-30
+Last reviewed: 2026-09-07
 
 ## Objective
 
@@ -131,14 +131,56 @@ Revert the package's isolated commit and restore the prior runtime declaration.
 
 ## Package 3B — Next.js security baseline
 
-### Planned versions
+Status: implemented and locally verified; user authorized 2026-09-07.
+Independent review completed with no actionable findings; CI/Vercel verification
+awaits push.
 
-- Next.js and `eslint-config-next`: `16.3.3`
+### Selected versions (refreshed 2026-09-07)
+
+- Next.js and `eslint-config-next`: `16.3.4`
 - React and React DOM: `19.2.8`
-- Matching React type-definition patch releases
+- React types: `19.2.18`; React DOM types: `19.2.7`
+
+Published stable tags and exact peer/engine metadata were checked before
+implementation. Next 16.3.4 follows the August security release and re-enables
+AVIF optimization with the upstream correction; it also contains targeted
+build/testmode fixes. React 19.2.8 improves Server Component decoding. No canary,
+React 19.3, compiler migration, or opt-in caching model is introduced here.
+
+References: [Next 16.3.4](https://github.com/vercel/next.js/releases/tag/v16.3.4),
+[August security release](https://nextjs.org/blog/august-2026-security-release),
+[React 19.2.8](https://github.com/react/react/releases/tag/v19.2.8),
+[Next 16 migration guide](https://nextjs.org/docs/app/guides/upgrading/version-16).
+
+Pre-upgrade production audit: 3 high findings (Next, nested PostCSS, Sharp).
+Refresh the post-upgrade audit rather than assuming these versions alone close
+the gate. Review native install scripts before changing exact approvals.
 
 Refresh these targets before implementation; use the newest compatible secure
 patch only after reading its official migration and security notes.
+
+### Local verification (2026-09-07)
+
+- Trusted clean install, all 59 Vitest tests, coverage thresholds, lint,
+  type-check, and production build passed under Node 24.20.0/npm 11.19.0.
+- Two Playwright scenarios passed against the locally configured **production**
+  server: auth/session redirects, allowed/denied match writes, protected profile
+  pages, dynamic profile rendering, query-string/Suspense rendering, desktop/
+  mobile statistics, an unauthenticated server-route denial, and native image
+  optimization. Browser requests stayed local; no hosted test records were used.
+- Production npm audit is now **0 vulnerabilities** (previously 3 high).
+  The full audit retains one moderate development-only `@humanfs/node@0.16.7`
+  advisory through unchanged ESLint 9.39.1. Track its remediation in Package 3E;
+  do not describe this as a clean full-tree audit.
+- Next's required transitive updates include PostCSS 8.5.23 and Sharp 0.35.4.
+  Sharp no longer has an install lifecycle hook, so its obsolete approval and
+  rebuild step were removed. Only unchanged `unrs-resolver@1.11.1` is explicitly
+  approved/rebuilt; dependency install scripts remain suppressed by default.
+- Supabase JS/CLI, Vercel SDKs, Vitest/coverage, ESLint, Tailwind, and TypeScript
+  direct versions were verified unchanged. There are no application feature,
+  hosted configuration, or schema changes in this package.
+
+See `docs/package-3b-verification-2026-09-07.md` for scope and remaining gates.
 
 ### Acceptance
 
@@ -207,6 +249,9 @@ independent of application data.
 - Take the latest compatible ESLint 9 patch, not ESLint 10.
 - Patch React and DOM type definitions as required by Package 3B.
 - Align Node type definitions with the runtime chosen in Package 3A.
+- Resolve the development-only `@humanfs/node` symlink-copy advisory
+  [GHSA-p498-v437-472g](https://github.com/advisories/GHSA-p498-v437-472g),
+  refreshed during 3B; re-audit at package entry.
 - Remove `es-abstract` if a clean install, source search, and build confirm that
   no direct dependency is required.
 

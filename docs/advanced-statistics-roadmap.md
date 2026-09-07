@@ -16,7 +16,8 @@ Last updated: 2026-09-07
 | 3 — Statistics experience | Implemented | The responsive `/stats` dashboard, filters, stories, trend chart, table, and methodology are in place. |
 | 3A — Runtime and delivery contract | Complete | Local verification, GitHub Actions run `33327531198`, and Vercel deployment `7Q8bJBqSjuM3hhGKYkcPNomx7ADt` pass on commit `db5816d`. |
 | Local Supabase readiness follow-up | User approved | Approved on 2026-09-07 before beginning 3B; reviewed baseline, loopback core services, local RLS/preservation tests, and synthetic browser acceptance. See `docs/local-approval-readiness-2026-09-07.md`. Hosted deployment remains gated. |
-| 3B–3F — Dependency modernization | Planned next | Remaining independently reviewable packages are defined in `docs/dependency-modernization-plan.md`. |
+| 3B — Next.js security baseline | Implemented and locally verified | Next/eslint-config-next 16.3.4, React/DOM 19.2.8; production audit zero; 59 unit tests and two production-browser scenarios pass. CI/Vercel remain pending push. |
+| 3C–3F — Dependency modernization | Awaiting approval | Remaining independently reviewable packages are defined in `docs/dependency-modernization-plan.md`. |
 
 ## Product goal
 

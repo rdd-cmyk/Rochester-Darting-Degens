@@ -161,3 +161,49 @@ test('local Auth, match persistence, denied access, statistics filters and respo
   expect(pageErrors).toEqual([]);
   expect(nonlocal).toEqual([]);
 });
+
+test('framework rendering, protected profiles, server route and image optimizer', async ({ page, context }) => {
+  const nonlocal = [];
+  const errors = [];
+  await context.route('**/*', route => {
+    const origin = new URL(route.request().url()).origin;
+    if (['http://127.0.0.1:3000', 'http://127.0.0.1:54321'].includes(origin)) return route.continue();
+    nonlocal.push(origin);
+    return route.abort('blockedbyclient');
+  });
+  page.on('pageerror', error => errors.push(error.message));
+  for (const [route, message] of [
+    ['/profile', 'You must be signed in to view or edit your profile.'],
+    ['/profiles', 'You must be signed in to view profiles.'],
+  ]) {
+    await page.goto(route);
+    await expect(page.getByText(message, { exact: true })).toBeVisible();
+  }
+  const api = await page.request.get('/api/change-log');
+  expect(api.status()).toBe(401);
+  const captain = await account('captain');
+  await signIn(page, captain.email);
+  await page.goto('/auth');
+  await expect(page).toHaveURL(/\/matches$/);
+  await page.goto('/');
+  await expect(page.getByRole('heading', { name: 'Overall Leaderboard (All Match Types)', exact: true })).toBeVisible();
+  const logo = page.getByAltText('Rochester Darting Degens logo', { exact: true });
+  await expect(logo).toBeVisible();
+  await expect.poll(() => logo.evaluate(img => img.naturalWidth)).toBeGreaterThan(0);
+  const optimized = await page.request.get('/_next/image?url=%2Frdd-logo.png&w=256&q=75', {
+    headers: { accept: 'image/webp' },
+  });
+  expect(optimized.status()).toBe(200);
+  expect(optimized.headers()['content-type']).toBe('image/webp');
+  expect((await optimized.body()).length).toBeGreaterThan(100);
+  for (const route of ['/profile', '/profiles', `/profiles/${captain.id}`]) {
+    const response = await page.goto(route);
+    expect(response.status()).toBe(200);
+    await expect(page.locator('main')).toContainText('Demo captain');
+  }
+  await page.goto('/auth/verify-email?email=synthetic%40example.test');
+  await expect(page.getByRole('heading', { name: 'Check your email to verify your account' })).toBeVisible();
+  await expect(page.locator('main')).toContainText('synthetic@example.test');
+  expect(errors).toEqual([]);
+  expect(nonlocal).toEqual([]);
+});

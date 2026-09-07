@@ -125,13 +125,17 @@ it superseded or retired and point to the replacement.
 - **Status:** active
 - **Type:** repository fact
 - **Scope:** dependency modernization Package 3B
-- **Statement:** The 2026-08-30 npm audit reported three high-severity findings
-  in the Next.js `16.0.7` production dependency chain. This count is a baseline,
-  not a permanent claim.
-- **Evidence:** complete npm audit against the branch lockfile on 2026-08-30;
-  affected chain included Next.js, its internal PostCSS version, and Sharp.
-- **Validation:** lockfile audit and dependency-tree inspection.
-- **Invalidation trigger:** any lockfile change or the start of Package 3B;
+- **Statement:** The 2026-09-07 Package 3B production audit reports zero
+  vulnerabilities after Next 16.3.4/React 19.2.8, including transitive PostCSS
+  8.5.23 and Sharp 0.35.4. The previous Next 16.0.7 baseline had three high
+  findings. Full-tree audit still has one moderate development-only finding
+  in `@humanfs/node@0.16.7` through unchanged ESLint; remediation belongs to 3E.
+- **Evidence:** production/full npm audits against the updated lockfile;
+  `docs/package-3b-verification-2026-09-07.md`; these are dated audit results,
+  not a guarantee that the application has no security defects.
+- **Validation:** npm audit, dependency-tree inspection, trusted clean install,
+  production build and local browser acceptance on 2026-09-07.
+- **Invalidation trigger:** any lockfile change or the next package boundary;
   rerun the complete audit.
 - **Related:** dependency modernization Package 3B.
 
@@ -176,8 +180,9 @@ it superseded or retired and point to the replacement.
   the installed jsdom requirement while allowing Vercel's provider-managed Node
   24 patch. `npm run ci:install` bootstraps npm `11.19.0` with scripts disabled
   before entering the trusted install. Clean installs suppress all dependency
-  scripts, verify exact approvals, and rebuild only the reviewed Sharp and
-  unrs-resolver versions.
+  scripts and verify exact approvals. After Package 3B, only unchanged
+  unrs-resolver 1.11.1 is explicitly rebuilt: Sharp 0.35.4 has no install
+  lifecycle hook, so its old approval/rebuild was removed.
 - **Evidence:** root `package.json`, `.nvmrc`, `.npmrc`, and
   `.github/workflows/ci.yml`; [Node.js releases](https://nodejs.org/en/about/previous-releases),
   [Vercel supported Node.js versions](https://vercel.com/docs/functions/runtimes/node-js/node-js-versions),

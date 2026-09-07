@@ -28,8 +28,13 @@ export default function RootLayout({
         }}
       >
         <LayoutShell>{children}</LayoutShell>
-        <Analytics />
-        <SpeedInsights />
+        {/* Local synthetic acceptance must not load external telemetry scripts. */}
+        {process.env.RDD_LOCAL_PREVIEW !== "1" && (
+          <>
+            <Analytics />
+            <SpeedInsights />
+          </>
+        )}
       </body>
     </html>
   );

@@ -2,7 +2,7 @@
 
 Status: active
 
-Last reviewed: 2026-08-30
+Last reviewed: 2026-09-07
 
 ## Purpose
 
@@ -108,13 +108,14 @@ it superseded or retired and point to the replacement.
 - **Status:** active
 - **Type:** constraint
 - **Scope:** database migrations, match writes, and statistics schema
-- **Statement:** The additive advanced-statistics migration exists only in
-  source. Do not apply it to project `hrqsbzmsfichiimtxijj` until the hosted
+- **Statement:** The additive advanced-statistics migration has not been applied
+  to hosting. Do not apply it to project `hrqsbzmsfichiimtxijj` until the hosted
   schema, Row Level Security policies, backup, and rollback path are reviewed.
 - **Evidence:** `docs/advanced-statistics-roadmap.md` and the migration under
   `supabase/migrations/`.
-- **Validation:** repository inspection and prior hosted-access limitation on
-  2026-08-30.
+- **Validation:** hosted schema/policy inspection and local database-only
+  rehearsal on 2026-09-07; backup, rollback and production acceptance remain
+  pending. See `docs/supabase-schema-review-2026-09-07.md`.
 - **Invalidation trigger:** a reviewed deployment with recorded schema/policy
   evidence and rollback result.
 - **Related:** Phase 1 deployment gate and Package 3C.
@@ -221,3 +222,87 @@ it superseded or retired and point to the replacement.
   package-manager tooling defines compatible precedence for exact and ranged
   declarations.
 - **Related:** RDD-INFO-007; `docs/dependency-modernization-plan.md`, Package 3A.
+
+### RDD-INFO-010 — The original Supabase schema is not in the migration chain
+
+- **Status:** superseded by RDD-INFO-011
+- **Type:** repository fact and validation constraint
+- **Scope:** fresh local database startup and advanced-statistics rehearsal
+- **Statement:** The only checked-in SQL migration is additive. It alters
+  `matches` and `match_players` and reads `profiles`, but no checked-in baseline
+  creates those tables. A fresh local replay requires a reviewed original schema
+  and policies; do not treat a fabricated fixture as production equivalence.
+- **Evidence:** `supabase/migrations/20260829214500_advanced_statistics_foundation.sql`;
+  repository-wide SQL file inventory and empty declarative `schema_paths` in
+  `supabase/config.toml`, inspected 2026-09-07.
+- **Validation:** source inspection only. Docker and CLI readiness do not
+  constitute successful application-local migration or hosted RLS validation.
+- **Invalidation trigger:** a reviewed baseline is added and the complete
+  migration chain passes against an authorized local database.
+- **Related:** RDD-INFO-003; `docs/supabase-local-development.md`.
+
+### RDD-INFO-011 — Existing hosted tables need baseline history reconciliation
+
+- **Status:** active
+- **Type:** repository fact and deployment constraint
+- **Scope:** local schema replay versus existing hosted migration history
+- **Statement:** A schema-only export now supplies the original baseline before
+  the additive statistics migration. The original hosted tables already exist
+  but no remote migration entries were observed. Do not push the baseline into
+  that database or repair its history without fresh schema comparison, backup
+  verification and explicit owner approval. Local tests do not satisfy that gate.
+- **Evidence:** `supabase/migrations/20260829210000_existing_schema_baseline.sql`;
+  `docs/supabase-schema-review-2026-09-07.md` records export provenance, catalog
+  inspection, migration listing and local-only pgTAP results.
+- **Validation:** authenticated schema inspection and successful two-migration
+  local replay on 2026-09-07; independent baseline/policy review and expanded
+  25-assertion RLS suite plus 7-assertion staged preservation rehearsal passed.
+- **Invalidation trigger:** any hosted schema/history change or before a remote
+  deployment; refresh the snapshot and approve reconciliation separately.
+- **Related:** supersedes RDD-INFO-010; RDD-INFO-003 remains in force.
+
+### RDD-INFO-012 — Desktop port proxy needs its own localhost default
+
+- **Status:** active
+- **Type:** procedure, decision, and failure lesson
+- **Scope:** local Docker Desktop/Supabase only; never hosted access
+- **Statement:** A bridge's `host_binding_ipv4=127.0.0.1` did not constrain
+  Docker Desktop 4.90.0 publications on this host. Use the supported localhost
+  default with explicit machine-wide approval, and verify actual bindings.
+  All repository start/status/stop/test wrappers must select the same local
+  engine and strip remote/TLS overrides. Optional Windows Vector is excluded
+  because the pinned CLI expects unsecured Docker TCP 2375; do not enable it.
+- **Evidence:** user approved defaulting new containers to localhost on
+  2026-09-07; `scripts/local-environment.mjs`, `scripts/supabase-local.mjs`;
+  [Docker settings reference](https://docs.docker.com/enterprise/security/hardened-desktop/settings-management/settings-reference/);
+  [pinned CLI Vector source](https://github.com/supabase/cli/blob/v2.116.0/apps/cli/src/legacy/commands/start/services/vector.service.ts).
+- **Validation:** Docker publications and Windows listeners verified as
+  127.0.0.1/::1 after approved restart; mocked command-boundary tests check
+  local target selection and environment sanitization without engine access.
+- **Invalidation trigger:** Desktop/CLI updates, network/default changes,
+  switched container engines, changed published services, or a preflight failure.
+- **Related:** RDD-INFO-011; `docs/supabase-local-development.md`.
+
+## Reviewed host workaround
+
+### RDD-INFO-009 — Windows Docker socket recovery must preserve runtime folders
+
+- **Status:** active (narrow, opt-in local workaround)
+- **Type:** procedure and failure lesson
+- **Scope:** Windows per-user Docker Desktop; local development only
+- **Statement:** On the observed host, Docker 4.90.0 still failed to recover
+  inaccessible socket files after shutdown. The opt-in guarded launcher can
+  preserve only verified runtime socket folders while Desktop is fully stopped,
+  then start the local engine. Do not broaden this into recursive deletion,
+  factory reset, settings changes, or a hosted database action.
+- **Evidence:** `scripts/windows/Start-DockerDesktop.ps1`, its Pester safety
+  tests, and `docs/windows-docker-recovery.md`; Docker 4.90.0 startup logs showed
+  the failed `.stale` rename despite its published fix.
+- **Validation:** 2026-09-07 independent review, 29 Pester safety tests under
+  Windows PowerShell 5.1, and a graceful stop, dry run,
+  preservation/start, and `hello-world` test; healthy-engine invocation was a
+  no-op. This does not verify the local Supabase stack or hosted project.
+- **Invalidation trigger:** Docker/Windows updates, changed runtime socket
+  names or layout, redirected installation paths, or a failed safety test.
+  Re-review before adapting this workaround to a changed installation/layout.
+- **Related:** RDD-INFO-003; no dependency package was started by this work.

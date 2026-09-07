@@ -39,6 +39,28 @@ You can start editing the page by modifying `app/page.tsx`. The page auto-update
 
 This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
 
+## Windows Docker startup recovery
+
+If Docker Desktop fails on an inaccessible `sailor-ingest.sock` or
+`engine.sock`, see [the guarded recovery launcher](docs/windows-docker-recovery.md).
+On a supported per-user Windows installation, `npm run docker:start` starts
+Docker after preserving only verified stale runtime socket folders. It does
+not start Supabase or change hosted data. `npm run docker:check` previews the
+operation without renaming anything or starting Docker.
+
+## Local database validation
+
+The original hosted schema baseline and statistics migration have passed a
+local PostgreSQL replay, 25 pgTAP policy/constraint tests, and a separate
+7-assertion legacy-data preservation rehearsal. See the
+[schema review](docs/supabase-schema-review-2026-09-07.md) and
+[local setup guide](docs/supabase-local-development.md). Core local services
+now run on verified loopback-only ports; the optional Windows Vector log
+collector is excluded. Use `npm run dev:local` for a local-only app preview
+without modifying existing environment files.
+Do not push the baseline to the existing hosted database without the documented
+migration-history, backup, and approval gates.
+
 ## Learn More
 
 To learn more about Next.js, take a look at the following resources:

@@ -207,3 +207,86 @@ test('framework rendering, protected profiles, server route and image optimizer'
   expect(errors).toEqual([]);
   expect(nonlocal).toEqual([]);
 });
+
+test('password recovery through the local email inbox and renewed session', async ({ page, context }) => {
+  const nonlocal = [];
+  const pageErrors = [];
+  page.on('pageerror', error => pageErrors.push(error.message));
+  await context.route('**/*', route => {
+    const origin = new URL(route.request().url()).origin;
+    if (['http://127.0.0.1:3000', 'http://127.0.0.1:54321'].includes(origin)) return route.continue();
+    nonlocal.push(origin);
+    return route.abort('blockedbyclient');
+  });
+  const recovery = await account(`recovery-${Date.now()}`);
+  await recovery.db.auth.signOut();
+  await page.goto('/reset-password');
+  await expect(page.getByText('No active reset session found. Please use the password reset link from your email again.')).toBeVisible();
+  await page.goto('/auth');
+  await page.getByLabel('Email', { exact: true }).fill(recovery.email);
+  await page.getByRole('button', { name: 'Forgot your password?' }).click();
+  await expect(page.getByText('Password reset email sent. Check your inbox.')).toBeVisible();
+
+  // Only the uniquely named synthetic recipient's local mail is retrieved.
+  // Never print message content or recovery URLs/tokens into shared logs.
+  let messageId;
+  await expect.poll(async () => {
+    const response = await fetch(`http://127.0.0.1:54324/api/v1/search?query=${encodeURIComponent(`to:${recovery.email}`)}`);
+    if (!response.ok) return false;
+    const result = await response.json();
+    messageId = result.messages?.find(m => m.To?.some(to => to.Address === recovery.email))?.ID;
+    return Boolean(messageId);
+  }, { timeout: 15000 }).toBe(true);
+  const mail = await (await fetch(`http://127.0.0.1:54324/api/v1/message/${encodeURIComponent(messageId)}`)).json();
+  const links = [...(mail.HTML ?? '').matchAll(/href="([^"]+)"/g)].map(m => m[1].replaceAll('&amp;', '&'));
+  const link = links.find(value => {
+    try {
+      const url = new URL(value);
+      return url.origin === 'http://127.0.0.1:54321' && url.pathname === '/auth/v1/verify'
+        && url.searchParams.get('type') === 'recovery'
+        && url.searchParams.get('redirect_to') === 'http://127.0.0.1:3000/reset-password';
+    } catch { return false; }
+  });
+  expect(Boolean(link), 'Expected a strictly local recovery link').toBe(true);
+  try { await page.goto(link); } catch { throw new Error('Local recovery redirect failed.'); }
+  await expect(page.getByRole('heading', { name: 'Reset Your Password', exact: true })).toBeVisible();
+  expect(new URL(page.url()).pathname).toBe('/reset-password');
+  await expect(page.getByText('No active reset session found. Please use the password reset link from your email again.')).toHaveCount(0);
+  const updatedPassword = 'Renewed-Local-Darts-2026!';
+  await page.locator('form input').nth(0).fill(updatedPassword);
+  await page.locator('form input').nth(1).fill(updatedPassword);
+  await page.getByRole('button', { name: 'Update Password', exact: true }).click();
+  await expect(page.getByText('Password updated successfully. You can now sign in.')).toBeVisible();
+  // Recovery establishes a session; /auth is only an intermediate redirect.
+  // Finish that redirect before signing out and testing the new credentials.
+  await expect(page).toHaveURL(/\/matches$/);
+  await expect(page.getByRole('heading', { name: 'Darts Matches', exact: true })).toBeVisible();
+  await page.getByRole('button', { name: 'Sign Out', exact: true }).click();
+  await expect(page.getByRole('link', { name: 'Sign In', exact: true })).toBeVisible();
+  await page.goto('/auth');
+  await page.getByLabel('Email', { exact: true }).fill(recovery.email);
+  await page.getByLabel('Password', { exact: true }).fill(updatedPassword);
+  await page.locator('form button[type=submit]').click();
+  await expect(page.getByRole('heading', { name: 'Darts Matches', exact: true })).toBeVisible();
+  await page.reload();
+  await expect(page.getByRole('heading', { name: 'Darts Matches', exact: true })).toBeVisible();
+  expect((await client().auth.signInWithPassword({ email: recovery.email, password })).error?.code).toBe('invalid_credentials');
+  await test.step('refresh the renewed session and clear it on sign-out', async () => {
+    const db = client();
+    const signedIn = unwrap(await db.auth.signInWithPassword({ email: recovery.email, password: updatedPassword }));
+    const refreshed = unwrap(await db.auth.refreshSession());
+    expect(refreshed.user.id).toBe(recovery.id);
+    // Assert rotation without exposing either bearer credential on failure.
+    expect(Boolean(refreshed.session?.refresh_token)).toBe(true);
+    expect(refreshed.session.refresh_token !== signedIn.session.refresh_token).toBe(true);
+    expect(unwrap(await db.auth.getUser()).user.id).toBe(recovery.id);
+    expect(unwrap(await db.from('profiles').select('id').eq('id', recovery.id))).toHaveLength(1);
+    unwrap(await db.auth.signOut());
+    expect(unwrap(await db.auth.getSession()).session === null).toBe(true);
+    for (const table of ['profiles', 'matches', 'match_players']) {
+      expect(unwrap(await db.from(table).select('id'))).toHaveLength(0);
+    }
+  });
+  expect(pageErrors).toEqual([]);
+  expect(nonlocal).toEqual([]);
+});

@@ -1,6 +1,6 @@
 # Dependency Modernization Delivery Plan
 
-Status: 3A complete; 3B implemented and locally verified; 3C–3F require approval
+Status: 3A complete; 3B–3C implemented and locally verified; 3D–3F require approval
 
 Branch: `advanced-statistics`
 
@@ -197,12 +197,47 @@ on different release lines.
 
 ## Package 3C — Supabase client and authentication reliability
 
-### Planned version
+Status: implemented and locally verified; user authorized 2026-09-07.
+Independent review completed with no remaining actionable findings.
+Hosted acceptance and CI/Vercel remain pending;
+no hosted mutations authorized.
 
-- `@supabase/supabase-js`: `2.112.4`
+### Selected version (refreshed 2026-09-07)
+
+- `@supabase/supabase-js`: exact `2.116.0` (stable, not canary or v3 preview).
+- Published Node requirement `>=22.0.0` is satisfied by our Node 24 contract.
+- CLI remains separately pinned at 2.116.0; its matching number is coincidental,
+  not a requirement to update the CLI or database services alongside the SDK.
+- Local production/browser auth and RLS checks use synthetic fixtures and the
+  existing reviewed policy baseline. This is not hosted acceptance; no hosted
+  records, migration history, or database schema will be changed by this package.
+
+References: [2.116.0 release](https://github.com/supabase/supabase-js/releases/tag/v2.116.0),
+[runtime support policy](https://github.com/supabase/supabase-js/blob/v2.116.0/packages/core/supabase-js/README.md#support-policy),
+[password recovery API](https://supabase.com/docs/reference/javascript/auth-resetpasswordforemail).
 
 This package begins only after Package 3A has established the supported Node
 runtime and the target version has been refreshed.
+
+### Local verification (2026-09-07)
+
+- Supabase JS and its five client subpackages moved from 2.86.2 to 2.116.0.
+  Only their dependency graph changed; CLI, framework, observability and
+  maintenance packages remain unchanged. No application or SQL edits required.
+- Trusted clean install, 59 Vitest tests, coverage thresholds, lint, type-check
+  and a fresh local-configured production build passed.
+- Three production-browser scenarios passed, now including email recovery
+  through local Mailpit, password replacement, rejection of the old password,
+  session reload, explicit refresh-token rotation and sign-out. Authenticated
+  reads and allowed/denied match writes pass; signed-out profile, match and
+  participant reads return no rows. The 25 local pgTAP assertions also pass.
+- Production audit remains zero; full audit retains the same single moderate
+  development-only humanfs advisory assigned to 3E.
+- Local Auth has email confirmation disabled. Real email delivery, hosted
+  confirmation/redirect settings, hosted RLS execution and CI/Vercel remain
+  unverified. No schema migration was applied as part of this package.
+
+See `docs/package-3c-verification-2026-09-07.md` for evidence and rollback.
 
 ### Acceptance
 

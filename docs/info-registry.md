@@ -97,10 +97,13 @@ it superseded or retired and point to the replacement.
 - **Evidence:** the [Supabase JS runtime support policy](https://github.com/supabase/supabase-js/blob/master/packages/core/supabase-js/README.md#support-policy)
   and [Vercel supported Node.js versions](https://vercel.com/docs/functions/runtimes/node-js/node-js-versions),
   reviewed 2026-08-30.
-- **Validation:** dated primary-source review; confirm with the target package's
-  `engines` metadata during implementation.
-- **Invalidation trigger:** refresh immediately before Packages 3A and 3C, or
-  when the hosting/runtime target changes.
+- **Validation:** refreshed 2026-09-07 for Package 3C: installed Supabase JS
+  2.116.0 declares Node `>=22.0.0`; trusted install, type-check, production build
+  and local Auth/browser acceptance passed on Node 24.20.0. The independently
+  versioned Supabase CLI remains at 2.116.0; matching numbers do not couple SDK,
+  CLI or hosted database upgrades.
+- **Invalidation trigger:** another SDK upgrade or a hosting/runtime target
+  change; refresh engines and authenticated acceptance at that boundary.
 - **Related:** `docs/dependency-modernization-plan.md`.
 
 ### RDD-INFO-003 — Hosted Supabase schema remains an explicit gate
@@ -134,7 +137,9 @@ it superseded or retired and point to the replacement.
   `docs/package-3b-verification-2026-09-07.md`; these are dated audit results,
   not a guarantee that the application has no security defects.
 - **Validation:** npm audit, dependency-tree inspection, trusted clean install,
-  production build and local browser acceptance on 2026-09-07.
+  production build and local browser acceptance on 2026-09-07. Re-audited at
+  the Package 3C boundary: zero production and the same one moderate
+  development-only finding; see `docs/package-3c-verification-2026-09-07.md`.
 - **Invalidation trigger:** any lockfile change or the next package boundary;
   rerun the complete audit.
 - **Related:** dependency modernization Package 3B.
@@ -287,6 +292,29 @@ it superseded or retired and point to the replacement.
 - **Invalidation trigger:** Desktop/CLI updates, network/default changes,
   switched container engines, changed published services, or a preflight failure.
 - **Related:** RDD-INFO-011; `docs/supabase-local-development.md`.
+
+### RDD-INFO-013 — Local recovery acceptance does not establish hosted email behavior
+
+- **Status:** active
+- **Type:** procedure and validation constraint
+- **Scope:** local Supabase authentication acceptance
+- **Statement:** The local mail service is Mailpit on loopback port 54324,
+  despite the CLI container's `inbucket` name. Browser recovery acceptance can
+  retrieve a uniquely named synthetic recipient's message through Mailpit's
+  API, then follow only a validated loopback recovery link. Never print mail
+  bodies, bearer credentials or recovery links; keep credential-bearing traces
+  out of shared artifacts. Local confirmation is disabled, so successful local
+  signup/recovery does not prove hosted confirmation, SMTP or redirect settings.
+- **Evidence:** `scripts/qa/local-acceptance.spec.mjs`, `supabase/config.toml`,
+  `docs/package-3c-verification-2026-09-07.md`;
+  [Mailpit API](https://mailpit.axllent.org/docs/api-v1/).
+- **Validation:** three standard Playwright production-browser scenarios passed
+  on 2026-09-07, including password replacement, old-password denial, session
+  refresh and signed-out RLS reads. Browser requests were constrained to local
+  app/API origins; mail retrieval used the fixed local API address.
+- **Invalidation trigger:** local mail service/API, Auth configuration, SDK,
+  recovery implementation or test-artifact settings change; reverify before use.
+- **Related:** RDD-INFO-003 and RDD-INFO-012; hosted acceptance remains separate.
 
 ## Reviewed host workaround
 

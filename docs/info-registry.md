@@ -2,7 +2,7 @@
 
 Status: active
 
-Last reviewed: 2026-09-07
+Last reviewed: 2026-09-08
 
 ## Purpose
 
@@ -343,7 +343,8 @@ it superseded or retired and point to the replacement.
 
 ### RDD-INFO-015 — A clean audit does not resolve ESLint 9 end-of-life
 
-- **Status:** active
+- **Status:** superseded by RDD-INFO-018 for the current installed baseline;
+  retained as historical EOL/rollback evidence
 - **Type:** external fact and delivery constraint
 - **Scope:** maintenance updates and future lint migration
 - **Statement:** ESLint 9 reached end-of-life on 2026-08-06; 9.39.5 emits an
@@ -368,7 +369,7 @@ it superseded or retired and point to the replacement.
 - **Statement:** `eslint-config-next@16.3.4` accepts ESLint >=9, but its React,
   Import and JSX accessibility plugins still have published peer ranges ending
   at 9. Updated TypeScript ESLint/Hooks clear the parser prerequisite, not all
-  plugin compatibility. ESLint 10.10.0 now fails on React's removed `getFilename`
+  plugin compatibility. Unwrapped ESLint 10.10.0 fails on React's removed `getFilename`
   API. Passing an isolated corpus does not establish plugin-wide support.
 - **Evidence:** exact registry/installed manifests and read-only CLI/API probes;
   `docs/eslint-follow-up-2026-09-07.md` includes sources and migration boundaries.
@@ -379,8 +380,8 @@ it superseded or retired and point to the replacement.
 - **Invalidation trigger:** changed Next config, plugin/core versions, ignore
   patterns or migration adoption. Recheck at migration entry and before Phase 4;
   next review checkpoint 2026-09-14 if delivery pauses.
-- **Related:** RDD-INFO-015; the compatible update does not end ESLint 9's
-  unsupported-baseline caveat.
+- **Related:** RDD-INFO-015 and RDD-INFO-018; the later approved bridge/override
+  addresses execution/installation without creating upstream plugin support.
 
 ### RDD-INFO-017 — A runtime compatibility bridge does not resolve npm peer support
 
@@ -389,11 +390,13 @@ it superseded or retired and point to the replacement.
 - **Scope:** ESLint 10 migration proof versus dependency adoption
 - **Statement:** @eslint/compat 2.1.1 allows the existing lint stack to execute
   under ESLint 10.10.0 in the isolated runtime trial. Its wrappers do not change
-  plugin peer declarations: the copied full app graph still fails strict npm
-  resolution. A passing split-runtime proof must never be described as a clean
+  plugin peer declarations: the copied full app graph without overrides fails
+  strict npm resolution. A passing split-runtime proof must never be described as a clean
   combined installation or approval for peer overrides.
-- **Evidence:** `docs/eslint-bridge-trial-2026-09-07.md`, opt-in
-  `scripts/qa/eslint-bridge.test.mjs`, exact registry peers and reproduced ERESOLVE.
+- **Evidence:** `docs/eslint-bridge-trial-2026-09-07.md`, historical opt-in
+  `scripts/qa/eslint-bridge.test.mjs` at `e972176`, exact registry peers and
+  reproduced ERESOLVE; installed protection now lives in
+  `scripts/eslint-compatibility.test.mjs`.
 - **Validation:** 2026-09-07 independent runtime strict install, 64 behavior/parity
   checks, and a separate copied-manifest strict resolution failure. App manifests
   and lint config were unchanged.
@@ -401,6 +404,27 @@ it superseded or retired and point to the replacement.
   change; rerun both execution and installation gates. An explicitly approved
   override is an exception, not proof of upstream support.
 - **Related:** RDD-INFO-015/016 and the separate peer-exception proposal.
+
+### RDD-INFO-018 — ESLint 10 uses an explicitly owned compatibility exception
+
+- **Status:** active
+- **Type:** approved constraint and verified installation procedure
+- **Scope:** development lint tooling and future dependency upgrades
+- **Statement:** On 2026-09-08 the user approved ESLint 10.10.0 with official
+  compat 2.1.1 and overrides limited to the ESLint peer of React plugin 7.37.5,
+  Import 2.32.0 and JSX accessibility 6.10.2. Strict clean installation now passes
+  with one core version. This does not change the plugins' upstream support.
+- **Evidence:** `package.json` exact overrides, `eslint.config.mjs` bridge,
+  `scripts/eslint-compatibility.test.mjs` and
+  `docs/eslint-10-adoption-2026-09-08.md`.
+- **Validation:** 2026-09-08 strict trusted install, dependency-tree inspection,
+  150 unit/regression tests, lint/type-check/build and full/production audits.
+- **Invalidation trigger:** changed plugin/core/compat/Next/npm versions or rule
+  config. Recheck before Phase 4 and by 2026-09-14 if paused; remove each exception
+  only after published support and strict install/behavior checks pass. Broader
+  overrides need new approval.
+- **Related:** supersedes the active-baseline limitation in RDD-INFO-015;
+  RDD-INFO-016/017 remain useful distinctions between support, execution and install.
 
 ## Reviewed host workaround
 

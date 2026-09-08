@@ -1,5 +1,10 @@
 # ESLint 10 compatibility bridge trial
 
+Historical trial record. The user approved the narrow exception on 2026-09-08;
+see `eslint-10-adoption-2026-09-08.md` for the installed migration and its gates.
+The opt-in test paths below describe commit `e972176`; current protection runs
+automatically in `scripts/eslint-compatibility.test.mjs`.
+
 Date: 2026-09-07. Baseline: `085f7c7`, branch `advanced-statistics`.
 Scope: user-approved bounded trial of the recommendation in
 `eslint-follow-up-2026-09-07.md`, not automatic approval of peer overrides,

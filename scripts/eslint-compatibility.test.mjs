@@ -1,22 +1,18 @@
+// @vitest-environment node
 import { createRequire } from 'node:module';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
-import { ESLint as BaselineESLint } from 'eslint';
-import config from '../../eslint.config.mjs';
+import { ESLint } from 'eslint';
+import config, { baseConfig } from '../eslint.config.mjs';
 
-// The candidate runtime is installed independently with strict peers. Plugins
-// intentionally come from the app's unchanged dependency tree. This proves rule
-// execution only, NOT that a combined ESLint 10/Next install is supported.
-const runtime = process.env.RDD_ESLINT_BRIDGE_ROOT;
-if (!runtime || !path.isAbsolute(runtime)) throw new Error('Set RDD_ESLINT_BRIDGE_ROOT to the absolute isolated runtime directory.');
-const candidateRequire = createRequire(path.join(runtime, 'package.json'));
-const { ESLint: CandidateESLint } = candidateRequire('eslint');
-const { fixupConfigRules } = candidateRequire('@eslint/compat');
-const root = fileURLToPath(new URL('../../', import.meta.url));
+// The installed production lint configuration is now exercised by normal CI.
+// Historical cross-engine proof remains available at commit e972176.
+const require = createRequire(import.meta.url);
+const root = fileURLToPath(new URL('../', import.meta.url));
 const filePath = path.join(root, 'app/profiles/[id]/page.tsx');
-const baseline = new BaselineESLint({ cwd: root, overrideConfigFile: true, overrideConfig: config });
-const candidate = new CandidateESLint({ cwd: root, overrideConfigFile: true, overrideConfig: fixupConfigRules(config) });
+const unwrapped = new ESLint({ cwd: root, overrideConfigFile: true, overrideConfig: baseConfig });
+const candidate = new ESLint({ cwd: root });
 
 const reactFixtures = [
   ['react/display-name', 'export default () => <div />;', 'export default function Named() { return <div />; }'],
@@ -59,15 +55,23 @@ async function targetMessages(linter, source, ruleId) {
     .map(({ ruleId, messageId, severity }) => ({ ruleId, messageId, severity }));
 }
 
-it('loads the exact candidate without replacing the installed baseline', () => {
-  expect(BaselineESLint.version).toBe('9.39.5');
-  expect(CandidateESLint.version).toBe('10.10.0');
-  expect(candidateRequire(path.join(runtime, 'node_modules/@eslint/compat/package.json')).version).toBe('2.1.1');
+it('loads the approved engine and limits exceptions to the three exact plugin versions', () => {
+  const manifest = require('../package.json');
+  expect(ESLint.version).toBe('10.10.0');
+  expect(require(path.join(root, 'node_modules/@eslint/compat/package.json')).version).toBe('2.1.1');
+  expect(manifest.overrides).toEqual({
+    'eslint-plugin-react@7.37.5': { eslint: '$eslint' },
+    'eslint-plugin-import@2.32.0': { eslint: '$eslint' },
+    'eslint-plugin-jsx-a11y@6.10.2': { eslint: '$eslint' },
+  });
+  for (const [name, version] of [['eslint-plugin-react', '7.37.5'], ['eslint-plugin-import', '2.32.0'], ['eslint-plugin-jsx-a11y', '6.10.2']]) {
+    expect(require(`${name}/package.json`).version).toBe(version);
+  }
 });
 
 it('preserves every effective rule/severity/option and Next settings on TSX and JS', async () => {
   for (const target of [filePath, path.join(root, 'lib/matchState.js')]) {
-    const before = await baseline.calculateConfigForFile(target);
+    const before = await unwrapped.calculateConfigForFile(target);
     const after = await candidate.calculateConfigForFile(target);
     // ESLint 10 materializes defaults even on disabled core no-unused-vars.
     // Compare all severities and enabled options; disabled options do not run.
@@ -83,20 +87,21 @@ it('preserves every effective rule/severity/option and Next settings on TSX and 
 });
 
 it('accounts for all enabled React, import and accessibility rules', async () => {
-  const resolved = await baseline.calculateConfigForFile(filePath);
+  const resolved = await candidate.calculateConfigForFile(filePath);
   const enabled = Object.keys(resolved.rules).filter(key => /^(react|import|jsx-a11y)\//.test(key) && resolved.rules[key][0] !== 0).sort();
   expect([...new Set([...reactFixtures, ...otherFixtures].map(row => row[0])
     .filter(key => /^(react|import|jsx-a11y)\//.test(key)))].concat(['react/jsx-uses-react', 'react/jsx-uses-vars']).sort()).toEqual(enabled);
 });
 
 describe.each([...reactFixtures, ...otherFixtures])('%s', (ruleId, invalid, valid) => {
-  it('reports the deliberate defect at the same severity as ESLint 9', async () => {
-    const expected = await targetMessages(baseline, invalid, ruleId);
-    expect(expected.length).toBeGreaterThan(0);
-    expect(await targetMessages(candidate, invalid, ruleId)).toEqual(expected);
+  it('reports the deliberate defect at the retained severity', async () => {
+    const reports = await targetMessages(candidate, invalid, ruleId);
+    expect(reports.length).toBeGreaterThan(0);
+    const warnings = ruleId.startsWith('import/') || ruleId.startsWith('jsx-a11y/') ||
+      ['react-hooks/exhaustive-deps', '@next/next/no-img-element'].includes(ruleId);
+    expect(reports.every(report => report.severity === (warnings ? 1 : 2))).toBe(true);
   });
-  it('accepts the corrected counterpart under both engines', async () => {
-    expect(await targetMessages(baseline, valid, ruleId)).toEqual([]);
+  it('accepts the corrected counterpart', async () => {
     expect(await targetMessages(candidate, valid, ruleId)).toEqual([]);
   });
 });
@@ -106,10 +111,8 @@ const jsxUsageSource = 'import React from "react"; const Part = () => <div />; e
 it('preserves combined JSX usage handling without hiding actually unused variables', async () => {
   // This checks the combined stack, not these two rules independently: the
   // TypeScript parser/core also tracks JSX bindings (see the mutation below).
-  for (const linter of [baseline, candidate]) {
-    expect(await targetMessages(linter, jsxUsageSource, '@typescript-eslint/no-unused-vars')).toEqual([]);
-    expect(await targetMessages(linter, `${jsxUsageSource} const unused = 1;`, '@typescript-eslint/no-unused-vars')).toHaveLength(1);
-  }
+  expect(await targetMessages(candidate, jsxUsageSource, '@typescript-eslint/no-unused-vars')).toEqual([]);
+  expect(await targetMessages(candidate, `${jsxUsageSource} const unused = 1;`, '@typescript-eslint/no-unused-vars')).toHaveLength(1);
 });
 
 it('records redundant JSX tracking without removing either rule from the real config', async () => {
@@ -117,22 +120,16 @@ it('records redundant JSX tracking without removing either rule from the real co
   // Diagnostic mutation only. The config-parity test above covers the real
   // candidate; neither disabling override is written to eslint.config.mjs.
   const off = { rules: Object.fromEntries(ruleIds.map(ruleId => [ruleId, 'off'])) };
-  for (const [Engine, base, real] of [[BaselineESLint, config, baseline], [CandidateESLint, fixupConfigRules(config), candidate]]) {
-    const realConfig = await real.calculateConfigForFile(filePath);
-    for (const ruleId of ruleIds) expect(realConfig.rules[ruleId][0]).toBe(2);
-    const mutated = new Engine({ cwd: root, overrideConfigFile: true, overrideConfig: [...base, off] });
-    expect(await targetMessages(mutated, jsxUsageSource, '@typescript-eslint/no-unused-vars')).toEqual([]);
-    expect(await targetMessages(mutated, `${jsxUsageSource} const unused = 1;`, '@typescript-eslint/no-unused-vars')).toHaveLength(1);
-  }
+  const realConfig = await candidate.calculateConfigForFile(filePath);
+  for (const ruleId of ruleIds) expect(realConfig.rules[ruleId][0]).toBe(2);
+  const mutated = new ESLint({ cwd: root, overrideConfigFile: true, overrideConfig: [...config, off] });
+  expect(await targetMessages(mutated, jsxUsageSource, '@typescript-eslint/no-unused-vars')).toEqual([]);
+  expect(await targetMessages(mutated, `${jsxUsageSource} const unused = 1;`, '@typescript-eslint/no-unused-vars')).toHaveLength(1);
 });
 
-it('lints the same complete repository corpus cleanly with no disabled rules', async () => {
-  const before = await baseline.lintFiles(['.']);
+it('lints the complete repository corpus cleanly without dropping the profile route', async () => {
   const after = await candidate.lintFiles(['.']);
-  expect(after.map(row => row.filePath).sort()).toEqual(before.map(row => row.filePath).sort());
   expect(after.some(row => row.filePath === filePath)).toBe(true);
   expect(after.length).toBeGreaterThanOrEqual(66);
-  for (const results of [before, after]) {
-    expect(results.flatMap(row => row.messages.map(message => ({ file: row.filePath, rule: message.ruleId, message: message.message })))).toEqual([]);
-  }
-});
+  expect(after.flatMap(row => row.messages.map(message => ({ file: row.filePath, rule: message.ruleId, message: message.message })))).toEqual([]);
+}, 20000);

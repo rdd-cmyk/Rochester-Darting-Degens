@@ -4,7 +4,7 @@ Status: active implementation on `advanced-statistics`
 
 Supabase project: `hrqsbzmsfichiimtxijj`
 
-Last updated: 2026-09-07
+Last updated: 2026-09-08
 
 ## Implementation status
 
@@ -20,8 +20,9 @@ Last updated: 2026-09-07
 | 3C — Supabase client/auth reliability | Implemented and locally verified | Supabase JS 2.116.0; 59 unit tests, 25 local policy assertions and three production-browser scenarios pass, including local email recovery and token refresh. Hosted auth/RLS and CI/Vercel remain pending. See `docs/package-3c-verification-2026-09-07.md`. |
 | 3D — Vercel observability SDKs | Implemented and locally verified | Analytics 2.0.1 / Speed Insights 2.0.0; URL privacy filtering, 81 unit tests and four browser scenarios pass. Hosted intake and CI/Vercel remain pending. See `docs/package-3d-verification-2026-09-07.md`. |
 | 3E — Maintenance and pruning | Implemented and locally verified | Vitest/coverage 4.1.11, ESLint 9.39.5, Node types 24.13.3; unused direct declaration removed; full and production audits zero. See `docs/package-3e-verification-2026-09-07.md`. CI/Vercel remain pending. |
-| ESLint compatibility follow-up | Compatible update implemented; major migration assessed separately | TypeScript ESLint 8.70.0 and Hooks 7.1.1; dynamic profile lint gap closed. ESLint 9 remains temporary; React crashes on 10 and other plugin peers remain gated. See `docs/eslint-follow-up-2026-09-07.md` for verification and the separate migration proposal. |
-| ESLint 10 bridge trial | Execution proof passed; adoption gated | 64 compatibility checks pass with the official wrapper; combined strict peer resolution fails. ESLint 9 and the working lint config remain unchanged. Narrow peer-exception proposal awaits approval; see `docs/eslint-bridge-trial-2026-09-07.md`. |
+| ESLint compatible prerequisites | Implemented and locally verified | TypeScript ESLint 8.70.0 and Hooks 7.1.1; dynamic profile lint gap closed. Historical evidence: `docs/eslint-follow-up-2026-09-07.md`. |
+| ESLint 10 bridge trial | Complete; superseded by approved adoption | 64 cross-engine proof checks passed; the original strict peer conflict motivated the separately approved exception. Historical record: `docs/eslint-bridge-trial-2026-09-07.md`. |
+| ESLint 10 adoption | Implemented and locally verified | ESLint 10.10.0 / compat 2.1.1 with three approved exact-plugin peer overrides; strict clean install, 150 tests and three browser scenarios pass; independent review complete. Plugin support remains a project-owned exception. See `docs/eslint-10-adoption-2026-09-08.md`; CI/Vercel remain pending. |
 | 3F — Optional CSS/tooling evaluation | Awaiting approval | Defined in `docs/dependency-modernization-plan.md`; not started. |
 
 ## Product goal

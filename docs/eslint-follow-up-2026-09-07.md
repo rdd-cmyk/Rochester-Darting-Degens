@@ -1,5 +1,8 @@
 # ESLint follow-up: compatible updates and separate major migration
 
+Current baseline: see `eslint-10-adoption-2026-09-08.md` for the subsequently
+approved installed migration. This document preserves the prerequisite delivery.
+
 Follow-up: the separately approved bridge trial is now recorded in
 `eslint-bridge-trial-2026-09-07.md`. It passes execution/parity checks but fails
 combined strict peer resolution; the original delivery below remains unchanged.

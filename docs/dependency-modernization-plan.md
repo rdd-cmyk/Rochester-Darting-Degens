@@ -1,10 +1,10 @@
 # Dependency Modernization Delivery Plan
 
-Status: 3A complete; 3B–3E locally verified; 3F and ESLint 10 follow-up require approval
+Status: 3A complete; 3B–3E and approved ESLint 10 exception locally verified; 3F requires approval
 
 Branch: `advanced-statistics`
 
-Last reviewed: 2026-09-07
+Last reviewed: 2026-09-08
 
 ## Objective
 
@@ -379,6 +379,12 @@ different, split them into separate commits before merge.
 
 ## ESLint follow-up — Compatible prerequisites and separate major migration
 
+Current follow-up (2026-09-08): the user approved the narrowly scoped three-plugin
+peer exception. ESLint 10.10.0 and official compat 2.1.1 are installed with strict
+clean resolution, and the 64 bridge checks now run in the ordinary 150-test suite.
+See `docs/eslint-10-adoption-2026-09-08.md` for final gates, ownership and removal
+policy. The following paragraphs preserve the earlier decision sequence.
+
 User approved the compatible update and lint-gap correction, followed by a
 separate evaluation of the remaining plugins on 2026-09-07. TypeScript ESLint
 8.70.0 and Hooks 7.1.1 are locked within Next's supported dependency ranges;
@@ -428,11 +434,10 @@ Revert the paired Tailwind/PostCSS tooling commit.
 These upgrades are outside the current package set unless a concrete blocker
 changes the decision:
 
-- ESLint 10 remains outside the approved 3E patch scope. The 2026-09-07 refresh
-  found ESLint 9 is already end-of-life, invalidating the earlier "no current
-  requirement" rationale. A separately approved ESLint 10/plugin compatibility
-  package remains a priority follow-up after the compatible prerequisite update
-  and separate assessment above; do not treat a zero audit as ongoing support.
+- ESLint plugin replacements or broader peer exceptions remain outside scope.
+  The separately approved ESLint 10 adoption above covers only three exact
+  plugin-version overrides and the official bridge; upstream plugin support is
+  still distinct from a successful install under those exceptions.
 - Vitest 5, newly stable at the 3E refresh, requires a separate migration review.
 - TypeScript 7, because it changes compiler implementation and compatibility
   surfaces beyond routine maintenance.

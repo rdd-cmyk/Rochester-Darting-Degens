@@ -1,6 +1,6 @@
 # Dependency Modernization Delivery Plan
 
-Status: 3A complete; 3B–3D implemented and locally verified; 3E–3F require approval
+Status: 3A complete; 3B–3E locally verified; 3F and ESLint 10 follow-up require approval
 
 Branch: `advanced-statistics`
 
@@ -311,7 +311,33 @@ independent of application data.
 
 ## Package 3E — Low-risk maintenance and pruning
 
-### Planned changes
+Status: implemented and locally verified; user authorized 2026-09-07.
+Independent review completed with no actionable findings. No push/deployment
+included; remote gates remain open.
+
+### Selected maintenance targets (2026-09-07)
+
+- Vitest / V8 coverage: exact `4.1.11`, from 4.1.10. Vitest 5 is now stable,
+  but is a separately scoped major migration, not this package's patch update.
+- ESLint: exact `9.39.5`, from 9.39.1. IMPORTANT: ESLint 9 reached upstream
+  end of life on 2026-08-06. This closes the scoped maintenance work but is not
+  a supported long-term lint baseline; prioritize a separate ESLint 10/plugin
+  compatibility review before declaring tooling modernization finished.
+- Node types: exact `24.13.3`, from 20.19.25, matching the Node 24 runtime line.
+  Its type-only undici dependency moves to the required 7.18.x line.
+- Transitive `@humanfs/node`: 0.16.8 within ESLint's declared compatible range;
+  no forced audit fix, root dependency or override added.
+- Removed the unused direct `es-abstract` declaration. It remains transitively
+  required by ESLint plugins; this is manifest pruning, not bundle reduction.
+- React/DOM types are already the current 19.2.18/19.2.7 from 3B and stay fixed.
+
+Sources: [Vitest 4.1.11](https://github.com/vitest-dev/vitest/releases/tag/v4.1.11),
+[ESLint 9.39.5](https://github.com/eslint/eslint/releases/tag/v9.39.5),
+[ESLint support policy](https://eslint.org/version-support/),
+[humanfs advisory](https://github.com/advisories/GHSA-p498-v437-472g),
+[DefinitelyTyped versioning](https://github.com/DefinitelyTyped/DefinitelyTyped#version-selection).
+
+### Approved scope
 
 - Patch Vitest and V8 coverage together from `4.1.10` to `4.1.11` or the
   refreshed compatible patch.
@@ -323,6 +349,21 @@ independent of application data.
   refreshed during 3B; re-audit at package entry.
 - Remove `es-abstract` if a clean install, source search, and build confirm that
   no direct dependency is required.
+
+### Local verification (2026-09-07)
+
+- Trusted clean install, all 81 Vitest tests, unchanged coverage thresholds,
+  lint, type-check and local-configured production build passed.
+- Both full and production npm audits now report zero vulnerabilities. The
+  previously tracked humanfs finding is resolved without an override.
+- The 26 files in the rebuilt local `.next/static` output have the same content
+  hashes as the pre-3E local build. This is browser-asset evidence, not a claim
+  that every generated server artifact is byte-identical.
+- No app, SQL, CSS, runtime declaration, install policy or test source changes.
+  Required transitive development updates are detailed in the verification record.
+
+See `docs/package-3e-verification-2026-09-07.md` for final browser/review evidence,
+the ESLint end-of-life caveat and rollback.
 
 ### Acceptance
 
@@ -362,8 +403,12 @@ Revert the paired Tailwind/PostCSS tooling commit.
 These upgrades are outside the current package set unless a concrete blocker
 changes the decision:
 
-- ESLint 10, because it is a breaking major upgrade with no current feature or
-  security requirement.
+- ESLint 10 remains outside the approved 3E patch scope. The 2026-09-07 refresh
+  found ESLint 9 is already end-of-life, invalidating the earlier "no current
+  requirement" rationale. A separately approved ESLint 10/plugin compatibility
+  package is now a priority follow-up; do not treat a zero audit as ongoing
+  upstream support.
+- Vitest 5, newly stable at the 3E refresh, requires a separate migration review.
 - TypeScript 7, because it changes compiler implementation and compatibility
   surfaces beyond routine maintenance.
 - Node type definitions 26, because types should represent the supported

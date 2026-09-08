@@ -127,19 +127,21 @@ it superseded or retired and point to the replacement.
 
 - **Status:** active
 - **Type:** repository fact
-- **Scope:** dependency modernization Package 3B
-- **Statement:** The 2026-09-07 Package 3B production audit reports zero
-  vulnerabilities after Next 16.3.4/React 19.2.8, including transitive PostCSS
-  8.5.23 and Sharp 0.35.4. The previous Next 16.0.7 baseline had three high
-  findings. Full-tree audit still has one moderate development-only finding
-  in `@humanfs/node@0.16.7` through unchanged ESLint; remediation belongs to 3E.
+- **Scope:** dependency modernization Packages 3B–3E
+- **Statement:** The 2026-09-07 Package 3E full and production audits both report
+  zero vulnerabilities. The original three-high Next chain was closed in 3B;
+  the moderate development-only humanfs finding retained through 3D is now closed
+  by `@humanfs/node@0.16.8` within ESLint's compatible dependency range. A zero
+  audit does not establish ongoing upstream support; see RDD-INFO-015.
 - **Evidence:** production/full npm audits against the updated lockfile;
-  `docs/package-3b-verification-2026-09-07.md`; these are dated audit results,
+  `docs/package-3b-verification-2026-09-07.md` and
+  `docs/package-3e-verification-2026-09-07.md`; these are dated audit results,
   not a guarantee that the application has no security defects.
 - **Validation:** npm audit, dependency-tree inspection, trusted clean install,
   production build and local browser acceptance on 2026-09-07. Re-audited at
-  the Package 3C and 3D boundaries: zero production and the same one moderate
-  development-only finding; see their dated package verification records.
+  the Package 3C and 3D boundaries: zero production and one moderate development
+  finding; at 3E both full and production audits are zero. Earlier package
+  verification records remain historical evidence, not the current audit state.
 - **Invalidation trigger:** any lockfile change or the next package boundary;
   rerun the complete audit.
 - **Related:** dependency modernization Package 3B.
@@ -338,6 +340,25 @@ it superseded or retired and point to the replacement.
   routes, privacy filter, sampling or local-mode behavior changes; recheck actual
   hosted payloads at release and after endpoint changes.
 - **Related:** RDD-INFO-012 and RDD-INFO-013; 3D hosted acceptance checklist.
+
+### RDD-INFO-015 — A clean audit does not resolve ESLint 9 end-of-life
+
+- **Status:** active
+- **Type:** external fact and delivery constraint
+- **Scope:** maintenance updates and future lint migration
+- **Statement:** ESLint 9 reached end-of-life on 2026-08-06; 9.39.5 emits an
+  unsupported-version warning during installation. 3E deliberately respects its
+  approved ESLint 9 patch scope, but a separately approved ESLint 10/plugin
+  compatibility review is now a priority follow-up. Do not claim the existing
+  lint stack is maintained simply because npm audit reports zero findings.
+- **Evidence:** [ESLint version support](https://eslint.org/version-support/),
+  installed package deprecation warning; `docs/dependency-modernization-plan.md`.
+- **Validation:** dated upstream support-policy and exact registry review on
+  2026-09-07, trusted clean install and full local verification on ESLint 9.39.5.
+- **Invalidation trigger:** migration to a supported ESLint version or changed
+  upstream support policy; refresh plugin peer compatibility before migration.
+- **Related:** RDD-INFO-004; supersedes the plan's earlier rationale that an
+  ESLint 10 migration had no present maintenance requirement.
 
 ## Reviewed host workaround
 

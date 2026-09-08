@@ -19,7 +19,9 @@ Last updated: 2026-09-07
 | 3B — Next.js security baseline | Implemented and locally verified | Next/eslint-config-next 16.3.4, React/DOM 19.2.8; production audit zero; 59 unit tests and two production-browser scenarios pass. CI/Vercel remain pending push. |
 | 3C — Supabase client/auth reliability | Implemented and locally verified | Supabase JS 2.116.0; 59 unit tests, 25 local policy assertions and three production-browser scenarios pass, including local email recovery and token refresh. Hosted auth/RLS and CI/Vercel remain pending. See `docs/package-3c-verification-2026-09-07.md`. |
 | 3D — Vercel observability SDKs | Implemented and locally verified | Analytics 2.0.1 / Speed Insights 2.0.0; URL privacy filtering, 81 unit tests and four browser scenarios pass. Hosted intake and CI/Vercel remain pending. See `docs/package-3d-verification-2026-09-07.md`. |
-| 3E–3F — Dependency modernization | Awaiting approval | Remaining independently reviewable packages are defined in `docs/dependency-modernization-plan.md`. |
+| 3E — Maintenance and pruning | Implemented and locally verified | Vitest/coverage 4.1.11, ESLint 9.39.5, Node types 24.13.3; unused direct declaration removed; full and production audits zero. See `docs/package-3e-verification-2026-09-07.md`. CI/Vercel remain pending. |
+| ESLint 10 compatibility follow-up | Awaiting approval | 3E discovered ESLint 9 is end-of-life; prioritize a separately reviewed migration, not a silent expansion of the patch package. |
+| 3F — Optional CSS/tooling evaluation | Awaiting approval | Defined in `docs/dependency-modernization-plan.md`; not started. |
 
 ## Product goal
 

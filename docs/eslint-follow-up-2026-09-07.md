@@ -1,5 +1,9 @@
 # ESLint follow-up: compatible updates and separate major migration
 
+Follow-up: the separately approved bridge trial is now recorded in
+`eslint-bridge-trial-2026-09-07.md`. It passes execution/parity checks but fails
+combined strict peer resolution; the original delivery below remains unchanged.
+
 Date: 2026-09-07. Branch: `advanced-statistics`. Prerequisite: `9134249`.
 User approved compatible TypeScript ESLint/Hooks updates, closing the profile
 lint gap, then evaluating the remaining plugins separately. This is not approval

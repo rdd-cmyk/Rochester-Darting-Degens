@@ -382,6 +382,26 @@ it superseded or retired and point to the replacement.
 - **Related:** RDD-INFO-015; the compatible update does not end ESLint 9's
   unsupported-baseline caveat.
 
+### RDD-INFO-017 — A runtime compatibility bridge does not resolve npm peer support
+
+- **Status:** active
+- **Type:** verified procedure limitation and delivery constraint
+- **Scope:** ESLint 10 migration proof versus dependency adoption
+- **Statement:** @eslint/compat 2.1.1 allows the existing lint stack to execute
+  under ESLint 10.10.0 in the isolated runtime trial. Its wrappers do not change
+  plugin peer declarations: the copied full app graph still fails strict npm
+  resolution. A passing split-runtime proof must never be described as a clean
+  combined installation or approval for peer overrides.
+- **Evidence:** `docs/eslint-bridge-trial-2026-09-07.md`, opt-in
+  `scripts/qa/eslint-bridge.test.mjs`, exact registry peers and reproduced ERESOLVE.
+- **Validation:** 2026-09-07 independent runtime strict install, 64 behavior/parity
+  checks, and a separate copied-manifest strict resolution failure. App manifests
+  and lint config were unchanged.
+- **Invalidation trigger:** any engine/plugin/bridge version or npm resolver
+  change; rerun both execution and installation gates. An explicitly approved
+  override is an exception, not proof of upstream support.
+- **Related:** RDD-INFO-015/016 and the separate peer-exception proposal.
+
 ## Reviewed host workaround
 
 ### RDD-INFO-009 — Windows Docker socket recovery must preserve runtime folders

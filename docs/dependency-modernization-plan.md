@@ -394,6 +394,14 @@ proof with preserved rule coverage and clean peer resolution. Replacements,
 peer-policy exceptions and actual ESLint 10 adoption are not implicitly approved.
 Reassess before Phase 4 or by 2026-09-14; no background monitor was created.
 
+The subsequently approved bounded bridge trial is complete at the execution
+level: 64 opt-in Vitest checks and the full lint corpus pass with ESLint 10.10.0
+and @eslint/compat 2.1.1. Combined strict peer resolution still fails. No ESLint
+10 adoption or peer-policy exception was made. See
+`docs/eslint-bridge-trial-2026-09-07.md` for reproducible evidence and the narrow
+override proposal requiring separate approval. This trial is not Phase 4 entry
+clearance and does not convert the unsupported ESLint 9 baseline into support.
+
 ## Package 3F — Optional CSS/tooling evaluation
 
 ### Candidate change

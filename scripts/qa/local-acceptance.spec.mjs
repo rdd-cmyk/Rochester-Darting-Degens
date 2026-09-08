@@ -13,16 +13,16 @@ const password = 'Local-Darts-Demo-2026!'; // Synthetic localhost accounts only.
 const client = () => createClient(status.API_URL, status.ANON_KEY, { auth: { persistSession: false, autoRefreshToken: false } });
 const unwrap = result => { if (result.error) throw new Error(result.error.message); return result.data; };
 
-async function account(name) {
+async function account(name, displayName = `Demo ${name}`) {
   const db = client();
   const email = `demo-${name}@example.test`;
   let auth = await db.auth.signInWithPassword({ email, password });
   if (auth.error) auth = await db.auth.signUp({ email, password, options: {
-    data: { display_name: `Demo ${name}`, first_name: 'Demo', last_name: 'Synthetic', include_first_name_in_display: false },
+    data: { display_name: displayName, first_name: 'Demo', last_name: 'Synthetic', include_first_name_in_display: false },
   } });
   const data = unwrap(auth);
   if (!data.session) throw new Error('Expected confirmation-disabled local Auth.');
-  unwrap(await db.from('profiles').upsert({ id: data.user.id, display_name: `Demo ${name}`,
+  unwrap(await db.from('profiles').upsert({ id: data.user.id, display_name: displayName,
     first_name: 'Demo', last_name: 'Synthetic', include_first_name_in_display: false }));
   return { db, id: data.user.id, email };
 }
@@ -181,7 +181,23 @@ test('framework rendering, protected profiles, server route and image optimizer'
   }
   const api = await page.request.get('/api/change-log');
   expect(api.status()).toBe(401);
-  const captain = await account('captain');
+  // A fresh profile owns this scenario's history so standalone/retry runs do
+  // not depend on the earlier league seed or accumulated demo-account matches.
+  const profileName = 'Demo profile QA';
+  const captain = await account(`profile-${Date.now()}`, profileName);
+  const opponent = await account('rival');
+  for (let i = 0; i < 12; i++) {
+    const cricket = i % 2 === 1;
+    const captainWins = i % 3 !== 0;
+    const match = unwrap(await captain.db.from('matches').insert({
+      created_by: captain.id, played_at: new Date(Date.now() - i * 86400000).toISOString(),
+      game_type: cricket ? 'Cricket' : '501', notes: 'RDD synthetic profile QA',
+    }).select('id').single());
+    unwrap(await captain.db.from('match_players').insert([
+      { match_id: match.id, player_id: captain.id, is_winner: captainWins, score: cricket ? 2.5 : 60 },
+      { match_id: match.id, player_id: opponent.id, is_winner: !captainWins, score: cricket ? 2 : 50 },
+    ]));
+  }
   await signIn(page, captain.email);
   await page.goto('/auth');
   await expect(page).toHaveURL(/\/matches$/);
@@ -199,8 +215,36 @@ test('framework rendering, protected profiles, server route and image optimizer'
   for (const route of ['/profile', '/profiles', `/profiles/${captain.id}`]) {
     const response = await page.goto(route);
     expect(response.status()).toBe(200);
-    await expect(page.locator('main')).toContainText('Demo captain');
+    await expect(page.locator('main')).toContainText(profileName);
   }
+  await test.step('profile history pagination and filters on desktop and mobile', async () => {
+    const history = page.locator('section').filter({ has: page.getByRole('heading', { name: 'Match History', exact: true }) });
+    await history.getByRole('button', { name: 'All Matches', exact: true }).click();
+    await expect(history.getByText('Loading matches...', { exact: true })).not.toBeVisible();
+    await expect(history.getByRole('button', { name: 'Next', exact: true })).toBeEnabled();
+    await history.getByRole('button', { name: 'Next', exact: true }).click();
+    await expect(history.getByText('Loading matches...', { exact: true })).not.toBeVisible();
+    await expect(history.getByText(/^Page 2 of/)).toBeVisible();
+    await history.getByRole('button', { name: 'Previous', exact: true }).click();
+    await expect(history.getByText('Loading matches...', { exact: true })).not.toBeVisible();
+    await expect(history.getByText(/^Page 1 of/)).toBeVisible();
+    await page.setViewportSize({ width: 390, height: 844 });
+    await history.getByLabel('Game Type').selectOption('Cricket');
+    await history.getByLabel('Result').selectOption('wins');
+    await expect(history.getByText('Loading matches...', { exact: true })).not.toBeVisible();
+    const cards = history.locator('ul').first().locator(':scope > li');
+    await expect(cards.first()).toBeVisible();
+    for (const card of await cards.all()) {
+      await expect(card.locator('strong').first()).toContainText('Cricket');
+      const captainLine = card.locator('li').filter({ has: page.getByRole('link', { name: profileName, exact: true }) });
+      await expect(captainLine).toContainText('(winner)');
+    }
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth + 1)).toBe(true);
+    await history.getByLabel('Game Type').selectOption('Other');
+    await expect(history.getByText('No matches found for this player.', { exact: true })).toBeVisible();
+    await history.getByRole('button', { name: 'Last 5 Matches', exact: true }).click();
+    await expect(history.getByText('No recent matches found for this player.', { exact: true })).toBeVisible();
+  });
   await page.goto('/auth/verify-email?email=synthetic%40example.test');
   await expect(page.getByRole('heading', { name: 'Check your email to verify your account' })).toBeVisible();
   await expect(page.locator('main')).toContainText('synthetic@example.test');

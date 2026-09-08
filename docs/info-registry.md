@@ -360,6 +360,28 @@ it superseded or retired and point to the replacement.
 - **Related:** RDD-INFO-004; supersedes the plan's earlier rationale that an
   ESLint 10 migration had no present maintenance requirement.
 
+### RDD-INFO-016 — Next's ESLint peer range does not certify its plugin stack
+
+- **Status:** active
+- **Type:** external fact and repository constraint
+- **Scope:** ESLint major migration and dynamic-route lint coverage
+- **Statement:** `eslint-config-next@16.3.4` accepts ESLint >=9, but its React,
+  Import and JSX accessibility plugins still have published peer ranges ending
+  at 9. Updated TypeScript ESLint/Hooks clear the parser prerequisite, not all
+  plugin compatibility. ESLint 10.10.0 now fails on React's removed `getFilename`
+  API. Passing an isolated corpus does not establish plugin-wide support.
+- **Evidence:** exact registry/installed manifests and read-only CLI/API probes;
+  `docs/eslint-follow-up-2026-09-07.md` includes sources and migration boundaries.
+  `scripts/eslint-config.test.mjs` verifies the formerly ignored dynamic profile
+  path is included and both relevant Hooks checks actually report bad code.
+- **Validation:** 2026-09-07 version refresh, actual ESLint 10 crash, isolated
+  plugin corpus/defect probes and ESLint 9 regression tests.
+- **Invalidation trigger:** changed Next config, plugin/core versions, ignore
+  patterns or migration adoption. Recheck at migration entry and before Phase 4;
+  next review checkpoint 2026-09-14 if delivery pauses.
+- **Related:** RDD-INFO-015; the compatible update does not end ESLint 9's
+  unsupported-baseline caveat.
+
 ## Reviewed host workaround
 
 ### RDD-INFO-009 — Windows Docker socket recovery must preserve runtime folders

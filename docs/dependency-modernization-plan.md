@@ -377,6 +377,23 @@ the ESLint end-of-life caveat and rollback.
 Revert the maintenance commit. If removal and patching prove meaningfully
 different, split them into separate commits before merge.
 
+## ESLint follow-up — Compatible prerequisites and separate major migration
+
+User approved the compatible update and lint-gap correction, followed by a
+separate evaluation of the remaining plugins on 2026-09-07. TypeScript ESLint
+8.70.0 and Hooks 7.1.1 are locked within Next's supported dependency ranges;
+ESLint stays at 9.39.5. The dynamic profile page now has full lint coverage and
+regression tests. See `docs/eslint-follow-up-2026-09-07.md` for verification,
+dependency details and rollback.
+
+The ESLint 10.10.0 evaluation confirms a remaining React-plugin API crash;
+Import and JSX accessibility pass the current isolated corpus but their latest
+published peers do not include 10. The separate migration proposal first checks
+for compatible releases, then considers a bounded official-compatibility-layer
+proof with preserved rule coverage and clean peer resolution. Replacements,
+peer-policy exceptions and actual ESLint 10 adoption are not implicitly approved.
+Reassess before Phase 4 or by 2026-09-14; no background monitor was created.
+
 ## Package 3F — Optional CSS/tooling evaluation
 
 ### Candidate change
@@ -406,8 +423,8 @@ changes the decision:
 - ESLint 10 remains outside the approved 3E patch scope. The 2026-09-07 refresh
   found ESLint 9 is already end-of-life, invalidating the earlier "no current
   requirement" rationale. A separately approved ESLint 10/plugin compatibility
-  package is now a priority follow-up; do not treat a zero audit as ongoing
-  upstream support.
+  package remains a priority follow-up after the compatible prerequisite update
+  and separate assessment above; do not treat a zero audit as ongoing support.
 - Vitest 5, newly stable at the 3E refresh, requires a separate migration review.
 - TypeScript 7, because it changes compiler implementation and compatibility
   surfaces beyond routine maintenance.

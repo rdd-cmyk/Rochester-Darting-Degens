@@ -48,6 +48,8 @@ describe('statistics contrast palette', () => {
     'stats-series-5',
     'stats-positive',
     'stats-negative',
+    'stats-muted',
+    'stats-navy-soft',
   ])('%s meets text contrast in light and dark themes', (name) => {
     expect(contrastRatio(variable(rootBlock, name), '#ffffff')).toBeGreaterThanOrEqual(
       4.5
@@ -55,5 +57,9 @@ describe('statistics contrast palette', () => {
     expect(contrastRatio(variable(darkBlock, name), '#111b2b')).toBeGreaterThanOrEqual(
       4.5
     );
+  });
+
+  test('binds story eyebrows to the contrast-checked text token', () => {
+    expect(stylesheet).toMatch(/\.stats-eyebrow\s*{\s*color:\s*var\(--stats-navy-soft\)/);
   });
 });

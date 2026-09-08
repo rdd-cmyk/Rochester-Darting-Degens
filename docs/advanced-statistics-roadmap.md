@@ -1,6 +1,6 @@
 # Rochester Darting Degens Advanced Statistics Roadmap
 
-Status: active implementation on `advanced-statistics`
+Status: implementation consolidated on local `main`; remote release pending
 
 Supabase project: `hrqsbzmsfichiimtxijj`
 
@@ -25,6 +25,7 @@ Last updated: 2026-09-08
 | ESLint 10 adoption | Implemented and locally verified | ESLint 10.10.0 / compat 2.1.1 with three approved exact-plugin peer overrides; strict clean install, 150 tests and three browser scenarios pass; independent review complete. Plugin support remains a project-owned exception. See `docs/eslint-10-adoption-2026-09-08.md`; CI/Vercel remain pending. |
 | Bridge-free ESLint options | Deferred | Research candidates saved in `docs/eslint-bridge-free-options-2026-09-08.md`; no replacement migration approved. |
 | 3F — Optional CSS/tooling evaluation | Implemented, locally verified and independently reviewed | Tailwind/PostCSS adapter 4.3.3; 150 tests, 34 visual comparisons and three local browser cases pass. See `docs/package-3f-verification-2026-09-08.md`; CI/Vercel remain pending. |
+| Local-main review corrections | Implemented and locally verified | All four review findings corrected: pre-match schedule ratings, pinned local Supabase workdir, SVG axis fill, and dark eyebrow contrast. 166 tests and four browser contrast cases pass. See `docs/review-fixes-2026-09-08.md`. No push, deployment, or hosted changes. |
 
 ## Product goal
 

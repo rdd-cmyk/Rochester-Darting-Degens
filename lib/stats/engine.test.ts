@@ -27,6 +27,32 @@ function match(
 }
 
 describe('RDD rating engine', () => {
+  test.each([
+    ['A', 'B'], ['B', 'A'],
+    ['A', 'B', 'C'], ['C', 'A', 'B'], ['B', 'C', 'A'],
+  ])('uses pre-match schedule ratings regardless of participant order: %j', (...ids) => {
+    const result = buildLeagueAdvancedStats(match('1', 'A', ids.map(id => ({ id }))));
+    for (const player of result.players) {
+      expect(player.strengthOfSchedule).toBe(STARTING_RATING);
+    }
+  });
+
+  test.each([
+    ['A', 'B', 'C'], ['A', 'C', 'B'], ['B', 'A', 'C'],
+    ['B', 'C', 'A'], ['C', 'A', 'B'], ['C', 'B', 'A'],
+  ])('averages unequal pre-match opponents per match: %j', (...ids) => {
+    const result = buildLeagueAdvancedStats([
+      ...match('1', 'A', [{ id: 'A' }, { id: 'B' }]),
+      ...match('2', 'C', ids.map(id => ({ id }))),
+    ]);
+    // Before match 2: A=1516, B=1484, C=1500. Weight each match equally.
+    const expected = { A: 1496, B: 1504, C: 1500 };
+    for (const [id, schedule] of Object.entries(expected)) {
+      expect(result.players.find(player => player.playerId === id)?.strengthOfSchedule)
+        .toBeCloseTo(schedule, 8);
+    }
+  });
+
   test('updates an even two-player match symmetrically', () => {
     const result = buildLeagueAdvancedStats(match('1', 'A', [{ id: 'A' }, { id: 'B' }]));
     const playerA = result.players.find((player) => player.playerId === 'A');

@@ -282,7 +282,10 @@ it superseded or retired and point to the replacement.
   Docker Desktop 4.90.0 publications on this host. Use the supported localhost
   default with explicit machine-wide approval, and verify actual bindings.
   All repository start/status/stop/test wrappers must select the same local
-  engine and strip remote/TLS overrides. Optional Windows Vector is excluded
+  engine and strip remote/TLS overrides. Pin every local CLI invocation,
+  including readiness status probes, to the repository with `--workdir` and
+  remove inherited `SUPABASE_WORKDIR`; `cwd` alone does not select the project.
+  Optional Windows Vector is excluded
   because the pinned CLI expects unsecured Docker TCP 2375; do not enable it.
 - **Evidence:** user approved defaulting new containers to localhost on
   2026-09-07; `scripts/local-environment.mjs`, `scripts/supabase-local.mjs`;
@@ -291,6 +294,9 @@ it superseded or retired and point to the replacement.
 - **Validation:** Docker publications and Windows listeners verified as
   127.0.0.1/::1 after approved restart; mocked command-boundary tests check
   local target selection and environment sanitization without engine access.
+  On 2026-09-08, workdir regressions covered all four wrapper commands and the
+  actual status-helper command boundary; the pinned live status probe also
+  passed through `build:local`. See `docs/review-fixes-2026-09-08.md`.
 - **Invalidation trigger:** Desktop/CLI updates, network/default changes,
   switched container engines, changed published services, or a preflight failure.
 - **Related:** RDD-INFO-011; `docs/supabase-local-development.md`.

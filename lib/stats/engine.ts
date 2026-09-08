@@ -171,9 +171,9 @@ export function buildLeagueAdvancedStats(facts: MatchFact[]): LeagueAdvancedStat
       fact: participant,
       player: ensurePlayer(players, participant, match.playedAt),
     }));
-    const ratingWeights = participantStates.map(({ player }) =>
-      10 ** (player.rating / 400)
-    );
+    // Snapshot before any player is updated: every opponent uses pre-match ratings.
+    const preMatchRatings = participantStates.map(({ player }) => player.rating);
+    const ratingWeights = preMatchRatings.map(rating => 10 ** (rating / 400));
     const totalRatingWeight = ratingWeights.reduce((sum, value) => sum + value, 0);
     const expectedProbabilities = ratingWeights.map((value) => value / totalRatingWeight);
     const winnerIndex = participantStates.findIndex(({ fact }) => fact.isWinner);
@@ -197,9 +197,8 @@ export function buildLeagueAdvancedStats(facts: MatchFact[]): LeagueAdvancedStat
     );
 
     participantStates.forEach(({ fact, player }, index) => {
-      const opponentRatings = participantStates
-        .filter((_, opponentIndex) => opponentIndex !== index)
-        .map(({ player: opponent }) => opponent.rating);
+      const opponentRatings = preMatchRatings
+        .filter((_, opponentIndex) => opponentIndex !== index);
       const opponentAverage =
         opponentRatings.reduce((sum, value) => sum + value, 0) / opponentRatings.length;
 

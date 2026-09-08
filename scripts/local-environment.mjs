@@ -10,7 +10,7 @@ export const dockerHost = process.platform === 'win32'
 
 export function localDockerEnv() {
   const env = { ...process.env, DOCKER_HOST: dockerHost };
-  for (const key of ['DOCKER_CONTEXT', 'DOCKER_TLS', 'DOCKER_TLS_VERIFY', 'DOCKER_CERT_PATH', 'DOCKER_API_VERSION']) delete env[key];
+  for (const key of ['DOCKER_CONTEXT', 'DOCKER_TLS', 'DOCKER_TLS_VERIFY', 'DOCKER_CERT_PATH', 'DOCKER_API_VERSION', 'SUPABASE_WORKDIR']) delete env[key];
   if (process.platform === 'win32') {
     env.PATH = path.join(process.env.LOCALAPPDATA, 'Programs', 'DockerDesktop', 'resources', 'bin') + path.delimiter + env.PATH;
   }
@@ -70,9 +70,11 @@ export function cliPath() {
 
 export function localCliArgs(command, platform = process.platform) {
   const network = 'rdd-local-loopback';
-  if (command === 'start') return ['start', '--network-id', network, ...(platform === 'win32' ? ['--exclude', 'vector'] : [])];
-  if (command === 'test') return ['test', 'db', '--local', 'supabase/tests/database', '--network-id', network];
-  if (command === 'stop' || command === 'status') return [command];
+  // cwd alone is insufficient: the CLI also honors SUPABASE_WORKDIR.
+  const workdir = ['--workdir', root];
+  if (command === 'start') return ['start', '--network-id', network, ...(platform === 'win32' ? ['--exclude', 'vector'] : []), ...workdir];
+  if (command === 'test') return ['test', 'db', '--local', 'supabase/tests/database', '--network-id', network, ...workdir];
+  if (command === 'stop' || command === 'status') return [command, ...workdir];
   throw new Error('Use start, stop, status or test without extra flags.');
 }
 
@@ -83,7 +85,7 @@ export function localStatus() {
     if (!containers.some(c => c.Name === `/supabase_${service}_${projectId}` && c.State.Running
       && (!c.State.Health || c.State.Health.Status === 'healthy'))) throw new Error(`Local ${service} service is not ready.`);
   }
-  const raw = execFileSync(cliPath(), ['status', '-o', 'json'], {
+  const raw = execFileSync(cliPath(), [...localCliArgs('status'), '-o', 'json'], {
     cwd: root, env: localDockerEnv(), encoding: 'utf8', timeout: 30000,
     stdio: ['ignore', 'pipe', 'pipe'], windowsHide: true,
   });

@@ -38,6 +38,13 @@ const player: PlayerAdvancedStats = {
 };
 
 describe('RatingTrendChart', () => {
+  test('binds every numerical axis label to the theme text color', () => {
+    render(<RatingTrendChart players={[player]} />);
+    const labels = screen.getByRole('img').querySelectorAll('text[text-anchor="end"]');
+    expect(labels).toHaveLength(3);
+    for (const label of labels) expect(label).toHaveAttribute('fill', 'var(--stats-muted)');
+  });
+
   test('provides an expandable table containing the chart values', () => {
     render(<RatingTrendChart players={[player]} />);
 

@@ -1,6 +1,6 @@
 // @vitest-environment node
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { assertLoopbackUrl, assertLocalBindings, localDockerEnv, localCliArgs, dockerHost } from './local-environment.mjs';
+import { assertLoopbackUrl, assertLocalBindings, localDockerEnv, localCliArgs, dockerHost, root } from './local-environment.mjs';
 
 afterEach(() => vi.unstubAllEnvs());
 
@@ -17,13 +17,17 @@ describe('local-only application guardrails', () => {
     expect(process.env.DOCKER_HOST).toBe('tcp://remote.invalid:2376');
   });
   it.each(['start', 'stop', 'status', 'test'])('constructs only local %s commands', command => {
+    vi.stubEnv('SUPABASE_WORKDIR', '/unrelated-project');
+    expect(localCliArgs(command).slice(-2)).toEqual(['--workdir', root]);
+    expect(localDockerEnv().SUPABASE_WORKDIR).toBeUndefined();
+    expect(process.env.SUPABASE_WORKDIR).toBe('/unrelated-project');
     expect(localCliArgs(command, 'win32')).not.toContain('--linked');
     expect(localDockerEnv().DOCKER_HOST).toBe(dockerHost);
     expect(localCliArgs(command, 'win32')[0]).toBe(command);
   });
   it('excludes Vector only on Windows and rejects arbitrary commands', () => {
-    expect(localCliArgs('start', 'win32')).toEqual(['start', '--network-id', 'rdd-local-loopback', '--exclude', 'vector']);
-    expect(localCliArgs('start', 'linux')).toEqual(['start', '--network-id', 'rdd-local-loopback']);
+    expect(localCliArgs('start', 'win32')).toEqual(['start', '--network-id', 'rdd-local-loopback', '--exclude', 'vector', '--workdir', root]);
+    expect(localCliArgs('start', 'linux')).toEqual(['start', '--network-id', 'rdd-local-loopback', '--workdir', root]);
     expect(localCliArgs('test')).toContain('--local');
     expect(() => localCliArgs('db push')).toThrow();
   });

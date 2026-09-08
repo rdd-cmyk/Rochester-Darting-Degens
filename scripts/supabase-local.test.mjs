@@ -18,6 +18,7 @@ beforeEach(() => {
   vi.clearAllMocks();
   vi.spyOn(console, 'error').mockImplementation(() => {});
   vi.stubEnv('DOCKER_HOST', 'tcp://synthetic-remote.invalid:2376');
+  vi.stubEnv('SUPABASE_WORKDIR', '/unrelated-project');
   for (const key of ['DOCKER_CONTEXT', 'DOCKER_TLS', 'DOCKER_TLS_VERIFY', 'DOCKER_CERT_PATH', 'DOCKER_API_VERSION']) vi.stubEnv(key, 'synthetic');
 });
 afterEach(() => {
@@ -34,10 +35,16 @@ it.each(['start', 'stop', 'status', 'test'])('spawns %s against only the pinned 
     ? ['start', '--network-id', 'rdd-local-loopback', ...(process.platform === 'win32' ? ['--exclude', 'vector'] : [])]
     : command === 'test' ? ['test', 'db', '--local', 'supabase/tests/database', '--network-id', 'rdd-local-loopback'] : [command];
   expect(spawnSync).toHaveBeenCalledTimes(1);
-  expect(spawnSync).toHaveBeenCalledWith(cliPath(), expected, {
-    cwd: root, env: expect.objectContaining({ DOCKER_HOST: dockerHost }), stdio: 'inherit', windowsHide: true,
-  });
-  const env = spawnSync.mock.calls[0][2].env;
+  expected.push('--workdir', root);
+  // Assert arguments separately so failures never dump the inherited environment.
+  const [file, args, options] = spawnSync.mock.calls[0];
+  expect(file).toBe(cliPath());
+  expect(args).toEqual(expected);
+  const { env, ...safeOptions } = options;
+  expect(safeOptions).toEqual({ cwd: root, stdio: 'inherit', windowsHide: true });
+  expect(env.DOCKER_HOST).toBe(dockerHost);
+  expect(env.SUPABASE_WORKDIR).toBeUndefined();
+  expect(process.env.SUPABASE_WORKDIR).toBe('/unrelated-project');
   for (const key of ['DOCKER_CONTEXT', 'DOCKER_TLS', 'DOCKER_TLS_VERIFY', 'DOCKER_CERT_PATH', 'DOCKER_API_VERSION']) expect(env[key]).toBeUndefined();
   expect(process.env.DOCKER_HOST).toBe('tcp://synthetic-remote.invalid:2376');
 });

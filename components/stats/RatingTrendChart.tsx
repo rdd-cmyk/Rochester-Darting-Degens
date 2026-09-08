@@ -74,7 +74,7 @@ export function RatingTrendChart({ players }: RatingTrendChartProps) {
               y2={yFor(rating)}
               className="stats-chart-grid"
             />
-            <text x={PADDING.left - 10} y={yFor(rating) + 4} textAnchor="end">
+            <text x={PADDING.left - 10} y={yFor(rating) + 4} textAnchor="end" fill="var(--stats-muted)">
               {Math.round(rating)}
             </text>
           </g>

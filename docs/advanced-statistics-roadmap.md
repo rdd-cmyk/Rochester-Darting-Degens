@@ -23,7 +23,8 @@ Last updated: 2026-09-08
 | ESLint compatible prerequisites | Implemented and locally verified | TypeScript ESLint 8.70.0 and Hooks 7.1.1; dynamic profile lint gap closed. Historical evidence: `docs/eslint-follow-up-2026-09-07.md`. |
 | ESLint 10 bridge trial | Complete; superseded by approved adoption | 64 cross-engine proof checks passed; the original strict peer conflict motivated the separately approved exception. Historical record: `docs/eslint-bridge-trial-2026-09-07.md`. |
 | ESLint 10 adoption | Implemented and locally verified | ESLint 10.10.0 / compat 2.1.1 with three approved exact-plugin peer overrides; strict clean install, 150 tests and three browser scenarios pass; independent review complete. Plugin support remains a project-owned exception. See `docs/eslint-10-adoption-2026-09-08.md`; CI/Vercel remain pending. |
-| 3F — Optional CSS/tooling evaluation | Awaiting approval | Defined in `docs/dependency-modernization-plan.md`; not started. |
+| Bridge-free ESLint options | Deferred | Research candidates saved in `docs/eslint-bridge-free-options-2026-09-08.md`; no replacement migration approved. |
+| 3F — Optional CSS/tooling evaluation | Implemented, locally verified and independently reviewed | Tailwind/PostCSS adapter 4.3.3; 150 tests, 34 visual comparisons and three local browser cases pass. See `docs/package-3f-verification-2026-09-08.md`; CI/Vercel remain pending. |
 
 ## Product goal
 
@@ -238,6 +239,9 @@ Phase 4 entry gate is satisfied. Package 3F may remain deferred.
 
 ## Deferred decisions
 
+- Separate application fix: Summer Off followed by full reload causes a known
+  server/client initial-state mismatch. Observed on the pre-3F baseline; source
+  and reproduction are recorded in the 3F verification document.
 - Exact season boundaries and the initial active-season name.
 - Whether all-format Power Rating should be promoted alongside discipline
   ratings or remain a novelty view.

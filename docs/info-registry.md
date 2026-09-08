@@ -426,6 +426,27 @@ it superseded or retired and point to the replacement.
 - **Related:** supersedes the active-baseline limitation in RDD-INFO-015;
   RDD-INFO-016/017 remain useful distinctions between support, execution and install.
 
+## Candidate records
+
+### RDD-INFO-019 — Bridge-free ESLint 10 requires evaluating the plugin graph
+
+- **Status:** candidate; deferred evaluation, not migration approval
+- **Type:** external fact and configuration hypothesis
+- **Scope:** possible replacement of the approved lint bridge/peer exceptions
+- **Statement:** Direct Next lint-plugin integration plus ESLint React, Import X
+  and JSX accessibility X are credible candidates for a bridge-free ESLint 10
+  stack. Keeping the Next preset would retain its legacy plugin dependencies.
+  Published support does not prove equivalent checks or a clean combined graph.
+- **Evidence:** `docs/eslint-bridge-free-options-2026-09-08.md`, with exact
+  candidate versions, primary sources, tradeoffs and proposed acceptance gates.
+- **Validation:** upstream docs and npm metadata checked 2026-09-08; no combined
+  installation, runtime parity tests or maintainer review performed. User asked
+  to save this information for possible later evaluation before proceeding to 3F.
+- **Invalidation trigger:** refresh releases, peers, maintenance and active rules
+  before a separately approved evaluation; an original-plugin compatible release
+  may make replacement unnecessary.
+- **Related:** RDD-INFO-016/017/018. Does not supersede the installed exception.
+
 ## Reviewed host workaround
 
 ### RDD-INFO-009 — Windows Docker socket recovery must preserve runtime folders

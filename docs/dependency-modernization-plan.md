@@ -1,6 +1,6 @@
 # Dependency Modernization Delivery Plan
 
-Status: 3A complete; 3B–3E and approved ESLint 10 exception locally verified; 3F requires approval
+Status: 3A complete; 3B–3F and approved ESLint 10 exception locally verified and reviewed; remote gates pending
 
 Branch: `advanced-statistics`
 
@@ -410,6 +410,22 @@ clearance and does not convert the unsupported ESLint 9 baseline into support.
 
 ## Package 3F — Optional CSS/tooling evaluation
 
+Status: user authorized 2026-09-08; paired update implemented, locally verified
+and independently reviewed. No push/deployment included; remote gates pending.
+Baseline: Tailwind / PostCSS adapter 4.1.17. Refreshed target: exact 4.3.3.
+No redesign, ESLint replacements, hosted changes or deployment is included.
+
+### Selected update and evidence
+
+- Tailwind and its PostCSS adapter are exact 4.3.3, including matching Node/Oxide
+  internals. PostCSS itself remains 8.5.26 (Next internal 8.5.23).
+- Standard install/test/coverage/lint/type-check/build and audits pass; 150 tests,
+  12 visual scenarios / 34 comparisons and three local functional browser cases.
+- CSS grows by 140 bytes / 71 gzipped; differences are explained serialization,
+  fallback font and Firefox iframe-focus changes. No custom CSS/app edits.
+- See `docs/package-3f-verification-2026-09-08.md` for reproduction, comparison
+  limits, review findings/fixes, existing Summer reload issue and rollback.
+
 ### Candidate change
 
 - Evaluate Tailwind CSS and `@tailwindcss/postcss` `4.3.3` as a paired update.
@@ -435,6 +451,9 @@ These upgrades are outside the current package set unless a concrete blocker
 changes the decision:
 
 - ESLint plugin replacements or broader peer exceptions remain outside scope.
+  Bridge-free candidates and their separate evaluation gates are saved in
+  `docs/eslint-bridge-free-options-2026-09-08.md` (RDD-INFO-019); the user deferred
+  that evaluation while proceeding with 3F.
   The separately approved ESLint 10 adoption above covers only three exact
   plugin-version overrides and the official bridge; upstream plugin support is
   still distinct from a successful install under those exceptions.

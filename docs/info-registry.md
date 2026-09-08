@@ -138,8 +138,8 @@ it superseded or retired and point to the replacement.
   not a guarantee that the application has no security defects.
 - **Validation:** npm audit, dependency-tree inspection, trusted clean install,
   production build and local browser acceptance on 2026-09-07. Re-audited at
-  the Package 3C boundary: zero production and the same one moderate
-  development-only finding; see `docs/package-3c-verification-2026-09-07.md`.
+  the Package 3C and 3D boundaries: zero production and the same one moderate
+  development-only finding; see their dated package verification records.
 - **Invalidation trigger:** any lockfile change or the next package boundary;
   rerun the complete audit.
 - **Related:** dependency modernization Package 3B.
@@ -315,6 +315,29 @@ it superseded or retired and point to the replacement.
 - **Invalidation trigger:** local mail service/API, Auth configuration, SDK,
   recovery implementation or test-artifact settings change; reverify before use.
 - **Related:** RDD-INFO-003 and RDD-INFO-012; hosted acceptance remains separate.
+
+### RDD-INFO-014 — Telemetry packages are not the hosted collector
+
+- **Status:** active
+- **Type:** repository fact and validation constraint
+- **Scope:** Vercel telemetry upgrades, local QA and privacy review
+- **Statement:** The root excludes telemetry only when `RDD_LOCAL_PREVIEW=1`.
+  Vercel Preview is otherwise a production SDK environment. The SDKs inject
+  separately served collector scripts and can accept dynamic provider endpoint
+  configuration; pinning npm versions does not pin those scripts. Local tests
+  that replace the scripts prove wiring, not event receipt or full payload
+  privacy. The shared filter limits URL/route values but is not a network-level
+  anonymity guarantee. Sampling is unchanged at the provider default.
+- **Evidence:** `app/components/Observability.tsx`, `lib/telemetry.ts`, installed
+  SDK Next adapters; `docs/observability.md` and
+  `docs/package-3d-verification-2026-09-07.md`.
+- **Validation:** 2026-09-07 actual-SDK component tests and intercepted production
+  browser test; independent source/documentation review. Actual hosted intake
+  and dashboard visibility remain pending.
+- **Invalidation trigger:** SDK/collector updates, provider configuration,
+  routes, privacy filter, sampling or local-mode behavior changes; recheck actual
+  hosted payloads at release and after endpoint changes.
+- **Related:** RDD-INFO-012 and RDD-INFO-013; 3D hosted acceptance checklist.
 
 ## Reviewed host workaround
 

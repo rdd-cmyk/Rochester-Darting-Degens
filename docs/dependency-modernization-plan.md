@@ -1,6 +1,6 @@
 # Dependency Modernization Delivery Plan
 
-Status: 3A complete; 3B–3C implemented and locally verified; 3D–3F require approval
+Status: 3A complete; 3B–3D implemented and locally verified; 3E–3F require approval
 
 Branch: `advanced-statistics`
 
@@ -256,10 +256,44 @@ untouched by this package.
 
 ## Package 3D — Vercel observability SDKs
 
-### Planned versions
+Status: implemented and locally verified; user authorized 2026-09-07.
+Independent review completed with no actionable findings. No push, hosted
+collection or paid service changes included; hosted intake acceptance remains
+pending, as do CI/Vercel deployment checks.
+
+### Selected versions (refreshed 2026-09-07)
 
 - `@vercel/analytics`: `2.0.1`
 - `@vercel/speed-insights`: `2.0.0`
+
+Both stable targets support the existing Next 16/React 19 runtime. Dynamic
+provider configuration is supported without opting into a new endpoint or paid
+feature. No new transitive packages or install approvals are required. Analytics
+2.0.1 fixes optional Nuxt peer metadata; no Nuxt integration is used here.
+
+The application now shares a client-side `beforeSend` URL filter: reviewed page
+routes only, no query/fragment values, anonymized profile path IDs, and no events
+for auth/recovery/unknown routes. The root's explicit local-mode exclusion is
+unchanged. Sampling remains at the provider default; no custom events, identity
+properties or performance subscription changes are introduced.
+
+See `docs/observability.md` for behavior, privacy limits, sampling, provider
+configuration, and the authorized hosted verification checklist. Local tests
+must not be represented as proof that events reached Vercel.
+
+### Local verification (2026-09-07)
+
+- Trusted clean install, 81 Vitest tests, coverage, lint, type-check and fresh
+  production builds with telemetry mounted and excluded passed.
+- One intercepted production-browser telemetry scenario passed: single SDK
+  scripts, client navigation, privacy callbacks, no hydration/console errors,
+  and no collection requests. This does not execute the hosted collector.
+- Restored telemetry-disabled local build and passed all three ordinary browser
+  scenarios covering auth/recovery, match writes, profiles and statistics.
+- Production audit remains zero; full audit retains the same moderate
+  development-only humanfs advisory assigned to 3E.
+
+See `docs/package-3d-verification-2026-09-07.md` for evidence and rollback.
 
 ### Acceptance
 

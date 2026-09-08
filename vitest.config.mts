@@ -11,6 +11,9 @@ export default defineConfig({
     },
   },
   test: {
+    // Transform both SDKs so their Next navigation imports use the same test
+    // router mock (Speed Insights also publishes a CommonJS entry point).
+    server: { deps: { inline: ['@vercel/analytics', '@vercel/speed-insights'] } },
     exclude: [...configDefaults.exclude, 'scripts/qa/**'],
     environment: 'jsdom',
     setupFiles: ['./vitest.setup.ts'],

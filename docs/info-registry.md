@@ -432,7 +432,32 @@ it superseded or retired and point to the replacement.
 - **Related:** supersedes the active-baseline limitation in RDD-INFO-015;
   RDD-INFO-016/017 remain useful distinctions between support, execution and install.
 
+### RDD-INFO-020 — A Vercel connection does not configure preview Auth redirects
+
+- **Status:** active
+- **Type:** verified repository delivery constraint and hosted configuration fact
+- **Scope:** Supabase Auth recovery and Vercel preview acceptance
+- **Statement:** The Supabase organization's Vercel connection and Auth URL
+  configuration are independent. On 2026-09-24 the RDD Main Project was linked
+  to `rochester-darting-degens`, with production credential sync enabled only
+  for Production; Preview and Development sync were off. Its Auth Site URL was
+  `https://rocdartdegens.com`, and its three allowed redirects were production
+  root, production `/reset-password`, and `http://localhost:3000`. No preview
+  reset URL was allowed. The organization and project integration views showed
+  no connected GitHub repository. A working preview login does not establish
+  automatic preview credential sync, Supabase branching, or recovery redirects.
+- **Evidence:** authenticated dashboard inspection of [Auth URL Configuration](https://supabase.com/dashboard/project/hrqsbzmsfichiimtxijj/auth/url-configuration)
+  and [project integration settings](https://supabase.com/dashboard/project/hrqsbzmsfichiimtxijj/settings/integrations);
+  `docs/hosted-preview-checks-2026-09-24.md` records the recovery source fix.
+- **Validation:** read-only dashboard observations on 2026-09-24. No connection
+  or Auth settings were changed by this inspection.
+- **Invalidation trigger:** any Supabase Auth URL, organization integration,
+  Vercel project environment, or Supabase branching change. Recheck before
+  each hosted recovery test or preview database claim.
+- **Related:** RDD-INFO-011, RDD-INFO-013, and RDD-INFO-014.
+
 ## Candidate records
+
 
 ### RDD-INFO-019 — Bridge-free ESLint 10 requires evaluating the plugin graph
 

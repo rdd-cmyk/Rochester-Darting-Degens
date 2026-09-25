@@ -20,10 +20,16 @@ If you do not have a Supabase project yet, create one at [supabase.com](https://
 
 ## Getting Started
 
-First, install dependencies and start the development server:
+Use Node.js `24.15.0` or newer within Node 24 and any npm 11 release. The
+repository pins Node.js `24.20.0` in `.nvmrc`; `npm run ci:install` safely
+bootstraps npm `11.19.0` before installing dependencies, so local development,
+CI, and Vercel share the same package-manager implementation. Unsupported
+runtime or package-manager lines are rejected during npm commands.
+
+Install the exact locked dependencies and start the development server:
 
 ```bash
-npm install
+npm run ci:install
 npm run dev
 ```
 
@@ -32,6 +38,28 @@ Open [http://localhost:3000](http://localhost:3000) with your browser to see the
 You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
 
 This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+
+## Windows Docker startup recovery
+
+If Docker Desktop fails on an inaccessible `sailor-ingest.sock` or
+`engine.sock`, see [the guarded recovery launcher](docs/windows-docker-recovery.md).
+On a supported per-user Windows installation, `npm run docker:start` starts
+Docker after preserving only verified stale runtime socket folders. It does
+not start Supabase or change hosted data. `npm run docker:check` previews the
+operation without renaming anything or starting Docker.
+
+## Local database validation
+
+The original hosted schema baseline and statistics migration have passed a
+local PostgreSQL replay, 25 pgTAP policy/constraint tests, and a separate
+7-assertion legacy-data preservation rehearsal. See the
+[schema review](docs/supabase-schema-review-2026-09-07.md) and
+[local setup guide](docs/supabase-local-development.md). Core local services
+now run on verified loopback-only ports; the optional Windows Vector log
+collector is excluded. Use `npm run dev:local` for a local-only app preview
+without modifying existing environment files.
+Do not push the baseline to the existing hosted database without the documented
+migration-history, backup, and approval gates.
 
 ## Learn More
 
@@ -45,5 +73,12 @@ You can check out [the Next.js GitHub repository](https://github.com/vercel/next
 ## Deploy on Vercel
 
 The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+
+The `engines.node` declaration in `package.json` selects Vercel's latest
+supported Node.js `24.x` build/runtime above the project's jsdom compatibility
+floor. The shared `ci:install` command bootstraps npm `11.19.0` without package
+scripts and then performs the fail-closed install used everywhere. Keep the
+Vercel project setting on `24.x` and confirm the actual patch versions in
+preview build logs after runtime changes.
 
 Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.

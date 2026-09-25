@@ -138,13 +138,11 @@ export default function AuthPage() {
     }
 
     try {
-      const redirectBase =
-        process.env.NEXT_PUBLIC_SITE_URL || 'https://rocdartdegens.com';
-
       const { error } = await supabase.auth.resetPasswordForEmail(
         email.trim(),
         {
-          redirectTo: `${redirectBase}/reset-password`,
+          // A preview must return to the deployment that requested recovery.
+          redirectTo: new URL('/reset-password', window.location.origin).toString(),
         }
       );
 

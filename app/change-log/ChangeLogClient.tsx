@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabaseClient";
+import { ChangeLogMarkdown } from "./ChangeLogMarkdown";
 
 type PullRequestSummary = {
   id: number;
@@ -97,9 +98,9 @@ export default function ChangeLogClient() {
   const heading = (
     <div className="section-stack">
       <div>
-        <p className="leaderboard-title" id="change-log-heading">
+        <h1 className="leaderboard-title change-log-heading" id="change-log-heading">
           Change Log
-        </p>
+        </h1>
         <p style={{ color: "var(--muted-foreground)", marginTop: "0.35rem" }}>
           Latest merged pull requests. Results refresh periodically to reduce
           API calls.
@@ -183,72 +184,26 @@ export default function ChangeLogClient() {
         available.
       </div>
     ) : (
-      <ul
-        style={{
-          listStyle: "none",
-          padding: 0,
-          display: "flex",
-          flexDirection: "column",
-          gap: "1rem",
-        }}
-      >
+      <ul className="change-log-list">
         {pulls.map((pr) => (
-          <li
-            key={pr.id}
-            style={{
-              padding: "1rem",
-              borderRadius: "0.9rem",
-              border: `1px solid var(--panel-border)`,
-              backgroundColor: "var(--panel-bg)",
-              boxShadow: "0 10px 25px rgba(0, 0, 0, 0.03)",
-              display: "grid",
-              gap: "0.4rem",
-            }}
-          >
-            <div
-              style={{
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "space-between",
-                gap: "0.75rem",
-                flexWrap: "wrap",
-              }}
-            >
-              <p
-                style={{
-                  fontSize: "1.05rem",
-                  fontWeight: 700,
-                  color: "var(--foreground)",
-                  wordBreak: "break-word",
-                  margin: 0,
-                }}
-              >
+          <li key={pr.id} className="change-log-card">
+            <div className="change-log-card-header">
+              <h2 className="change-log-card-title">
                 {pr.title}
-              </p>
-              <span
-                style={{
-                  color: "var(--muted-foreground)",
-                  fontSize: "0.95rem",
-                  whiteSpace: "nowrap",
-                }}
-              >
+              </h2>
+              <time className="change-log-card-date" dateTime={pr.merged_at}>
                 Merged {new Intl.DateTimeFormat("en", {
                   month: "short",
                   day: "numeric",
                   year: "numeric",
                 }).format(new Date(pr.merged_at))}
-              </span>
+              </time>
             </div>
-            <div
-              style={{
-                color: "var(--muted-foreground)",
-                fontSize: "0.95rem",
-                whiteSpace: "pre-line",
-                marginTop: "0.35rem",
-              }}
-            >
-              {pr.summary ?? "No summary provided."}
-            </div>
+            {pr.summary ? (
+              <ChangeLogMarkdown content={pr.summary} />
+            ) : (
+              <p className="change-log-empty">No summary provided.</p>
+            )}
           </li>
         ))}
       </ul>

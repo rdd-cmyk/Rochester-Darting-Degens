@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
-import { Analytics } from "@vercel/analytics/next";
-import { SpeedInsights } from "@vercel/speed-insights/next";
+import Observability from "./components/Observability";
 import "./globals.css";
 import LayoutShell from "./components/LayoutShell";
 
@@ -28,8 +27,10 @@ export default function RootLayout({
         }}
       >
         <LayoutShell>{children}</LayoutShell>
-        <Analytics />
-        <SpeedInsights />
+        {/* Local synthetic acceptance must not load external telemetry scripts. */}
+        {process.env.RDD_LOCAL_PREVIEW !== "1" && (
+          <Observability />
+        )}
       </body>
     </html>
   );

@@ -157,7 +157,6 @@ export default function ProfilePage() {
   const [resultFilter, setResultFilter] = useState<'all' | 'wins' | 'losses'>(
     'all'
   );
-  const [visibleAllMatches, setVisibleAllMatches] = useState<MatchSummary[]>([]);
   const scrollPositionRef = useRef<number | null>(null);
 
   const recordScrollPosition = () => {
@@ -389,6 +388,7 @@ export default function ProfilePage() {
   }, [id]);
 
   useEffect(() => {
+    let cancelled = false;
     async function loadAllMatches(page: number) {
       if (!id) return;
       setAllMatchesLoading(true);
@@ -441,6 +441,9 @@ export default function ProfilePage() {
         .order('played_at', { ascending: false })
         .range(from, to);
 
+      // A newer filter/page request owns the result after effect cleanup.
+      if (cancelled) return;
+
       if (error) {
         console.error('Error loading all matches for profile:', error);
         setAllMatchesError('Could not load match history.');
@@ -459,6 +462,7 @@ export default function ProfilePage() {
     if (activeTab === 'all') {
       loadAllMatches(allMatchesPage);
     }
+    return () => { cancelled = true; };
   }, [activeTab, allMatchesPage, gameTypeFilter, id, resultFilter]);
 
   const restoreScrollPositionIfSaved = () => {
@@ -519,12 +523,6 @@ export default function ProfilePage() {
     });
   };
 
-  useEffect(() => {
-    if (!allMatchesLoading) {
-      setVisibleAllMatches(applyMatchFilters(allMatches));
-    }
-  }, [allMatches, allMatchesLoading, gameTypeFilter, resultFilter]);
-
   if (loading) {
     return (
       <main className="page-shell" style={{ maxWidth: '820px' }}>
@@ -574,7 +572,9 @@ export default function ProfilePage() {
   const hasSex = !!profile.sex?.trim();
 
   const filteredRecentMatches = applyMatchFilters(recentMatches);
-  const filteredAllMatches = visibleAllMatches;
+  // The history query applies filters before pagination. Keep its last settled
+  // page beneath the loading overlay until the current request completes.
+  const filteredAllMatches = allMatches;
   const matchesToDisplay =
     filteredAllMatches.length === 0 && allMatchesLoading
       ? filteredRecentMatches

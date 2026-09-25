@@ -13,9 +13,9 @@ export default function ChangeLogPage() {
         <main className="page-shell" aria-labelledby="change-log-heading">
           <div className="section-stack">
             <div>
-              <p className="leaderboard-title" id="change-log-heading">
+              <h1 className="leaderboard-title change-log-heading" id="change-log-heading">
                 Change Log
-              </p>
+              </h1>
               <p style={{ color: "var(--muted-foreground)", marginTop: "0.35rem" }}>
                 Loading change log...
               </p>

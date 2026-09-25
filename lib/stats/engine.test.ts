@@ -11,14 +11,14 @@ function match(
   matchId: string,
   winnerId: string | null,
   players: Array<{ id: string; score?: number }>,
-  options: { gameType?: string; playedAt?: string } = {}
+  options: { gameType?: string | null; playedAt?: string } = {}
 ): MatchFact[] {
   return players.map((player) => ({
     matchId,
     playerId: player.id,
     displayName: player.id,
     playedAt: options.playedAt ?? `2026-01-${matchId.padStart(2, '0')}T20:00:00.000Z`,
-    gameType: options.gameType ?? '501',
+    gameType: options.gameType === undefined ? '501' : options.gameType,
     boardType: 'Steel Tip',
     venue: 'Test venue',
     isWinner: player.id === winnerId,
@@ -157,6 +157,21 @@ describe('RDD rating engine', () => {
       }),
     ]);
 
+    expect(result.scoreLabel).toBeNull();
+    expect(result.players.every((player) => player.scoreDistribution === null)).toBe(true);
+  });
+
+  test.each([null, ''])('does not treat %j game types as 501 scores', (gameType) => {
+    const result = buildLeagueAdvancedStats([
+      ...match('1', 'A', [{ id: 'A', score: 60 }, { id: 'B', score: 50 }], {
+        gameType: '501',
+      }),
+      ...match('2', 'B', [{ id: 'A', score: 2.5 }, { id: 'B', score: 3 }], {
+        gameType,
+      }),
+    ]);
+
+    expect(result.matchesAnalyzed).toBe(2);
     expect(result.scoreLabel).toBeNull();
     expect(result.players.every((player) => player.scoreDistribution === null)).toBe(true);
   });

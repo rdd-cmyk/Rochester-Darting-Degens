@@ -76,9 +76,8 @@ function detectScoreLabel(
   facts: MatchFact[],
   includeOtherScores: boolean
 ): LeagueAdvancedStats['scoreLabel'] {
-  const gameTypes = new Set(
-    facts.map((fact) => fact.gameType).filter((gameType): gameType is string => Boolean(gameType))
-  );
+  // Missing or blank disciplines cannot be assumed compatible with known scores.
+  const gameTypes = new Set(facts.map((fact) => fact.gameType));
 
   if (gameTypes.size !== 1) return null;
   const [gameType] = gameTypes;

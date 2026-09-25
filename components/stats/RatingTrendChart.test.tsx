@@ -63,4 +63,19 @@ describe('RatingTrendChart', () => {
     expect(within(table).getByText('Baseline')).toBeInTheDocument();
     expect(within(table).getByText('1516.0')).toBeInTheDocument();
   });
+
+  test('keeps endpoint ratings inside the chart and shows full long names below it', () => {
+    const longName = 'A Dart Player With A Very Long Display Name And A Nickname';
+    render(<RatingTrendChart players={[{ ...player, displayName: longName }]} />);
+
+    const chart = screen.getByRole('img');
+    expect(within(chart).getByText('1. 1516')).toBeInTheDocument();
+    expect(chart).not.toHaveTextContent(longName);
+
+    const legend = screen.getByRole('list', {
+      name: 'Players in the power rating chart',
+    });
+    expect(within(legend).getByText(longName)).toBeInTheDocument();
+    expect(within(legend).getByText('1516')).toBeInTheDocument();
+  });
 });

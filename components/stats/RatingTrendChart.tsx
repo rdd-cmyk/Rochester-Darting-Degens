@@ -61,8 +61,9 @@ export function RatingTrendChart({ players }: RatingTrendChartProps) {
         <title>Power rating history</title>
         <desc>
           Lines show the rating after each player appearance. The dashed reference line is
-          the starting rating of 1500. Exact values are available in the table after the
-          chart.
+          the starting rating of 1500. Numbered endpoint labels show current ratings;
+          matching player names are listed below. Exact values are available in the
+          table after the chart.
         </desc>
 
         {guideRatings.map((rating) => (
@@ -122,7 +123,7 @@ export function RatingTrendChart({ players }: RatingTrendChartProps) {
                 fill={color}
                 className="stats-chart-direct-label"
               >
-                {player.displayName} {Math.round(player.rating)}
+                {playerIndex + 1}. {Math.round(finalPoint.rating)}
               </text>
             </g>
           );
@@ -138,6 +139,22 @@ export function RatingTrendChart({ players }: RatingTrendChartProps) {
         </text>
         </svg>
       </div>
+      <ol className="stats-chart-legend" aria-label="Players in the power rating chart">
+        {chartPlayers.map((player, playerIndex) => (
+          <li key={player.playerId}>
+            <span
+              className="stats-chart-legend-marker"
+              style={{ borderColor: CHART_COLORS[playerIndex] }}
+            >
+              {playerIndex + 1}
+            </span>
+            <span className="stats-chart-legend-name">{player.displayName}</span>
+            <strong className="stats-chart-legend-rating">
+              {Math.round(player.rating)}
+            </strong>
+          </li>
+        ))}
+      </ol>
       <details className="stats-chart-data">
         <summary>View exact rating history</summary>
         <div className="stats-table-scroll">

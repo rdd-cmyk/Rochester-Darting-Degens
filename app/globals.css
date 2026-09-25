@@ -732,6 +732,49 @@ textarea:disabled {
   font-weight: 800;
 }
 
+.stats-chart-legend {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 16rem), 1fr));
+  gap: 0.5rem;
+  margin: 0 1rem 1rem;
+  padding: 0;
+  list-style: none;
+}
+
+.stats-chart-legend li {
+  display: grid;
+  grid-template-columns: 1.75rem minmax(0, 1fr) auto;
+  align-items: start;
+  gap: 0.5rem;
+  min-width: 0;
+  padding: 0.55rem 0.65rem;
+  border: 1px solid var(--stats-border);
+  border-radius: 0.6rem;
+  background: color-mix(in srgb, var(--stats-panel) 96%, var(--stats-page));
+}
+
+.stats-chart-legend-marker {
+  display: grid;
+  place-items: center;
+  width: 1.5rem;
+  height: 1.5rem;
+  border: 2px solid;
+  border-radius: 50%;
+  font-size: 0.75rem;
+  font-weight: 800;
+}
+
+.stats-chart-legend-name {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  line-height: 1.35;
+}
+
+.stats-chart-legend-rating {
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
 .stats-chart-axis-title {
   fill: var(--stats-muted);
   font-family: var(--font-geist-sans);

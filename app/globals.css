@@ -190,6 +190,200 @@ textarea:disabled {
   box-shadow: 0 0.2rem 0.4rem rgba(0, 0, 0, 0.1);
 }
 
+.change-log-heading {
+  color: var(--link-color);
+}
+
+.change-log-list {
+  display: grid;
+  gap: 1rem;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.change-log-card {
+  min-width: 0;
+  padding: 1.2rem;
+  border: 1px solid var(--panel-border);
+  border-radius: 0.9rem;
+  background: var(--panel-bg);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.03);
+}
+
+.change-log-card-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.35rem 1rem;
+  margin-bottom: 0.85rem;
+  padding-bottom: 0.8rem;
+  border-bottom: 1px solid var(--panel-border);
+}
+
+.change-log-card-title {
+  min-width: 0;
+  margin: 0;
+  color: var(--foreground);
+  font-size: 1.1rem;
+  font-weight: 750;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+
+.change-log-card-date,
+.change-log-empty {
+  color: var(--muted-foreground);
+  font-size: 0.9rem;
+}
+
+.change-log-card-date {
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+.change-log-empty {
+  margin: 0;
+}
+
+.change-log-markdown {
+  min-width: 0;
+  color: var(--foreground);
+  font-size: 0.95rem;
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+}
+
+.change-log-markdown > :first-child {
+  margin-top: 0;
+}
+
+.change-log-markdown > :last-child {
+  margin-bottom: 0;
+}
+
+.change-log-markdown :is(h3, h4, h5, h6) {
+  margin: 1rem 0 0.4rem;
+  font-size: 1rem;
+  font-weight: 800;
+  line-height: 1.4;
+}
+
+.change-log-markdown p,
+.change-log-markdown :is(ul, ol),
+.change-log-markdown blockquote,
+.change-log-markdown pre,
+.change-log-markdown .change-log-table-scroll {
+  margin: 0.55rem 0;
+}
+
+.change-log-markdown :is(ul, ol) {
+  padding-left: 1.45rem;
+}
+
+.change-log-markdown ul {
+  list-style: disc;
+}
+
+.change-log-markdown ol {
+  list-style: decimal;
+}
+
+.change-log-markdown li + li {
+  margin-top: 0.3rem;
+}
+
+.change-log-markdown li > p {
+  margin: 0.2rem 0;
+}
+
+.change-log-markdown li.task-list-item {
+  list-style: none;
+}
+
+.change-log-markdown input[type="checkbox"] {
+  width: 1rem;
+  height: 1rem;
+  margin-right: 0.35rem;
+  padding: 0;
+  vertical-align: middle;
+}
+
+.change-log-markdown a {
+  color: var(--link-color);
+  text-decoration: underline;
+  text-underline-offset: 0.15em;
+}
+
+.change-log-markdown a:hover {
+  text-decoration-thickness: 0.13em;
+}
+
+.change-log-markdown :not(pre) > code {
+  padding: 0.1em 0.3em;
+  border-radius: 0.3rem;
+  background: color-mix(in srgb, var(--foreground) 8%, transparent);
+  font-family: var(--font-geist-mono);
+  font-size: 0.9em;
+}
+
+.change-log-markdown pre {
+  max-width: 100%;
+  overflow-x: auto;
+  padding: 0.8rem 1rem;
+  border: 1px solid var(--panel-border);
+  border-radius: 0.6rem;
+  background: color-mix(in srgb, var(--foreground) 6%, var(--panel-bg));
+}
+
+.change-log-markdown pre code {
+  font-family: var(--font-geist-mono);
+  font-size: 0.85rem;
+  white-space: pre;
+  overflow-wrap: normal;
+}
+
+.change-log-markdown blockquote {
+  padding: 0.15rem 0 0.15rem 0.85rem;
+  border-left: 3px solid var(--link-color);
+  color: var(--muted-foreground);
+}
+
+.change-log-markdown hr {
+  margin: 0.85rem 0;
+  border: 0;
+  border-top: 1px solid var(--panel-border);
+}
+
+.change-log-table-scroll {
+  max-width: 100%;
+  overflow-x: auto;
+}
+
+.change-log-table-scroll table {
+  min-width: 100%;
+  border-collapse: collapse;
+}
+
+.change-log-table-scroll :is(th, td) {
+  padding: 0.45rem 0.6rem;
+  border: 1px solid var(--panel-border);
+  text-align: left;
+}
+
+.change-log-table-scroll th {
+  font-weight: 750;
+}
+
+.change-log-markdown img {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  border-radius: 0.5rem;
+}
+
 .form-row {
   display: grid;
   grid-template-columns: var(--form-grid-columns);

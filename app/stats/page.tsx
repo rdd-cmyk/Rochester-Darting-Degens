@@ -66,15 +66,69 @@ export default function AdvancedStatsPage() {
   const [gameType, setGameType] = useState<(typeof GAME_TYPES)[number]>('All');
   const [boardType, setBoardType] = useState<(typeof BOARD_TYPES)[number]>('All');
   const [minimumGames, setMinimumGames] = useState<(typeof MINIMUM_GAMES)[number]>(3);
+  const [includeOtherScores, setIncludeOtherScores] = useState(false);
+  const [userId, setUserId] = useState<string | null>(null);
+  const [authLoading, setAuthLoading] = useState(true);
+  const [authError, setAuthError] = useState(false);
   const [loading, setLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   useEffect(() => {
     let active = true;
+    let authRevision = 0;
+    let knownUserId: string | null = null;
+
+    function updateUser(nextUserId: string | null) {
+      if (knownUserId !== nextUserId) {
+        knownUserId = nextUserId;
+        setFacts([]);
+        setErrorMessage(null);
+        setLoading(true);
+      }
+      setUserId(nextUserId);
+    }
+
+    async function loadUser() {
+      const revision = authRevision;
+      try {
+        const { data, error } = await supabase.auth.getUser();
+        if (error) throw error;
+        if (!active || revision !== authRevision) return;
+        updateUser(data.user?.id ?? null);
+        setAuthError(false);
+      } catch {
+        if (!active || revision !== authRevision) return;
+        updateUser(null);
+        setAuthError(true);
+      } finally {
+        if (active && revision === authRevision) setAuthLoading(false);
+      }
+    }
+
+    loadUser();
+    const { data: subscription } = supabase.auth.onAuthStateChange((event, session) => {
+      if (!active || event === 'INITIAL_SESSION') return;
+      authRevision += 1;
+      updateUser(session?.user.id ?? null);
+      setAuthError(false);
+      setAuthLoading(false);
+    });
+
+    return () => {
+      active = false;
+      subscription?.subscription.unsubscribe();
+    };
+  }, []);
+
+  useEffect(() => {
+    let active = true;
+
+    if (!userId) return;
 
     async function loadFacts() {
       setLoading(true);
       setErrorMessage(null);
+      setFacts([]);
 
       try {
         const data = await collectAllStatisticsRows<RawFact>(async (from, to) => {
@@ -157,7 +211,7 @@ export default function AdvancedStatsPage() {
     return () => {
       active = false;
     };
-  }, []);
+  }, [userId]);
 
   const filteredFacts = useMemo(
     () =>
@@ -169,8 +223,10 @@ export default function AdvancedStatsPage() {
     [boardType, facts, gameType]
   );
   const leagueStats = useMemo(
-    () => buildLeagueAdvancedStats(filteredFacts),
-    [filteredFacts]
+    () => buildLeagueAdvancedStats(filteredFacts, {
+      includeOtherScores: gameType === 'Other' && includeOtherScores,
+    }),
+    [filteredFacts, gameType, includeOtherScores]
   );
   const eligiblePlayers = useMemo(
     () => leagueStats.players.filter((player) => player.games >= minimumGames),
@@ -216,9 +272,10 @@ export default function AdvancedStatsPage() {
           <span>Game type</span>
           <select
             value={gameType}
-            onChange={(event) =>
-              setGameType(event.target.value as (typeof GAME_TYPES)[number])
-            }
+            onChange={(event) => {
+              setGameType(event.target.value as (typeof GAME_TYPES)[number]);
+              setIncludeOtherScores(false);
+            }}
           >
             {GAME_TYPES.map((option) => (
               <option key={option}>{option}</option>
@@ -259,9 +316,47 @@ export default function AdvancedStatsPage() {
         </div>
       </section>
 
-      {errorMessage ? <div className="stats-error">{errorMessage}</div> : null}
+      {gameType === 'Other' ? (
+        <section className="stats-other-score-panel" aria-label="Other score comparisons">
+          <div>
+            <p className="stats-eyebrow">Experimental comparison</p>
+            <h2>Compare Other scores?</h2>
+            <p>
+              Other can contain different games with different scoring scales. Turn this on
+              only when these matches use the same rules. Power ratings are unaffected.
+            </p>
+          </div>
+          <label className="stats-score-toggle">
+            <input
+              type="checkbox"
+              checked={includeOtherScores}
+              onChange={(event) => setIncludeOtherScores(event.target.checked)}
+            />
+            <span className="stats-score-toggle-track" aria-hidden="true" />
+            <span>{includeOtherScores ? 'Scores included' : 'Scores excluded'}</span>
+          </label>
+        </section>
+      ) : null}
 
-      {loading ? (
+      {errorMessage && userId ? <div className="stats-error">{errorMessage}</div> : null}
+
+      {authLoading ? (
+        <section className="stats-loading" aria-live="polite">Checking sign-in…</section>
+      ) : authError ? (
+        <section className="stats-empty-state" role="alert">
+          <p className="stats-eyebrow">Sign-in check unavailable</p>
+          <h2>We could not verify your account.</h2>
+          <p>Refresh the page or try signing in again.</p>
+          <Link href="/auth" className="stats-sign-in-link">Go to sign in</Link>
+        </section>
+      ) : !userId ? (
+        <section className="stats-empty-state">
+          <p className="stats-eyebrow">Members only</p>
+          <h2>Sign in to see league statistics.</h2>
+          <p>Your league data becomes available after you sign in.</p>
+          <Link href="/auth" className="stats-sign-in-link">Go to sign in</Link>
+        </section>
+      ) : loading ? (
         <section className="stats-loading" aria-live="polite">
           Calculating league ratings…
         </section>

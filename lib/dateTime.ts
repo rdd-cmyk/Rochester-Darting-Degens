@@ -8,7 +8,8 @@ export function toLocalDateTimeInput(value: string | Date): string {
 
 export function localDateTimeInputToIso(value: string): string {
   const date = new Date(value);
-  if (!value || Number.isNaN(date.getTime())) {
+  // Date silently advances nonexistent local times during the spring DST gap.
+  if (!value || Number.isNaN(date.getTime()) || toLocalDateTimeInput(date) !== value) {
     throw new Error('Choose a valid date and time for the match.');
   }
 

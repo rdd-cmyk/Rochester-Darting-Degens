@@ -1,4 +1,4 @@
-import { describe, expect, test } from 'vitest';
+import { afterEach, describe, expect, test, vi } from 'vitest';
 
 import {
   localDateTimeInputToIso,
@@ -7,6 +7,8 @@ import {
 } from './dateTime';
 
 describe('match date-time helpers', () => {
+  afterEach(() => vi.unstubAllEnvs());
+
   test('formats an ISO date for a datetime-local control', () => {
     expect(toLocalDateTimeInput('2026-08-29T20:30:00.000Z')).toMatch(
       /^2026-08-(29|30)T\d{2}:30$/
@@ -24,6 +26,17 @@ describe('match date-time helpers', () => {
       'Choose a valid date and time for the match.'
     );
     expect(toLocalDateTimeInput('not-a-date')).toBe('');
+  });
+
+  test('rejects nonexistent spring-forward minutes instead of silently changing the time', () => {
+    vi.stubEnv('TZ', 'America/New_York');
+
+    expect(() => localDateTimeInputToIso('2026-03-08T02:30')).toThrow(
+      'Choose a valid date and time for the match.'
+    );
+    expect(toLocalDateTimeInput(localDateTimeInputToIso('2026-03-08T03:30'))).toBe(
+      '2026-03-08T03:30'
+    );
   });
 
   test('preserves the exact original timestamp when its displayed minute is unchanged', () => {

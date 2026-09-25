@@ -143,6 +143,9 @@ matches and remains zero-sum for every match.
 ### Consistency
 
 - Only compare scores when one compatible game type is selected.
+- `Other` scores are excluded from consistency by default. A dashboard opt-in
+  permits exploratory comparison only when the selected `Other` matches share
+  the same scoring rules; it never changes power ratings.
 - Show median, best, 25th–75th percentile band, and median absolute deviation.
 - Use normalized median absolute deviation to compare consistency between
   players in the same discipline.

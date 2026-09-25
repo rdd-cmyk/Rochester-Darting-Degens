@@ -158,11 +158,12 @@ describe('RDD rating engine', () => {
     ]);
 
     expect(result.scoreLabel).toBeNull();
+    expect(result.players.every((player) => player.scoreDistribution === null)).toBe(true);
   });
 
   test.each([
     ['Cricket', 'MPR'],
-    ['Other', 'Score'],
+    ['501', '3DA'],
   ])('uses the correct score label for %s', (gameType, label) => {
     const result = buildLeagueAdvancedStats(
       match('1', 'A', [{ id: 'A', score: 0 }, { id: 'B' }], { gameType })
@@ -173,6 +174,26 @@ describe('RDD rating engine', () => {
       result.players.find((player) => player.playerId === 'A')?.scoreDistribution
         ?.normalizedDeviation
     ).toBe(0);
+  });
+
+  test('excludes Other scores from consistency by default without changing ratings', () => {
+    const facts = [20, 1000, 40].flatMap((score, index) =>
+      match(String(index + 1), 'A', [
+        { id: 'A', score },
+        { id: 'B', score: score - 1 },
+      ], { gameType: 'Other' })
+    );
+    const defaultResult = buildLeagueAdvancedStats(facts);
+    const optedIn = buildLeagueAdvancedStats(facts, { includeOtherScores: true });
+
+    expect(defaultResult.scoreLabel).toBeNull();
+    expect(defaultResult.players.every((player) => player.scoreDistribution === null)).toBe(true);
+    expect(defaultResult.players.map((player) => player.rating)).toEqual(
+      optedIn.players.map((player) => player.rating)
+    );
+    expect(optedIn.scoreLabel).toBe('Score');
+    expect(optedIn.players.find((player) => player.playerId === 'A')?.scoreDistribution)
+      .toMatchObject({ games: 3, median: 40 });
   });
 
   test('deduplicates a player within a match and refreshes an unknown name later', () => {

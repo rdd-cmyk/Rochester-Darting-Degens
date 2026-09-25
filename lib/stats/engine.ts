@@ -72,7 +72,10 @@ function buildDistribution(values: number[]): ScoreDistribution | null {
   };
 }
 
-function detectScoreLabel(facts: MatchFact[]): LeagueAdvancedStats['scoreLabel'] {
+function detectScoreLabel(
+  facts: MatchFact[],
+  includeOtherScores: boolean
+): LeagueAdvancedStats['scoreLabel'] {
   const gameTypes = new Set(
     facts.map((fact) => fact.gameType).filter((gameType): gameType is string => Boolean(gameType))
   );
@@ -81,7 +84,7 @@ function detectScoreLabel(facts: MatchFact[]): LeagueAdvancedStats['scoreLabel']
   const [gameType] = gameTypes;
   if (gameType === '501' || gameType === '301') return '3DA';
   if (gameType === 'Cricket') return 'MPR';
-  return 'Score';
+  return gameType === 'Other' && includeOtherScores ? 'Score' : null;
 }
 
 function groupMatches(facts: MatchFact[]): MatchGroup[] {
@@ -153,7 +156,11 @@ function ensurePlayer(
   return player;
 }
 
-export function buildLeagueAdvancedStats(facts: MatchFact[]): LeagueAdvancedStats {
+export function buildLeagueAdvancedStats(
+  facts: MatchFact[],
+  options: { includeOtherScores?: boolean } = {}
+): LeagueAdvancedStats {
+  const scoreLabel = detectScoreLabel(facts, options.includeOtherScores ?? false);
   const matches = groupMatches(facts);
   const players = new Map<string, PlayerAccumulator>();
   let matchesAnalyzed = 0;
@@ -213,7 +220,7 @@ export function buildLeagueAdvancedStats(facts: MatchFact[]): LeagueAdvancedStat
         player.qualityWinPoints += 1 - expectedProbabilities[index];
       }
 
-      if (typeof fact.score === 'number' && Number.isFinite(fact.score)) {
+      if (scoreLabel && typeof fact.score === 'number' && Number.isFinite(fact.score)) {
         player.scores.push(fact.score);
       }
 
@@ -276,7 +283,7 @@ export function buildLeagueAdvancedStats(facts: MatchFact[]): LeagueAdvancedStat
     players: rankedPlayers,
     matchesAnalyzed,
     matchesIgnored,
-    scoreLabel: detectScoreLabel(facts),
+    scoreLabel,
     upsets,
     biggestUpset: upsets[0] ?? null,
   };

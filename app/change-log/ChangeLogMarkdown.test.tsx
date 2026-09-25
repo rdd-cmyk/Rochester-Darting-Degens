@@ -39,4 +39,34 @@ describe("ChangeLogMarkdown", () => {
     expect(screen.queryByRole("link", { name: "Unsafe" })).not.toBeInTheDocument();
     expect(screen.getByText("Unsafe")).toBeInTheDocument();
   });
+
+  test("loads GitHub attachment images through the local image optimizer", () => {
+    render(
+      <ChangeLogMarkdown content="![League chart](https://github.com/user-attachments/assets/12345678-1234-1234-1234-123456789abc)" />
+    );
+
+    const image = screen.getByRole("img", { name: "League chart" });
+    expect(image.getAttribute("src")).toMatch(/^\/_next\/image\?/);
+    expect(image.getAttribute("src")).toContain("github.com%2Fuser-attachments%2Fassets");
+  });
+
+  test("omits untrusted, deceptive, and relative Markdown image URLs", () => {
+    const { container } = render(
+      <ChangeLogMarkdown
+        content={`![Tracker](https://tracker.example/pixel.png)
+
+![Deceptive](https://github.com.evil.example/user-attachments/assets/1234)
+
+![Relative](/api/change-log)
+
+![Query](https://github.com/user-attachments/assets/12345678-1234-1234-1234-123456789abc?redirect=1)`}
+      />
+    );
+
+    expect(container.querySelector("img")).toBeNull();
+    expect(screen.getByText("Image omitted for privacy: Tracker")).toBeInTheDocument();
+    expect(screen.getByText("Image omitted for privacy: Deceptive")).toBeInTheDocument();
+    expect(screen.getByText("Image omitted for privacy: Relative")).toBeInTheDocument();
+    expect(screen.getByText("Image omitted for privacy: Query")).toBeInTheDocument();
+  });
 });

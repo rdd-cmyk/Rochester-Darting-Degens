@@ -1,11 +1,10 @@
 -- Existing hosted schema, exported and reviewed 2026-09-07.
--- The filename orders this baseline BEFORE the additive statistics migration;
+-- Local-only fixture, applied BEFORE the additive statistics fixture;
 -- it is not a claim that the hosted schema was created at this timestamp.
 -- Schema only: no player data, passwords, or custom role definitions.
 -- Preserve current grants/RLS here; hardening is a separate reviewed change.
--- DO NOT push this baseline to the existing hosted project. Its tables already
--- exist and its migration history was empty at inspection. Reconciliation needs
--- explicit owner approval, a fresh schema comparison, and a verified backup.
+-- NEVER put this file under supabase/migrations/: production tables already
+-- exist, and the GitHub integration would attempt to apply it on merge.
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;

@@ -114,8 +114,8 @@ it superseded or retired and point to the replacement.
 - **Statement:** The additive advanced-statistics migration has not been applied
   to hosting. Do not apply it to project `hrqsbzmsfichiimtxijj` until the hosted
   schema, Row Level Security policies, backup, and rollback path are reviewed.
-- **Evidence:** `docs/advanced-statistics-roadmap.md` and the migration under
-  `supabase/migrations/`.
+- **Evidence:** `docs/advanced-statistics-roadmap.md` and the local-only SQL in
+  `supabase/tests/fixtures/`; `supabase/migrations/` contains no deployable SQL.
 - **Validation:** hosted schema/policy inspection and local database-only
   rehearsal on 2026-09-07; backup, rollback and production acceptance remain
   pending. See `docs/supabase-schema-review-2026-09-07.md`.
@@ -244,7 +244,8 @@ it superseded or retired and point to the replacement.
   `matches` and `match_players` and reads `profiles`, but no checked-in baseline
   creates those tables. A fresh local replay requires a reviewed original schema
   and policies; do not treat a fabricated fixture as production equivalence.
-- **Evidence:** `supabase/migrations/20260829214500_advanced_statistics_foundation.sql`;
+- **Evidence:** `supabase/tests/fixtures/advanced_statistics_foundation.sql`
+  (moved from `supabase/migrations/` on 2026-09-25);
   repository-wide SQL file inventory and empty declarative `schema_paths` in
   `supabase/config.toml`, inspected 2026-09-07.
 - **Validation:** source inspection only. Docker and CLI readiness do not
@@ -263,7 +264,7 @@ it superseded or retired and point to the replacement.
   but no remote migration entries were observed. Do not push the baseline into
   that database or repair its history without fresh schema comparison, backup
   verification and explicit owner approval. Local tests do not satisfy that gate.
-- **Evidence:** `supabase/migrations/20260829210000_existing_schema_baseline.sql`;
+- **Evidence:** `supabase/tests/fixtures/existing_schema_baseline.sql`;
   `docs/supabase-schema-review-2026-09-07.md` records export provenance, catalog
   inspection, migration listing and local-only pgTAP results.
 - **Validation:** authenticated schema inspection and successful two-migration
@@ -455,6 +456,24 @@ it superseded or retired and point to the replacement.
   Vercel project environment, or Supabase branching change. Recheck before
   each hosted recovery test or preview database claim.
 - **Related:** RDD-INFO-011, RDD-INFO-013, and RDD-INFO-014.
+
+### RDD-INFO-021 — GitHub integration must not auto-deploy deferred SQL
+
+- **Status:** active
+- **Type:** release constraint
+- **Scope:** Supabase GitHub integration and the advanced-statistics PR
+- **Statement:** The historical baseline and additive statistics SQL are
+  local-only fixtures under `supabase/tests/fixtures/`. No SQL belongs under
+  `supabase/migrations/` in this PR. Supabase's Deploy to production option
+  may remain enabled only while this invariant holds and no other unreviewed
+  migration reaches `main`. A PR merge is not database rollout approval.
+- **Evidence:** `scripts/local-schema.test.mjs`; `docs/supabase-github-integration-release-gate.md`;
+  Supabase GitHub integration documentation reviewed 2026-09-25.
+- **Validation:** source-only until the updated PR's Supabase checks and hosted
+  migration history are rechecked; no hosted write is implied.
+- **Invalidation trigger:** any new migration, changed integration settings, or
+  GitHub merge/push to the production branch.
+- **Related:** RDD-INFO-003 and RDD-INFO-011.
 
 ## Candidate records
 

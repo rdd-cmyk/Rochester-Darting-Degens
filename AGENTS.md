@@ -17,6 +17,10 @@ tokens, private personal data, or environment-file contents in tracked files.
 
 Do not apply the Supabase migration to a hosted project until the roadmap's
 schema, Row Level Security, backup, test, and rollback gate is satisfied.
+The current PR must not contain deployable SQL under `supabase/migrations/`:
+the Supabase GitHub integration may deploy it automatically on merge. Keep
+the deferred SQL in `supabase/tests/fixtures/` and follow
+`docs/supabase-github-integration-release-gate.md` before any merge.
 
 ## Required verification
 

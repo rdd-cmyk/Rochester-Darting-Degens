@@ -1,5 +1,6 @@
 import { spawnSync } from 'node:child_process';
 import { assertWindowsPortDefault, cliPath, docker, localCliArgs, localDockerEnv, localStatus, root } from './local-environment.mjs';
+import { ensureLocalSchema } from './local-schema.mjs';
 
 try {
   const [command, ...extra] = process.argv.slice(2);
@@ -17,7 +18,11 @@ try {
   // Omit only that optional log collector; never enable an unauthenticated API.
   const result = spawnSync(cliPath(), args, { cwd: root, env: localDockerEnv(), stdio: 'inherit', windowsHide: true });
   if (result.error || result.status !== 0) throw new Error('Local Supabase command failed.');
-  if (command === 'start' || command === 'test') localStatus();
+  if (command === 'start') {
+    localStatus();
+    ensureLocalSchema();
+  }
+  if (command === 'test') localStatus();
 } catch (error) {
   console.error(error instanceof Error ? error.message.split('\n')[0] : 'Local Supabase preflight failed.');
   process.exitCode = 1;

@@ -1,6 +1,6 @@
 # Rochester Darting Degens Advanced Statistics Roadmap
 
-Status: implementation consolidated on local `main`; remote release pending
+Status: advanced-statistics PR open; hosted database changes deferred
 
 Supabase project: `hrqsbzmsfichiimtxijj`
 
@@ -11,7 +11,7 @@ Last updated: 2026-09-08
 | Phase | Status | Notes |
 | --- | --- | --- |
 | 0 — Delivery guardrails | Implemented | Vitest, Testing Library, jsdom, and V8 coverage are configured. |
-| 1 — Data foundation | Implemented in source | Editable match chronology and the additive migration are ready; hosted deployment remains gated on schema/RLS review. |
+| 1 — Data foundation | Implemented in source | Editable match chronology is ready; the additive SQL is retained as a local-only fixture, not an auto-deployed migration. Hosted deployment remains gated on schema/RLS review. |
 | 2 — Advanced statistics | Implemented | The pure rating and distribution engine is covered by deterministic tests. |
 | 3 — Statistics experience | Implemented | The responsive `/stats` dashboard, filters, stories, trend chart, table, and methodology are in place. |
 | 3A — Runtime and delivery contract | Complete | Local verification, GitHub Actions run `33327531198`, and Vercel deployment `7Q8bJBqSjuM3hhGKYkcPNomx7ADt` pass on commit `db5816d`. |
@@ -91,13 +91,18 @@ behind every interpretation, and make incomplete samples obvious.
 
 ### Deployment gate
 
-The migration is deliberately not applied from this branch. Before applying it:
+The SQL is deliberately outside `supabase/migrations/`, so the GitHub
+integration cannot apply it automatically when this PR merges. The existing
+hosted tables also cannot safely accept the historical baseline as a migration.
+Before creating any deployable migration from the local fixture:
 
 1. Sign into the Supabase dashboard and export the current schema and policies.
 2. Compare the export with the additive migration.
 3. Verify a backup exists.
 4. Test the migration against a local or branch database.
-5. Apply it to the hosted project only after review.
+5. Reconcile the existing schema and empty hosted migration history with the
+   owner; verify that a dry run queues only approved SQL.
+6. Apply it to the hosted project only after review.
 
 ## Phase 2 — Immediate-value advanced statistics
 

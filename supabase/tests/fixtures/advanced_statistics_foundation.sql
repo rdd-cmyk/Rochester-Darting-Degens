@@ -1,4 +1,5 @@
--- Advanced-statistics foundation.
+-- Local-only advanced-statistics foundation fixture. Do not move this under
+-- supabase/migrations/ until the hosted deployment gate is approved.
 --
 -- This migration is additive and keeps every historical match valid. It must
 -- be tested against an exported copy of the hosted schema and RLS policies

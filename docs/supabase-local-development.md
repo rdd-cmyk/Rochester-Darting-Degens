@@ -40,16 +40,15 @@ npm run supabase -- --version
 ### Baseline and loopback networking verified
 
 Authenticated inspection and a schema-only export on 2026-09-07 supplied the
-missing original baseline. The new
-`20260829210000_existing_schema_baseline.sql` and the additive
-`20260829214500_advanced_statistics_foundation.sql` replayed locally; 25 pgTAP
+missing original baseline. The historical baseline and additive foundation SQL (now under
+`supabase/tests/fixtures/`) replayed locally; 25 pgTAP
 tests passed with rolled-back synthetic fixtures. Hosted Postgres is major 17,
 matching the local configuration. The observed hosted migration history is empty.
 See [the inspection and rehearsal record](supabase-schema-review-2026-09-07.md)
 for evidence, limitations, and the host-specific isolated test commands.
 
-Do not push the baseline into production: its tables already exist. Hosted
-migration-history reconciliation, backup, rollback, and independent review
+Do not turn the baseline into a production migration: its tables already exist.
+Hosted migration-history reconciliation, backup, rollback, and independent review
 remain explicit gates. No production player data was exported.
 
 The dedicated loopback network alone did not prevent Docker Desktop from
@@ -99,8 +98,12 @@ npm run dev:local
 ```
 
 The first start downloads Supabase container images and can take several
-minutes. It applies migrations under `supabase/migrations/` only to the local
-database.
+minutes. The guarded `supabase:start` wrapper checks the local stack, then
+applies the baseline and additive fixtures to an empty local database. It
+skips them if both the original and advanced tables already exist, and stops
+on partial state. Do not run raw CLI `supabase start` as a substitute for this
+wrapper; it will not load the fixtures. The repository intentionally has no
+deployable SQL under `supabase/migrations/` while the hosted gate is closed.
 
 Before the first start, create the dedicated network (do not replace an
 existing network without inspecting it):

@@ -56,6 +56,9 @@ max_client_conn = 100
 # secret_key = "env(SECRET_VALUE)"
 
 [db.migrations]
+# Intentionally no deployed migration files in this PR. The historical schema
+# and statistics SQL live in tests/fixtures for local-only replay until the
+# hosted backup, drift, RLS and migration-history gates are approved.
 # If disabled, migrations will be skipped during a db push or reset.
 enabled = true
 # Specifies an ordered list of schema files, directories, or glob patterns that describe your database.

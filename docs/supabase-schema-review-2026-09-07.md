@@ -56,9 +56,10 @@ Important boundaries for subsequent review:
 
 ## Local baseline and verification
 
-`supabase/migrations/20260829210000_existing_schema_baseline.sql` is the reviewed
+`supabase/tests/fixtures/existing_schema_baseline.sql` (moved from
+`supabase/migrations/` on 2026-09-25) is the reviewed
 export with excess blank lines removed and a provenance/safety header added.
-Its filename sorts before the existing additive migration; it is NOT a claim
+Its original timestamp sorted before the additive SQL; it is NOT a claim
 about when production was created. It retains the original schema and policies.
 
 Both baseline and `20260829214500_advanced_statistics_foundation.sql` replayed
@@ -147,6 +148,12 @@ This is an application-migration rehearsal, not full managed-schema equivalence,
 a production-data audit, or backup/rollback recovery proof.
 
 ## Production gate remains closed
+
+2026-09-25 update: both the historical baseline and additive SQL were moved
+to `supabase/tests/fixtures/`. The GitHub integration therefore has no SQL
+under `supabase/migrations/` to auto-apply on this PR's eventual merge. Local
+startup and rehearsal use those fixtures only. This does not constitute
+approval to deploy either SQL file to the hosted project.
 
 Do not push the new baseline into the existing hosted database: its tables
 already exist. Before any remote application, independently review the baseline,

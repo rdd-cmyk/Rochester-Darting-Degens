@@ -18,8 +18,8 @@ try {
     'psql', '-U', 'postgres', '-d', database, '-v', 'ON_ERROR_STOP=1'], {
     input: authSchema, env: localDockerEnv(), stdio: ['pipe', 'pipe', 'pipe'], timeout: 30000, windowsHide: true,
   });
-  for (const file of ['migrations/20260829210000_existing_schema_baseline.sql',
-    'tests/rehearsal/legacy-fixture.sql', 'migrations/20260829214500_advanced_statistics_foundation.sql']) {
+  for (const file of ['tests/fixtures/existing_schema_baseline.sql',
+    'tests/rehearsal/legacy-fixture.sql', 'tests/fixtures/advanced_statistics_foundation.sql']) {
     const target = `/tmp/${database}-${path.basename(file)}`;
     docker(['cp', path.join(root, 'supabase', file), `${container}:${target}`]);
     exec(['psql', '-U', 'postgres', '-d', database, '-v', 'ON_ERROR_STOP=1', '-f', target]);

@@ -3,6 +3,8 @@ import { afterEach, beforeEach, expect, it, vi } from 'vitest';
 import { spawnSync } from 'node:child_process';
 import { cliPath, dockerHost, root } from './local-environment.mjs';
 
+vi.mock('./local-schema.mjs', () => ({ ensureLocalSchema: vi.fn() }));
+
 vi.mock('node:child_process', () => ({ spawnSync: vi.fn(() => ({ status: 0 })), execFileSync: vi.fn() }));
 vi.mock('./local-environment.mjs', async importOriginal => ({
   ...await importOriginal(),
@@ -47,6 +49,8 @@ it.each(['start', 'stop', 'status', 'test'])('spawns %s against only the pinned 
   expect(process.env.SUPABASE_WORKDIR).toBe('/unrelated-project');
   for (const key of ['DOCKER_CONTEXT', 'DOCKER_TLS', 'DOCKER_TLS_VERIFY', 'DOCKER_CERT_PATH', 'DOCKER_API_VERSION']) expect(env[key]).toBeUndefined();
   expect(process.env.DOCKER_HOST).toBe('tcp://synthetic-remote.invalid:2376');
+  const { ensureLocalSchema } = await import('./local-schema.mjs');
+  expect(ensureLocalSchema).toHaveBeenCalledTimes(command === 'start' ? 1 : 0);
 });
 
 it.each([['stop', '--linked'], ['start', '--network-id', 'other'], ['db', 'push']])('rejects arbitrary flags before spawning: %j', async (...args) => {

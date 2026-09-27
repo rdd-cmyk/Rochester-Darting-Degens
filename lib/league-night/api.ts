@@ -4,6 +4,23 @@ import type { Attendee, LeagueNight, NightMatch, PlayerProfile } from "./types";
 
 export const MATCH_SELECT =
   "id,played_at,game_type,board_type,venue,notes,created_by,night_id,revision,match_players(id,player_id,score,points_scored,is_winner,profiles(display_name,first_name,include_first_name_in_display))";
+
+async function withPlanningStatus(
+  nights: LeagueNight[],
+): Promise<LeagueNight[]> {
+  if (!nights.length) return nights;
+  const { data, error } = await supabase.rpc("rdd_planning_night_status", {
+    p_night_ids: nights.map((night) => night.id),
+  });
+  // League Night also runs on installations that do not yet have planning.
+  // Other failures must remain visible instead of hiding a cancellation.
+  if (error?.code === "PGRST202" || error?.code === "42883") return nights;
+  if (error) throw error;
+  return nights.map((night) => ({
+    ...night,
+    planning_status: data?.[night.id] ?? null,
+  }));
+}
 export async function loadProfiles(): Promise<PlayerProfile[]> {
   return collectAllStatisticsRows<PlayerProfile>(async (from, to) => {
     const { data, error, count } = await supabase
@@ -25,7 +42,7 @@ export async function loadNights(): Promise<LeagueNight[]> {
     .order("id")
     .limit(40);
   if (error) throw error;
-  return data ?? [];
+  return withPlanningStatus(data ?? []);
 }
 export async function loadNight(id: string): Promise<LeagueNight> {
   const { data, error } = await supabase
@@ -34,7 +51,7 @@ export async function loadNight(id: string): Promise<LeagueNight> {
     .eq("id", id)
     .single();
   if (error) throw error;
-  return data;
+  return (await withPlanningStatus([data]))[0];
 }
 export async function loadAttendees(id: string): Promise<Attendee[]> {
   return collectAllStatisticsRows<Attendee>(async (from, to) => {

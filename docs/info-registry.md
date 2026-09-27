@@ -520,6 +520,27 @@ it superseded or retired and point to the replacement.
   any database action. This does not establish hosted backup or policy safety.
 - **Related:** RDD-INFO-003, RDD-INFO-009, RDD-INFO-021.
 
+### RDD-INFO-023 — Planning has its own local stack and trusted organizer grant
+
+- **Status:** active
+- **Type:** verified local procedure and feature authority boundary
+- **Scope:** `league-night-planning`; no hosted rollout
+- **Statement:** `plan:local` uses `rdd-league-planning`, generated workdir
+  `.local/league-planning`, loopback API 55821 and app 3030. Do not substitute
+  the parent League Night or Board stack. Tests enter the inspected database
+  container's network namespace rather than relying on a shared `db` alias.
+  Planning organizers are assigned in `rdd_private.planning_organizers`, never
+  through editable profile metadata. Only synthetic local grants were applied.
+- **Evidence:** `scripts/planning-local.mjs`, `scripts/rehearse-planning.mjs`,
+  `supabase/tests/fixtures/league_planning.sql`, and
+  `docs/league-night-planning-handoff.md`, plus independent review evidence in
+  `docs/league-night-planning-review-2026-09-27.md`.
+- **Validation:** 2026-09-27 fresh legacy-only database rehearsal, concurrent
+  suggestion checks and multi-account production-build browser acceptance.
+- **Invalidation trigger:** changes to local stack identity, ports, grants,
+  function permissions, membership integration or schema. Recheck before any
+  database action. This entry is not hosted rollout authorization.
+
 ### RDD-INFO-009 — Windows Docker socket recovery must preserve runtime folders
 
 - **Status:** active (narrow, opt-in local workaround)

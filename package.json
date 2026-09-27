@@ -23,6 +23,7 @@
     "dev:local": "node scripts/dev-local.mjs",
     "build:local": "node scripts/dev-local.mjs --build",
     "night:local": "node scripts/league-night-local.mjs",
+    "plan:local": "node scripts/planning-local.mjs",
     "test:db:local": "node scripts/supabase-local.mjs test",
     "build": "next build",
     "check:install-scripts": "node scripts/check-install-scripts.mjs",

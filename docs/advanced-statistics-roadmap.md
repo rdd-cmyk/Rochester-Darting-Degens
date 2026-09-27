@@ -14,6 +14,11 @@ deployable migration SQL. League Night SQL remains outside automatic deployment.
 
 ## Implementation status
 
+Plan & RSVP is implemented on the isolated `league-night-planning` worktree:
+polls, two suggestions per profile, scheduling and binary RSVPs. See the
+[local handoff](league-night-planning-handoff.md). This does not approve hosted
+SQL, organizer assignments or publication.
+
 | Phase | Status | Notes |
 | --- | --- | --- |
 | 0 — Delivery guardrails | Implemented | Vitest, Testing Library, jsdom, and V8 coverage are configured. |

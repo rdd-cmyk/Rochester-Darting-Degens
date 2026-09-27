@@ -5,9 +5,10 @@ import { fileURLToPath } from 'node:url';
 
 export const root = fileURLToPath(new URL('../', import.meta.url));
 export const leagueNightLocal = process.env.RDD_LOCAL_STACK === 'league-night';
-export const projectId = leagueNightLocal ? 'rdd-league-night' : 'Rochester-Darting-Degens-advanced-statis';
-export const localWorkdir = leagueNightLocal ? path.join(root, '.local', 'league-night') : root;
-export const apiPort = leagueNightLocal ? '55421' : '54321';
+export const planningLocal = process.env.RDD_LOCAL_STACK === 'league-planning';
+export const projectId = planningLocal ? 'rdd-league-planning' : leagueNightLocal ? 'rdd-league-night' : 'Rochester-Darting-Degens-advanced-statis';
+export const localWorkdir = planningLocal ? path.join(root, '.local', 'league-planning') : leagueNightLocal ? path.join(root, '.local', 'league-night') : root;
+export const apiPort = planningLocal ? '55821' : leagueNightLocal ? '55421' : '54321';
 export const dockerHost = process.platform === 'win32'
   ? 'npipe:////./pipe/dockerDesktopLinuxEngine' : 'unix:///var/run/docker.sock';
 
@@ -76,7 +77,7 @@ export function localCliArgs(command, platform = process.platform) {
   // cwd alone is insufficient: the CLI also honors SUPABASE_WORKDIR.
   const workdir = ['--workdir', localWorkdir];
   if (command === 'start') return ['start', '--network-id', network, ...(platform === 'win32' ? ['--exclude', 'vector'] : []), ...workdir];
-  if (command === 'test') return ['test', 'db', '--local', leagueNightLocal ? path.join(root, 'supabase/tests/league-night') : 'supabase/tests/database', '--network-id', network, ...workdir];
+  if (command === 'test') return ['test', 'db', '--local', planningLocal ? path.join(root, 'supabase/tests/planning') : leagueNightLocal ? path.join(root, 'supabase/tests/league-night') : 'supabase/tests/database', '--network-id', network, ...workdir];
   if (command === 'stop' || command === 'status') return [command, ...workdir];
   throw new Error('Use start, stop, status or test without extra flags.');
 }

@@ -49,6 +49,7 @@ import {
   nightDate,
 } from "@/components/league-night/NightRecapPanel";
 import "./night.css";
+import { NextPlannedNight } from "@/components/planning/NextPlannedNight";
 
 export default function LeagueNightPage() {
   const { user, loading } = useCurrentUser();
@@ -185,6 +186,7 @@ function NightLobby({ user }: { user: User }) {
         </h1>
         <p>Open tonight’s night. Bring your game.</p>
       </header>
+      <NextPlannedNight />
       {error && (
         <div className="night-warning" role="alert">
           {error} <button onClick={() => void refresh()}>Try again</button>
@@ -264,6 +266,9 @@ function NightLobby({ user }: { user: User }) {
             >
               <span>
                 <strong>{n.title}</strong>
+                {n.planning_status === "cancelled" && (
+                  <span className="night-warning">Cancelled</span>
+                )}
                 <span className="night-small">
                   {nightDate(n.night_date)}
                   {n.venue ? ` · ${n.venue}` : ""}
@@ -807,6 +812,11 @@ function NightSession({
           </button>
         </div>
         <h1>{night.title}</h1>
+        {night.planning_status === "cancelled" && (
+          <p className="night-warning" role="status">
+            This league night was cancelled.
+          </p>
+        )}
         <p>
           {nightDate(night.night_date)}
           {night.venue ? ` · ${night.venue}` : ""}

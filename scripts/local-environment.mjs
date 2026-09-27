@@ -4,7 +4,10 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 export const root = fileURLToPath(new URL('../', import.meta.url));
-export const projectId = 'Rochester-Darting-Degens-advanced-statis';
+export const leagueNightLocal = process.env.RDD_LOCAL_STACK === 'league-night';
+export const projectId = leagueNightLocal ? 'rdd-league-night' : 'Rochester-Darting-Degens-advanced-statis';
+export const localWorkdir = leagueNightLocal ? path.join(root, '.local', 'league-night') : root;
+export const apiPort = leagueNightLocal ? '55421' : '54321';
 export const dockerHost = process.platform === 'win32'
   ? 'npipe:////./pipe/dockerDesktopLinuxEngine' : 'unix:///var/run/docker.sock';
 
@@ -27,8 +30,8 @@ export function docker(args) {
 export function assertLoopbackUrl(value) {
   const url = new URL(value);
   if (url.protocol !== 'http:' || !['127.0.0.1', '[::1]', 'localhost'].includes(url.hostname)
-    || url.port !== '54321' || url.username || url.password || url.pathname !== '/' || url.search || url.hash) {
-    throw new Error('Refusing non-local Supabase target; expected loopback HTTP port 54321.');
+    || url.port !== apiPort || url.username || url.password || url.pathname !== '/' || url.search || url.hash) {
+    throw new Error(`Refusing non-local Supabase target; expected loopback HTTP port ${apiPort}.`);
   }
   return url.origin;
 }
@@ -71,9 +74,9 @@ export function cliPath() {
 export function localCliArgs(command, platform = process.platform) {
   const network = 'rdd-local-loopback';
   // cwd alone is insufficient: the CLI also honors SUPABASE_WORKDIR.
-  const workdir = ['--workdir', root];
+  const workdir = ['--workdir', localWorkdir];
   if (command === 'start') return ['start', '--network-id', network, ...(platform === 'win32' ? ['--exclude', 'vector'] : []), ...workdir];
-  if (command === 'test') return ['test', 'db', '--local', 'supabase/tests/database', '--network-id', network, ...workdir];
+  if (command === 'test') return ['test', 'db', '--local', leagueNightLocal ? path.join(root, 'supabase/tests/league-night') : 'supabase/tests/database', '--network-id', network, ...workdir];
   if (command === 'stop' || command === 'status') return [command, ...workdir];
   throw new Error('Use start, stop, status or test without extra flags.');
 }

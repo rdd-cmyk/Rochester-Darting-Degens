@@ -1,5 +1,5 @@
 import { spawnSync } from 'node:child_process';
-import { assertWindowsPortDefault, cliPath, docker, localCliArgs, localDockerEnv, localStatus, root } from './local-environment.mjs';
+import { assertWindowsPortDefault, cliPath, docker, leagueNightLocal, localCliArgs, localDockerEnv, localStatus, root } from './local-environment.mjs';
 import { ensureLocalSchema } from './local-schema.mjs';
 
 try {
@@ -20,7 +20,7 @@ try {
   if (result.error || result.status !== 0) throw new Error('Local Supabase command failed.');
   if (command === 'start') {
     localStatus();
-    ensureLocalSchema();
+    if (!leagueNightLocal) ensureLocalSchema();
   }
   if (command === 'test') localStatus();
 } catch (error) {

@@ -15,6 +15,7 @@
 /test-results
 /playwright-report
 /.qa-artifacts/
+/.local/
 
 # next.js
 /.next/

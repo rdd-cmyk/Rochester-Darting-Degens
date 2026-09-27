@@ -69,7 +69,7 @@ describe('team Power Rating',()=>{
   it('does not pool game variants and treats fewer finishing darts as better',()=>{
     const rows=[...game(1,1),...game(2,1)].map(p=>({...p,gameType:'Around the Clock',gameConfig:{...defaultConfig(),preset:'clock-v1'},score:p.isWinner?(p.matchId==='1'?60:45):null}));
     expect(buildLeagueAdvancedStats(rows).players[0].scoreDistribution?.best).toBe(45);
-    rows[2].gameConfig.preset='clock-doubles-v1';
+    for (const row of rows.filter(p => p.matchId === '2')) row.gameConfig.preset='clock-doubles-v1';
     expect(buildLeagueAdvancedStats(rows).scoreLabel).toBeNull();
   });
   it('includes both teammates in nightly standings and rating movements',()=>{

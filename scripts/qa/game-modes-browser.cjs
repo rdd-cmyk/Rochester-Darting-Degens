@@ -19,6 +19,8 @@ const demo=JSON.parse(fs.readFileSync('.local/game-modes/demo.json','utf8'));
   await page.getByLabel('Game type',{exact:true}).selectOption(game);
   assert((await page.getByLabel('Rule preset').locator('option').count())>=2,game);
  }
+ await page.getByLabel('Game type',{exact:true}).selectOption('Cut-Throat Cricket');
+ await page.getByLabel('Player 1 penalty points (optional)',{exact:true}).waitFor();
  await page.getByLabel('Game type',{exact:true}).selectOption('701');
  await page.getByLabel('Match format').selectOption('2v2');
  for(let i=0;i<4;i++)await page.getByLabel(`Player ${i+1}`,{exact:true}).selectOption(demo.people[i].id);

@@ -251,7 +251,9 @@ export default function AdvancedStatsPage() {
   const eligibleUpset = pickEligibleUpset(leagueStats.upsets, eligiblePlayers);
   const chartPlayers = eligiblePlayers.slice(0, 5);
   const maxConsistencyValue = Math.max(
-    ...eligiblePlayers.map((player) => player.scoreDistribution?.best ?? 0),
+    // For completion games, "best" is the smallest score. Scale from the
+    // top of the displayed range, independent of the comparison direction.
+    ...eligiblePlayers.map((player) => player.scoreDistribution?.upperQuartile ?? 0),
     1
   );
 
@@ -565,7 +567,7 @@ export default function AdvancedStatsPage() {
                         >
                           <span
                             className="stats-consistency-band"
-                            style={{ left: `${left}%`, width: `${Math.max(width, 2)}%` }}
+                            style={{ left: `${left}%`, width: `${Math.min(Math.max(width, 2), 100 - left)}%` }}
                           />
                           <span
                             className="stats-consistency-median"

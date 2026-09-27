@@ -61,8 +61,8 @@ All data used below are synthetic and local.
 | Check | Result |
 | --- | --- |
 | `npm run ci:install` | Passed; pinned dependency installation, audit reported zero vulnerabilities |
-| `npm test -- --reporter=dot` | 248 tests across 30 files passed |
-| `npm run test:coverage` | 248 tests passed; includes the new game catalog and correction module; repository thresholds passed |
+| `npm test -- --reporter=dot` | 253 tests across 32 files passed after independent review |
+| `npm run test:coverage` | 253 tests passed; 99.25% lines and 90.46% branches across configured modules, including the game catalog and correction module; repository thresholds passed |
 | `npm run lint` and `npm run typecheck` | Passed |
 | Production build | Passed via `node scripts/game-modes-local.mjs build`, which runs the same Next build command with isolated local Supabase values |
 | `node scripts/game-modes-local.mjs test` | 36 transaction/access-control checks plus 11 preservation, activation and retry assertions passed against a fresh legacy-only database |
@@ -85,6 +85,31 @@ retry rejection, stale revision, another recorder's edit, direct-write denial,
 anonymous denial, original-value audit and audit privacy. The old test's
 out-of-range average is now 181 instead of 168 because X01 entry supports
 up to 180, including open-out presets. Existing stored scores are unchanged.
+
+## Independent code review and repairs
+
+An independent agent reviewed the committed implementation without editing it.
+I reproduced or checked each finding against the code, added focused regression
+coverage, and repaired the five verified issues:
+
+1. Completion-score chart positions used the minimum as their maximum and
+   could exceed the chart width. The scale now uses the upper displayed range.
+2. Valid practice/handicapped/unresolved results were mistaken for missing
+   history, withholding unrelated competitive recap awards. They remain
+   unrated without being counted as incomplete evidence.
+3. The ordered League Night recap named only one member of a winning team.
+   It now names every winner and the team format.
+4. Profile loss filters counted tied and abandoned games as losses. Both recent
+   and paginated views now require a completed result; the local PostgREST
+   filter was checked against legacy null, completed and unresolved rows.
+5. The Cricket points field announced a literal code expression to screen
+   readers. Its accessible label now names points or penalty points correctly.
+
+My own regression pass also found that an excluded practice game could hide
+otherwise compatible score comparisons; score cohorts now use only analyzed
+results. The independent reviewer rechecked the fixes and found no remaining
+concrete defect in those paths. This is a local source and synthetic-data
+review, not hosted acceptance.
 
 Mobile screenshots: [doubles](testing/game-modes/doubles-mobile.png),
 [correction](testing/game-modes/correction-mobile.png),

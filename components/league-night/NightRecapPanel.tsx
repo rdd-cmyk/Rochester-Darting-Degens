@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
+import { formatLabel } from '@/lib/games/catalog';
 import {
   buildNightRecap,
   participantName,
@@ -344,8 +345,9 @@ export function NightRecapPanel({
           <div className="night-result" key={m.id}>
             <div>
               <strong>
-                {participantName(m.match_players!.find((p) => p.is_winner)!)}{" "}
-                won
+                {m.match_players!.filter((p) => p.is_winner).map(participantName).join(' + ')}{' '}
+                won{m.game_config?.format && m.game_config.format !== 'individual'
+                  ? ` as ${formatLabel(m.game_config.format)}` : ''}
               </strong>
               <p className="night-small">
                 {m.match_players!.map(participantName).join(" · ")} ·{" "}

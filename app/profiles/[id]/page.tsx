@@ -439,6 +439,8 @@ export default function ProfilePage() {
 
       if (resultFilter !== 'all') {
         query = query.eq('match_players.is_winner', resultFilter === 'wins');
+        // Null configuration is the legacy completed-result cohort.
+        query = query.or('game_config.is.null,game_config->>status.eq.completed');
       }
 
       recordScrollPosition();
@@ -523,7 +525,8 @@ export default function ProfilePage() {
 
       const isWin = playerEntry?.is_winner ?? null;
       const matchesResult =
-        resultFilter === 'wins' ? isWin === true : isWin === false;
+        (match.game_config?.status ?? 'completed') === 'completed' &&
+        (resultFilter === 'wins' ? isWin === true : isWin === false);
 
       return matchesGameType && matchesResult;
     });
@@ -972,7 +975,7 @@ function MatchList({ matches }: MatchListProps) {
                       – {metricLabel}:{' '}
                       {mp.score != null ? mp.score.toString() : 'not recorded'}
                       {pointsText}{' '}
-                      {m.game_config?.sides[mp.player_id] ? ` · Team ${m.game_config.sides[mp.player_id]}` : ''} {mp.is_winner ? <strong>(winner)</strong> : null}
+                      {m.game_config?.sides?.[mp.player_id] ? ` · Team ${m.game_config.sides[mp.player_id]}` : ''} {mp.is_winner ? <strong>(winner)</strong> : null}
                     </li>
                   );
                 })}

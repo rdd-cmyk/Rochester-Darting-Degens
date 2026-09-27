@@ -869,7 +869,7 @@ function MatchesWorkspace({ user }: { user: User }) {
                       {playerLabel} {gameType === 'Cut-Throat Cricket' ? 'penalty points' : 'points scored'} (optional)
                     </span>
                     <input
-                      aria-label={`${playerLabel} {gameType === 'Cut-Throat Cricket' ? 'penalty points' : 'points scored'} (optional)`}
+                      aria-label={`${playerLabel} ${gameType === 'Cut-Throat Cricket' ? 'penalty points' : 'points scored'} (optional)`}
                       type="number"
                       step={1}
                       min={0}

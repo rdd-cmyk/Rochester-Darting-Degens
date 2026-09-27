@@ -1,13 +1,15 @@
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { afterEach, beforeEach, expect, it, vi } from 'vitest';
 import ProfilePage from './page';
+import { defaultConfig, type GameConfig } from '@/lib/games/catalog';
 
 const { from } = vi.hoisted(() => ({ from: vi.fn() }));
 vi.mock('@/lib/supabaseClient', () => ({ supabase: { from } }));
 vi.mock('next/navigation', () => ({ useParams: () => ({ id: 'player-1' }) }));
 
-function match(id: number, note: string, gameType = '501', winner = true) {
+function match(id: number, note: string, gameType = '501', winner = true, status?: GameConfig['status']) {
   return { id, notes: note, game_type: gameType, played_at: '2026-09-01T12:00:00Z',
+    game_config: status ? {...defaultConfig(), status} : null,
     all_match_players: [{ id, match_id: id, player_id: 'player-1', score: 60,
       points_scored: null, is_winner: winner, profiles: null }] };
 }
@@ -24,9 +26,10 @@ beforeEach(() => {
     const query = {
       select: vi.fn().mockReturnThis(),
       eq: vi.fn((column: string, value: unknown) => { filters.push([column, value]); return query; }),
+      or: vi.fn((expression: string) => { filters.push(['or', expression]); return query; }),
       order: vi.fn().mockReturnThis(),
       single: () => Promise.resolve({ data: { id: 'player-1', display_name: 'Test player' }, error: null }),
-      limit: () => Promise.resolve({ data: [match(1, 'Recent win'), match(2, 'Recent loss', 'Cricket', false)], error: null }),
+      limit: () => Promise.resolve({ data: [match(1, 'Recent win'), match(2, 'Recent loss', 'Cricket', false), match(3, 'Unresolved tie', '501', false, 'tied')], error: null }),
       range: (start: number, end: number) => new Promise<Result>(resolve => {
         requests.push({ filters, range: [start, end], resolve });
       }),
@@ -62,6 +65,14 @@ it('filters recent matches immediately without requesting paginated history', as
   expect(requests).toHaveLength(0);
 });
 
+it('keeps an unresolved tie out of the recent losses filter', async () => {
+  render(<ProfilePage />);
+  await screen.findByText('Notes: Unresolved tie');
+  fireEvent.change(screen.getByLabelText('Result'), {target:{value:'losses'}});
+  expect(screen.getByText('Notes: Recent loss')).toBeInTheDocument();
+  expect(screen.queryByText('Notes: Unresolved tie')).not.toBeInTheDocument();
+});
+
 it('keeps settled history while paging and sends filters before resetting to page one', async () => {
   await openHistory();
   expect(screen.getByText('Loading matches...')).toBeInTheDocument();
@@ -90,6 +101,7 @@ it('ignores an obsolete response after a result filter changes', async () => {
   fireEvent.change(screen.getByLabelText('Result'), { target: { value: 'losses' } });
   await waitFor(() => expect(requests).toHaveLength(2));
   expect(requests[1].filters).toContainEqual(['match_players.is_winner', false]);
+  expect(requests[1].filters).toContainEqual(['or', 'game_config.is.null,game_config->>status.eq.completed']);
   await finish(1, [match(40, 'Current loss', '501', false)]);
   await finish(0, [match(41, 'Obsolete win')], 30);
   expect(screen.getByText('Notes: Current loss')).toBeInTheDocument();

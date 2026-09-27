@@ -68,7 +68,6 @@ function valid(match: NightMatch): boolean {
   const players = match.match_players ?? [];
   if (match.game_config) {
     try { validateConfig(match.game_type, match.game_config, players.map(p => ({...p,is_winner:p.is_winner === true}))); } catch { return false; }
-    if (ratingExclusion(match.game_config)) return false;
   }
   return (
     Number.isFinite(Date.parse(match.played_at)) &&
@@ -76,7 +75,7 @@ function valid(match: NightMatch): boolean {
     players.length <= 10 &&
     new Set(players.map((p) => p.player_id)).size === players.length &&
     players.every((p) => p.player_id) &&
-    players.filter((p) => p.is_winner === true).length === (match.game_config?.format === '2v2' ? 2 : match.game_config?.format === '3v3' ? 3 : 1)
+    players.filter((p) => p.is_winner === true).length === (match.game_config?.status && match.game_config.status !== 'completed' ? 0 : match.game_config?.format === '2v2' ? 2 : match.game_config?.format === '3v3' ? 3 : 1)
   );
 }
 function ordered(matches: NightMatch[]): NightMatch[] {
@@ -111,7 +110,7 @@ export function buildNightRecap(
   history: NightMatch[],
   nightId: string,
 ): NightRecap {
-  const all = ordered(history.filter(valid));
+  const all = ordered(history.filter(m => valid(m) && !ratingExclusion(m.game_config)));
   const incomplete = history.filter((m) => !valid(m));
   const beforeOrUnknown = (m: NightMatch, timestamp: number) =>
     !Number.isFinite(Date.parse(m.played_at)) ||

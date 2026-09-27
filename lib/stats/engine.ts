@@ -175,8 +175,8 @@ export function buildLeagueAdvancedStats(
   facts: MatchFact[],
   options: { includeOtherScores?: boolean } = {}
 ): LeagueAdvancedStats {
-  const scoreLabel = detectScoreLabel(facts, options.includeOtherScores ?? false);
   const matches = groupMatches(facts);
+  const analyzedFacts: MatchFact[] = [];
   const players = new Map<string, PlayerAccumulator>();
   let matchesAnalyzed = 0;
   let matchesIgnored = 0;
@@ -212,6 +212,7 @@ export function buildLeagueAdvancedStats(
       const expectedA = 1 / (1 + 10 ** ((average('B') - average('A')) / 400));
       expectedProbabilities = participantStates.map(p => config.sides[p.fact.playerId] === 'A' ? expectedA : 1 - expectedA);
     }
+    analyzedFacts.push(...match.participants);
     const winnerIndex = participantStates.findIndex(({ fact }) => fact.isWinner);
     const winnerProbability = expectedProbabilities[winnerIndex];
     const winner = participantStates[winnerIndex];
@@ -253,7 +254,7 @@ export function buildLeagueAdvancedStats(
         player.qualityWinPoints += 1 - expectedProbabilities[index];
       }
 
-      if (scoreLabel && typeof fact.score === 'number' && Number.isFinite(fact.score)) {
+      if (typeof fact.score === 'number' && Number.isFinite(fact.score)) {
         player.scores.push(fact.score);
       }
 
@@ -272,6 +273,7 @@ export function buildLeagueAdvancedStats(
     matchesAnalyzed += 1;
   }
 
+  const scoreLabel = detectScoreLabel(analyzedFacts, options.includeOtherScores ?? false);
   const rankedPlayers: PlayerAdvancedStats[] = Array.from(players.values())
     .map((player) => {
       const recentOutcomes = player.outcomes.slice(-5);
@@ -302,7 +304,7 @@ export function buildLeagueAdvancedStats(
         recentWins: recentOutcomes.filter(Boolean).length,
         recentGames: recentOutcomes.length,
         ratingHistory: player.ratingHistory,
-        scoreDistribution: buildDistribution(player.scores, gameDefinition(facts[0]?.gameType)?.lowerBetter),
+        scoreDistribution: scoreLabel ? buildDistribution(player.scores, gameDefinition(analyzedFacts[0]?.gameType)?.lowerBetter) : null,
       };
     })
     .sort((a, b) => b.rating - a.rating || b.wins - a.wins || a.displayName.localeCompare(b.displayName));

@@ -1,10 +1,16 @@
 # Rochester Darting Degens Advanced Statistics Roadmap
 
-Status: advanced-statistics PR open; hosted database changes deferred
+Status: advanced-statistics PR #69 merged; League Night Mode implemented and locally verified; hosted database changes deferred
 
 Supabase project: `hrqsbzmsfichiimtxijj`
 
-Last updated: 2026-09-08
+Last updated: 2026-09-27
+
+Release checkpoint: PR #69 merged into `main` as `690a01b` on 2026-09-25.
+The package rows below retain their dated implementation evidence; they are not
+a current deployment-status dashboard. Ben reported that the merged website
+looks good. The new Phase 4 branch starts from that merged release, with no
+deployable migration SQL. League Night SQL remains outside automatic deployment.
 
 ## Implementation status
 
@@ -14,6 +20,7 @@ Last updated: 2026-09-08
 | 1 — Data foundation | Implemented in source | Editable match chronology is ready; the additive SQL is retained as a local-only fixture, not an auto-deployed migration. Hosted deployment remains gated on schema/RLS review. |
 | 2 — Advanced statistics | Implemented | The pure rating and distribution engine is covered by deterministic tests. |
 | 3 — Statistics experience | Implemented | The responsive `/stats` dashboard, filters, stories, trend chart, table, and methodology are in place. |
+| 4A–4C — League Night Mode | Implemented; Ben's local demo review complete | Shared attendance, atomic saving, recovery, rematches, recap awards and export. [Local verification](league-night-verification-2026-09-26.md) and [read-only hosted audit](league-night-hosted-audit-2026-09-27.md); backup/restore, migration-history adoption and hosted rollout remain open. |
 | 3A — Runtime and delivery contract | Complete | Local verification, GitHub Actions run `33327531198`, and Vercel deployment `7Q8bJBqSjuM3hhGKYkcPNomx7ADt` pass on commit `db5816d`. |
 | Local Supabase readiness follow-up | User approved | Approved on 2026-09-07 before beginning 3B; reviewed baseline, loopback core services, local RLS/preservation tests, and synthetic browser acceptance. See `docs/local-approval-readiness-2026-09-07.md`. Hosted deployment remains gated. |
 | 3B — Next.js security baseline | Implemented and locally verified | Next/eslint-config-next 16.3.4, React/DOM 19.2.8; production audit zero; 59 unit tests and two production-browser scenarios pass. CI/Vercel remain pending push. |
@@ -216,10 +223,24 @@ Phase 4 entry gate is satisfied. Package 3F may remain deferred.
 
 ### Phase 4 — League Night Mode
 
-- Enter date, venue, board, and roster once per session.
-- Add recent-player chips, same-players/rematch shortcuts, draft autosave, and
-  duplicate warnings.
-- Keep enhanced fields collapsed by default.
+Detailed delivery and design plan: [League Night Mode](league-night-mode-plan.md).
+
+- **4A — Save with confidence:** atomic create/edit, safe retries, conflict
+  handling, and independently reviewed database/backup/deployment gates.
+- **4B — Save & Rematch:** shared persistent nights and attendee lists, entry
+  from any signed-in user's phone, mobile-friendly player cards, device-local
+  score drafts, and explicit successful saves. Preserve creator-only match editing.
+- **4C — Night recap:** confirmed results from all contributors, historically
+  grounded rating changes, upsets, best-recorded scores, earned night awards
+  with clear eligibility, and a user-reviewed share card.
+
+Retain the League Lab's visual quality and sample guardrails. Enhanced scoring
+fields and the old deferred statistics schema are not required by this scope.
+Shared nights require narrowly scoped new storage under the same database
+review and deployment gates as safer saving. The reviewed local SQL is under
+`supabase/pending/`, not the auto-deployment migration directory. Follow
+[the ordered rollout](league-night-database-rollout.md); do not deploy this app
+against an unchanged hosted database.
 
 ### Phase 5 — Enhanced darts metrics
 

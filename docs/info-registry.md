@@ -499,6 +499,27 @@ it superseded or retired and point to the replacement.
 
 ## Reviewed host workaround
 
+### RDD-INFO-022 — A Git worktree is not a Supabase stack boundary
+
+- **Status:** active
+- **Type:** verified local procedure and repository constraint
+- **Scope:** League Night local rehearsal, not hosted deployment
+- **Statement:** Worktrees sharing a Supabase project ID share its local stack.
+  League Night deliberately uses `rdd-league-night`, generated workdir
+  `.local/league-night`, loopback API port 55421 and app port 3010. Use
+  `night:local` and the dedicated rehearsal script; never reset the older
+  advanced-statistics stack as part of this feature.
+- **Evidence:** `scripts/league-night-local.mjs`,
+  `scripts/rehearse-league-night.mjs`, `scripts/local-environment.mjs`,
+  `docs/league-night-database-rollout.md`.
+- **Validation:** 2026-09-26 separate healthy stacks, fresh legacy-only pgTAP
+  rehearsal and production-build browser checks; detailed dated outcomes in
+  `docs/league-night-verification-2026-09-26.md`.
+- **Invalidation trigger:** changes to project IDs, workdir/port selection,
+  Docker bindings, bootstrap schema, or CLI behavior; recheck the target before
+  any database action. This does not establish hosted backup or policy safety.
+- **Related:** RDD-INFO-003, RDD-INFO-009, RDD-INFO-021.
+
 ### RDD-INFO-009 — Windows Docker socket recovery must preserve runtime folders
 
 - **Status:** active (narrow, opt-in local workaround)

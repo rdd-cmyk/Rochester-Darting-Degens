@@ -3,7 +3,7 @@ import { collectAllStatisticsRows } from "@/lib/stats/pagination";
 import type { Attendee, LeagueNight, NightMatch, PlayerProfile } from "./types";
 
 export const MATCH_SELECT =
-  "id,played_at,game_type,board_type,venue,notes,created_by,night_id,revision,match_players(id,player_id,score,points_scored,is_winner,profiles(display_name,first_name,include_first_name_in_display))";
+  "id,played_at,game_type,game_config,board_type,venue,notes,created_by,night_id,revision,match_players(id,player_id,score,points_scored,is_winner,profiles(display_name,first_name,include_first_name_in_display))";
 
 async function withPlanningStatus(
   nights: LeagueNight[],

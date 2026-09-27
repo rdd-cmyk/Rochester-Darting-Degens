@@ -19,7 +19,7 @@ export default defineConfig({
     setupFiles: ['./vitest.setup.ts'],
     coverage: {
       provider: 'v8',
-      include: ['lib/stats/**/*.ts', 'lib/matchState.js', 'lib/planning.ts', 'lib/league-night/{draft,match-write,recap,recovery,share-card}.ts'],
+      include: ['lib/stats/**/*.ts', 'lib/games/**/*.ts', 'lib/matchState.js', 'lib/planning.ts', 'lib/league-night/{draft,match-write,recap,recovery,share-card}.ts'],
       reporter: ['text', 'html'],
       thresholds: {
         lines: 85,

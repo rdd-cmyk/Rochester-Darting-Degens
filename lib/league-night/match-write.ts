@@ -1,41 +1,21 @@
 import { supabase } from "@/lib/supabaseClient";
 import type { MatchWrite, SaveResult } from "./types";
+import { GAME_TYPES, parseGameScore, hasCricketPoints, validateConfig } from '@/lib/games/catalog';
 
-export const GAME_TYPES = ["501", "301", "Cricket", "Other"] as const;
+export { GAME_TYPES };
 export function parseScore(
   raw: string,
   game: string | null,
   mode: "3da" | "ppd" = "3da",
 ): number | null {
-  if (!raw.trim()) return null;
-  let score = Number(raw);
-  if ((game === "501" || game === "301") && mode === "ppd") score *= 3;
-  const cap =
-    game === "501"
-      ? 167
-      : game === "301"
-        ? 150.5
-        : game === "Cricket"
-          ? 9
-          : 9999;
-  if (
-    !Number.isFinite(score) ||
-    score <= 0 ||
-    score > cap ||
-    (game === "Other" && !Number.isInteger(score))
-  ) {
-    throw new Error(
-      `${game ?? "This game"} scores must be greater than zero and at most ${cap}${game === "Other" ? ", using whole numbers" : ""}. Leave an unrecorded score blank.`,
-    );
-  }
-  return Number(score.toFixed(6));
+  return parseGameScore(raw, game, mode);
 }
 export function parseCricketPoints(raw: string): number | null {
   if (!raw.trim()) return null;
   const value = Number(raw);
-  if (!Number.isInteger(value) || value <= 0 || value > 9999)
+  if (!Number.isInteger(value) || value < 0 || value > 9999)
     throw new Error(
-      "Cricket points must be a positive whole number up to 9999, or left blank.",
+      "Cricket points must be a nonnegative whole number up to 9999, or left blank.",
     );
   return value;
 }
@@ -50,7 +30,8 @@ export function validateMatchWrite(
     new Set(input.players.map((p) => p.player_id)).size !== input.players.length
   )
     throw new Error("Choose a different player for each place.");
-  if (input.players.filter((p) => p.is_winner).length !== 1)
+  if (input.game_config) validateConfig(input.game_type, input.game_config, input.players);
+  else if (input.players.filter((p) => p.is_winner).length !== 1)
     throw new Error("Choose exactly one winner.");
   const played = Date.parse(input.played_at);
   if (!Number.isFinite(played) || played > now + 5 * 60_000)
@@ -63,7 +44,7 @@ export function validateMatchWrite(
     if (player.score !== null)
       parseScore(String(player.score), input.game_type);
     if (player.points_scored !== null) {
-      if (input.game_type !== "Cricket")
+      if (!hasCricketPoints(input.game_type))
         throw new Error("Points scored are only supported for Cricket.");
       parseCricketPoints(String(player.points_scored));
     }

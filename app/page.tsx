@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
+import { GAME_TYPES, ratingExclusion, isLegacyScoreCohort, type GameConfig } from '@/lib/games/catalog';
 import { supabase } from '@/lib/supabaseClient';
 import { formatPlayerName } from '@/lib/playerName';
 import { LinkedPlayerName } from '@/components/LinkedPlayerName';
@@ -25,6 +26,7 @@ type MatchRow = {
   match_id: string;
   matches: {
     game_type: string | null;
+    game_config?: GameConfig | null;
     played_at: string;
   } | null;
 };
@@ -67,7 +69,7 @@ type GameTypeStatsRow = {
   last10: string;
 };
 
-const GAME_TYPE_ORDER = ['Cricket', '501', '301', 'Other'] as const;
+const GAME_TYPE_ORDER = GAME_TYPES;
 type GameTypeLabel = (typeof GAME_TYPE_ORDER)[number];
 
 export default function Home() {
@@ -137,9 +139,7 @@ export default function Home() {
   const [authErrorMessage, setAuthErrorMessage] = useState<string | null>(null);
 
   const categorizeGameType = (gameType: string | null): GameTypeLabel => {
-    if (gameType === 'Cricket') return 'Cricket';
-    if (gameType === '501') return '501';
-    if (gameType === '301') return '301';
+    if (gameType && GAME_TYPES.includes(gameType)) return gameType;
     return 'Other';
   };
 
@@ -216,7 +216,7 @@ export default function Home() {
             include_first_name_in_display
           ),
           matches!inner (
-            game_type,
+            game_type, game_config,
             played_at
           )
         `
@@ -298,6 +298,7 @@ export default function Home() {
       >();
 
       for (const row of rows) {
+        if (ratingExclusion(row.matches?.game_config)) continue;
         const playerId = row.player_id;
         if (!playerId) continue;
 
@@ -363,7 +364,7 @@ export default function Home() {
         outcomes.push({ playedAt, isWin });
 
         // ---- 3-Dart Average (501 / 301 only) ----
-        if (isX01Game && typeof score === 'number') {
+        if (isX01Game && isLegacyScoreCohort(row.matches?.game_config) && typeof score === 'number') {
           let three = threeMap.get(playerId);
           if (!three) {
             three = {
@@ -379,7 +380,7 @@ export default function Home() {
         }
 
         // ---- MPR (Cricket only) ----
-        if (isCricket && typeof score === 'number') {
+        if (isCricket && isLegacyScoreCohort(row.matches?.game_config) && typeof score === 'number') {
           let mpr = mprMap.get(playerId);
           if (!mpr) {
             mpr = {
@@ -1690,6 +1691,7 @@ export default function Home() {
       {/* 3-Dart Average Leaderboard (501 / 301) */}
       <section>
         <h2 className="leaderboard-title">3-Dart Average Leaderboard (501 / 301)</h2>
+        <p>Legacy individual averages with unspecified rules. <Link href="/stats">Compare specific presets and team formats in Advanced Statistics.</Link></p>
         {loading ? (
           <div style={{ overflowX: 'auto', marginTop: '0.75rem' }}>
             <table

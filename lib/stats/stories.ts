@@ -23,5 +23,7 @@ export function pickEligibleUpset(
     eligiblePlayers.map((player) => player.playerId)
   );
 
-  return upsets.find((upset) => eligiblePlayerIds.has(upset.winnerId)) ?? null;
+  return upsets.find((upset) =>
+    ((upset.winnerIds?.length ?? 1) === 1 || upset.expectedWinProbability < 0.5 - 1e-10) &&
+    (upset.winnerIds ?? [upset.winnerId]).every(id => eligiblePlayerIds.has(id))) ?? null;
 }

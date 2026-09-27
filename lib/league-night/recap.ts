@@ -1,3 +1,4 @@
+import { gameDefinition, gameUnit, hasCricketPoints, comparisonKey, formatLabel, presetLabel, ratingExclusion, validateConfig } from '@/lib/games/catalog';
 import { formatPlayerName } from "@/lib/playerName";
 import {
   buildLeagueAdvancedStats,
@@ -51,28 +52,31 @@ export function participantName(player: MatchParticipant): string {
   );
 }
 export function scoreSummary(match: NightMatch): string {
-  const unit =
-    match.game_type === "Cricket"
-      ? "MPR"
-      : ["501", "301"].includes(match.game_type ?? "")
-        ? "3DA"
-        : "score";
-  return (match.match_players ?? [])
+  const unit = gameUnit(match.game_type) === 'Score' ? 'score' : gameUnit(match.game_type);
+  const shared = Object.entries(match.game_config?.teamScores ?? {})
+    .filter(([, value]) => value !== null)
+    .map(([side, value]) => `Team ${side}: ${value} ${unit}`);
+  const personal = (match.match_players ?? [])
     .map(
       (p) =>
-        `${participantName(p)}: ${p.score === null ? "not recorded" : `${p.score} ${unit}`}${match.game_type === "Cricket" && p.points_scored !== null ? `, ${p.points_scored} points` : ""}`,
+        `${participantName(p)}: ${p.score === null ? "not recorded" : `${p.score} ${unit}`}${hasCricketPoints(match.game_type) && p.points_scored !== null ? `, ${p.points_scored} ${match.game_type === 'Cut-Throat Cricket' ? 'penalty points' : 'points'}` : ""}`,
     )
-    .join(" · ");
+    ;
+  return [...shared, ...personal].join(" · ");
 }
 function valid(match: NightMatch): boolean {
   const players = match.match_players ?? [];
+  if (match.game_config) {
+    try { validateConfig(match.game_type, match.game_config, players.map(p => ({...p,is_winner:p.is_winner === true}))); } catch { return false; }
+    if (ratingExclusion(match.game_config)) return false;
+  }
   return (
     Number.isFinite(Date.parse(match.played_at)) &&
     players.length >= 2 &&
     players.length <= 10 &&
     new Set(players.map((p) => p.player_id)).size === players.length &&
     players.every((p) => p.player_id) &&
-    players.filter((p) => p.is_winner === true).length === 1
+    players.filter((p) => p.is_winner === true).length === (match.game_config?.format === '2v2' ? 2 : match.game_config?.format === '3v3' ? 3 : 1)
   );
 }
 function ordered(matches: NightMatch[]): NightMatch[] {
@@ -80,7 +84,7 @@ function ordered(matches: NightMatch[]): NightMatch[] {
     (a, b) => Date.parse(a.played_at) - Date.parse(b.played_at) || a.id - b.id,
   );
 }
-function facts(matches: NightMatch[]): MatchFact[] {
+export function facts(matches: NightMatch[]): MatchFact[] {
   return matches.flatMap((m) =>
     (m.match_players ?? []).map((p) => ({
       matchId: String(m.id),
@@ -88,6 +92,7 @@ function facts(matches: NightMatch[]): MatchFact[] {
       displayName: participantName(p),
       playedAt: m.played_at,
       gameType: m.game_type,
+      gameConfig: m.game_config,
       boardType: m.board_type,
       venue: m.venue,
       isWinner: p.is_winner === true,
@@ -96,8 +101,8 @@ function facts(matches: NightMatch[]): MatchFact[] {
   );
 }
 function scoreValid(score: number | null, game: string): score is number {
-  const cap = game === "501" ? 167 : game === "301" ? 150.5 : 9;
-  return score !== null && Number.isFinite(score) && score > 0 && score <= cap;
+  const cap = gameDefinition(game)?.cap ?? 9999;
+  return score !== null && Number.isFinite(score) && score >= 0 && score <= cap;
 }
 
 // The caller must fetch all authorized history before invoking this function.
@@ -170,16 +175,17 @@ export function buildNightRecap(
     matches
       .filter(
         (m) =>
-          ["501", "301", "Cricket"].includes(m.game_type ?? "") &&
+          Boolean(gameDefinition(m.game_type)) && m.game_type !== "Other" &&
           ["Soft Tip", "Steel Tip"].includes(m.board_type ?? ""),
       )
-      .map((m) => `${m.game_type}|${m.board_type}`),
+      .map((m) => comparisonKey(m.game_type,m.board_type,m.game_config)),
   );
   for (const scopeKey of scopes) {
-    const [game, board] = scopeKey.split("|");
-    const scope = `${game} · ${board}`;
+    const [game, board, preset, format] = JSON.parse(scopeKey) as [string,string,string,string];
+    const sample = matches.find(m => comparisonKey(m.game_type,m.board_type,m.game_config) === scopeKey)!;
+    const scope = `${game} · ${board}${format === 'individual' ? '' : ` · ${formatLabel(sample.game_config?.format)}`}${preset === 'unspecified' ? '' : ` · ${presetLabel(game,sample.game_config)}`}`;
     const scoped = all.filter(
-      (m) => m.game_type === game && m.board_type === board,
+      (m) => comparisonKey(m.game_type,m.board_type,m.game_config) === scopeKey,
     );
     const night = scoped.filter((m) => m.night_id === nightId);
     const uncertain = incomplete.filter(
@@ -224,11 +230,11 @@ export function buildNightRecap(
         scope,
         gain,
         games: ownNight.length,
-        provisional: priorCount < PROVISIONAL_MATCHES,
+        provisional: priorCount / (format === '2v2' ? 2 : format === '3v3' ? 3 : 1) < PROVISIONAL_MATCHES,
       };
       ratingMoves.push(move);
       if (
-        priorCount >= PROVISIONAL_MATCHES &&
+        priorCount / (format === '2v2' ? 2 : format === '3v3' ? 3 : 1) >= PROVISIONAL_MATCHES &&
         ownNight.length >= 3 &&
         gain > 0 &&
         !uncertain.some((m) =>
@@ -299,15 +305,16 @@ export function buildNightRecap(
                 ?.score ?? null,
           )
           .filter((value) => scoreValid(value, game));
-        if (!previous.length || score <= Math.max(...previous)) continue;
-        const unit = game === "Cricket" ? "MPR" : "3DA";
+        const previousBest = gameDefinition(game)?.lowerBetter ? Math.min(...previous) : Math.max(...previous);
+        if (!previous.length || (gameDefinition(game)?.lowerBetter ? score >= previousBest : score <= previousBest)) continue;
+        const unit = gameUnit(game);
         bestAward = {
           id: `best:${scopeKey}:${stat.playerId}`,
           kind: "best",
           title: "Personal Best",
           playerId: stat.playerId,
           playerName: stat.displayName,
-          reason: `New recorded best: ${score.toFixed(2)} ${unit}, previously ${Math.max(...previous).toFixed(2)}`,
+          reason: `New recorded best: ${score.toFixed(2)} ${unit}, previously ${previousBest.toFixed(2)}`,
           scope,
           rule: `Exceeds ${previous.length} earlier compatible recorded score${previous.length === 1 ? "" : "s"}. First scores and tied bests do not earn this award.`,
           matchIds: [m.id],
@@ -345,21 +352,21 @@ export function buildNightRecap(
         return false;
       const players = m.match_players ?? [];
       return (
-        upset.expectedWinProbability < 1 / players.length - 1e-10 &&
+        upset.expectedWinProbability < (format === 'individual' ? 1 / players.length : 0.5) - 1e-10 &&
         players.every(
           (p) =>
             !ambiguous(m, p.player_id) &&
             (perPlayer.get(p.player_id) ?? []).filter(
               (prior) => Date.parse(prior.played_at) < Date.parse(m.played_at),
-            ).length >= PROVISIONAL_MATCHES,
+            ).length / (format === '2v2' ? 2 : format === '3v3' ? 3 : 1) >= PROVISIONAL_MATCHES,
         )
       );
     });
     for (const count of new Set(
-      eligible.map((u) => u.opponentNames.length + 1),
+      eligible.map((u) => u.opponentNames.length + (u.winnerIds?.length ?? 1)),
     )) {
       const candidates = eligible.filter(
-        (u) => u.opponentNames.length + 1 === count,
+        (u) => u.opponentNames.length + (u.winnerIds?.length ?? 1) === count,
       );
       const lowest = Math.min(
         ...candidates.map((u) => u.expectedWinProbability),
@@ -375,7 +382,7 @@ export function buildNightRecap(
           playerName: upset.winnerName,
           reason: `Won with a ${(upset.expectedWinProbability * 100).toFixed(1)}% pre-match chance`,
           scope: `${scope} · ${count} players`,
-          rule: "Lowest qualifying winner probability among same-size matches. All players have ten prior games; winner probability is below equal chance.",
+          rule: "Lowest qualifying winner probability among same-size matches. All players have ten prior evidence games; winner probability is below equal chance.",
           matchIds: [Number(upset.matchId)],
         });
     }

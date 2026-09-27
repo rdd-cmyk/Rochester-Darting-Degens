@@ -1,4 +1,6 @@
+import type { GameConfig } from '@/lib/games/catalog';
 export type MatchFact = {
+  gameConfig?: GameConfig | null;
   matchId: string;
   playerId: string;
   displayName: string;
@@ -11,6 +13,10 @@ export type MatchFact = {
 };
 
 export type RatingHistoryPoint = {
+  change?: number;
+  expectedWin?: number;
+  format?: string;
+  opponents?: string[];
   matchId: string;
   playedAt: string;
   rating: number;
@@ -28,6 +34,8 @@ export type ScoreDistribution = {
 };
 
 export type PlayerAdvancedStats = {
+  evidenceGames?: number;
+  formatGames?: Record<string, number>;
   playerId: string;
   displayName: string;
   rank: number;
@@ -50,6 +58,7 @@ export type PlayerAdvancedStats = {
 };
 
 export type UpsetStory = {
+  winnerIds?: string[];
   matchId: string;
   playedAt: string;
   gameType: string | null;
@@ -63,7 +72,7 @@ export type LeagueAdvancedStats = {
   players: PlayerAdvancedStats[];
   matchesAnalyzed: number;
   matchesIgnored: number;
-  scoreLabel: '3DA' | 'MPR' | 'Score' | null;
+  scoreLabel: '3DA' | 'MPR' | 'Score' | 'Points' | 'Darts to finish' | null;
   upsets: UpsetStory[];
   biggestUpset: UpsetStory | null;
 };

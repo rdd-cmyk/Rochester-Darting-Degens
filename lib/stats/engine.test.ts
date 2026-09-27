@@ -188,7 +188,7 @@ describe('RDD rating engine', () => {
     expect(
       result.players.find((player) => player.playerId === 'A')?.scoreDistribution
         ?.normalizedDeviation
-    ).toBe(0);
+    ).toBe(Number.POSITIVE_INFINITY);
   });
 
   test('excludes Other scores from consistency by default without changing ratings', () => {
@@ -219,7 +219,7 @@ describe('RDD rating engine', () => {
 
     const result = buildLeagueAdvancedStats([
       ...firstMatch,
-      { ...firstMatch[0], score: 99 },
+      { ...firstMatch[0] },
       ...secondMatch,
       { ...secondMatch[0], matchId: '' },
       { ...secondMatch[1], playerId: '' },

@@ -100,10 +100,10 @@ describe("shared match validation", () => {
     expect(parseScore("20.5", "501", "ppd")).toBe(61.5);
   });
   it.each([
-    ["0", "501"],
+    ["0", "Gotcha"],
     ["-1", "301"],
-    ["168", "501"],
-    ["151", "301"],
+    ["181", "501"],
+    ["181", "301"],
     ["9.1", "Cricket"],
     ["3.2", "Other"],
     ["Infinity", "501"],
@@ -117,10 +117,10 @@ describe("shared match validation", () => {
     expect(parseScore("9", "Cricket")).toBe(9);
     expect(parseScore("9999", "Other")).toBe(9999);
   });
-  it("uses the existing positive Cricket points constraint", () => {
+  it("allows zero Cricket points with the additive schema", () => {
     expect(parseCricketPoints("")).toBeNull();
     expect(parseCricketPoints("12")).toBe(12);
-    expect(() => parseCricketPoints("0")).toThrow();
+    expect(parseCricketPoints("0")).toBe(0);
     expect(() => parseCricketPoints("1.5")).toThrow();
   });
   it("accepts summary results without inventing missing scores", () =>

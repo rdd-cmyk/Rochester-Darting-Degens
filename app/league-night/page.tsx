@@ -1,4 +1,7 @@
 "use client";
+import { previewCorrection } from '@/lib/games/correction';
+import { GameOptions, GameResultDetails } from '@/components/GameOptions';
+import { defaultConfig, gameUnit, isX01, hasCricketPoints } from '@/lib/games/catalog';
 
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -321,6 +324,7 @@ function NightSession({
   const [error, setError] = useState("");
   const [refreshError, setRefreshError] = useState("");
   const [receipt, setReceipt] = useState("");
+  const [correction, setCorrection] = useState<{key: string; result: ReturnType<typeof previewCorrection>} | null>(null);
   const [view, setView] = useState<"entry" | "recap">("entry");
   const [saving, setSaving] = useState(false);
   const [duplicates, setDuplicates] = useState<number[]>([]);
@@ -575,6 +579,7 @@ function NightSession({
         ? draft.players.filter((p) => p.playerId !== id)
         : [...draft.players, { playerId: id, score: "", points: "" }],
       winnerId: selected && draft.winnerId === id ? "" : draft.winnerId,
+      gameConfig: draft.gameConfig ? {...draft.gameConfig, sides:Object.fromEntries(Object.entries(draft.gameConfig.sides).filter(([key]) => !selected || key !== id))} : null,
     });
   }
   async function attendance(playerId: string, present: boolean) {
@@ -611,6 +616,7 @@ function NightSession({
   }
   function edit(match: NightMatch) {
     if (locked) return;
+    setCorrection(null);
     if (
       dirty.current &&
       !window.confirm("Replace this unsaved scorecard with the saved match?")
@@ -624,6 +630,7 @@ function NightSession({
       })),
       winnerId: match.match_players?.find((p) => p.is_winner)?.player_id ?? "",
       game: match.game_type ?? "",
+      gameConfig: match.game_config ?? null,
       board: match.board_type ?? "",
       mode: "3da",
       notes: match.notes ?? "",
@@ -662,6 +669,7 @@ function NightSession({
                 draft.original?.playedAt ?? null,
               ),
           game_type: draft.game || null,
+          game_config: draft.gameConfig ?? null,
           board_type: draft.board || null,
           venue: draft.editId ? draft.original!.venue : night.venue,
           notes: draft.notes || null,
@@ -670,10 +678,16 @@ function NightSession({
             player_id: p.playerId,
             score: parseScore(p.score, draft.game, draft.mode),
             points_scored:
-              draft.game === "Cricket" ? parseCricketPoints(p.points) : null,
-            is_winner: p.playerId === draft.winnerId,
+              hasCricketPoints(draft.game) ? parseCricketPoints(p.points) : null,
+            is_winner: draft.gameConfig?.status && draft.gameConfig.status !== 'completed' ? false : draft.gameConfig && draft.gameConfig.format !== 'individual' ? Boolean(draft.gameConfig.sides[draft.winnerId] && draft.gameConfig.sides[p.playerId] === draft.gameConfig.sides[draft.winnerId]) : p.playerId === draft.winnerId,
           })),
         });
+        if (draft.editId && matches.find(m => m.id === draft.editId)?.game_type !== draft.game && correction?.key !== JSON.stringify(payload)) {
+          const history = await loadMatches();
+          setCorrection({key: JSON.stringify(payload), result: previewCorrection(history, payload)});
+          setError('Review the correction preview, then save again to apply it.');
+          return;
+        }
         pending = { operationId: crypto.randomUUID(), payload, intent };
       }
       if (allowDuplicate)
@@ -726,9 +740,9 @@ function NightSession({
         void refresh();
         return;
       }
-      const winner = pending.payload.players.find((p) => p.is_winner)!;
+      const winnerNames = pending.payload.players.filter(p => p.is_winner).map(p => names.get(p.player_id) ?? "Player").join(" + ");
       setReceipt(
-        `Saved match #${result.match_id} — ${names.get(winner.player_id) ?? "Winner"} won.${result.replayed ? " Previous save confirmed." : ""}`,
+        `Saved match #${result.match_id} — ${winnerNames ? `${winnerNames} won.` : "Result recorded."}${result.replayed ? " Previous save confirmed." : ""}`,
       );
       setDuplicates([]);
       dirty.current = false;
@@ -750,6 +764,7 @@ function NightSession({
       setDraft((current) => ({
         ...freshDraft(),
         game: current.game,
+        gameConfig: current.gameConfig ? { ...current.gameConfig, sides: pending!.intent === "rematch" ? current.gameConfig.sides : {}, teamScores: {}, finish: "ordinary" } : null,
         board: current.board,
         mode: current.mode,
         players:
@@ -770,7 +785,7 @@ function NightSession({
       saveLock.current = false;
       if (mounted.current) setSaving(false);
     }
-  }, [draft, restore, tabConflict, night.id, night.venue, names, userId, refresh, releaseEntry]);
+  }, [draft, restore, tabConflict, night.id, night.venue, names, userId, refresh, releaseEntry, matches, correction]);
   const present = attendees.filter((a) => a.present);
   const pool = profiles.filter(
     (p) =>
@@ -783,14 +798,9 @@ function NightSession({
         Date.parse(b.played_at) - Date.parse(a.played_at) || b.id - a.id,
     )
     .slice(0, 5);
-  const currentUnit =
-    draft.game === "Cricket"
-      ? "MPR"
-      : draft.game === "Other"
-        ? "Score"
-        : draft.mode === "ppd"
-          ? "PPD"
-          : "3DA";
+  const currentUnit = isX01(draft.game) && draft.mode === 'ppd' ? 'PPD' : gameUnit(draft.game);
+  const teamGame = Boolean(draft.gameConfig && draft.gameConfig.format !== 'individual');
+  const needsWinner = !draft.gameConfig || draft.gameConfig.status === 'completed';
   return (
     <main className="night-shell">
       <header className="night-hero">
@@ -968,6 +978,7 @@ function NightSession({
                         return;
                       update({
                         game: e.target.value,
+                        gameConfig: { ...(draft.gameConfig ?? defaultConfig()), preset: "unspecified", teamScores: {}, finish: "ordinary" },
                         players: draft.players.map((p) => ({
                           ...p,
                           score: "",
@@ -1022,7 +1033,8 @@ function NightSession({
                   + Add someone
                 </button>
               </div>
-              {(draft.game === "501" || draft.game === "301") && (
+              <GameOptions game={draft.game} value={draft.gameConfig ?? null} players={draft.players.map(p => ({id:p.playerId,name:names.get(p.playerId) ?? 'Player'}))} winner={draft.winnerId} onWinner={winnerId => update({winnerId})} onChange={gameConfig => update({gameConfig, ...(gameConfig.format !== (draft.gameConfig?.format ?? 'individual') ? {players:draft.players.map(p => ({...p,score:'',points:''}))} : {})})} />
+              {isX01(draft.game) && (
                 <label className="night-unit">
                   Enter averages as
                   <select
@@ -1063,6 +1075,7 @@ function NightSession({
                         ref={index === 0 ? firstScore : undefined}
                         type="text"
                         inputMode="decimal"
+                        disabled={teamGame && !['3DA','MPR'].includes(gameUnit(draft.game))}
                         value={p.score}
                         placeholder="—"
                         onChange={(e) =>
@@ -1076,9 +1089,9 @@ function NightSession({
                         }
                       />
                     </label>
-                    {draft.game === "Cricket" && (
+                    {hasCricketPoints(draft.game) && (
                       <label>
-                        Points <span className="night-small">optional</span>
+                        {draft.game === 'Cut-Throat Cricket' ? 'Penalty points' : 'Points'} <span className="night-small">optional</span>
                         <input
                           type="text"
                           inputMode="numeric"
@@ -1098,6 +1111,7 @@ function NightSession({
                     <button
                       type="button"
                       aria-pressed={draft.winnerId === p.playerId}
+                      hidden={teamGame || !needsWinner}
                       aria-label={`${names.get(p.playerId) ?? "Player"} is the winner`}
                       onClick={() =>
                         update({
@@ -1206,6 +1220,12 @@ function NightSession({
                 </div>
               </div>
             )}
+            {draft.editId && correction && <section aria-label="Correction preview" className="night-warning">
+              <h3>Correction preview</h3>
+              <p>{correction.result.from} → {correction.result.to}</p>
+              {correction.result.changes.length ? <ul>{correction.result.changes.map(p => <li key={p.id}>{p.name}: {p.before.toFixed(1)} → {p.after.toFixed(1)}</li>)}</ul> : <p>No overall rating change. Discipline views and score groups will be recalculated.</p>}
+              <p>Saving keeps the original values in the audit.</p>
+            </section>}
             <div className="night-save-bar">
               <p className="night-small">
                 {draft.liveTime ? "Playing now" : "Recorded time"} ·{" "}
@@ -1224,7 +1244,7 @@ function NightSession({
                 ) : draft.editId ? (
                   <button
                     className="night-primary"
-                    disabled={locked || !draft.winnerId}
+                    disabled={locked || (needsWinner && !draft.winnerId)}
                     onClick={() => void submit("edit")}
                   >
                     Save changes
@@ -1234,7 +1254,7 @@ function NightSession({
                     <button
                       className="night-primary"
                       disabled={
-                        locked || draft.players.length < 2 || !draft.winnerId
+                        locked || draft.players.length < 2 || (needsWinner && !draft.winnerId)
                       }
                       onClick={() => void submit("rematch")}
                     >
@@ -1242,7 +1262,7 @@ function NightSession({
                     </button>
                     <button
                       disabled={
-                        locked || draft.players.length < 2 || !draft.winnerId
+                        locked || draft.players.length < 2 || (needsWinner && !draft.winnerId)
                       }
                       onClick={() => void submit("finish")}
                     >
@@ -1333,15 +1353,15 @@ function NightSession({
                     <div>
                       <strong>
                         {m.match_players?.find((p) => p.is_winner)
-                          ? `${participantName(m.match_players.find((p) => p.is_winner)!)} won`
-                          : "Result needs review"}
+                          ? `${m.match_players.filter(p => p.is_winner).map(participantName).join(" + ")} won`
+                          : m.game_config?.status === "tied" ? "Unresolved tie" : m.game_config?.status === "abandoned" ? "Abandoned result" : "Result needs review"}
                       </strong>
                       <p className="night-small">
                         {m.match_players?.map(participantName).join(" · ")} ·{" "}
                         {m.game_type || "Unknown"}
                       </p>
                       <p className="night-small">
-                        #{m.id} · {scoreSummary(m)}
+                        #{m.id} · {scoreSummary(m)}<GameResultDetails game={m.game_type} config={m.game_config} />
                       </p>
                       <p className="night-small">
                         Entered by{" "}

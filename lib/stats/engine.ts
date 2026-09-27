@@ -1,3 +1,4 @@
+import { comparisonKey, gameDefinition, ratingExclusion, validateConfig } from '@/lib/games/catalog';
 import type {
   LeagueAdvancedStats,
   MatchFact,
@@ -10,11 +11,14 @@ import type {
 export const STARTING_RATING = 1500;
 export const RATING_K_FACTOR = 32;
 export const PROVISIONAL_MATCHES = 10;
+export const RATING_POLICY_VERSION = 'team-split-v1';
 
 type PlayerAccumulator = {
   playerId: string;
   displayName: string;
   games: number;
+  evidenceGames: number;
+  formatGames: Record<string, number>;
   wins: number;
   expectedWins: number;
   opponentRatingTotal: number;
@@ -27,6 +31,7 @@ type PlayerAccumulator = {
 };
 
 type MatchGroup = {
+  inconsistent?: boolean;
   matchId: string;
   playedAt: string;
   gameType: string | null;
@@ -50,7 +55,7 @@ function quantile(sorted: number[], percentile: number): number {
   return sorted[lowerIndex] * (1 - weight) + sorted[upperIndex] * weight;
 }
 
-function buildDistribution(values: number[]): ScoreDistribution | null {
+function buildDistribution(values: number[], lowerBetter = false): ScoreDistribution | null {
   if (values.length === 0) return null;
 
   const sorted = [...values].sort((a, b) => a - b);
@@ -66,9 +71,9 @@ function buildDistribution(values: number[]): ScoreDistribution | null {
     median,
     lowerQuartile: quantile(sorted, 0.25),
     upperQuartile: quantile(sorted, 0.75),
-    best: sorted[sorted.length - 1],
+    best: lowerBetter ? sorted[0] : sorted[sorted.length - 1],
     medianAbsoluteDeviation,
-    normalizedDeviation: median > 0 ? medianAbsoluteDeviation / median : 0,
+    normalizedDeviation: median > 0 ? medianAbsoluteDeviation / median : Number.POSITIVE_INFINITY,
   };
 }
 
@@ -81,8 +86,9 @@ function detectScoreLabel(
 
   if (gameTypes.size !== 1) return null;
   const [gameType] = gameTypes;
-  if (gameType === '501' || gameType === '301') return '3DA';
-  if (gameType === 'Cricket') return 'MPR';
+  if (new Set(facts.map(f => comparisonKey(f.gameType, f.boardType, f.gameConfig))).size !== 1) return null;
+  const definition = gameDefinition(gameType);
+  if (definition && gameType !== 'Other') return definition.unit;
   return gameType === 'Other' && includeOtherScores ? 'Score' : null;
 }
 
@@ -94,7 +100,14 @@ function groupMatches(facts: MatchFact[]): MatchGroup[] {
 
     const existing = groups.get(fact.matchId);
     if (existing) {
-      if (!existing.participants.some((participant) => participant.playerId === fact.playerId)) {
+      const first = existing.participants[0];
+      const duplicate = existing.participants.find(participant => participant.playerId === fact.playerId);
+      if (fact.playedAt !== first.playedAt || fact.gameType !== first.gameType ||
+          fact.boardType !== first.boardType || JSON.stringify(fact.gameConfig) !== JSON.stringify(first.gameConfig) ||
+          (duplicate && (duplicate.isWinner !== fact.isWinner || duplicate.score !== fact.score))) {
+        existing.inconsistent = true;
+      }
+      if (!duplicate) {
         existing.participants.push(fact);
       }
       continue;
@@ -108,6 +121,7 @@ function groupMatches(facts: MatchFact[]): MatchGroup[] {
     });
   }
 
+  for (const group of groups.values()) group.participants.sort((a,b) => a.playerId.localeCompare(b.playerId));
   return Array.from(groups.values()).sort((a, b) => {
     const dateDifference = numericDate(a.playedAt) - numericDate(b.playedAt);
     return (
@@ -134,6 +148,8 @@ function ensurePlayer(
     playerId: participant.playerId,
     displayName: participant.displayName || 'Unknown player',
     games: 0,
+    evidenceGames: 0,
+    formatGames: {},
     wins: 0,
     expectedWins: 0,
     opponentRatingTotal: 0,
@@ -167,8 +183,17 @@ export function buildLeagueAdvancedStats(
   const upsets: UpsetStory[] = [];
 
   for (const match of matches) {
+    const config = match.participants[0].gameConfig;
+    const teamSize = config?.format === '2v2' ? 2 : config?.format === '3v3' ? 3 : 1;
+    let validConfig = true;
+    if (config) {
+      try {
+        if (match.participants.some(p => JSON.stringify(p.gameConfig) !== JSON.stringify(config))) throw new Error('Mixed match configuration');
+        validateConfig(match.gameType, config, match.participants.map(p => ({ player_id: p.playerId, is_winner: p.isWinner, score: p.score, points_scored: null })));
+      } catch { validConfig = false; }
+    }
     const winners = match.participants.filter((participant) => participant.isWinner);
-    if (match.participants.length < 2 || winners.length !== 1) {
+    if (match.inconsistent || !Number.isFinite(Date.parse(match.playedAt)) || match.participants.length < 2 || winners.length !== teamSize || !validConfig || ratingExclusion(config)) {
       matchesIgnored += 1;
       continue;
     }
@@ -181,7 +206,12 @@ export function buildLeagueAdvancedStats(
     const preMatchRatings = participantStates.map(({ player }) => player.rating);
     const ratingWeights = preMatchRatings.map(rating => 10 ** (rating / 400));
     const totalRatingWeight = ratingWeights.reduce((sum, value) => sum + value, 0);
-    const expectedProbabilities = ratingWeights.map((value) => value / totalRatingWeight);
+    let expectedProbabilities = ratingWeights.map((value) => value / totalRatingWeight);
+    if (teamSize > 1 && config) {
+      const average = (side: string) => participantStates.reduce((total, p, i) => total + (config.sides[p.fact.playerId] === side ? preMatchRatings[i] : 0), 0) / teamSize;
+      const expectedA = 1 / (1 + 10 ** ((average('B') - average('A')) / 400));
+      expectedProbabilities = participantStates.map(p => config.sides[p.fact.playerId] === 'A' ? expectedA : 1 - expectedA);
+    }
     const winnerIndex = participantStates.findIndex(({ fact }) => fact.isWinner);
     const winnerProbability = expectedProbabilities[winnerIndex];
     const winner = participantStates[winnerIndex];
@@ -191,24 +221,28 @@ export function buildLeagueAdvancedStats(
       playedAt: match.playedAt,
       gameType: match.gameType,
       winnerId: winner.fact.playerId,
-      winnerName: winner.player.displayName,
+      winnerName: winners.map(p => p.displayName).join(' + '),
+      winnerIds: winners.map(p => p.playerId),
       expectedWinProbability: winnerProbability,
       opponentNames: participantStates
-        .filter((_, index) => index !== winnerIndex)
+        .filter(({ fact }) => !fact.isWinner)
         .map(({ player }) => player.displayName),
     });
 
     const ratingUpdates = participantStates.map(({ fact }, index) =>
-      RATING_K_FACTOR * ((fact.isWinner ? 1 : 0) - expectedProbabilities[index])
+      RATING_K_FACTOR * ((fact.isWinner ? 1 : 0) - expectedProbabilities[index]) / teamSize
     );
 
     participantStates.forEach(({ fact, player }, index) => {
       const opponentRatings = preMatchRatings
-        .filter((_, opponentIndex) => opponentIndex !== index);
+        .filter((_, opponentIndex) => teamSize > 1 && config ? config.sides[participantStates[opponentIndex].fact.playerId] !== config.sides[fact.playerId] : opponentIndex !== index);
       const opponentAverage =
         opponentRatings.reduce((sum, value) => sum + value, 0) / opponentRatings.length;
 
       player.games += 1;
+      player.evidenceGames += 1 / teamSize;
+      const format = teamSize > 1 ? config!.format : match.participants.length > 2 ? 'Free-for-all' : 'Singles';
+      player.formatGames[format] = (player.formatGames[format] ?? 0) + 1;
       player.expectedWins += expectedProbabilities[index];
       player.opponentRatingTotal += opponentAverage;
       player.opponentMatchCount += 1;
@@ -228,6 +262,10 @@ export function buildLeagueAdvancedStats(
         matchId: match.matchId,
         playedAt: match.playedAt,
         rating: player.rating,
+        change: ratingUpdates[index],
+        expectedWin: expectedProbabilities[index],
+        format,
+        opponents: participantStates.filter(({ fact: other }) => teamSize > 1 && config ? config.sides[other.playerId] !== config.sides[fact.playerId] : other.playerId !== fact.playerId).map(p => p.player.displayName),
       });
     });
 
@@ -245,13 +283,15 @@ export function buildLeagueAdvancedStats(
         displayName: player.displayName,
         rank: 0,
         games: player.games,
+        evidenceGames: player.evidenceGames,
+        formatGames: player.formatGames,
         wins: player.wins,
         losses: player.games - player.wins,
         winPct: player.games > 0 ? (player.wins / player.games) * 100 : 0,
         rating: player.rating,
         ratingDelta: player.rating - STARTING_RATING,
         ratingDeltaLastFive: player.rating - comparisonRating,
-        provisional: player.games < PROVISIONAL_MATCHES,
+        provisional: player.evidenceGames + 1e-9 < PROVISIONAL_MATCHES,
         expectedWins: player.expectedWins,
         winDelta: player.wins - player.expectedWins,
         strengthOfSchedule:
@@ -262,7 +302,7 @@ export function buildLeagueAdvancedStats(
         recentWins: recentOutcomes.filter(Boolean).length,
         recentGames: recentOutcomes.length,
         ratingHistory: player.ratingHistory,
-        scoreDistribution: buildDistribution(player.scores),
+        scoreDistribution: buildDistribution(player.scores, gameDefinition(facts[0]?.gameType)?.lowerBetter),
       };
     })
     .sort((a, b) => b.rating - a.rating || b.wins - a.wins || a.displayName.localeCompare(b.displayName));

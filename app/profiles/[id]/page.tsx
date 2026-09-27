@@ -1,6 +1,8 @@
 'use client';
 
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { GAME_TYPES, gameUnit, ratingExclusion, isLegacyScoreCohort, type GameConfig } from '@/lib/games/catalog';
+import { GameResultDetails } from '@/components/GameOptions';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import { supabase } from '@/lib/supabaseClient';
@@ -21,6 +23,7 @@ type MatchRowForStats = {
   score: number | null;
   matches: {
     game_type: string | null;
+  game_config?: GameConfig | null;
     played_at: string;
   } | null;
 };
@@ -47,6 +50,7 @@ type MatchSummary = {
   id: number;
   played_at: string;
   game_type: string | null;
+  game_config?: GameConfig | null;
   notes: string | null;
   board_type: string | null;
   venue: string | null;
@@ -116,6 +120,7 @@ function normalizeMatchDetails(matchesData: RawMatchRow[] | null): MatchSummary[
       id: typeof m.id === 'number' ? m.id : 0,
       played_at: typeof m.played_at === 'string' ? m.played_at : '',
       game_type: typeof m.game_type === 'string' ? m.game_type : null,
+      game_config: m.game_config as GameConfig | null,
       notes: typeof m.notes === 'string' ? m.notes : null,
       board_type: typeof m.board_type === 'string' ? m.board_type : null,
       venue: typeof m.venue === 'string' ? m.venue : null,
@@ -152,7 +157,7 @@ export default function ProfilePage() {
   const [allMatchesPage, setAllMatchesPage] = useState(1);
   const [allMatchesTotalPages, setAllMatchesTotalPages] = useState(1);
   const [gameTypeFilter, setGameTypeFilter] = useState<
-    'all' | '501' | '301' | 'Cricket' | 'Other'
+    string
   >('all');
   const [resultFilter, setResultFilter] = useState<'all' | 'wins' | 'losses'>(
     'all'
@@ -206,7 +211,7 @@ export default function ProfilePage() {
           is_winner,
           score,
           matches!inner (
-            game_type,
+            game_type, game_config,
             played_at
           )
         `
@@ -254,6 +259,7 @@ export default function ProfilePage() {
       let mprGames = 0;
 
       for (const row of rows) {
+        if (ratingExclusion(row.matches?.game_config)) continue;
         const gameType = row.matches?.game_type || null;
         const playedAt =
           row.matches?.played_at || '1970-01-01T00:00:00.000Z';
@@ -273,13 +279,13 @@ export default function ProfilePage() {
         outcomes.push({ playedAt, isWin });
 
         // 3-dart average (501 / 301 only)
-        if (isX01Game && typeof score === 'number') {
+        if (isX01Game && isLegacyScoreCohort(row.matches?.game_config) && typeof score === 'number') {
           threeTotal += score;
           threeGames += 1;
         }
 
         // MPR (Cricket only)
-        if (isCricket && typeof score === 'number') {
+        if (isCricket && isLegacyScoreCohort(row.matches?.game_config) && typeof score === 'number') {
           mprTotal += score;
           mprGames += 1;
         }
@@ -346,7 +352,7 @@ export default function ProfilePage() {
             `
             id,
             played_at,
-            game_type,
+            game_type, game_config,
             notes,
             board_type,
             venue,
@@ -403,7 +409,7 @@ export default function ProfilePage() {
           `
           id,
           played_at,
-          game_type,
+          game_type, game_config,
           notes,
           board_type,
           venue,
@@ -671,6 +677,7 @@ export default function ProfilePage() {
 
             <div style={{ marginBottom: '1rem' }}>
               <h3 className="subsection-heading">3-Dart Average (501 / 301)</h3>
+              <p>Legacy individual averages with unspecified rules. <Link href="/stats">See Advanced Statistics for preset and team comparisons.</Link></p>
               {stats.threeGames === 0 ? (
                 <p>No 501 or 301 matches recorded.</p>
               ) : (
@@ -732,10 +739,7 @@ export default function ProfilePage() {
               }}
             >
               <option value="all">All</option>
-              <option value="501">501</option>
-              <option value="301">301</option>
-              <option value="Cricket">Cricket</option>
-              <option value="Other">Other</option>
+              {GAME_TYPES.map(g => <option key={g} value={g}>{g}</option>)}
             </select>
           </label>
 
@@ -910,12 +914,7 @@ function MatchList({ matches }: MatchListProps) {
       }}
     >
       {matches.map((m) => {
-        const metricLabel =
-          m.game_type === 'Cricket'
-            ? 'MPR'
-            : m.game_type === 'Other'
-              ? 'Score'
-              : '3-Dart Avg';
+        const metricLabel = gameUnit(m.game_type);
 
         return (
           <li
@@ -939,7 +938,8 @@ function MatchList({ matches }: MatchListProps) {
                   {m.game_type || 'Unknown game'} –{' '}
                   {new Date(m.played_at).toLocaleString()}
                 </strong>
-                {m.notes && <div>Notes: {m.notes}</div>}
+                <GameResultDetails game={m.game_type} config={m.game_config} />
+                        {m.notes && <div>Notes: {m.notes}</div>}
                 {m.board_type && <div>Board: {m.board_type}</div>}
                 {m.venue && <div>Venue: {m.venue}</div>}
               </div>
@@ -951,8 +951,8 @@ function MatchList({ matches }: MatchListProps) {
                 {(m.match_players || []).map((mp) => {
                   const prof = mp.profiles;
                   const pointsText =
-                    m.game_type === 'Cricket' && mp.points_scored != null
-                      ? ` (Points: ${mp.points_scored})`
+                    (m.game_type === 'Cricket' || m.game_type === 'Cut-Throat Cricket') && mp.points_scored != null
+                      ? ` (${m.game_type === 'Cut-Throat Cricket' ? 'Penalty points' : 'Points'}: ${mp.points_scored})`
                       : '';
 
                   return (
@@ -970,9 +970,9 @@ function MatchList({ matches }: MatchListProps) {
                         'Unknown player'
                       )}{' '}
                       – {metricLabel}:{' '}
-                      {mp.score != null ? mp.score.toString() : '0'}
+                      {mp.score != null ? mp.score.toString() : 'not recorded'}
                       {pointsText}{' '}
-                      {mp.is_winner ? <strong>(winner)</strong> : null}
+                      {m.game_config?.sides[mp.player_id] ? ` · Team ${m.game_config.sides[mp.player_id]}` : ''} {mp.is_winner ? <strong>(winner)</strong> : null}
                     </li>
                   );
                 })}

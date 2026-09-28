@@ -43,8 +43,13 @@ SELECT lives_ok($$SELECT pg_temp.write('save_poll',pg_temp.poll()||'{"poll_id":"
 SELECT lives_ok($$SELECT pg_temp.write('save_poll',pg_temp.poll()||'{"poll_id":"11111111-0000-4000-8000-000000000003","closes_local":null}')$$,'Manual-only poll');
 SELECT throws_ok($$SELECT pg_temp.write('schedule','{"poll_id":"11111111-0000-4000-8000-000000000003","title":"Do not schedule"}')$$,'22023',null,'Manual-only poll must close before scheduling');
 SELECT lives_ok($$SELECT pg_temp.write('cancel_poll','{"poll_id":"11111111-0000-4000-8000-000000000003","revision":1}')$$,'Organizer cancels poll');
+SELECT lives_ok($$SELECT pg_temp.write('cancel_poll','{"poll_id":"11111111-0000-4000-8000-000000000002","revision":1}')$$,'Organizer cancels unpublished draft');
+SELECT is(jsonb_path_query_first(public.rdd_planning_read(),'$.polls[*] ? (@.id == "11111111-0000-4000-8000-000000000002")')->>'status','cancelled','Organizer retains cancelled draft history');
 SELECT set_config('request.jwt.claims','{"role":"authenticated","sub":"bbbbbbbb-0000-4000-8000-000000000002"}',true);
 SELECT is((public.rdd_planning_read()->>'poll_total')::integer,2,'Draft invisible to member');
+SELECT is(jsonb_array_length(public.rdd_planning_read()->'polls'),2,'Cancelled unpublished draft excluded from member list');
+SELECT ok(NOT jsonb_path_exists(public.rdd_planning_read(),'$.polls[*] ? (@.id == "11111111-0000-4000-8000-000000000002")'),'Cancellation does not publish draft contents');
+SELECT ok(jsonb_path_exists(public.rdd_planning_read(),'$.polls[*] ? (@.id == "11111111-0000-4000-8000-000000000003")'),'Previously published cancelled poll stays visible');
 SELECT throws_ok($$SELECT pg_temp.write('suggest','{"poll_id":"11111111-0000-4000-8000-000000000001","kind":"venue"}')$$,'23514',null,'Missing venue cannot become an empty option');
 SELECT lives_ok($$SELECT pg_temp.write('suggest','{"poll_id":"11111111-0000-4000-8000-000000000001","kind":"venue","venue":"Other hall"}')$$,'Member suggests venue');
 SELECT throws_ok($$SELECT pg_temp.write('suggest','{"poll_id":"11111111-0000-4000-8000-000000000001","kind":"venue","venue":"  OTHER  hall  "}')$$,'23505',null,'Normalized duplicate rejected');
@@ -98,11 +103,34 @@ SELECT is(jsonb_path_query_first(public.rdd_planning_read(),'$.nights[*] ? (@.ti
 SELECT is(jsonb_path_query_first(public.rdd_planning_read(),'$.nights[*] ? (@.title == "Synthetic night")')->>'event_revision','2','Notes correction preserves responses');
 SELECT throws_ok($$SELECT pg_temp.write('rsvp',jsonb_build_object('night_id',pg_temp.night_id(),'event_revision',2,'revision',0,'going',true))$$,'PT410',null,'Correction does not reopen RSVPs');
 SELECT throws_ok($$SELECT pg_temp.write('edit_night',pg_temp.edit_closed_night()||jsonb_build_object('revision',3,'rsvp_closes_local','2020-01-01T19:00'))$$,'22023',null,'Cannot change cutoff to a different past time');
+SELECT throws_ok($$SELECT pg_temp.write('edit_night',pg_temp.edit_closed_night()||'{"revision":3,"venue":"Revised venue"}')$$,'22023',null,'Venue change must reopen response window');
+SELECT throws_ok($$SELECT pg_temp.write('edit_night',pg_temp.edit_closed_night()||'{"revision":3,"starts_local":"2090-10-13T19:00"}')$$,'22023',null,'Time change must reopen response window');
+SELECT is(jsonb_path_query_first(public.rdd_planning_read(),'$.nights[*] ? (@.title == "Synthetic night")')->>'event_revision','2','Rejected changes preserve event revision');
+SELECT is(jsonb_array_length(jsonb_path_query_first(public.rdd_planning_read(),'$.nights[*] ? (@.title == "Synthetic night")')->'responses'),1,'Rejected changes preserve confirmed responses');
+SELECT lives_ok($$SELECT pg_temp.write('edit_night',pg_temp.edit_closed_night()||'{"revision":3,"venue":"Revised venue","rsvp_closes_local":"2090-10-12T18:00"}')$$,'Venue change accepted with future reconfirmation cutoff');
+SELECT is(jsonb_path_query_first(public.rdd_planning_read(),'$.nights[*] ? (@.title == "Synthetic night")')->>'event_revision','3','Event revision changes with reopened response window');
+SELECT is(jsonb_array_length(jsonb_path_query_first(public.rdd_planning_read(),'$.nights[*] ? (@.title == "Synthetic night")')->'responses'),0,'Previous responses await explicit reconfirmation');
+SELECT set_config('request.jwt.claims','{"role":"authenticated","sub":"bbbbbbbb-0000-4000-8000-000000000002"}',true);
+SELECT lives_ok($$SELECT pg_temp.write('rsvp',jsonb_build_object('night_id',pg_temp.night_id(),'event_revision',3,'revision',3,'going',true))$$,'Member can reconfirm after reopened cutoff');
+SELECT set_config('request.jwt.claims','{"role":"authenticated","sub":"aaaaaaaa-0000-4000-8000-000000000001"}',true);
 SELECT is(public.rdd_planning_night_status(ARRAY[pg_temp.night_id()::uuid])->>pg_temp.night_id(),'scheduled','Scheduled state available to lobby');
-SELECT lives_ok($$SELECT pg_temp.write('cancel_night',jsonb_build_object('night_id',pg_temp.night_id(),'revision',3))$$,'Cancel corrected night');
+SELECT lives_ok($$SELECT pg_temp.write('cancel_night',jsonb_build_object('night_id',pg_temp.night_id(),'revision',4))$$,'Cancel corrected night');
 SELECT set_config('request.jwt.claims','{"role":"authenticated","sub":"bbbbbbbb-0000-4000-8000-000000000002"}',true);
 SELECT is(public.rdd_planning_night_status(ARRAY[pg_temp.night_id()::uuid])->>pg_temp.night_id(),'cancelled','Member sees cancellation through status RPC');
 SELECT is(public.rdd_planning_night_status(ARRAY['99999999-0000-4000-8000-000000000099'::uuid]),'{}'::jsonb,'Unscheduled or unknown night has no planning status');
 SELECT throws_ok($$SELECT public.rdd_planning_night_status(array_fill(gen_random_uuid(),ARRAY[41]))$$,'22023',null,'Status read is bounded');
+RESET ROLE;
+-- Exercise the actual preview upgrade on simulated legacy publication metadata.
+UPDATE rdd_private.planning_polls SET published_at=NULL;
+INSERT INTO rdd_private.planning_polls(id,title,scope,status,created_by) VALUES
+ ('11111111-0000-4000-8000-000000000099','Unknown cancelled legacy poll','venue','cancelled','aaaaaaaa-0000-4000-8000-000000000001');
+\ir /fixtures/league_planning_visibility_upgrade.sql
+SELECT ok((SELECT published_at IS NOT NULL FROM rdd_private.planning_polls WHERE id='11111111-0000-4000-8000-000000000001'),'Upgrade recognizes published active poll');
+SELECT ok((SELECT published_at IS NOT NULL FROM rdd_private.planning_polls WHERE id='11111111-0000-4000-8000-000000000003'),'Upgrade preserves published cancelled history using replay evidence');
+SELECT ok((SELECT published_at IS NULL FROM rdd_private.planning_polls WHERE id='11111111-0000-4000-8000-000000000002'),'Upgrade keeps cancelled unpublished draft private');
+SELECT ok((SELECT published_at IS NULL FROM rdd_private.planning_polls WHERE id='11111111-0000-4000-8000-000000000099'),'Unknown cancelled history is not assumed published');
+SET LOCAL ROLE authenticated;
+SELECT set_config('request.jwt.claims','{"role":"authenticated","sub":"bbbbbbbb-0000-4000-8000-000000000002"}',true);
+SELECT is((public.rdd_planning_read()->>'poll_total')::integer,2,'Upgraded member count excludes unpublished cancelled records');
 SELECT * FROM finish();
 ROLLBACK;

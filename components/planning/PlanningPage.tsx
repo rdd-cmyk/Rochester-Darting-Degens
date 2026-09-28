@@ -325,6 +325,7 @@ export function PlanningPage({ userId }: { userId: string }) {
             <ScheduleForm
               key={`${editor.night?.night_id ?? editor.poll?.id ?? "new-night"}:${editor.night?.revision ?? editor.poll?.revision}`}
               night={editor.night}
+              now={now}
               blocked={staleEditor}
               poll={editor.poll}
               change={change}

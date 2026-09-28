@@ -10,6 +10,7 @@ CREATE TABLE rdd_private.planning_polls (
   title text NOT NULL CHECK(length(btrim(title)) BETWEEN 1 AND 100),
   scope text NOT NULL CHECK(scope IN ('date','venue','both')),
   status text NOT NULL DEFAULT 'draft' CHECK(status IN ('draft','open','closed','cancelled','scheduled')),
+  published_at timestamptz,
   fixed_start timestamptz, fixed_venue text CHECK(length(fixed_venue)<50),
   closes_at timestamptz, created_by uuid NOT NULL REFERENCES public.profiles(id),
   created_at timestamptz NOT NULL DEFAULT now(), revision integer NOT NULL DEFAULT 1
@@ -133,7 +134,7 @@ BEGIN
         JOIN rdd_private.planning_options ov ON ov.id=v.option_id AND ov.kind='venue' AND NOT ov.withdrawn
         WHERE d.poll_id=p.id GROUP BY d.option_id,v.option_id) x),'[]') ELSE '[]'::jsonb END,
       'night_id',(SELECT night_id FROM rdd_private.planning_schedules WHERE source_poll=p.id)) AS item
-    FROM (SELECT * FROM rdd_private.planning_polls WHERE status<>'draft' OR organizer ORDER BY created_at DESC,id LIMIT 20 OFFSET p_poll_offset) p
+    FROM (SELECT * FROM rdd_private.planning_polls WHERE published_at IS NOT NULL OR organizer ORDER BY created_at DESC,id LIMIT 20 OFFSET p_poll_offset) p
   ) q;
   SELECT coalesce(jsonb_agg(item ORDER BY starts_at,night_id),'[]') INTO nights FROM (
     SELECT s.starts_at,s.night_id,to_jsonb(s)||jsonb_build_object('title',n.title,'venue',n.venue,
@@ -144,7 +145,7 @@ BEGIN
     JOIN public.league_nights n ON n.id=s.night_id
   ) q;
   RETURN jsonb_build_object('organizer',organizer,'server_now',clock_timestamp(),'polls',polls,'nights',nights,
-    'poll_total',(SELECT count(*) FROM rdd_private.planning_polls WHERE status<>'draft' OR organizer),
+    'poll_total',(SELECT count(*) FROM rdd_private.planning_polls WHERE published_at IS NOT NULL OR organizer),
     'night_total',(SELECT count(*) FROM rdd_private.planning_schedules WHERE starts_at>=clock_timestamp()-interval '12 hours'));
 END $$;
 
@@ -211,7 +212,7 @@ BEGIN
         WHERE NOT EXISTS(SELECT 1 FROM rdd_private.planning_options o WHERE o.poll_id=poll_id AND o.kind=k)) THEN
         RAISE EXCEPTION 'Add at least one option in each voting category.' USING ERRCODE='22023'; END IF;
       IF start_time IS NOT NULL AND cutoff>=start_time THEN RAISE EXCEPTION 'Close voting before the fixed start time.' USING ERRCODE='22023'; END IF;
-      UPDATE rdd_private.planning_polls SET status='open' WHERE id=poll_id;
+      UPDATE rdd_private.planning_polls SET status='open',published_at=clock_timestamp() WHERE id=poll_id;
     END IF;
     result:=jsonb_build_object('poll_id',poll_id);
   ELSIF p_action IN ('vote','suggest','withdraw') THEN
@@ -285,12 +286,14 @@ BEGIN
       SELECT * INTO sched FROM rdd_private.planning_schedules WHERE planning_schedules.night_id=night_id FOR UPDATE;
       IF NOT FOUND OR expected IS DISTINCT FROM sched.revision OR sched.status<>'scheduled' OR sched.starts_at<=clock_timestamp() THEN
         RAISE EXCEPTION 'Night changed or has started. Refresh before editing.' USING ERRCODE='40001'; END IF;
-      -- Corrections must not force an organizer to reopen closed RSVPs.
-      -- Read the existing cutoff under the same lock as the revision check.
-      IF cutoff<=clock_timestamp() AND cutoff IS DISTINCT FROM sched.rsvp_closes_at THEN
-        RAISE EXCEPTION 'Keep the existing RSVP cutoff or choose a future cutoff.' USING ERRCODE='22023'; END IF;
       SELECT * INTO old_night FROM public.league_nights WHERE id=night_id;
       changed:=sched.starts_at IS DISTINCT FROM start_time OR old_night.venue IS DISTINCT FROM venue_value;
+      -- Event changes must leave time for reconfirmation. Title/notes corrections
+      -- can keep the existing elapsed cutoff without reopening responses.
+      IF changed AND cutoff<=clock_timestamp() THEN
+        RAISE EXCEPTION 'Choose a future RSVP cutoff or leave it blank so everyone can respond again.' USING ERRCODE='22023'; END IF;
+      IF cutoff<=clock_timestamp() AND cutoff IS DISTINCT FROM sched.rsvp_closes_at THEN
+        RAISE EXCEPTION 'Keep the existing RSVP cutoff or choose a future cutoff.' USING ERRCODE='22023'; END IF;
       UPDATE public.league_nights SET title=title_value,venue=venue_value,night_date=(start_time AT TIME ZONE 'America/New_York')::date WHERE id=night_id;
       UPDATE rdd_private.planning_schedules SET starts_at=start_time,rsvp_closes_at=cutoff,notes=coalesce(p_payload->>'notes',''),revision=revision+1,event_revision=event_revision+CASE WHEN changed THEN 1 ELSE 0 END WHERE planning_schedules.night_id=night_id;
     END IF;

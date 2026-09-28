@@ -111,6 +111,8 @@ try {
         "PGPASSWORD=postgres",
         "--mount",
         `type=bind,source=${path.join(root, "supabase/tests/planning")},target=/tests,readonly`,
+        "--mount",
+        `type=bind,source=${path.join(root, "supabase/tests/fixtures")},target=/fixtures,readonly`,
         "public.ecr.aws/supabase/pg_prove:3.36",
         "pg_prove",
         "-h",

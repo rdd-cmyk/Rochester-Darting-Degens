@@ -156,6 +156,40 @@ try {
   summary.push(
     "Publish both-category poll through UI; member authorization; private ballots; aggregate overlap; 3 concurrent suggestions yield exactly 2 accepted.",
   );
+  const draftId = crypto.randomUUID();
+  const privateTitle = `QA private draft ${run}`;
+  unwrap(
+    await write(organizer, "save_poll", {
+      poll_id: draftId,
+      revision: 0,
+      title: privateTitle,
+      scope: "venue",
+      publish: false,
+      fixed_start_local: "2090-11-01T19:00",
+      options: [{ kind: "venue", venue: "QA unpublished hall" }],
+    }),
+  );
+  await page.getByRole("button", { name: "Refresh", exact: true }).click();
+  const draftCard = page
+    .getByRole("heading", { name: privateTitle })
+    .locator("..");
+  await draftCard.getByText("Organizer controls", { exact: true }).click();
+  await draftCard
+    .getByRole("button", { name: "Cancel poll", exact: true })
+    .click();
+  await draftCard.getByRole("button", { name: "Confirm cancellation" }).click();
+  await draftCard.getByText("Cancelled", { exact: true }).waitFor();
+  assert.equal(
+    (await feed(organizer)).polls.find((p) => p.id === draftId).status,
+    "cancelled",
+  );
+  assert.equal(
+    (await feed(member)).polls.some((p) => p.id === draftId),
+    false,
+  );
+  summary.push(
+    "Cancel unpublished draft through organizer UI; history stays visible to organizer and absent from member feed.",
+  );
   await page.getByRole("button", { name: "Refresh", exact: true }).click();
   const pollCard = page
     .getByRole("heading", { name: `QA choose a night ${run}` })
@@ -257,14 +291,46 @@ try {
   summary.push(
     "Member mobile RSVP Going / Not going; committed response-loss recovery does not duplicate or advance revision twice.",
   );
-  unwrap(
-    await write(organizer, "edit_night", {
-      night_id: night.night_id,
-      revision: night.revision,
-      title: night.title,
-      starts_local: "2090-10-10T19:00",
-      venue: "QA changed hall",
-    }),
+  // Simulate an early cutoff passing on this run's synthetic future night.
+  assert.match(night.night_id, /^[0-9a-f-]{36}$/);
+  docker([
+    "exec",
+    `supabase_db_${projectId}`,
+    "psql",
+    "-U",
+    "postgres",
+    "-v",
+    "ON_ERROR_STOP=1",
+    "-c",
+    `UPDATE rdd_private.planning_schedules SET rsvp_closes_at=clock_timestamp()-interval '1 hour' WHERE night_id='${night.night_id}';`,
+  ]);
+  await page.getByRole("button", { name: "Refresh", exact: true }).click();
+  const organizerNight = page
+    .getByRole("heading", { name: night.title })
+    .locator("..")
+    .locator("..");
+  await organizerNight.getByText("Manage night", { exact: true }).click();
+  await organizerNight
+    .getByRole("button", { name: "Edit night", exact: true })
+    .click();
+  await schedule.getByLabel("Venue", { exact: true }).fill("QA changed hall");
+  await schedule
+    .getByLabel("Date & time (Rochester time)")
+    .fill("2090-10-10T19:00");
+  await schedule
+    .getByText(/Choose a future RSVP cutoff or leave it blank/)
+    .waitFor();
+  assert.equal(
+    await schedule
+      .getByRole("button", { name: "Save night changes" })
+      .isDisabled(),
+    true,
+  );
+  await schedule.getByLabel("RSVP cutoff (optional, Rochester time)").fill("");
+  await schedule.getByRole("button", { name: "Save night changes" }).click();
+  await schedule.waitFor({ state: "hidden" });
+  summary.push(
+    "Event edit after early RSVP cutoff is blocked with guidance until organizer explicitly clears the cutoff.",
   );
   await memberPage
     .getByRole("button", { name: "Refresh", exact: true })

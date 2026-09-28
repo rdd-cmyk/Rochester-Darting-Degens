@@ -91,6 +91,55 @@ describe("planning page", () => {
     mocks.write.mockReset().mockResolvedValue({ replayed: false });
   });
   afterEach(cleanup);
+  it.each(["venue", "time"] as const)(
+    "requires a future cutoff for a %s change after RSVPs close",
+    async (kind) => {
+      const data = fixture();
+      data.organizer = true;
+      data.nights[0].rsvp_closes_at = "2026-09-27T11:00:00Z";
+      mocks.read.mockResolvedValue(data);
+      render(<PlanningPage userId="organizer" />);
+      fireEvent.click(
+        await screen.findByRole("button", { name: "Edit night" }),
+      );
+      fireEvent.change(screen.getByLabelText("Night name"), {
+        target: { value: "Title correction" },
+      });
+      expect(
+        screen.getByRole("button", { name: "Save night changes" }),
+      ).toBeEnabled();
+      fireEvent.change(
+        screen.getByLabelText(
+          kind === "venue" ? "Venue" : "Date & time (Rochester time)",
+        ),
+        {
+          target: {
+            value: kind === "venue" ? "Revised hall" : "2090-10-03T19:00",
+          },
+        },
+      );
+      await screen.findByText(/Choose a future RSVP cutoff or leave it blank/);
+      expect(
+        screen.getByRole("button", { name: "Save night changes" }),
+      ).toBeDisabled();
+      fireEvent.submit(screen.getByLabelText("Night name").closest("form")!);
+      expect(mocks.write).not.toHaveBeenCalled();
+      fireEvent.change(screen.getByLabelText(/RSVP cutoff/), {
+        target: { value: "" },
+      });
+      fireEvent.click(
+        screen.getByRole("button", { name: "Save night changes" }),
+      );
+      await waitFor(() =>
+        expect(mocks.write).toHaveBeenCalledWith(
+          expect.objectContaining({
+            action: "edit_night",
+            payload: expect.objectContaining({ rsvp_closes_local: null }),
+          }),
+        ),
+      );
+    },
+  );
   it.each(["poll", "night"] as const)(
     "blocks an editor whose %s leaves the refreshed page without discarding edits",
     async (kind) => {

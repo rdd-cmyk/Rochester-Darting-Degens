@@ -16,6 +16,8 @@ resolutions and repeated checks are recorded in
 - Organizer drafts, publication, date-only / venue-only / combined polls,
   fixed context, manual-only closure or an exact Rochester-time deadline,
   early closure, cancellation, and copying into a new draft.
+  Cancelling an unpublished draft retains organizer history without exposing
+  its contents or counting it in members' poll lists.
 - Select-all-that-work ballots; one vote per profile per option. Ballot
   revisions prevent stale-device overwrites. Individual ballots are private;
   only own selections and aggregate totals are returned. Organizers can see
@@ -30,6 +32,8 @@ resolutions and repeated checks are recorded in
   controls its own response; participants see profile names and response totals.
 - Changes to date/time/venue require reconfirmation; old responses are retained
   but excluded from current totals. Cancellation and RSVP cutoffs stop writes.
+  An event change requires a future RSVP cutoff or an empty cutoff (defaults
+  to the new start). Title/notes corrections can retain an elapsed cutoff.
 - The same night ID opens existing match entry. RSVP does not create actual
   attendance records or alter match-edit permissions.
 - User-scoped pending requests survive interrupted confirmation and reloads.
@@ -87,32 +91,38 @@ fictional. Browser acceptance also leaves explicitly named QA fixtures dated
 The local runner checks stack identity, loopback bindings and the expected API
 port before accessing credentials or applying fixtures. Fresh rehearsal creates
 a uniquely named database, applies the legacy schema and both feature schemas,
-runs planning and existing League Night tests, then refreshes only the tested
-planning functions and the reviewed venue constraint on this task's preview.
+runs planning and existing League Night tests, then refreshes the tested
+planning functions, publication metadata and reviewed venue constraint on this
+task's preview. The local-only publication upgrade recognizes cancelled polls
+as published only when successful publication replay records establish it;
+unknown cancelled history stays private.
 Rehearsal databases are retained as evidence; no reset or hosted command occurs.
 
 ## Verification
 
 - Trusted clean lockfile installation passed; dependency audit reported zero
   vulnerabilities. `package-lock.json` is unchanged.
-- Application suite after independent review: **251 tests, 30 files passed** in
+- Application suite after PR review fixes: **253 tests, 30 files passed** in
   the coverage run. Coverage includes the new
   planning module and passes the configured thresholds: 98.13% lines,
   91.62% branches overall. This is instrumented application coverage, not a
   database or accessibility coverage measure.
-- Fresh legacy-only rehearsal: **67 planning checks + 36 League Night checks**.
+- Fresh legacy-only rehearsal: **85 planning checks + 36 League Night checks**.
   Covers permissions, draft privacy, spoofed identity, unchanged legacy schema,
   DST handling, publication, replay, immutable published polls, manual and
   deadline closure, suggestion normalization/cap/withdrawal, private ballots,
   stale revisions, scheduling, binary RSVPs, reconfirmation, and late writes.
-  Review regressions also cover edits retaining elapsed RSVP cutoffs and
-  authenticated cancellation status reads.
+  Review regressions also cover title/notes edits retaining elapsed RSVP
+  cutoffs, a future reconfirmation window for event changes, authenticated
+  cancellation status reads, cancelled draft privacy and publication backfill.
 - Browser acceptance on the production build: organizer publication/closure/
   scheduling; separate member account; actual concurrent suggestions (exactly
   two of three accepted); private ballots/aggregate overlap; RSVP changes;
   lost response after a committed write followed by safe replay; rescheduling;
   same-night handoff without fabricated attendance; date-only, venue-only and
-  direct scheduling; cancellation and replay. No page JavaScript errors.
+  direct scheduling; cancellation and replay. PR follow-up scenarios verify
+  cancelled unpublished drafts and explicitly reopening an elapsed cutoff
+  before an event change. No page JavaScript errors.
 - Layout checks at 320, 390, 768 and 1440 pixels; desktop/mobile/dark screenshots
   reviewed. Browser artifacts are ignored under `.qa-artifacts/planning`.
 - Lint, TypeScript and production build passed. The full screen-reader and
@@ -120,11 +130,11 @@ Rehearsal databases are retained as evidence; no reset or hosted command occurs.
 
 ## Deployment and integration boundary
 
-Nothing was pushed, merged or deployed. No hosted SQL, hosted accounts, real
-player data, or production configuration was changed. The feature and inherited
-League Night work remain uncommitted in this worktree. The original League
-Night worktree was not modified; its copied source provenance is recorded in
-`league-night-planning-source.json`.
+The branch is published in [PR #70](https://github.com/rdd-cmyk/Rochester-Darting-Degens/pull/70),
+targeting `league-night-mode`. No merge or hosted database rollout was performed.
+No hosted SQL, hosted accounts, real player data, or production configuration
+was changed. The original League Night worktree was not modified; its copied
+source provenance is recorded in `league-night-planning-source.json`.
 
 Before release, reconcile the parent League Night work and any chosen account
 integration, follow `supabase-github-integration-release-gate.md` and the parent

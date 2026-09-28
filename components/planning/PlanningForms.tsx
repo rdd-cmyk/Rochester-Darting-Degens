@@ -251,11 +251,13 @@ export function ScheduleForm({
   poll,
   blocked = false,
   night,
+  now,
   onClose,
   change,
 }: {
   poll?: Poll;
   night?: ScheduledNight;
+  now: number;
   blocked?: boolean;
   onClose: () => void;
   change: ChangePlanning;
@@ -282,6 +284,16 @@ export function ScheduleForm({
   );
   const [notes, setNotes] = useState(night?.notes ?? "");
   const [reason, setReason] = useState("");
+  const eventChanged = Boolean(
+    night &&
+      (starts !== rochesterInput(night.starts_at) ||
+        venue.trim() !== night.venue),
+  );
+  const needsFutureCutoff = Boolean(
+    eventChanged &&
+      cutoff &&
+      cutoff <= rochesterInput(new Date(now).toISOString()),
+  );
   const lowerSupport = Boolean(
     (dates.length &&
       dates.find((o) => o.id === dateId)?.votes !== dates[0]?.votes) ||
@@ -301,7 +313,7 @@ export function ScheduleForm({
         className="plan-form"
         onSubmit={async (e) => {
           e.preventDefault();
-          if (blocked) return;
+          if (blocked || needsFutureCutoff) return;
           if (
             await change(night ? "edit_night" : "schedule", {
               night_id: night?.night_id ?? null,
@@ -430,7 +442,17 @@ export function ScheduleForm({
             Previous responses will leave the current totals.
           </p>
         )}
-        <button disabled={blocked} type="submit" className="night-primary">
+        {needsFutureCutoff && (
+          <p className="plan-notice" role="alert">
+            Choose a future RSVP cutoff or leave it blank so everyone can
+            respond again.
+          </p>
+        )}
+        <button
+          disabled={blocked || needsFutureCutoff}
+          type="submit"
+          className="night-primary"
+        >
           {night ? "Save night changes" : "Confirm & schedule"}
         </button>
       </form>

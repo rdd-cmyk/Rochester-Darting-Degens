@@ -86,6 +86,8 @@ try {
         "PGPASSWORD=postgres",
         "--mount",
         `type=bind,source=${path.join(root, "supabase/tests", suite)},target=/tests,readonly`,
+        "--mount",
+        `type=bind,source=${path.join(root, "supabase/tests/fixtures")},target=/fixtures,readonly`,
         "public.ecr.aws/supabase/pg_prove:3.36",
         "pg_prove",
         "-h",
@@ -107,7 +109,8 @@ try {
     console.log(result.trim());
   }
   // Only after exact fresh-schema tests pass, refresh task-owned function
-  // bodies and the reviewed non-null venue check. No table resets or other stacks.
+  // bodies, publication metadata and the reviewed non-null venue check.
+  // No table resets or other stacks.
   const source = readFileSync(
     path.join(root, "supabase/tests/fixtures/league_planning.sql"),
     "utf8",
@@ -116,7 +119,15 @@ try {
   if (functions?.length !== 4)
     throw new Error("Expected four reviewed planning functions.");
   sql(
-    "BEGIN;\nALTER TABLE rdd_private.planning_options DROP CONSTRAINT planning_options_check, ADD CONSTRAINT planning_options_check CHECK ((kind='date' AND starts_at IS NOT NULL AND isfinite(starts_at) AND venue IS NULL) OR (kind='venue' AND starts_at IS NULL AND venue IS NOT NULL AND length(btrim(venue)) BETWEEN 1 AND 49));\n" +
+    "BEGIN;\n" +
+      readFileSync(
+        path.join(
+          root,
+          "supabase/tests/fixtures/league_planning_visibility_upgrade.sql",
+        ),
+        "utf8",
+      ) +
+      "\nALTER TABLE rdd_private.planning_options DROP CONSTRAINT planning_options_check, ADD CONSTRAINT planning_options_check CHECK ((kind='date' AND starts_at IS NOT NULL AND isfinite(starts_at) AND venue IS NULL) OR (kind='venue' AND starts_at IS NULL AND venue IS NOT NULL AND length(btrim(venue)) BETWEEN 1 AND 49));\n" +
       functions
         .map((f) => f.replace("CREATE FUNCTION", "CREATE OR REPLACE FUNCTION"))
         .join("\n") +

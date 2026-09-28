@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { User } from '@supabase/supabase-js';
 import { supabase } from '@/lib/supabaseClient';
+import { authReturnPath } from '@/lib/authReturn';
 
 type AuthMode = 'signIn' | 'signUp';
 
@@ -27,9 +28,9 @@ export default function AuthPage() {
       const currentUser = data.user ?? null;
       setUser(currentUser);
 
-      // If already logged in, send them to /matches immediately
+      // Preserve a validated board destination after sign-in.
       if (currentUser) {
-        router.push('/matches');
+        router.push(authReturnPath(window.location.search));
       }
     }
     loadUser();
@@ -119,7 +120,7 @@ export default function AuthPage() {
       if (userId) {
         // Do NOT call ensureProfile here; we don’t want to overwrite names on login
         setUser(data.user);
-        router.push('/matches');
+        router.push(authReturnPath(window.location.search));
         return;
       }
     } finally {

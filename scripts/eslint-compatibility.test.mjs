@@ -127,9 +127,11 @@ it('records redundant JSX tracking without removing either rule from the real co
   expect(await targetMessages(mutated, `${jsxUsageSource} const unused = 1;`, '@typescript-eslint/no-unused-vars')).toHaveLength(1);
 });
 
+// The combined feature corpus exceeds 20s under coverage on shared CI runners.
+// This is a lint-correctness check; retain every assertion and allow it to finish.
 it('lints the complete repository corpus cleanly without dropping the profile route', async () => {
   const after = await candidate.lintFiles(['.']);
   expect(after.some(row => row.filePath === filePath)).toBe(true);
   expect(after.length).toBeGreaterThanOrEqual(66);
   expect(after.flatMap(row => row.messages.map(message => ({ file: row.filePath, rule: message.ruleId, message: message.message })))).toEqual([]);
-}, 20000);
+}, 60000);

@@ -445,6 +445,53 @@ try {
   summary.push(
     "Date-only, venue-only, direct scheduling, idempotent schedule replay, cancellation, cancelled RSVP denial, and cancellation shown in lobby and direct night link.",
   );
+  // Only this browser response is synthetic; no near-start records are persisted.
+  // Server time differs from the device so the card must use its accepted offset.
+  const calendarRead = "**/rest/v1/rpc/rdd_planning_read";
+  const serverSkew = 60 * 60 * 1000;
+  const rolloverAt = Date.now() + serverSkew + 6000;
+  await memberPage.route(calendarRead, (route) =>
+    route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({
+        organizer: false,
+        server_now: new Date(Date.now() + serverSkew).toISOString(),
+        polls: [],
+        poll_total: 0,
+        night_total: 2,
+        nights: [
+          {
+            ...night,
+            title: `QA starting soon ${run}`,
+            starts_at: new Date(rolloverAt).toISOString(),
+          },
+          {
+            ...night,
+            night_id: crypto.randomUUID(),
+            title: `QA following night ${run}`,
+            starts_at: new Date(rolloverAt + 600000).toISOString(),
+          },
+        ],
+      }),
+    }),
+  );
+  await memberPage.goto("http://127.0.0.1:3030/league-night");
+  const nextCard = memberPage
+    .getByRole("heading", { name: "Next on the calendar" })
+    .locator("..");
+  await nextCard.getByText(new RegExp(`QA starting soon ${run}`)).waitFor();
+  await nextCard
+    .getByText(new RegExp(`QA following night ${run}`))
+    .waitFor({ timeout: 10000 });
+  assert.equal(
+    await nextCard.getByText(new RegExp(`QA starting soon ${run}`)).count(),
+    0,
+  );
+  await memberPage.unroute(calendarRead);
+  summary.push(
+    "Lobby calendar advances without focus at a server-adjusted event start; mocked browser read only, no near-start database mutation.",
+  );
   assert.deepEqual(errors, []);
   writeFileSync(
     path.join(output, "results.json"),

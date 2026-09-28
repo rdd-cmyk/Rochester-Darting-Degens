@@ -13,6 +13,9 @@ resolutions and repeated checks are recorded in
 ## Delivered behavior
 
 - `/league-night/plan`, reachable through the new League Night lobby card.
+  The card advances past started events against server-adjusted time without
+  requiring a focus change. It refreshes the calendar at an event transition;
+  cached following events still advance if that read fails.
 - Organizer drafts, publication, date-only / venue-only / combined polls,
   fixed context, manual-only closure or an exact Rochester-time deadline,
   early closure, cancellation, and copying into a new draft.
@@ -102,7 +105,7 @@ Rehearsal databases are retained as evidence; no reset or hosted command occurs.
 
 - Trusted clean lockfile installation passed; dependency audit reported zero
   vulnerabilities. `package-lock.json` is unchanged.
-- Application suite after PR review fixes: **253 tests, 30 files passed** in
+- Application suite after PR review fixes: **257 tests, 31 files passed** in
   the coverage run. Coverage includes the new
   planning module and passes the configured thresholds: 98.13% lines,
   91.62% branches overall. This is instrumented application coverage, not a
@@ -122,7 +125,9 @@ Rehearsal databases are retained as evidence; no reset or hosted command occurs.
   same-night handoff without fabricated attendance; date-only, venue-only and
   direct scheduling; cancellation and replay. PR follow-up scenarios verify
   cancelled unpublished drafts and explicitly reopening an elapsed cutoff
-  before an event change. No page JavaScript errors.
+  before an event change. Automatic lobby-card rollover was also verified with
+  a mocked browser response whose server clock is an hour ahead; no near-start
+  database records were written for that scenario. No page JavaScript errors.
 - Layout checks at 320, 390, 768 and 1440 pixels; desktop/mobile/dark screenshots
   reviewed. Browser artifacts are ignored under `.qa-artifacts/planning`.
 - Lint, TypeScript and production build passed. The full screen-reader and

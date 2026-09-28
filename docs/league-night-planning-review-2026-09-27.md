@@ -88,3 +88,40 @@ Implementing-agent verification on 2026-09-27:
 
 SQL remains deferred outside `supabase/migrations/`; this follow-up applies no
 hosted schema, organizer assignment or merge.
+
+## GitHub Codex review bot findings
+
+The bot reviewed `aa8fda8` and reported two P2 issues. Both are valid:
+
+- [Future cutoff after event changes](https://github.com/rdd-cmyk/Rochester-Darting-Degens/pull/70#discussion_r4117516729):
+  already fixed by `bcd2fb0`. Source inspection, all 12 editor tests and a fresh
+  database rehearsal reconfirmed that title/notes corrections can retain an
+  elapsed cutoff while date/time/venue changes require a future response window.
+  No further SQL changes were necessary.
+- [Next-night card after its start](https://github.com/rdd-cmyk/Rochester-Darting-Degens/pull/70#discussion_r4117516731):
+  reproduced with two failing component regressions. The card now reevaluates
+  its cached nights every second against the accepted server-time offset,
+  advances or clears started events and reads fresh calendar data when the
+  displayed event changes. A failed read does not freeze an expired event.
+  Superseded responses are ignored, and the timer/focus listener stop on unmount.
+
+Local verification on 2026-09-27:
+
+- All **257 application tests in 31 files** passed in both the normal and
+  coverage runs; existing configured coverage thresholds passed (98.13% lines,
+  91.62% branches). Four new card tests cover clock skew, automatic advancement
+  and an empty future calendar, failed boundary reads, cleanup and overlapping
+  responses. An independent reviewer reran all four successfully and found no
+  actionable issue in the component or added browser scenario.
+- Trusted clean installation, lint, TypeScript and the guarded production
+  build passed. Dependencies and lockfile are unchanged.
+- Fresh local rehearsal passed **85 planning + 36 inherited checks**. Retained
+  evidence: `rdd_planning_rehearsal_1790555893303`.
+- Production-browser acceptance passed all existing organizer/member scenarios
+  and verified automatic lobby rollover without a focus event using a mocked
+  planning-read response with the server clock an hour ahead. This added case
+  persisted no near-start database records. No page JavaScript errors; responsive
+  widths 320/390/768/1440 passed. Ignored evidence remains in
+  `.qa-artifacts/planning/results.json`.
+
+No hosted SQL, real accounts, production configuration or merge was performed.

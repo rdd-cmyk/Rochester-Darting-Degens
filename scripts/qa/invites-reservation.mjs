@@ -85,3 +85,17 @@ assert.equal((await reserve(nextProof)).error, 'sign_in_required');
 assert.equal((await rpc('finalize', { challenge_id: nextProof.challenge_id, browser_hash: nextProof.browser_hash, user_id: lateUser.id })).error, 'unavailable');
 assert.equal(inviteSql(`select count(*) from public.league_members where user_id='${lateUser.id}';`), '0');
 console.log('PASS a late account from an older operation cannot finalize under a replacement challenge.');
+
+const lengthInvite = await invitation('length'), lengthProof = await challenge(lengthInvite);
+const lengthBody = { action: 'complete', code: lengthProof.code, firstName: profile.firstName, lastName: profile.lastName, displayName: profile.displayName };
+for (const unsupported of ['a'.repeat(73), 'é'.repeat(37), '😀'.repeat(19)]) {
+  const rejection = await api({ ...lengthBody, password: unsupported }, null, lengthProof.cookie);
+  assert.equal(rejection.status, 400);
+  assert.equal(rejection.body.error, 'invalid_password');
+  assert.equal(inviteSql(`select verified or profile is not null or attempts<>0 from invite_private.challenges where id='${lengthProof.challenge_id}';`), 'f');
+  assert.equal(inviteSql(`select count(*) from auth.users where email='${lengthInvite.email}';`), '0');
+}
+const boundaryPassword = 'é'.repeat(36); // 72 UTF-8 bytes.
+assert.equal((await api({ ...lengthBody, password: boundaryPassword }, null, lengthProof.cookie)).body.accepted, true);
+unwrap(await createClient(status.API_URL, status.ANON_KEY, options).auth.signInWithPassword({ email: lengthInvite.email, password: boundaryPassword }));
+console.log('PASS unsupported password bytes do not reserve or consume a code; a corrected 72-byte password joins and signs in.');

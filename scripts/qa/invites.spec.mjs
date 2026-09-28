@@ -61,6 +61,11 @@ test('mobile recipient joins by inbox code; sender tracks acceptance', async ({ 
   await join.getByRole('button', { name: 'Join the league', exact: true }).click();
   await expect(join.getByText('That verification code is incorrect. Please check the latest email.')).toBeVisible();
   await join.getByLabel('Verification code').fill(code);
+  await join.getByLabel('Password', { exact: true }).fill('é'.repeat(37));
+  await join.getByRole('button', { name: 'Join the league', exact: true }).click();
+  await expect(join.getByText('Use a password with at least 16 characters and no more than 72 bytes. Accented letters and emoji can use more than one byte each.')).toBeVisible();
+  await expect(join.getByLabel('Password', { exact: true })).toBeEnabled();
+  await join.getByLabel('Password', { exact: true }).fill(password);
   await join.screenshot({ path: path.join(root,'.qa-artifacts/invites-mobile-join.png'), fullPage: true });
   await join.getByRole('button', { name: 'Join the league', exact: true }).click();
   await expect(join.getByRole('heading', { name: 'You’re in. See you at the oche.' })).toBeVisible();

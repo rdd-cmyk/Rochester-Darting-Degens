@@ -92,7 +92,7 @@ ownership, replay and organizer behavior. `setup` adds missing parent fixtures
 to older isolated invitation stacks, then installs admission wrappers once;
 existing invitations and parent tables are not replayed.
 `node scripts/qa/invites-reservation.mjs` checks corrected same-code/new-code
-attempts, guarded reservation release and late account creation.
+attempts, guarded reservation release, late account creation and password byte limits.
 
 For local function development only, `node scripts/invites-local.mjs refresh-functions`
 refreshes the known service/cleanup function definitions without replaying tables.
@@ -108,15 +108,15 @@ All evidence below is local to this worktree; hosted behavior is not verified.
 | Check | Result |
 | --- | --- |
 | Locked trusted install | Passed; audit reported zero vulnerabilities at this run |
-| Application tests | 351 passed across 42 files after clean install and GitHub review fix |
+| Application tests | 366 passed across 42 files after clean install and the second independent review |
 | Coverage gate | Passed: 97.44% statements, 91.62% branches, 98.69% functions, 98.13% lines for the inherited stats/League Night/planning coverage scope |
 | Lint / TypeScript | Passed |
 | Production build | Passed, including `/api/invites`, `/invites`, `/join`; build used unset-hosted-env local defaults, not hosted credentials |
 | Local integration | 15 groups passed against isolated Supabase |
 | Review regressions | Two fault/race cases passed against isolated Supabase; focused client tests passed |
 | Combined feature admission | Four groups passed against the combined isolated schema |
-| Auth rejection/reservation recovery | Four new local SQL/API groups plus server/client regressions passed |
-| Browser acceptance | Three scenarios passed, including a 390px dark-mode recipient screen |
+| Auth rejection/reservation recovery | Five local SQL/API groups plus server/client regressions passed |
+| Browser acceptance | Three scenarios passed, including password length correction and a 390px dark-mode recipient screen |
 | Visual review | Desktop sender/history and mobile join screenshots inspected; no horizontal overflow |
 
 Integration groups cover disabled direct signup, caller authorization, direct RPC
@@ -162,8 +162,37 @@ implementation](https://github.com/supabase/auth/blob/master/internal/api/admin.
 checks supplied password strength (consulted 2026-09-28). Local tests cover safe
 release, same-code correction, new-code recovery, preservation when an account
 exists, and denial of a late account under a replacement operation. Full checks
-and the 15 invitation groups/two earlier review regressions were rerun; browser
-and combined-parent results above remain the earlier rebase evidence.
+and the 15 invitation groups/two earlier review regressions were rerun at that fix.
+
+A second independent review of the full PR on 2026-09-28 found two additional
+issues. Both were independently reproduced before changes and the fixes were
+reviewed again with no further actionable findings:
+
+- Supabase emits `SIGNED_IN` for the same user when recovering a visible tab.
+  The sender page discarded an uncertain request's UUID/payload and suppressed
+  an in-flight result. Two focused tests failed against the original code. The
+  page now compares the session's user ID, preserves same-user retries and clears
+  history, drafts and prior results only on an actual principal change. Initial
+  session loading and filter/page refreshes run outside the Auth callback.
+- The form allowed passwords longer than Auth's 72 UTF-8 byte limit. The actual
+  local administrative Auth endpoint accepted 72 ASCII bytes but returned HTTP
+  500 for 73 ASCII bytes and 37 accented letters (74 bytes). A synthetic route
+  attempt returned `service_error` and left a verified reservation; correction
+  with the same code then returned `retry_conflict`, with no account created.
+  Shared client/server validation now rejects unsupported passwords before
+  reservation, explains the length limit and keeps input editable. ASCII,
+  accented and emoji boundaries have focused tests; the local API checks no
+  reservation/code attempt is consumed, then joins and signs in successfully
+  with a corrected 72-byte password. See the current upstream [Auth password
+  limit](https://github.com/supabase/auth/blob/master/internal/api/password.go),
+  consulted 2026-09-28.
+
+The trusted clean install, all 366 application tests, coverage, lint, TypeScript
+and production build passed after these fixes. All 15 invitation groups, two
+earlier review regressions, four combined-parent groups, five reservation groups
+and three browser scenarios were rerun locally. The revised mobile password
+message was visually inspected and the browser overflow check passed. No hosted
+Auth, SQL or email-provider acceptance is claimed.
 
 Screenshots remain local under `.qa-artifacts/invites-*.png`; they contain only
 synthetic data. No hosted test is claimed.
@@ -234,4 +263,6 @@ invitation/recovery flow; do not blindly delete accounts after an unknown result
 
 Current release boundary: local implementation is complete. Hosted database/Auth
 changes, grandfathering, sender configuration, scheduled cleanup, production
-acceptance, branch publication and deployment remain outstanding release work.
+acceptance and deployment remain outstanding release work. The branch is
+published in [PR #73](https://github.com/rdd-cmyk/Rochester-Darting-Degens/pull/73)
+targeting `league-night-mode`.

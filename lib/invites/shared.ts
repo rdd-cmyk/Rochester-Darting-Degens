@@ -13,6 +13,7 @@ export const inviteMessages: Record<string, string> = {
   code_locked: 'Too many incorrect codes. Request a new verification code.',
   retry_conflict: 'This attempt was already saved with different details. Refresh the page before starting a new attempt.',
   invalid_request: 'Please check the information and try again.',
+  invalid_password: 'Use a password with at least 16 characters and no more than 72 bytes. Accented letters and emoji can use more than one byte each.',
   password_rejected: 'That password does not meet the account policy. Choose a longer, stronger password and try again.',
   disabled: 'Invitations are not available yet. Please try again later.',
   service_error: 'We could not confirm the result. Retry with the same details, or refresh your invitation history.',
@@ -27,12 +28,17 @@ export function normalizeEmail(value: unknown): string {
   return email;
 }
 
+export function isValidInvitePassword(value: unknown): value is string {
+  // Auth hashes UTF-8 bytes with bcrypt, whose input limit is 72 bytes.
+  return typeof value === 'string' && value.length >= 16 && new TextEncoder().encode(value).length <= 72;
+}
+
 export function onboarding(value: Record<string, unknown>) {
   const field = (key: string, max: number) => {
     const text = typeof value[key] === 'string' ? value[key].trim() : '';
     if (!text || text.length > max || /[\u0000-\u001f<>]/.test(text)) throw new Error('invalid_request');
     return text;
   };
-  if (typeof value.password !== 'string' || value.password.length < 16 || value.password.length > 128) throw new Error('invalid_request');
+  if (!isValidInvitePassword(value.password)) throw new Error('invalid_password');
   return { firstName: field('firstName', 29), lastName: field('lastName', 29), displayName: field('displayName', 34) };
 }

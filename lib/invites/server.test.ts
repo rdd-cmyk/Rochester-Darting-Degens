@@ -50,6 +50,16 @@ it('rejects completion without the browser challenge cookie', async () => {
   expect((await handleInvite(request({ action: 'complete', code: '12345678' }))).status).toBe(400);
   expect(mocks.createUser).not.toHaveBeenCalled();
 });
+it.each(['a'.repeat(73), 'é'.repeat(37)])('rejects a password above the Auth byte limit before reservation', async password => {
+  mocks.rpc.mockResolvedValueOnce({ data: { email: 'synthetic@example.test', operation_id: id }, error: null });
+  mocks.createUser.mockResolvedValueOnce({ data: { user: null }, error: { status: 500, message: 'Internal Server Error' } });
+  const result = await handleInvite(request({ action: 'complete', code: '12345678', password,
+    firstName: 'Test', lastName: 'Player', displayName: 'Test Player' }, { cookie: `rdd-join=${id}.${'b'.repeat(43)}` }));
+  expect(result.status).toBe(400);
+  expect(await result.json()).toEqual(expect.objectContaining({ error: 'invalid_password' }));
+  expect(mocks.rpc).not.toHaveBeenCalled();
+  expect(mocks.createUser).not.toHaveBeenCalled();
+});
 it.each(['weak_password', 'validation_failed'])('releases a definite %s rejection so the recipient can correct it', async code => {
   mocks.rpc.mockResolvedValueOnce({ data: { email: 'synthetic@example.test', operation_id: id }, error: null });
   mocks.rpc.mockResolvedValueOnce({ data: { released: true }, error: null });

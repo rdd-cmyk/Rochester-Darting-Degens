@@ -1,6 +1,6 @@
 'use client';
 import Link from 'next/link';
-import { startTransition, useCallback, useEffect, useRef, useState, type FormEvent } from 'react';
+import { useCallback, useEffect, useRef, useState, type FormEvent } from 'react';
 import { inviteRequest } from '@/lib/invites/client';
 import type { InviteList, InviteStatus } from '@/lib/invites/shared';
 import { supabase } from '@/lib/supabaseClient';
@@ -22,6 +22,7 @@ export default function InvitesPage() {
   const [retrying, setRetrying] = useState(false);
   const generation = useRef(0);
   const principalGeneration = useRef(0);
+  const principalId = useRef<string | null | undefined>(undefined);
   const refresh = useCallback(async () => {
     const current = ++generation.current;
     setLoading(true); setLoadError('');
@@ -31,22 +32,29 @@ export default function InvitesPage() {
     } catch (error) { if (generation.current === current) { setData(null); setLoadError(error instanceof Error ? error.message : 'Could not load invitations.'); } }
     finally { if (generation.current === current) setLoading(false); }
   }, [filter, page]);
-  useEffect(() => { startTransition(() => { void refresh(); }); }, [refresh]);
   useEffect(() => {
     let reload: ReturnType<typeof setTimeout> | undefined;
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
-      if (event !== 'SIGNED_OUT' && event !== 'SIGNED_IN') return;
-      // History and pending mutations belong to the previous principal.
-      ++generation.current;
-      ++principalGeneration.current;
-      pending.current = null;
-      setData(null); setBusy(false); setRetrying(false); setMessage(''); setConfirmRevoke(null);
-      setLoading(false); setLoadError(event === 'SIGNED_OUT' ? 'Sign in to view invitations.' : '');
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (!['INITIAL_SESSION', 'SIGNED_OUT', 'SIGNED_IN'].includes(event)) return;
+      const nextPrincipal = session?.user.id ?? null;
+      const changed = principalId.current !== nextPrincipal;
+      principalId.current = nextPrincipal;
+      // SIGNED_IN also fires on tab focus for the same user. Only an actual
+      // principal change may discard a mutation's original payload/retry ID.
+      if (changed) {
+        ++generation.current;
+        ++principalGeneration.current;
+        pending.current = null;
+        setData(null); setEmail(''); setBusy(false); setRetrying(false); setMessage(''); setConfirmRevoke(null);
+        setLoading(!!nextPrincipal); setLoadError(nextPrincipal ? '' : 'Sign in to view invitations.');
+      }
+      if (!changed && event !== 'INITIAL_SESSION') return;
       if (reload) clearTimeout(reload);
       // Supabase advises against awaiting another auth call inside its callback.
-      if (event === 'SIGNED_IN') reload = setTimeout(() => { void refresh(); }, 0);
+      // INITIAL_SESSION also loads a newly selected filter/page on resubscribe.
+      if (nextPrincipal) reload = setTimeout(() => { void refresh(); }, 0);
     });
-    return () => { if (reload) clearTimeout(reload); subscription.unsubscribe(); };
+    return () => { generation.current += 1; if (reload) clearTimeout(reload); subscription.unsubscribe(); };
   }, [refresh]);
   async function mutate(payload: Record<string, unknown>) {
     const principal = principalGeneration.current;

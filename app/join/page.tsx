@@ -2,6 +2,7 @@
 import Link from 'next/link';
 import { startTransition, useEffect, useRef, useState, type FormEvent } from 'react';
 import { InviteRequestError, inviteRequest } from '@/lib/invites/client';
+import { inviteMessages, isValidInvitePassword } from '@/lib/invites/shared';
 
 type Preview = { inviter: string; email_hint: string; expires_at: string };
 export default function JoinPage() {
@@ -40,8 +41,10 @@ export default function JoinPage() {
     finally { setBusy(false); }
   }
   async function complete(event: FormEvent) {
-    event.preventDefault(); setBusy(true); setMessage('');
+    event.preventDefault();
     const attempt = pending.current || { action: 'complete', code, firstName, lastName, displayName, password };
+    if (!isValidInvitePassword(attempt.password)) { setMessage(inviteMessages.invalid_password); return; }
+    setBusy(true); setMessage('');
     pending.current = attempt;
     try {
       const result = await inviteRequest<{ accepted: boolean; message: string }>(attempt);
@@ -49,7 +52,7 @@ export default function JoinPage() {
     } catch (error) {
       const text = error instanceof Error ? error.message : 'Could not confirm your registration. Please retry.';
       setMessage(text);
-      if (error instanceof InviteRequestError && ['invalid_code', 'code_locked', 'sign_in_required', 'invalid_request', 'password_rejected'].includes(error.code)) {
+      if (error instanceof InviteRequestError && ['invalid_code', 'code_locked', 'sign_in_required', 'invalid_request', 'invalid_password', 'password_rejected'].includes(error.code)) {
         pending.current = null;
         setUncertain(false);
       }
@@ -71,8 +74,8 @@ export default function JoinPage() {
         <label htmlFor="join-first">First name</label><input id="join-first" autoComplete="given-name" maxLength={29} value={firstName} onChange={e => setFirstName(e.target.value)} required disabled={busy || uncertain} />
         <label htmlFor="join-last">Last name</label><input id="join-last" autoComplete="family-name" maxLength={29} value={lastName} onChange={e => setLastName(e.target.value)} required disabled={busy || uncertain} />
         <label htmlFor="join-display">Display name</label><input id="join-display" maxLength={34} value={displayName} onChange={e => setDisplayName(e.target.value)} required disabled={busy || uncertain} />
-        <label htmlFor="join-password">Password</label><div className="invite-password"><input id="join-password" type={show ? 'text' : 'password'} minLength={16} maxLength={128} autoComplete="new-password" value={password} onChange={e => setPassword(e.target.value)} required disabled={busy || uncertain} /><button type="button" onClick={() => setShow(v => !v)}>{show ? 'Hide' : 'Show'}</button></div>
-        <p className="invite-detail">Use at least 16 characters. A few memorable words work well.</p><button className="invite-primary" disabled={busy}>{busy ? 'Joining…' : uncertain ? 'Retry same registration' : 'Join the league'}</button>
+        <label htmlFor="join-password">Password</label><div className="invite-password"><input id="join-password" type={show ? 'text' : 'password'} minLength={16} maxLength={72} autoComplete="new-password" value={password} onChange={e => setPassword(e.target.value)} required disabled={busy || uncertain} /><button type="button" onClick={() => setShow(v => !v)}>{show ? 'Hide' : 'Show'}</button></div>
+        <p className="invite-detail">Use at least 16 characters, up to 72 bytes. Accented letters and emoji can use more than one byte each.</p><button className="invite-primary" disabled={busy}>{busy ? 'Joining…' : uncertain ? 'Retry same registration' : 'Join the league'}</button>
       </form>}
     </>}
     {!accepted && <p>Already have an account? <Link href="/auth" target="_blank" rel="noopener noreferrer">Sign in in a new tab</Link>, then return here. Your existing password stays the same.</p>}

@@ -42,3 +42,12 @@ that browser stack.
 All database/browser evidence is local. Hosted schema, backup/restore, migration
 history, Auth/RLS acceptance and release gates remain separate from this rebase
 and application PR.
+
+## Publication check follow-up
+
+The initial GitHub push check passed the application tests but timed out during
+coverage on the existing full-repository ESLint corpus test: 20.65 seconds
+against its 20-second allowance. The rebased corpus is larger. This test now has
+a scoped 60-second allowance; its file coverage, rules and assertions are
+unchanged. The Vercel build passed. Subsequent GitHub checks remain the authority
+for the published commit; the local coverage gate is rerun for this adjustment.

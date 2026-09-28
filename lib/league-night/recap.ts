@@ -37,6 +37,7 @@ export type NightRecap = {
   standings: NightStanding[];
   awards: NightAward[];
   ratingMoves: RatingMove[];
+  unrated: number;
   ignored: number;
   incompleteHistory: number;
 };
@@ -110,7 +111,10 @@ export function buildNightRecap(
   history: NightMatch[],
   nightId: string,
 ): NightRecap {
-  const all = ordered(history.filter(m => valid(m) && !ratingExclusion(m.game_config)));
+  const all = ordered(history.filter(valid));
+  // Valid activity belongs in the log even when it intentionally earns no
+  // competitive results, ratings or awards. Only malformed history is unknown.
+  const rated = all.filter((m) => !ratingExclusion(m.game_config));
   const incomplete = history.filter((m) => !valid(m));
   const beforeOrUnknown = (m: NightMatch, timestamp: number) =>
     !Number.isFinite(Date.parse(m.played_at)) ||
@@ -121,14 +125,15 @@ export function buildNightRecap(
     m.match_players.length < 2 ||
     m.match_players.some((p) => !p.player_id || p.player_id === id);
   const matches = all.filter((m) => m.night_id === nightId);
-  const sharedNightStart = matches.length
-    ? Date.parse(matches[0].played_at)
+  const ratedMatches = rated.filter((m) => m.night_id === nightId);
+  const sharedNightStart = ratedMatches.length
+    ? Date.parse(ratedMatches[0].played_at)
     : Infinity;
-  const nightIds = new Set(matches.map((m) => String(m.id)));
+  const nightIds = new Set(ratedMatches.map((m) => String(m.id)));
   const standings = new Map<string, NightStanding>();
   const awards: NightAward[] = [];
   const ratingMoves: RatingMove[] = [];
-  for (const match of matches)
+  for (const match of ratedMatches)
     for (const p of match.match_players ?? []) {
       const row = standings.get(p.player_id) ?? {
         playerId: p.player_id,
@@ -143,7 +148,7 @@ export function buildNightRecap(
   // First recorded win is across disciplines. Equal timestamps cannot establish
   // which of two winning games came first, so don't invent a first-win event.
   for (const row of standings.values()) {
-    const wins = all.filter((m) =>
+    const wins = rated.filter((m) =>
       m.match_players?.some((p) => p.player_id === row.playerId && p.is_winner),
     );
     if (
@@ -171,7 +176,7 @@ export function buildNightRecap(
     }
   }
   const scopes = new Set(
-    matches
+    ratedMatches
       .filter(
         (m) =>
           Boolean(gameDefinition(m.game_type)) && m.game_type !== "Other" &&
@@ -181,9 +186,9 @@ export function buildNightRecap(
   );
   for (const scopeKey of scopes) {
     const [game, board, preset, format] = JSON.parse(scopeKey) as [string,string,string,string];
-    const sample = matches.find(m => comparisonKey(m.game_type,m.board_type,m.game_config) === scopeKey)!;
+    const sample = ratedMatches.find(m => comparisonKey(m.game_type,m.board_type,m.game_config) === scopeKey)!;
     const scope = `${game} · ${board}${format === 'individual' ? '' : ` · ${formatLabel(sample.game_config?.format)}`}${preset === 'unspecified' ? '' : ` · ${presetLabel(game,sample.game_config)}`}`;
-    const scoped = all.filter(
+    const scoped = rated.filter(
       (m) => comparisonKey(m.game_type,m.board_type,m.game_config) === scopeKey,
     );
     const night = scoped.filter((m) => m.night_id === nightId);
@@ -401,6 +406,7 @@ export function buildNightRecap(
     ),
     awards,
     ratingMoves,
+    unrated: matches.length - ratedMatches.length,
     ignored:
       history.filter((m) => m.night_id === nightId).length - matches.length,
     incompleteHistory: incomplete.length,

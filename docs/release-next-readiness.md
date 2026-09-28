@@ -1,6 +1,7 @@
 # Next release: readiness and rollout plan
 
-Date: 2026-09-28. Status: W0 complete; W1-W8 implementation and release gates open.
+Date: 2026-09-28. Status: W0 complete; W1 assessment complete with its Vercel
+target exit gate open; W2-W8 implementation and release gates open.
 
 ## Candidate and scope
 
@@ -58,7 +59,7 @@ up independent local preparation while a hosted decision remains outstanding.
 | Package | Work and deliverable | Exit gate | Status |
 | --- | --- | --- | --- |
 | W0: Scope and candidate | This plan, feature/SQL inventory and an initial candidate SHA. Keep subsequent fixes scoped on `release/next`. | Future stats storage included; no new stats UI. | Passed 2026-09-28; [completion evidence](release/w0-scope-and-candidate.md) and [source snapshot](release/w0-candidate.json). |
-| W1: Refresh environment facts | Read-only hosted/schema/Auth/integration assessment and differences from checked-in assumptions; target map and migration-history proposal. See section 1. | Every intended app/DB target is identified; drift, automatic deployment paths and baseline adoption are understood. | Pending refresh. |
+| W1: Refresh environment facts | Read-only hosted/schema/Auth/integration assessment and differences from checked-in assumptions; target map and migration-history proposal. See section 1. | Every intended app/DB target is identified; drift, automatic deployment paths and baseline adoption are understood. | Assessment complete 2026-09-28; Vercel owner target/configuration verification remains open. See [evidence and checklist](release/w1-environment-assessment.md) and [facts snapshot](release/w1-environment-facts.json). This is not a passed exit gate; W2 can proceed locally. |
 | W2: Finish statistics foundation | Update SQL, permissions, view and tests as specified in section 1A; document final defaults and dependency order. | Independent source review resolved; focused local checks pass; no new feature surface. | Planned. |
 | W3: Combined synthetic release | Dedicated isolated stack, repeatable full-chain upgrade, preservation checks, all application/DB/API/browser gates, and verified fixes. See sections 2 and 4. | Final combined candidate passes; legacy/new-client behavior and failure recovery are demonstrated. | Prior feature evidence only; release pass pending. |
 | W4: Backup and restore proof | Concrete export/handling proposal, owner decision, protected backup manifest, isolated restore and integrity/timing report. See section 3. | Complete recoverable backup demonstrated within agreed recovery limits. | Pending. |
@@ -132,12 +133,16 @@ not proof of the complete production upgrade order or preservation across it.
   history adoption are agreed. Include `supabase/config.toml` Auth changes in the
   review; committing local config does not prove hosted Auth settings changed.
 
-The [2026-09-27 hosted audit](league-night-hosted-audit-2026-09-27.md) reported an
-untracked migration baseline, no available scheduled backup/PITR, disabled
-automatic previews, and production integration targeting `main`. Those are dated
-findings, not reverified facts for this release. Resolve the history strategy
-explicitly; never replay the baseline or repair migration history just to silence
-a warning. A deployment dry run must list only the approved changes.
+The [W1 assessment](release/w1-environment-assessment.md) refreshed the
+[2026-09-27 hosted audit](league-night-hosted-audit-2026-09-27.md): the legacy
+schema, empty migration history, unavailable scheduled backups/PITR, disabled
+automatic DB previews and Supabase production integration targeting `main` remain
+current. It also records current Auth/signup/SMTP gaps and hosted redirects.
+The live browser target is verified; Vercel preview/development and server
+configuration still need the owner's evidence. W1 proposes a checked legacy
+starting contract and a first history anchor followed by reviewed increments,
+rehearsed in W3/W5 and approved in W7. Never replay the baseline or repair history
+to silence a warning. A deployment dry run must list only the approved changes.
 
 ## 1A. Finish future statistics storage without adding site features
 

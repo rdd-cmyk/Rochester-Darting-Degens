@@ -8,7 +8,10 @@ The owner confirmed future statistics SQL/storage preparation for this release
 on 2026-09-28, with no new statistics UI or calculation features. See package W2
 and section 1A of the release plan; seasons remain storage-only for this scope.
 W0 scope/candidate preparation is complete; see its
-[evidence record](release/w0-scope-and-candidate.md). W1-W8 remain open.
+[evidence record](release/w0-scope-and-candidate.md). W1's
+[read-only assessment](release/w1-environment-assessment.md) is complete, with
+Vercel owner target/configuration verification still required to pass its exit
+gate. W2-W8 remain open; W2 can proceed locally.
 
 Status: advanced-statistics PR #69 merged; League Night Mode implemented and locally verified; hosted database changes deferred
 

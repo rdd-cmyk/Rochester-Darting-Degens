@@ -4,6 +4,8 @@ Date: 2026-09-27; rebased and reverified on 2026-09-28. Branch:
 `league-message-board`, originally based on `690a01b`, now based on
 `origin/league-night-mode` at `6b11f7d`. The combined parent includes Plan & RSVP.
 See [rebase verification](league-message-board-rebase-2026-09-28.md).
+The later PR review and fixes are recorded in
+[PR review verification](league-message-board-review-2026-09-28.md).
 
 ## Delivered behavior
 
@@ -23,6 +25,8 @@ The server limits a member to five new posts and twenty new replies per ten
 minutes, plus thirty writes per minute across board actions. Create retries use
 stable UUIDs. Drafts are scoped to the signed-in account in session storage and
 survive reload/sign-in in that browser tab; they clear after confirmed saves.
+Delayed saves clear only the exact submitted draft, preserving newer writing
+restored after navigation or an account change.
 They are not synchronized across devices. If browser storage is unavailable,
 the composer warns the writer to keep the page open.
 
@@ -36,6 +40,10 @@ Refreshing a conversation revalidates every loaded reply page. Newly saved
 replies beyond unopened pages remain visible under "Your recent replies" until
 those pages are loaded. Revalidation removes hidden/deleted replies, including
 for organizers, while retaining the loaded conversation window.
+Feed refreshes also revalidate the previously loaded window and continue
+through its prior boundary when new activity pushes it onto another page.
+Open conversations and unfinished replies remain mounted through reactions
+and edits, while hidden/deleted posts are removed.
 
 Board access rechecks on sign-in changes, tab visibility, and every minute.
 Server permissions apply to every request, including direct table/API access.
@@ -134,6 +142,7 @@ schema and records intact while the feature is investigated.
 - Trusted lockfile install completed; no dependency versions changed.
 - Initial application suite and configured coverage gate passed: 207 tests on
   2026-09-27. The combined rebased suite passes 281 tests on 2026-09-28.
+  After the subsequent PR review fixes, all 289 tests and coverage pass.
 - ESLint and TypeScript checks passed.
 - Local-target production build passed with `/board` and `/board/[id]`.
 - All 60 local board database checks passed, covering policy, ownership,
@@ -158,6 +167,13 @@ schema and records intact while the feature is investigated.
   combined database checks, 60 existing-board database checks, and four browser
   regression/navigation checks. Independent integration review found no
   actionable issues. The Board and parent organizer authorities stay separate.
+- The subsequent independent PR review reported delayed-save draft loss and
+  feed refresh truncation. Both were independently reproduced before fixing.
+  Re-review expanded feed coverage to new activity and PostgreSQL microsecond
+  cursor precision; final independent review found no actionable issues.
+  Required application checks, 60 local Board database checks and six
+  production-browser regression/navigation scenarios pass. Temporary browser
+  identities/content were removed; existing demo accounts were preserved.
 
 All evidence is local. No hosted schema, hosted auth/RLS, deployed application,
 production data, or publication is claimed verified.

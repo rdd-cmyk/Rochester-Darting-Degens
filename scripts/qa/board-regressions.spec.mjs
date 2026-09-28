@@ -134,6 +134,89 @@ test('organizers can hide a recent reply beyond unopened pages', async ({ page }
   expect(hidden.hidden).toBe(true);
 });
 
+test('a delayed save after navigation cannot erase a revised draft', async ({ page }) => {
+  const draftKey = `rdd-board:${user.id}:post`;
+  let releaseResponse;
+  let markCommitted;
+  const heldResponse = new Promise(resolve => { releaseResponse = resolve; });
+  const committed = new Promise(resolve => { markCommitted = resolve; });
+  let held = false;
+  const intercept = async route => {
+    if (!held && route.request().postDataJSON()?.p_action === 'create_post') {
+      held = true;
+      const response = await route.fetch();
+      expect(response.ok()).toBe(true);
+      markCommitted();
+      await heldResponse;
+      await route.fulfill({ response });
+    } else await route.continue();
+  };
+  await page.route('**/rest/v1/rpc/board_write', intercept);
+  try {
+    await page.getByRole('button', { name: 'What’s happening, Degens?' }).click();
+    await page.getByLabel('Your post', { exact: true }).fill('Pending save before navigation');
+    await page.getByRole('button', { name: 'Post to league', exact: true }).click();
+    await committed;
+    const attempted = await page.evaluate(key => JSON.parse(sessionStorage.getItem(key)), draftKey);
+    const nav = page.getByRole('navigation');
+    // Client navigation retains the old pending promise in this document.
+    await nav.getByRole('link', { name: 'Home', exact: true }).click();
+    await expect(page).toHaveURL(/\/$/);
+    await nav.getByRole('link', { name: 'League Board', exact: true }).click();
+    await expect(page.getByLabel('Your post', { exact: true })).toHaveValue('Pending save before navigation');
+    await page.getByLabel('Your post', { exact: true }).fill('Revised writing after returning');
+    const responseFinished = page.waitForEvent('requestfinished', request => request.url().endsWith('/rest/v1/rpc/board_write'));
+    releaseResponse();
+    await responseFinished;
+    await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
+    expect(await page.evaluate(key => JSON.parse(sessionStorage.getItem(key)), draftKey)).toMatchObject({ id: attempted.id, body: 'Revised writing after returning' });
+    await page.reload();
+    await expect(page.getByLabel('Your post', { exact: true })).toHaveValue('Revised writing after returning');
+    expect(unwrap(await admin.from('board_posts').select('body').eq('id', attempted.id).single()).body).toBe('Pending save before navigation');
+  } finally {
+    releaseResponse();
+    await page.unroute('**/rest/v1/rpc/board_write', intercept);
+  }
+});
+
+test('second-page actions retain an open conversation and draft despite new activity', async ({ page }) => {
+  const prefix = `Feed window ${randomUUID()}`;
+  const timestamp = Date.now() + 60000;
+  const posts = Array.from({ length: 40 }, (_, index) => ({
+    id: randomUUID(), author_id: user.id, body: `${prefix} conversation ${index + 1}`,
+    created_at: new Date(timestamp - index * 1000).toISOString(),
+    last_activity: new Date(timestamp - index * 1000).toISOString(),
+  }));
+  // Exercise real PostgreSQL microseconds with UUIDs ordered against the time.
+  const boundarySecond = new Date(timestamp - 40000).toISOString().replace(/\.\d{3}Z$/, '');
+  posts[38].id = `00000000-0000-4000-a000-${randomUUID().slice(-12)}`;
+  posts[38].last_activity = `${boundarySecond}.123902Z`;
+  posts[39].id = `ffffffff-ffff-4fff-afff-${randomUUID().slice(-12)}`;
+  posts[39].last_activity = `${boundarySecond}.123901Z`;
+  unwrap(await admin.from('board_posts').insert(posts));
+  await page.getByRole('button', { name: 'Refresh', exact: true }).click();
+  await expect(page.getByText(`${prefix} conversation 20`, { exact: true })).toBeVisible();
+  await page.getByRole('button', { name: 'Load more conversations', exact: true }).click();
+  const conversation = page.getByRole('article').filter({ has: page.getByText(`${prefix} conversation 40`, { exact: true }) });
+  await conversation.getByRole('button', { name: 'Reply', exact: true }).click();
+  await conversation.getByLabel('Your reply', { exact: true }).fill('Keep this second-page reply draft');
+  unwrap(await admin.from('board_posts').insert({
+    id: randomUUID(), author_id: user.id, body: `${prefix} new external conversation`,
+    last_activity: new Date(timestamp + 1000).toISOString(),
+  }));
+  await conversation.getByRole('button', { name: 'Cheers', exact: true }).click();
+  await expect(conversation.getByRole('button', { name: 'Cheers · 1 · You', exact: true })).toBeVisible();
+  await expect(page.getByText(`${prefix} new external conversation`, { exact: true })).toBeVisible();
+  await expect(conversation.getByLabel('Your reply', { exact: true })).toHaveValue('Keep this second-page reply draft');
+  await conversation.locator('.board-tools').first().locator('summary').click();
+  await conversation.getByRole('button', { name: 'Edit post', exact: true }).click();
+  await conversation.getByLabel('Edit post', { exact: true }).fill(`${prefix} edited second-page conversation`);
+  await conversation.getByRole('button', { name: 'Save changes', exact: true }).click();
+  const edited = page.getByRole('article').filter({ has: page.getByText(`${prefix} edited second-page conversation`, { exact: true }) });
+  await expect(edited.getByLabel('Your reply', { exact: true })).toHaveValue('Keep this second-page reply draft');
+  expect(await page.evaluate(key => sessionStorage.getItem(key), `rdd-board:${user.id}:edit:${posts[39].id}`)).toBeNull();
+});
+
 test('rebased navigation preserves Board, League Night and planning routes on desktop and mobile', async ({ page }) => {
   const nav = page.getByRole('navigation');
   for (const width of [1366, 375]) {

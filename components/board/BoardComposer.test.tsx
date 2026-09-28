@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { beforeEach, expect, it, vi } from 'vitest';
 import BoardComposer from './BoardComposer';
 
@@ -66,4 +66,43 @@ it('links conflicting reply retries to their parent conversation', async () => {
   fireEvent.change(screen.getByLabelText('Reply'), { target: { value: 'My revised reply' } });
   fireEvent.click(screen.getByRole('button', { name: 'Post' }));
   expect(await screen.findByRole('link', { name: 'Open saved conversation' })).toHaveAttribute('href', '/board/parent-id');
+});
+
+it('does not let a save from an unmounted composer erase a revised remounted draft', async () => {
+  let finishSave!: () => void;
+  const submit = vi.fn(() => new Promise<void>(resolve => { finishSave = resolve; }));
+  const { unmount } = render(<BoardComposer draftKey="member:post" label="Your post" submitLabel="Post" onSubmit={submit} />);
+  fireEvent.change(screen.getByLabelText('Your post'), { target: { value: 'First pending attempt' } });
+  fireEvent.click(screen.getByRole('button', { name: 'Post' }));
+  expect(submit).toHaveBeenCalledOnce();
+  unmount();
+  render(<BoardComposer draftKey="member:post" label="Your post" submitLabel="Post" onSubmit={vi.fn()} />);
+  fireEvent.change(screen.getByLabelText('Your post'), { target: { value: 'Revised after returning to the board' } });
+  await act(async () => { finishSave(); });
+  expect(screen.getByLabelText('Your post')).toHaveValue('Revised after returning to the board');
+  expect(JSON.parse(sessionStorage.getItem('member:post')!).body).toBe('Revised after returning to the board');
+});
+
+it('clears only the stored version of the draft confirmed by its own save', async () => {
+  let finishSave!: () => void;
+  const submit = vi.fn(() => new Promise<void>(resolve => { finishSave = resolve; }));
+  render(<BoardComposer draftKey="member:post" label="Your post" submitLabel="Post" onSubmit={submit} />);
+  fireEvent.change(screen.getByLabelText('Your post'), { target: { value: 'Pending contribution' } });
+  fireEvent.click(screen.getByRole('button', { name: 'Post' }));
+  const stored = JSON.parse(sessionStorage.getItem('member:post')!);
+  sessionStorage.setItem('member:post', JSON.stringify({ ...stored, body: 'Newer stored writing' }));
+  await act(async () => { finishSave(); });
+  expect(screen.getByText('Saved to the league.')).toBeVisible();
+  expect(JSON.parse(sessionStorage.getItem('member:post')!).body).toBe('Newer stored writing');
+});
+
+it('clears a confirmed unchanged draft even if its composer was unmounted', async () => {
+  let finishSave!: () => void;
+  const submit = vi.fn(() => new Promise<void>(resolve => { finishSave = resolve; }));
+  const { unmount } = render(<BoardComposer draftKey="member:post" label="Your post" submitLabel="Post" onSubmit={submit} />);
+  fireEvent.change(screen.getByLabelText('Your post'), { target: { value: 'Saved while away' } });
+  fireEvent.click(screen.getByRole('button', { name: 'Post' }));
+  unmount();
+  await act(async () => { finishSave(); });
+  expect(sessionStorage.getItem('member:post')).toBeNull();
 });

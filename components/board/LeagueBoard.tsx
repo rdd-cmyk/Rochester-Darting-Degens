@@ -8,6 +8,17 @@ import BoardComposer from './BoardComposer';
 import BoardPostCard from './BoardPostCard';
 import BoardModeration from './BoardModeration';
 
+function reachedFeedBoundary(cursor: BoardPost, boundary: BoardPost) {
+  const milliseconds = Date.parse(cursor.last_activity) - Date.parse(boundary.last_activity);
+  if (milliseconds !== 0) return milliseconds < 0;
+  // PostgreSQL retains microseconds; Date.parse only compares milliseconds.
+  // Keep the full fraction before using the descending UUID tie-break.
+  const fraction = (value: string) => (value.match(/\.(\d+)/)?.[1] ?? '').padEnd(6, '0');
+  const cursorFraction = fraction(cursor.last_activity);
+  const boundaryFraction = fraction(boundary.last_activity);
+  return cursorFraction < boundaryFraction || (cursorFraction === boundaryFraction && cursor.id <= boundary.id);
+}
+
 function BoardFeed({ userId, organizer, postId }: { userId: string; organizer: boolean; postId?: string }) {
   const [posts, setPosts] = useState<BoardPost[]>([]);
   const [pinned, setPinned] = useState<BoardPost[]>([]);
@@ -17,18 +28,46 @@ function BoardFeed({ userId, organizer, postId }: { userId: string; organizer: b
   const [error, setError] = useState('');
   const [manage, setManage] = useState(false);
   const generation = useRef(0);
+  const loadedPages = useRef(1);
+  const loadedBoundary = useRef<BoardPost | undefined>(undefined);
   const load = useCallback(async (before?: BoardPost) => {
     const current = ++generation.current;
     try {
-      const [rows, pin] = await Promise.all([
-        boardFeed(postId ? { id: postId } : { before, pinned: false }),
+      const readWindow = async () => {
+        let rows: BoardPost[] = [];
+        let nextCursor = before;
+        let hasMore = false;
+        let pages = 0;
+        const pageCount = before || postId ? 1 : loadedPages.current;
+        const boundary = before || postId ? undefined : loadedBoundary.current;
+        let boundaryReached = !boundary;
+        // Re-read the loaded feed window: keep open conversations mounted while
+        // still removing posts that have been hidden, deleted or pinned.
+        do {
+          const page = await boardFeed(postId ? { id: postId } : { before: nextCursor, pinned: false });
+          if (current !== generation.current) return null;
+          rows = mergeBoardRows(rows, page);
+          nextCursor = page.at(-1) ?? nextCursor;
+          hasMore = !postId && page.length === BOARD_PAGE_SIZE;
+          pages++;
+          if (boundary && nextCursor) boundaryReached = reachedFeedBoundary(nextCursor, boundary);
+          // New activity can push the oldest loaded post onto another page.
+          // Continue through its prior cursor rather than dropping its context.
+        } while (hasMore && (pages < pageCount || !boundaryReached));
+        return { rows, nextCursor, hasMore, pages };
+      };
+      const [window, pin] = await Promise.all([
+        readWindow(),
         !postId && !before ? boardFeed({ pinned: true, limit: 1 }) : Promise.resolve(null),
       ]);
-      if(current !== generation.current) return;
+      if(current !== generation.current || !window) return;
       setError('');
-      setPosts(previous => before ? mergeBoardRows(previous, rows) : rows);
+      setPosts(previous => before ? mergeBoardRows(previous, window.rows) : window.rows);
+      if (before) { if (window.rows.length) loadedPages.current++; }
+      else loadedPages.current = window.pages;
+      loadedBoundary.current = window.nextCursor;
       if(pin) setPinned(pin);
-      setCursor(rows.at(-1)); setMore(!postId && rows.length === BOARD_PAGE_SIZE);
+      setCursor(window.nextCursor); setMore(window.hasMore);
     } catch (cause) {
       if(current === generation.current) { setPosts([]); setPinned([]); setError(boardError(cause)); }
     } finally { if(current === generation.current) setLoading(false); }

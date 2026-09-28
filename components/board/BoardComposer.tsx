@@ -1,6 +1,6 @@
 'use client';
 
-import { useId, useState } from 'react';
+import { useEffect, useId, useRef, useState } from 'react';
 import Link from 'next/link';
 import { boardError, isBoardRetryConflict } from '@/lib/board';
 
@@ -22,6 +22,11 @@ export default function BoardComposer({ draftKey, label, submitLabel, initialBod
   const [message, setMessage] = useState('');
   const [storageWarning, setStorageWarning] = useState(false);
   const [expanded, setExpanded] = useState(!starters || !!draft.body);
+  const mounted = useRef(false);
+  useEffect(() => {
+    mounted.current = true;
+    return () => { mounted.current = false; };
+  }, []);
   function update(next: Draft) {
     setDraft(next);
     try { sessionStorage.setItem(draftKey, JSON.stringify(next)); } catch { setStorageWarning(true); }
@@ -38,12 +43,18 @@ export default function BoardComposer({ draftKey, label, submitLabel, initialBod
     setBusy(true); setError(''); setMessage(''); setRetryConflict(false);
     try {
       await onSubmit(draft.body.trim(), draft.topic, draft.id);
+      // Navigation/auth changes can replace this draft while a save is pending.
+      // Clear only the confirmed version, even if its composer has unmounted.
+      try {
+        const stored = JSON.parse(sessionStorage.getItem(draftKey) || 'null');
+        if (stored?.id === draft.id && stored.body === draft.body && stored.topic === draft.topic) sessionStorage.removeItem(draftKey);
+      } catch { /* The confirmed post is already safe. */ }
+      if (!mounted.current) return;
       setDraft({ body: '', topic: initialTopic, id: crypto.randomUUID() });
-      try { sessionStorage.removeItem(draftKey); } catch { /* The confirmed post is already safe. */ }
       setMessage('Saved to the league.');
       if (starters) setExpanded(false);
-    } catch (cause) { setError(boardError(cause)); setRetryConflict(isBoardRetryConflict(cause)); }
-    finally { setBusy(false); }
+    } catch (cause) { if (mounted.current) { setError(boardError(cause)); setRetryConflict(isBoardRetryConflict(cause)); } }
+    finally { if (mounted.current) setBusy(false); }
   }
   return <form className="board-composer" onSubmit={submit}>
     {starters && <>

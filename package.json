@@ -19,6 +19,10 @@
     }
   },
   "scripts": {
+    "invites:start:local": "node scripts/invites-local.mjs start",
+    "invites:setup:local": "node scripts/invites-local.mjs setup",
+    "invites:preview:local": "node scripts/invites-local.mjs preview",
+    "test:invites:local": "node scripts/qa/invites-integration.mjs",
     "dev": "next dev",
     "dev:local": "node scripts/dev-local.mjs",
     "build:local": "node scripts/dev-local.mjs --build",
@@ -52,7 +56,8 @@
     "react": "19.2.8",
     "react-dom": "19.2.8",
     "react-markdown": "10.1.0",
-    "remark-gfm": "4.0.1"
+    "remark-gfm": "4.0.1",
+    "server-only": "^0.0.1"
   },
   "devDependencies": {
     "@eslint/compat": "2.1.1",

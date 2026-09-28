@@ -13,6 +13,7 @@ type NavbarProps = {
 
 export default function Navbar({ summerEnabled, onToggleSummer }: NavbarProps) {
   const [user, setUser] = useState<User | null>(null);
+  const [memberId, setMemberId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [menuOpen, setMenuOpen] = useState(false);
   const attemptedProfiles = useRef<Set<string>>(new Set());
@@ -23,6 +24,9 @@ export default function Navbar({ summerEnabled, onToggleSummer }: NavbarProps) {
 
     const userId = currentUser.id as string | undefined;
     if (!userId || attemptedProfiles.current.has(userId)) return;
+
+    const { data: membership } = await supabase.from('league_members').select('status').eq('user_id', userId).maybeSingle();
+    if (membership?.status !== 'active') return;
 
     const metadata = currentUser.user_metadata || {};
     const {
@@ -44,7 +48,7 @@ export default function Navbar({ summerEnabled, onToggleSummer }: NavbarProps) {
             include_first_name_in_display ?? true,
         },
       ],
-      { onConflict: "id" }
+      { onConflict: "id", ignoreDuplicates: true }
     );
 
     if (!error) {
@@ -85,7 +89,13 @@ export default function Navbar({ summerEnabled, onToggleSummer }: NavbarProps) {
   }
 
   useEffect(() => {
-    ensureProfileFromMetadata(user);
+    let live = true;
+    if (user) {
+      supabase.from('league_members').select('status').eq('user_id', user.id).maybeSingle()
+        .then(({ data }) => { if (live) setMemberId(data?.status === 'active' ? user.id : null); });
+      void ensureProfileFromMetadata(user);
+    }
+    return () => { live = false; };
   }, [user]);
 
   const handleNavSelection = () => {
@@ -154,6 +164,7 @@ export default function Navbar({ summerEnabled, onToggleSummer }: NavbarProps) {
               My Profile
             </Link>
           )}
+          {user && memberId === user.id && <Link style={linkStyle} href="/invites" onClick={handleNavSelection}>Invites</Link>}
         </div>
       </div>
 

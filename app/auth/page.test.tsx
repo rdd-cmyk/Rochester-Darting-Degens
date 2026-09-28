@@ -35,3 +35,9 @@ it('sends recovery back to the current deployment even when a production site UR
   ));
   expect(screen.getByText('Password reset email sent. Check your inbox.')).toBeInTheDocument();
 });
+
+it('explains invitation-only registration without exposing a signup form', () => {
+  render(<AuthPage />);
+  expect(screen.queryByRole('button', { name: /sign up/i })).not.toBeInTheDocument();
+  expect(screen.getByText(/Joining is by invitation/)).toBeInTheDocument();
+});

@@ -1033,7 +1033,7 @@ export default function Home() {
                   marginRight: '0.5rem',
                 }}
               >
-                Go to sign in / sign up
+                Go to sign in
               </Link>
             )}
 

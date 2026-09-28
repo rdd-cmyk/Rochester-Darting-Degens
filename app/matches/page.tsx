@@ -549,7 +549,7 @@ function MatchesWorkspace({ user }: { user: User }) {
               fontWeight: 500,
             }}
           >
-            Go to sign in / sign up
+            Go to sign in
           </Link>
         </p>
       </main>

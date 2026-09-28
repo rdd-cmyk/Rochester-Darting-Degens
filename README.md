@@ -2,6 +2,13 @@ This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-
 
 ## Configuration
 
+This branch implements invitation-only registration. See the
+[invitation handoff](docs/invite-only-registration-handoff.md) for isolated local
+preview commands, server email configuration, verification, and the hosted release
+gate. Use `npm run invites:start:local`, `npm run invites:setup:local`, and
+`npm run invites:preview:local` for this feature; its stricter admission policies
+belong in the isolated invitation stack.
+
 This project relies on Supabase for authentication and data. Create a `.env.local` file in the project root and add the following environment variables before running the app:
 
 ```bash

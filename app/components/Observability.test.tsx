@@ -9,6 +9,11 @@ vi.mock('next/navigation.js', () => ({
   useParams: () => navigation.params,
   useSearchParams: () => new URLSearchParams(),
 }));
+vi.mock('next/navigation', () => ({
+  usePathname: () => navigation.path,
+  useParams: () => navigation.params,
+  useSearchParams: () => new URLSearchParams(),
+}));
 
 // Exercise the real SDKs, not mocked components. jsdom does not load remote
 // resources here; callbacks are captured without running Vercel's hosted script.
@@ -60,6 +65,12 @@ it('retains development SDK mode without forcing production collection', () => {
   render(<Observability />);
   expect(document.querySelector('script[data-sdkn="@vercel/analytics/next"]')).toHaveAttribute('src', 'https://va.vercel-scripts.com/v1/script.debug.js');
   expect(document.querySelector('script[data-sdkn="@vercel/speed-insights/next"]')).toHaveAttribute('src', 'https://va.vercel-scripts.com/v1/speed-insights/script.debug.js');
+});
+
+it.each(['/join', '/invites', '/auth', '/auth/verify-email', '/reset-password'])('does not inject analytics on %s', route => {
+  navigation.path = route;
+  render(<Observability />);
+  expect(document.querySelectorAll('script[data-sdkn]')).toHaveLength(0);
 });
 
 it('supports provider dynamic endpoints while retaining application privacy hooks', () => {

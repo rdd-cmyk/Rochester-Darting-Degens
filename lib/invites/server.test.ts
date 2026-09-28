@@ -50,3 +50,35 @@ it('rejects completion without the browser challenge cookie', async () => {
   expect((await handleInvite(request({ action: 'complete', code: '12345678' }))).status).toBe(400);
   expect(mocks.createUser).not.toHaveBeenCalled();
 });
+it.each(['weak_password', 'validation_failed'])('releases a definite %s rejection so the recipient can correct it', async code => {
+  mocks.rpc.mockResolvedValueOnce({ data: { email: 'synthetic@example.test', operation_id: id }, error: null });
+  mocks.rpc.mockResolvedValueOnce({ data: { released: true }, error: null });
+  mocks.createUser.mockResolvedValueOnce({ data: { user: null }, error: { code, status: 422 } });
+  const result = await handleInvite(request({ action: 'complete', code: '12345678', password: 'a'.repeat(16),
+    firstName: 'Test', lastName: 'Player', displayName: 'Test Player' }, { cookie: `rdd-join=${id}.${'b'.repeat(43)}` }));
+  expect(result.status).toBe(400);
+  expect(await result.json()).toEqual(expect.objectContaining({ error: code === 'weak_password' ? 'password_rejected' : 'invalid_request' }));
+  expect(mocks.rpc).toHaveBeenLastCalledWith('invite_service', expect.objectContaining({ p_action: 'release',
+    p_data: expect.objectContaining({ challenge_id: id, operation_id: id }) }));
+});
+it.each([
+  { code: 'weak_password', status: 500 },
+  { code: undefined, status: undefined },
+  { code: 'email_exists', status: 422 },
+])('preserves ambiguous or conflicting Auth results: %j', async error => {
+  mocks.rpc.mockResolvedValueOnce({ data: { email: 'synthetic@example.test', operation_id: id }, error: null });
+  mocks.createUser.mockResolvedValueOnce({ data: { user: null }, error });
+  const result = await handleInvite(request({ action: 'complete', code: '12345678', password: 'Synthetic long password!',
+    firstName: 'Test', lastName: 'Player', displayName: 'Test Player' }, { cookie: `rdd-join=${id}.${'b'.repeat(43)}` }));
+  expect(result.status).toBe(503);
+  expect(mocks.rpc).toHaveBeenCalledTimes(1);
+});
+it('does not unlock rejected input when SQL cannot safely release its reservation', async () => {
+  mocks.rpc.mockResolvedValueOnce({ data: { email: 'synthetic@example.test', operation_id: id }, error: null });
+  mocks.rpc.mockResolvedValueOnce({ data: { released: false }, error: null });
+  mocks.createUser.mockResolvedValueOnce({ data: { user: null }, error: { code: 'weak_password', status: 422 } });
+  const result = await handleInvite(request({ action: 'complete', code: '12345678', password: 'Synthetic long password!',
+    firstName: 'Test', lastName: 'Player', displayName: 'Test Player' }, { cookie: `rdd-join=${id}.${'b'.repeat(43)}` }));
+  expect(result.status).toBe(503);
+  expect(await result.json()).toEqual(expect.objectContaining({ error: 'service_error' }));
+});

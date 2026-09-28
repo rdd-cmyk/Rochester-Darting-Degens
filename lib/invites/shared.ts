@@ -13,6 +13,7 @@ export const inviteMessages: Record<string, string> = {
   code_locked: 'Too many incorrect codes. Request a new verification code.',
   retry_conflict: 'This attempt was already saved with different details. Refresh the page before starting a new attempt.',
   invalid_request: 'Please check the information and try again.',
+  password_rejected: 'That password does not meet the account policy. Choose a longer, stronger password and try again.',
   disabled: 'Invitations are not available yet. Please try again later.',
   service_error: 'We could not confirm the result. Retry with the same details, or refresh your invitation history.',
   mail_failed: 'The email could not be sent. Wait a minute, then choose Resend.',

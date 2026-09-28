@@ -252,7 +252,7 @@ begin
     return jsonb_build_object('email',i.email);
   end if;
 
-  if p_action in ('reserve','finalize') then
+  if p_action in ('reserve','finalize','release') then
     -- Lock invite before challenge, matching revoke/resend order.
     select * into i from invite_private.invites where id=(select invite_id from invite_private.challenges where id=(p_data->>'challenge_id')::uuid) for update;
     select * into c from invite_private.challenges where id=(p_data->>'challenge_id')::uuid for update;
@@ -260,6 +260,14 @@ begin
       or i.status in ('revoked','expired') or i.expires_at<=now() or i.version<>c.version then return jsonb_build_object('error','unavailable'); end if;
     if i.status='accepted' and c.completed_at is not null then return jsonb_build_object('accepted',true); end if;
     if i.status<>'pending' then return jsonb_build_object('error','unavailable'); end if;
+    if p_action='release' then
+      if not c.verified or c.profile is distinct from p_data->'profile'
+        or i.operation_id is distinct from (p_data->>'operation_id')::uuid or c.id is distinct from i.operation_id
+        or exists(select 1 from auth.users where lower(email)=i.email) then return jsonb_build_object('released',false); end if;
+      update invite_private.challenges set verified=false,profile=null where id=c.id;
+      update invite_private.invites set operation_id=null where id=i.id;
+      return jsonb_build_object('released',true);
+    end if;
     if p_action='reserve' then
       if not c.verified then
         if c.attempts>=5 then return jsonb_build_object('error','code_locked'); end if;
@@ -269,8 +277,13 @@ begin
       elsif c.profile<>p_data->'profile' then
         return jsonb_build_object('error','retry_conflict');
       end if;
-      update invite_private.invites set operation_id=coalesce(operation_id,c.id) where id=i.id returning * into i;
       select * into u from auth.users where lower(email)=i.email;
+      -- Without an account, a fresh challenge owns its own operation. If an
+      -- older Auth request completes late, its metadata won't match this new
+      -- operation: finalization fails safely and recovery requires sign-in.
+      if u.id is null then
+        update invite_private.invites set operation_id=c.id where id=i.id returning * into i;
+      end if;
       if u.id is not null then
         if exists(select 1 from public.league_members where user_id=u.id and status='revoked') then return jsonb_build_object('error','unavailable'); end if;
         if exists(select 1 from public.league_members where user_id=u.id and source_invite_id is distinct from i.id) then return jsonb_build_object('error','unavailable'); end if;

@@ -50,6 +50,7 @@ RPCs require league admission; Board and planning organizer rights remain separa
 | Full Auth/RLS/failure verification | `scripts/qa/invites-integration.mjs` |
 | Review regressions | `scripts/qa/invites-review.mjs`, `app/invites/page.test.tsx`, `app/join/page.test.tsx` |
 | Combined feature regressions | `scripts/qa/invites-parent.mjs` |
+| Auth rejection/reservation regressions | `scripts/qa/invites-reservation.mjs` |
 | Browser acceptance | `scripts/qa/invites.spec.mjs`, `scripts/qa/invites.config.mjs` |
 
 The only added runtime package is `server-only@0.0.1`, which guards privileged
@@ -90,6 +91,8 @@ regressions and `node scripts/qa/invites-parent.mjs` for combined admission,
 ownership, replay and organizer behavior. `setup` adds missing parent fixtures
 to older isolated invitation stacks, then installs admission wrappers once;
 existing invitations and parent tables are not replayed.
+`node scripts/qa/invites-reservation.mjs` checks corrected same-code/new-code
+attempts, guarded reservation release and late account creation.
 
 For local function development only, `node scripts/invites-local.mjs refresh-functions`
 refreshes the known service/cleanup function definitions without replaying tables.
@@ -105,13 +108,14 @@ All evidence below is local to this worktree; hosted behavior is not verified.
 | Check | Result |
 | --- | --- |
 | Locked trusted install | Passed; audit reported zero vulnerabilities at this run |
-| Application tests | 344 passed across 42 files after clean install and rebase fixes |
+| Application tests | 351 passed across 42 files after clean install and GitHub review fix |
 | Coverage gate | Passed: 97.44% statements, 91.62% branches, 98.69% functions, 98.13% lines for the inherited stats/League Night/planning coverage scope |
 | Lint / TypeScript | Passed |
 | Production build | Passed, including `/api/invites`, `/invites`, `/join`; build used unset-hosted-env local defaults, not hosted credentials |
 | Local integration | 15 groups passed against isolated Supabase |
 | Review regressions | Two fault/race cases passed against isolated Supabase; focused client tests passed |
 | Combined feature admission | Four groups passed against the combined isolated schema |
+| Auth rejection/reservation recovery | Four new local SQL/API groups plus server/client regressions passed |
 | Browser acceptance | Three scenarios passed, including a 390px dark-mode recipient screen |
 | Visual review | Desktop sender/history and mobile join screenshots inspected; no horizontal overflow |
 
@@ -138,6 +142,28 @@ tab. A separate local retry test exposed a form that remained locked after a
 correctable code error; that was fixed as well. The two database cases are covered
 by `node scripts/qa/invites-review.mjs` against the isolated stack; the two UI
 cases have focused tests. These checks are local only.
+
+The GitHub bot's follow-up finding at `4a9e90d` was independently verified and
+fixed: explicit Auth validation failures were incorrectly treated as uncertain
+results, locking corrected input; a new challenge could then retain a stale
+operation and fail admission after creating an account. Only known validation
+errors (`weak_password`/`validation_failed`, HTTP 400/422) attempt a guarded
+release of the exact challenge/operation/payload, and only while no account
+exists. The code remains usable for corrected input. Fresh challenges acquire
+a new operation when no account is observed; late accounts from an older
+operation require ownership proof rather than being silently accepted.
+
+Verification reproduced the 503 response with a representative Auth rejection
+in a server test and reproduced the stale-operation failure against real local
+SQL/route calls after leaving a reservation without an account. The local Auth
+image bypasses its strength policy for administrative creation, so a real hosted
+weak-password rejection was not exercised. Current upstream [Supabase Auth admin
+implementation](https://github.com/supabase/auth/blob/master/internal/api/admin.go)
+checks supplied password strength (consulted 2026-09-28). Local tests cover safe
+release, same-code correction, new-code recovery, preservation when an account
+exists, and denial of a late account under a replacement operation. Full checks
+and the 15 invitation groups/two earlier review regressions were rerun; browser
+and combined-parent results above remain the earlier rebase evidence.
 
 Screenshots remain local under `.qa-artifacts/invites-*.png`; they contain only
 synthetic data. No hosted test is claimed.

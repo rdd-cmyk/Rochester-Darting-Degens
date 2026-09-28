@@ -128,14 +128,23 @@ export async function handleInvite(request: NextRequest) {
     const browser_hash = digest(required(cookie[1], /^[A-Za-z0-9_-]{43}$/));
     const code = required(body.code, /^\d{8}$/);
     const profile = onboarding(body);
+    const reservedProfile = { ...profile, credentialHash: keyed(config, 'credential', String(body.password)) };
     const reserve = await rpc('reserve', { challenge_id, browser_hash, code_hash: keyed(config, 'code', `${challenge_id}:${code}`),
-      profile: { ...profile, credentialHash: keyed(config, 'credential', String(body.password)) } }, actor);
+      profile: reservedProfile }, actor);
     if (!reserve.accepted) {
       let userId = reserve.user_id;
       if (!userId) {
         const created = await admin.auth.admin.createUser({ email: String(reserve.email), password: String(body.password), email_confirm: true,
           app_metadata: { invite_operation: reserve.operation_id }, user_metadata: { display_name: profile.displayName, first_name: profile.firstName, last_name: profile.lastName, include_first_name_in_display: true } });
         if (created.error || !created.data.user) {
+          // Only explicit pre-creation validation errors permit editing. A
+          // guarded release also verifies that no account has appeared and
+          // that this is still the same reserved challenge/payload.
+          if (!created.data.user && created.error && [400, 422].includes(created.error.status ?? 0)
+            && ['weak_password', 'validation_failed'].includes(created.error.code ?? '')) {
+            const release = await rpc('release', { challenge_id, browser_hash, operation_id: reserve.operation_id, profile: reservedProfile }, actor);
+            if (release.released) throw new Error(created.error.code === 'weak_password' ? 'password_rejected' : 'invalid_request');
+          }
           // Unknown outcome is deliberately left reserved. A retry reconciles
           // auth.users by email + trusted app_metadata before creating again.
           throw new Error('service_error');

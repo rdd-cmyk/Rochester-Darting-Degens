@@ -49,7 +49,7 @@ export default function JoinPage() {
     } catch (error) {
       const text = error instanceof Error ? error.message : 'Could not confirm your registration. Please retry.';
       setMessage(text);
-      if (error instanceof InviteRequestError && ['invalid_code', 'code_locked', 'sign_in_required', 'invalid_request'].includes(error.code)) {
+      if (error instanceof InviteRequestError && ['invalid_code', 'code_locked', 'sign_in_required', 'invalid_request', 'password_rejected'].includes(error.code)) {
         pending.current = null;
         setUncertain(false);
       }

@@ -29,7 +29,7 @@ it('requires an explicit action before sending a fresh inbox code', async () => 
   expect(request).toHaveBeenLastCalledWith({ action: 'challenge', token: 'synthetic-token' });
 });
 
-it('unlocks the form when an uncertain retry resolves to an incorrect code', async () => {
+it.each(['invalid_code', 'password_rejected'])('unlocks the form when an uncertain retry resolves to %s', async errorCode => {
   render(<JoinPage />);
   await screen.findByText('Synthetic inviter invited you');
   request.mockResolvedValueOnce({ challenge: true, message: 'Code sent.' });
@@ -42,9 +42,14 @@ it('unlocks the form when an uncertain retry resolves to an incorrect code', asy
   fireEvent.click(screen.getByRole('button', { name: /^Join the league$/ }));
   await screen.findByText('Connection lost.');
   expect(screen.getByLabelText('Verification code')).toBeDisabled();
-  request.mockRejectedValueOnce(new InviteRequestError('invalid_code', 'Incorrect code.'));
+  request.mockRejectedValueOnce(new InviteRequestError(errorCode, 'Correctable rejection.'));
   fireEvent.click(screen.getByRole('button', { name: 'Retry same registration' }));
-  await screen.findByText('Incorrect code.');
+  await screen.findByText('Correctable rejection.');
   expect(screen.getByLabelText('Verification code')).toBeEnabled();
   expect(screen.getByRole('button', { name: /^Join the league$/ })).toBeEnabled();
+  fireEvent.change(screen.getByLabelText('Password', { exact: true }), { target: { value: 'Corrected stronger passphrase!' } });
+  request.mockResolvedValueOnce({ accepted: true, message: 'Accepted.' });
+  fireEvent.click(screen.getByRole('button', { name: /^Join the league$/ }));
+  await screen.findByText('Accepted.');
+  expect(request).toHaveBeenLastCalledWith(expect.objectContaining({ password: 'Corrected stronger passphrase!' }));
 });

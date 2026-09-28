@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useCurrentUser } from "@/lib/league-night/use-current-user";
 import { gameDefinition } from "@/lib/games/catalog";
 import { loadMatches } from "@/lib/league-night/api";
@@ -20,7 +20,6 @@ export function ProfileSoloStats({
   const { user } = useCurrentUser();
   const [data, setData] = useState<SoloCohort[] | null>(null),
     [history, setHistory] = useState<NightMatch[]>([]),
-    [receivedKey, setReceivedKey] = useState(""),
     [error, setError] = useState(""),
     [retry, setRetry] = useState(0);
   const [filter, setFilter] = useState<SoloFilter>({
@@ -29,7 +28,15 @@ export function ProfileSoloStats({
     preset: "unspecified",
   });
   const viewerId = user?.id;
-  const requestKey = `${owner}:${viewerId}:${scope}:${retry}`;
+  // Every scope activation gets its own envelope, including a return to a
+  // previously loaded scope. Cached consent cannot stand in for this request.
+  const request = useMemo(
+    () => ({ owner, viewerId, scope, retry }),
+    [owner, viewerId, scope, retry],
+  );
+  const [receivedRequest, setReceivedRequest] = useState<typeof request | null>(
+    null,
+  );
   useEffect(() => {
     if (scope === "league" || !viewerId) return;
     let active = true;
@@ -48,12 +55,12 @@ export function ProfileSoloStats({
         if (active) setError(soloError(cause));
       })
       .finally(() => {
-        if (active) setReceivedKey(requestKey);
+        if (active) setReceivedRequest(request);
       });
     return () => {
       active = false;
     };
-  }, [owner, scope, viewerId, requestKey]);
+  }, [owner, scope, viewerId, request]);
   const stats = profileSummary(data ?? [], history, owner, filter, scope);
   return (
     <div className="solo-profile">
@@ -73,7 +80,7 @@ export function ProfileSoloStats({
           <h3>{scope === "solo" ? "Solo scoring" : "All play scoring"}</h3>
           {!user ? (
             <p>Sign in to view shared solo summaries.</p>
-          ) : receivedKey !== requestKey ? (
+          ) : receivedRequest !== request ? (
             <p role="status">Loading scoring summary…</p>
           ) : error ? (
             <>
@@ -159,6 +166,13 @@ export function ProfileSoloStats({
                   <strong>{stats.exactSoloAverage?.toFixed(2)}</strong> ·{" "}
                   {stats.rawSoloGames}/{stats.soloGames} solo games with
                   complete raw totals. Separate from reported game averages.
+                </p>
+              )}
+              {stats.invalidLeagueScores > 0 && (
+                <p className="solo-small">
+                  {stats.invalidLeagueScores} league scores outside the valid
+                  {" "}{filter.game === "Cricket" ? "MPR" : "3DA"} range are
+                  excluded from averages and scored coverage. The games still count.
                 </p>
               )}
               <p className="solo-small">

@@ -78,3 +78,21 @@ it("does not show a partial All play total when competitive history fails", asyn
     screen.getByRole("button", { name: "Retry solo summary" }),
   ).toBeInTheDocument();
 });
+it("checks current consent before showing a summary when returning to the same scope", async () => {
+  mocks.profile.mockResolvedValueOnce([{
+    game_type: "501", board_type: "Steel Tip", preset: "unspecified",
+    games: 1, scored: 1, score_sum: 64, best: 64,
+  }]);
+  render(<Fixture />);
+  fireEvent.click(screen.getByRole("button", { name: "Solo" }));
+  await screen.findByText("64.00");
+  let finish: (value: null) => void = () => {};
+  mocks.profile.mockImplementationOnce(() => new Promise((resolve) => { finish = resolve; }));
+  fireEvent.click(screen.getByRole("button", { name: "League" }));
+  fireEvent.click(screen.getByRole("button", { name: "Solo" }));
+  expect(screen.queryByText("64.00")).not.toBeInTheDocument();
+  expect(screen.getByText("Loading scoring summary…")).toBeInTheDocument();
+  finish(null);
+  await screen.findByText("This player’s solo summary is private.");
+  expect(screen.queryByText("64.00")).not.toBeInTheDocument();
+});

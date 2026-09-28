@@ -1,6 +1,6 @@
 import { hydrateRoot } from "react-dom/client";
 import { renderToString } from "react-dom/server";
-import { act, fireEvent, within } from "@testing-library/react";
+import { act, fireEvent, render, screen, within } from "@testing-library/react";
 import { it, expect, vi } from "vitest";
 import LayoutShell from "./LayoutShell";
 vi.mock("./Navbar", () => ({
@@ -50,5 +50,22 @@ it("hydrates a saved Off preference without a mismatch or overwriting it, then p
   await act(async () => root!.unmount());
   container.remove();
   errors.mockRestore();
+  localStorage.removeItem("summer-overlay-enabled");
+});
+it("updates in memory when storage is readable but writes fail", () => {
+  localStorage.setItem("summer-overlay-enabled", "false");
+  const write = vi.spyOn(Storage.prototype, "setItem").mockImplementation(() => {
+    throw new DOMException("Storage full", "QuotaExceededError");
+  });
+  const view = render(<LayoutShell><p>Solo page</p></LayoutShell>);
+  fireEvent.click(screen.getByRole("button", { name: "Summer: Off" }));
+  expect(screen.getByRole("button", { name: "Summer: On" })).toBeInTheDocument();
+  expect(localStorage.getItem("summer-overlay-enabled")).toBe("false");
+  fireEvent.click(screen.getByRole("button", { name: "Summer: On" }));
+  expect(screen.getByRole("button", { name: "Summer: Off" })).toBeInTheDocument();
+  write.mockRestore();
+  fireEvent.click(screen.getByRole("button", { name: "Summer: Off" }));
+  expect(localStorage.getItem("summer-overlay-enabled")).toBe("true");
+  view.unmount();
   localStorage.removeItem("summer-overlay-enabled");
 });

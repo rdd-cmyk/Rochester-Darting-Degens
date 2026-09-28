@@ -197,6 +197,41 @@ describe("solo score cohorts and chronology", () => {
     expect(data.points[0].score).toBeNull();
     expect(data.points[0].scored).toBe(0);
   });
+  it("keeps mismatched night dates out of night comparisons and uses actual dates in the timeline", () => {
+    const wrongDate = match({ played_at: "2026-03-26T23:00:00Z" });
+    const data = practicePerformance([solo()], [wrongDate], [night()], "a", filter);
+    expect(data.points).toEqual([]);
+    expect(data.timeline.find((d) => d.date === "2026-03-26")).toMatchObject({
+      league: 40,
+      leagueGames: 1,
+    });
+  });
+  it.each([
+    ["501", "501-double-v1", 181, 180],
+    ["301", "301-double-v1", -1, 180],
+    ["Cricket", "cricket-v1", 10, 9],
+  ])("excludes invalid %s scores from averages and coverage without dropping games", (game, preset, invalid, cap) => {
+    const cohortFilter = { ...filter, game, preset };
+    const history = [invalid, null, 0, cap, NaN, Infinity].map((score, id) => {
+      const row = match({ id, game_type: game, game_config: { ...defaultConfig(), preset } });
+      row.match_players![0].score = score;
+      return row;
+    });
+    expect(profileSummary([], history, "a", cohortFilter, "all")).toMatchObject({
+      games: 6, scored: 2, average: cap / 2,
+    });
+    const data = practicePerformance([], history, [night()], "a", cohortFilter);
+    expect(data.points[0]).toMatchObject({ games: 6, scored: 2, score: cap / 2 });
+    expect(data.timeline[0]).toMatchObject({ leagueGames: 6, leagueScored: 2, league: cap / 2 });
+  });
+  it("includes historical ranked games without a night in the timeline only", () => {
+    const data = practicePerformance([], [match({ night_id: null })], [], "a", filter);
+    expect(data.points).toEqual([]);
+    expect(data.timeline).toEqual([{
+      date: "2026-03-05", solo: null, league: 40, practice: 0,
+      soloScored: 0, leagueGames: 1, leagueScored: 1,
+    }]);
+  });
   it("uses prior five eligible nights and returns a descriptive comparison only with both groups", () => {
     const nights: LeagueNight[] = [],
       history: NightMatch[] = [],

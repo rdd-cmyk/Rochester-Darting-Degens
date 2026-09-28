@@ -88,6 +88,12 @@ export function PracticePerformance({
         </p>
       </div>
       <h3>Am I improving?</h3>
+      {data.invalidLeagueScores > 0 && (
+        <p className="solo-small">
+          {data.invalidLeagueScores} league scores outside the valid {unit}
+          {" "}range are excluded from averages and scored coverage. The games still count.
+        </p>
+      )}
       <div className="solo-legend">
         <span>
           <b className="solo-swatch" />
@@ -247,6 +253,13 @@ export function PracticePerformance({
         </div>
       )}
       <h3>Practice before league night</h3>
+      {data.mismatchedNightGames > 0 && (
+        <p className="solo-small">
+          {data.mismatchedNightGames} league games have a played date that differs
+          from their linked night. They appear on their actual dates in the
+          timeline and are excluded from night comparisons.
+        </p>
+      )}
       <p className="solo-small">
         Seven calendar days before the night · same-day games counted
         separately.
@@ -365,7 +378,7 @@ export function PracticePerformance({
         </p>
         <p>
           Solo volume includes completed, included games even without scores.
-          Scoring averages exclude missing scores. Linking a game to a night
+          Scoring averages exclude missing or invalid scores. Linking a game to a night
           never counts it twice. Dates use America/New_York. Incomplete history
           is never presented as a complete comparison.
         </p>

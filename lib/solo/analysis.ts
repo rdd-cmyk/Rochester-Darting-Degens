@@ -1,4 +1,4 @@
-import { ratingExclusion } from "@/lib/games/catalog";
+import { gameDefinition, ratingExclusion } from "@/lib/games/catalog";
 import type { LeagueNight, NightMatch } from "@/lib/league-night/types";
 import type { SoloCohort, SoloFilter, SoloGame } from "./types";
 
@@ -66,6 +66,16 @@ function average(values: (number | null)[]) {
     ? scored.reduce((a, b) => a + b, 0) / scored.length
     : null;
 }
+function leagueScore(score: number | null | undefined, game: string) {
+  const cap = gameDefinition(game)?.cap;
+  return score != null &&
+    Number.isFinite(score) &&
+    cap !== undefined &&
+    score >= 0 &&
+    score <= cap
+    ? score
+    : null;
+}
 export function profileSummary(
   cohorts: SoloCohort[],
   history: NightMatch[],
@@ -85,8 +95,8 @@ export function profileSummary(
       (m.match_players ?? []).filter((p) => p.player_id === owner),
     );
   const leagueScores = league
-    .map((p) => p.score)
-    .filter((v): v is number => v != null && Number.isFinite(v));
+    .map((p) => leagueScore(p.score, filter.game))
+    .filter((v): v is number => v !== null);
   const soloGames = scope === "league" ? 0 : Number(solo?.games ?? 0),
     leagueGames = scope === "solo" ? 0 : league.length;
   const soloScored = scope === "league" ? 0 : Number(solo?.scored ?? 0),
@@ -99,6 +109,12 @@ export function profileSummary(
     games: soloGames + leagueGames,
     soloGames,
     leagueGames,
+    invalidLeagueScores:
+      scope === "solo"
+        ? 0
+        : league.filter(
+            (p) => p.score != null && leagueScore(p.score, filter.game) === null,
+          ).length,
     scored,
     average: scored ? sum / scored : null,
     best: scope === "solo" ? (solo?.best ?? null) : null,
@@ -147,19 +163,26 @@ export function practicePerformance(
   const eligible = history.filter(
     (m) =>
       leagueEligible(m, filter) &&
-      m.night_id &&
       m.match_players?.some((p) => p.player_id === owner),
   );
+  const nightDates = new Map(nights.map((n) => [n.id, n.night_date]));
+  let mismatchedNightGames = 0;
   const byNight = new Map<string, NightMatch[]>();
   const leagueByDate = new Map<string, NightMatch[]>();
   for (const match of eligible) {
-    const rows = byNight.get(match.night_id!) ?? [];
-    rows.push(match);
-    byNight.set(match.night_id!, rows);
     const date = localDay(match.played_at),
       dayRows = leagueByDate.get(date) ?? [];
     dayRows.push(match);
     leagueByDate.set(date, dayRows);
+    if (match.night_id && nightDates.has(match.night_id)) {
+      if (date !== nightDates.get(match.night_id)) {
+        mismatchedNightGames++;
+        continue;
+      }
+      const rows = byNight.get(match.night_id) ?? [];
+      rows.push(match);
+      byNight.set(match.night_id, rows);
+    }
   }
   const points: PracticePoint[] = [];
   for (const night of [...nights].sort(
@@ -169,7 +192,11 @@ export function practicePerformance(
     const rows = byNight.get(night.id);
     if (!rows?.length) continue;
     const scores = rows.map(
-      (m) => m.match_players!.find((p) => p.player_id === owner)?.score ?? null,
+      (m) =>
+        leagueScore(
+          m.match_players!.find((p) => p.player_id === owner)?.score,
+          filter.game,
+        ),
     );
     const score = average(scores),
       previous = points
@@ -252,7 +279,10 @@ export function practicePerformance(
       league: average(
         league.map(
           (m) =>
-            m.match_players!.find((p) => p.player_id === owner)?.score ?? null,
+            leagueScore(
+              m.match_players!.find((p) => p.player_id === owner)?.score,
+              filter.game,
+            ),
         ),
       ),
       practice: solo.length,
@@ -260,7 +290,10 @@ export function practicePerformance(
       leagueGames: league.length,
       leagueScored: league.filter(
         (m) =>
-          m.match_players!.find((p) => p.player_id === owner)?.score != null,
+          leagueScore(
+            m.match_players!.find((p) => p.player_id === owner)?.score,
+            filter.game,
+          ) !== null,
       ).length,
     };
   });
@@ -271,5 +304,10 @@ export function practicePerformance(
     difference,
     lowNights: low.length,
     highNights: high.length,
+    mismatchedNightGames,
+    invalidLeagueScores: eligible.filter((m) => {
+      const score = m.match_players!.find((p) => p.player_id === owner)?.score;
+      return score != null && leagueScore(score, filter.game) === null;
+    }).length,
   };
 }

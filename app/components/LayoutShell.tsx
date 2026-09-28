@@ -7,6 +7,7 @@ import SummerOverlay from "./SummerOverlay";
 const STORAGE_KEY = "summer-overlay-enabled";
 const PREFERENCE_EVENT = "rdd-summer-preference";
 let fallbackSummer = true;
+let unsavedSummer: boolean | undefined;
 function subscribe(callback: () => void) {
   window.addEventListener("storage", callback);
   window.addEventListener(PREFERENCE_EVENT, callback);
@@ -16,6 +17,7 @@ function subscribe(callback: () => void) {
   };
 }
 function readPreference() {
+  if (unsavedSummer !== undefined) return unsavedSummer;
   try {
     const stored = localStorage.getItem(STORAGE_KEY);
     return stored === null ? true : stored === "true";
@@ -41,7 +43,10 @@ export default function LayoutShell({ children }: LayoutShellProps) {
     fallbackSummer = !summerEnabled;
     try {
       localStorage.setItem(STORAGE_KEY, String(fallbackSummer));
-    } catch {}
+      unsavedSummer = undefined;
+    } catch {
+      unsavedSummer = fallbackSummer;
+    }
     window.dispatchEvent(new Event(PREFERENCE_EVENT));
   }
 

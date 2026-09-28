@@ -94,6 +94,12 @@ are treated as failures, including hydration errors.
 
 ## Local review
 
+The subsequent [independent code review and verified fixes](solo-play-review-2026-09-28.md)
+record five corrected issues and updated final checks (284 tests). Its timeline
+includes compatible historical ranked games without a night link; night
+comparisons exclude mismatched played dates, and scoring excludes invalid
+historical values while retaining game counts.
+
 From this worktree:
 
 ```powershell

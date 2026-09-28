@@ -18,7 +18,7 @@ const demo = JSON.parse(fs.readFileSync(".local/solo/demo.json", "utf8"));
     await page.goto("http://127.0.0.1:3016/auth");
     await page.getByLabel("Email", { exact: true }).fill(demo.people[0].email);
     await page.getByLabel("Password", { exact: true }).fill(demo.password);
-    await page.locator("form button[type=submit]").click();
+    await page.getByRole("button", { name: "Sign in", exact: true }).click();
     await page.getByRole("heading", { name: "Darts Matches", exact: true }).waitFor();
 
     await page.evaluate(() => {

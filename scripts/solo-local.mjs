@@ -82,11 +82,26 @@ if (command === "start") {
     ...(!has("public.matches")
       ? ["supabase/tests/fixtures/existing_schema_baseline.sql"]
       : []),
+    ...(!has("public.seasons")
+      ? ["supabase/tests/fixtures/advanced_statistics_foundation.sql"]
+      : []),
     ...(!has("public.league_nights")
       ? [
           "supabase/pending/league_night.sql",
           "supabase/pending/league_night_enforce.sql",
         ]
+      : []),
+    ...(!has("rdd_private.planning_schedules")
+      ? ["supabase/tests/fixtures/league_planning.sql"]
+      : []),
+    ...(!has("public.board_members")
+      ? ["supabase/tests/fixtures/league_board.sql"]
+      : []),
+    ...(!has("public.league_members")
+      ? ["supabase/tests/fixtures/invite_only_registration.sql"]
+      : []),
+    ...(docker(["exec", container, "psql", "-U", "postgres", "-Atqc", "select to_regprocedure('invite_private.require_admission()') is null"]) === "t"
+      ? ["supabase/tests/fixtures/invite_parent_admission.sql"]
       : []),
     ...(!has("rdd_private.game_modes_control")
       ? [

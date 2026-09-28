@@ -30,7 +30,7 @@ let diagnosticPage, activeBrowser;
   await page.goto("http://127.0.0.1:3016/auth");
   await page.getByLabel("Email", { exact: true }).fill(demo.people[0].email);
   await page.getByLabel("Password", { exact: true }).fill(demo.password);
-  await page.locator("form button[type=submit]").click();
+  await page.getByRole("button", { name: "Sign in", exact: true }).click();
   await page
     .getByRole("heading", { name: "Darts Matches", exact: true })
     .waitFor();
@@ -253,7 +253,7 @@ let diagnosticPage, activeBrowser;
   await guest.goto("http://127.0.0.1:3016/auth");
   await guest.getByLabel("Email", { exact: true }).fill(demo.people[1].email);
   await guest.getByLabel("Password", { exact: true }).fill(demo.password);
-  await guest.locator("form button[type=submit]").click();
+  await guest.getByRole("button", { name: "Sign in", exact: true }).click();
   await guest
     .getByRole("heading", { name: "Darts Matches", exact: true })
     .waitFor();

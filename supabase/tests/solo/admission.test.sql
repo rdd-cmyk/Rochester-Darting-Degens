@@ -1,0 +1,57 @@
+-- Disposable combined-parent rehearsal only. Everything rolls back.
+BEGIN;
+CREATE EXTENSION IF NOT EXISTS pgtap WITH SCHEMA extensions;
+SET LOCAL search_path=public,extensions;
+SELECT plan(24);
+INSERT INTO auth.users(id) VALUES('00000000-0000-4000-8000-000000000098'),('00000000-0000-4000-8000-000000000097') ON CONFLICT DO NOTHING;
+INSERT INTO public.profiles(id,display_name) VALUES('00000000-0000-4000-8000-000000000098','Synthetic member'),('00000000-0000-4000-8000-000000000097','Synthetic provisional');
+INSERT INTO public.league_members(user_id) VALUES('00000000-0000-4000-8000-000000000099'),('00000000-0000-4000-8000-000000000098');
+UPDATE rdd_private.game_modes_control SET enabled=true;
+CREATE FUNCTION pg_temp.solo_payload() RETURNS jsonb LANGUAGE sql AS $payload$
+ SELECT '{"action":"save","submitted_by":"00000000-0000-4000-8000-000000000099","id":"00000000-0000-4000-8000-000000000081","session_id":"00000000-0000-4000-8000-000000000082","played_at":"2026-03-01T23:00:00Z","timezone":"America/New_York","game_type":"501","board_type":"Steel Tip","preset":"501-double-v1","status":"completed","score":60,"score_unit":"3DA","include_in_stats":true,"night_id":"00000000-0000-4000-8000-000000000080","share_with_night":true}'::jsonb;
+$payload$;
+CREATE FUNCTION pg_temp.match_payload() RETURNS jsonb LANGUAGE sql AS $payload$
+ SELECT '{"submitted_by":"00000000-0000-4000-8000-000000000099","played_at":"2026-03-01T23:00:00Z","game_type":"501","board_type":"Steel Tip","game_config":{"version":1,"preset":"501-double-v1","format":"individual","context":"competitive","status":"completed","handicap":false,"sides":{},"teamScores":{},"otherName":"","finish":"ordinary"},"players":[{"player_id":"00000000-0000-4000-8000-000000000099","score":60,"is_winner":true},{"player_id":"00000000-0000-4000-8000-000000000098","score":50,"is_winner":false}]}'::jsonb;
+$payload$;
+CREATE TEMP TABLE receipts(kind text,data jsonb);
+GRANT ALL ON receipts TO authenticated;
+SET LOCAL ROLE authenticated;
+SELECT set_config('request.jwt.claims','{"role":"authenticated","sub":"00000000-0000-4000-8000-000000000099"}',true);
+SELECT public.rdd_create_night('00000000-0000-4000-8000-000000000080','Synthetic admission night',NULL,'2026-03-01');
+INSERT INTO receipts VALUES('match',public.rdd_save_match('00000000-0000-4000-8000-000000000083',pg_temp.match_payload()));
+SELECT is((SELECT data->>'status' FROM receipts WHERE kind='match'),'saved','Admitted game-mode save works through wrapper');
+SELECT is(public.rdd_save_match('00000000-0000-4000-8000-000000000083',pg_temp.match_payload())->>'replayed','true','Admitted match replay works');
+INSERT INTO receipts VALUES('solo',public.rdd_solo_write('00000000-0000-4000-8000-000000000084',pg_temp.solo_payload()));
+SELECT is((SELECT data->>'revision' FROM receipts WHERE kind='solo'),'1','Admitted solo save works');
+SELECT is(public.rdd_solo_write('00000000-0000-4000-8000-000000000084',pg_temp.solo_payload())->>'replayed','true','Admitted solo replay works');
+SELECT public.rdd_set_solo_visibility(true);
+SELECT is(jsonb_array_length(public.rdd_solo_profile('00000000-0000-4000-8000-000000000099')),1,'Admitted owner sees aggregate');
+SELECT is(jsonb_array_length(public.rdd_solo_night('00000000-0000-4000-8000-000000000080')),1,'Admitted viewer sees shared practice');
+-- Record a correction snapshot so revoked-owner SELECT is tested non-vacuously.
+SELECT public.rdd_save_match('00000000-0000-4000-8000-000000000085',pg_temp.match_payload() || jsonb_build_object('match_id',(SELECT data->'match_id' FROM receipts WHERE kind='match'),'expected_revision',(SELECT data->'revision' FROM receipts WHERE kind='match')));
+SELECT is((SELECT count(*) FROM public.match_corrections),1::bigint,'Admitted owner sees the correction snapshot');
+SELECT set_config('request.jwt.claims','{"role":"authenticated","sub":"00000000-0000-4000-8000-000000000097"}',true);
+SELECT throws_ok($q$SELECT public.rdd_save_match('00000000-0000-4000-8000-000000000086',pg_temp.match_payload())$q$,'42501','League membership required','Provisional account cannot save matches');
+SELECT throws_ok($q$SELECT public.rdd_solo_write('00000000-0000-4000-8000-000000000087',pg_temp.solo_payload())$q$,'42501','League membership required','Provisional account cannot save solo');
+SELECT throws_ok($q$SELECT public.rdd_set_solo_visibility(true)$q$,'42501','League membership required','Provisional account cannot change visibility');
+SELECT throws_ok($q$SELECT public.rdd_solo_profile('00000000-0000-4000-8000-000000000099')$q$,'42501','League membership required','Provisional account cannot read shared aggregate');
+SELECT throws_ok($q$SELECT public.rdd_solo_night('00000000-0000-4000-8000-000000000080')$q$,'42501','League membership required','Provisional account cannot read night practice');
+RESET ROLE;
+UPDATE public.league_members SET status='revoked' WHERE user_id='00000000-0000-4000-8000-000000000099';
+SET LOCAL ROLE authenticated;
+SELECT set_config('request.jwt.claims','{"role":"authenticated","sub":"00000000-0000-4000-8000-000000000099"}',true);
+SELECT throws_ok($q$SELECT public.rdd_save_match('00000000-0000-4000-8000-000000000083',pg_temp.match_payload())$q$,'42501','League membership required','Revoked owner cannot replay a committed match');
+SELECT throws_ok($q$SELECT public.rdd_solo_write('00000000-0000-4000-8000-000000000084',pg_temp.solo_payload())$q$,'42501','League membership required','Revoked owner cannot replay a committed solo save');
+SELECT throws_ok($q$SELECT public.rdd_set_solo_visibility(false)$q$,'42501','League membership required','Revoked owner cannot change visibility');
+SELECT throws_ok($q$SELECT public.rdd_solo_profile('00000000-0000-4000-8000-000000000099')$q$,'42501','League membership required','Revoked owner cannot read aggregate');
+SELECT throws_ok($q$SELECT public.rdd_solo_night('00000000-0000-4000-8000-000000000080')$q$,'42501','League membership required','Revoked owner cannot read shared night practice');
+SELECT is((SELECT count(*) FROM public.solo_games),0::bigint,'Revoked owner cannot read own solo games');
+SELECT is((SELECT count(*) FROM public.solo_sessions),0::bigint,'Revoked owner cannot read own sessions');
+SELECT is((SELECT count(*) FROM public.solo_preferences),0::bigint,'Revoked owner cannot read own preferences');
+SELECT is((SELECT count(*) FROM public.match_corrections),0::bigint,'Revoked owner cannot read correction snapshots');
+RESET ROLE;
+SELECT ok(NOT has_function_privilege('authenticated','invite_private.rdd_save_match(uuid,jsonb)','EXECUTE'),'Private match implementation stays inaccessible');
+SELECT ok(pg_get_functiondef('invite_private.rdd_save_match(uuid,jsonb)'::regprocedure) LIKE '%game_config%','Private implementation received the game-mode upgrade');
+SELECT ok(pg_get_functiondef('public.rdd_save_match(uuid,jsonb)'::regprocedure) LIKE '%require_admission%','Public match entry remains admission checked');
+SELECT * FROM finish();
+ROLLBACK;

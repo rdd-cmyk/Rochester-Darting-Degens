@@ -1,4 +1,4 @@
--- Local/review fixture only. Depends on League Night and game-modes fixtures.
+-- Local/review fixture only. Depends on the admitted League Night parent and game modes.
 -- Keep outside supabase/migrations until the hosted release gate is approved.
 BEGIN;
 CREATE TABLE public.solo_sessions (
@@ -43,6 +43,9 @@ ALTER TABLE rdd_private.solo_operations ENABLE ROW LEVEL SECURITY;
 CREATE POLICY solo_sessions_own ON public.solo_sessions FOR SELECT TO authenticated USING(owner_id=auth.uid());
 CREATE POLICY solo_games_own ON public.solo_games FOR SELECT TO authenticated USING(owner_id=auth.uid());
 CREATE POLICY solo_preferences_own ON public.solo_preferences FOR SELECT TO authenticated USING(owner_id=auth.uid());
+CREATE POLICY league_admission ON public.solo_sessions AS RESTRICTIVE FOR ALL TO authenticated USING(public.league_is_member()) WITH CHECK(public.league_is_member());
+CREATE POLICY league_admission ON public.solo_games AS RESTRICTIVE FOR ALL TO authenticated USING(public.league_is_member()) WITH CHECK(public.league_is_member());
+CREATE POLICY league_admission ON public.solo_preferences AS RESTRICTIVE FOR ALL TO authenticated USING(public.league_is_member()) WITH CHECK(public.league_is_member());
 REVOKE ALL ON public.solo_games, public.solo_sessions, public.solo_preferences FROM PUBLIC,anon,authenticated;
 GRANT SELECT ON public.solo_games, public.solo_sessions, public.solo_preferences TO authenticated;
 REVOKE ALL ON rdd_private.solo_operations FROM PUBLIC,anon,authenticated;
@@ -60,6 +63,7 @@ DECLARE actor uuid:=auth.uid(); prior rdd_private.solo_operations; existing publ
 BEGIN
   IF actor IS NULL OR auth.role() IS DISTINCT FROM 'authenticated' THEN
     RAISE EXCEPTION 'Sign in to save solo games.' USING ERRCODE='42501'; END IF;
+  PERFORM invite_private.require_admission();
   IF p_operation_id IS NULL OR jsonb_typeof(p_payload) IS DISTINCT FROM 'object'
     OR (p_payload->>'submitted_by')::uuid IS DISTINCT FROM actor
     OR p_payload - ARRAY['action','submitted_by','id','session_id','expected_revision','played_at','completed_at','timezone','game_type','board_type','preset','status','score','score_unit','raw_total','darts','include_in_stats','night_id','share_with_night','location','notes']::text[] <> '{}'::jsonb THEN
@@ -135,6 +139,7 @@ $$;
 CREATE FUNCTION public.rdd_set_solo_visibility(p_shared boolean) RETURNS void LANGUAGE plpgsql SECURITY DEFINER SET search_path='' AS $$
 BEGIN
   IF auth.uid() IS NULL OR auth.role() IS DISTINCT FROM 'authenticated' THEN RAISE EXCEPTION 'Sign in to change solo visibility.' USING ERRCODE='42501'; END IF;
+  PERFORM invite_private.require_admission();
   IF p_shared IS NULL THEN RAISE EXCEPTION 'Choose a visibility setting.' USING ERRCODE='22023'; END IF;
   INSERT INTO public.solo_preferences(owner_id,share_summary) VALUES(auth.uid(),p_shared) ON CONFLICT(owner_id) DO UPDATE SET share_summary=excluded.share_summary;
 END;
@@ -143,6 +148,7 @@ CREATE FUNCTION public.rdd_solo_profile(p_owner uuid) RETURNS jsonb LANGUAGE plp
 DECLARE result jsonb;
 BEGIN
   IF auth.uid() IS NULL OR auth.role() IS DISTINCT FROM 'authenticated' THEN RETURN NULL; END IF;
+  PERFORM invite_private.require_admission();
   IF p_owner IS DISTINCT FROM auth.uid() AND NOT EXISTS(SELECT 1 FROM public.solo_preferences WHERE owner_id=p_owner AND share_summary) THEN RETURN NULL; END IF;
   SELECT coalesce(jsonb_agg(to_jsonb(s)),'[]') INTO result FROM (
     SELECT game_type,board_type,preset,count(*) AS games,count(score) AS scored,
@@ -159,8 +165,9 @@ CREATE FUNCTION public.rdd_solo_night(p_night uuid) RETURNS jsonb LANGUAGE plpgs
 DECLARE result jsonb;
 BEGIN
   IF auth.uid() IS NULL OR auth.role() IS DISTINCT FROM 'authenticated' THEN RAISE EXCEPTION 'Sign in to view night practice.' USING ERRCODE='42501'; END IF;
-  -- Current nights_read policy permits every authenticated player. If that
-  -- audience changes, this projection and its authorization tests must change.
+  PERFORM invite_private.require_admission();
+  -- Match the parent audience: active admitted members. More restrictive night
+  -- audiences would require updating this projection and its tests together.
   IF NOT EXISTS(SELECT 1 FROM public.league_nights WHERE id=p_night) THEN RETURN '[]'; END IF;
   SELECT coalesce(jsonb_agg(to_jsonb(s) ORDER BY s.played_at,s.id),'[]') INTO result FROM (
     SELECT g.id,g.owner_id,g.played_at,g.game_type,g.board_type,g.status,g.preset,

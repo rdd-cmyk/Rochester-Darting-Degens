@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { createClient } from "@supabase/supabase-js";
 import { mkdirSync, writeFileSync, readFileSync, existsSync } from "node:fs";
 process.env.RDD_LOCAL_STACK = "solo";
-const { localStatus, soloLocal } = await import("../local-environment.mjs");
+const { localStatus, soloLocal, docker, projectId } = await import("../local-environment.mjs");
 if (!soloLocal) throw Error("Isolated solo stack required.");
 const status = localStatus();
 const admin = createClient(status.API_URL, status.SERVICE_ROLE_KEY, {
@@ -45,6 +45,9 @@ for (const name of ["Ace", "Bee"]) {
     signed = await db.auth.signInWithPassword({ email, password });
   }
   const auth = unwrap(signed);
+  // Admit only these explicitly fictional local QA accounts, never all users.
+  docker(["exec", `supabase_db_${projectId}`, "psql", "-U", "postgres", "-Atqc",
+    `insert into public.league_members(user_id) values('${auth.user.id}') on conflict(user_id) do update set status='active'`]);
   unwrap(
     await db.from("profiles").upsert({
       id: auth.user.id,

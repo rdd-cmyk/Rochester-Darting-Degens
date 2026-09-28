@@ -32,8 +32,9 @@ it("hydrates a saved Off preference without a mismatch or overwriting it, then p
   container.innerHTML = renderToString(content);
   expect(container.textContent).toContain("Summer: On");
   let root: ReturnType<typeof hydrateRoot>;
+  const recoverable = vi.fn();
   await act(async () => {
-    root = hydrateRoot(container, content);
+    root = hydrateRoot(container, content, { onRecoverableError: recoverable });
   });
   expect(
     within(container).getByRole("button", { name: "Summer: Off" }),
@@ -47,6 +48,7 @@ it("hydrates a saved Off preference without a mismatch or overwriting it, then p
     within(container).getByRole("button", { name: "Summer: On" }),
   ).toBeInTheDocument();
   expect(errors).not.toHaveBeenCalled();
+  expect(recoverable).not.toHaveBeenCalled();
   await act(async () => root!.unmount());
   container.remove();
   errors.mockRestore();

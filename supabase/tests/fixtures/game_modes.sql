@@ -256,6 +256,31 @@ BEGIN
 END;
 $$;
 
+-- A parent installation may already expose an admission-checked wrapper.
+-- Upgrade its private implementation, then retain the wrapper and closed grants.
+-- If invitations are installed later, their parent fixture wraps this body.
+DO $admission$
+BEGIN
+  IF to_regprocedure('invite_private.rdd_save_match(uuid,jsonb)') IS NOT NULL THEN
+    EXECUTE replace(pg_get_functiondef('public.rdd_save_match(uuid,jsonb)'::regprocedure),
+      'FUNCTION public.rdd_save_match(', 'FUNCTION invite_private.rdd_save_match(');
+    EXECUTE $wrapper$
+      CREATE OR REPLACE FUNCTION public.rdd_save_match(p_operation_id uuid,p_payload jsonb)
+      RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path='' AS $body$
+      BEGIN
+        PERFORM invite_private.require_admission();
+        RETURN invite_private.rdd_save_match(p_operation_id,p_payload);
+      END; $body$;
+    $wrapper$;
+    REVOKE ALL ON FUNCTION invite_private.rdd_save_match(uuid,jsonb) FROM PUBLIC,anon,authenticated;
+  END IF;
+  IF to_regprocedure('public.league_is_member()') IS NOT NULL
+    AND NOT EXISTS(SELECT 1 FROM pg_catalog.pg_policy WHERE polrelid='public.match_corrections'::regclass AND polname='league_admission') THEN
+    CREATE POLICY league_admission ON public.match_corrections AS RESTRICTIVE FOR ALL TO authenticated
+      USING(public.league_is_member()) WITH CHECK(public.league_is_member());
+  END IF;
+END;
+$admission$;
 
 NOTIFY pgrst, 'reload schema';
 COMMIT;

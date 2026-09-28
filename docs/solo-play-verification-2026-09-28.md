@@ -118,14 +118,15 @@ account configuration. Stop only this stack with `npm run solo:local -- stop`.
 
 ## Integration and release boundary
 
-The branch inherits local League Night and game-modes commits `76913ce`,
-`f168e89` and `24ff15e`; it is not a feature-only diff from current main
-`690a01b`. Reconcile those dependencies with their accepted branches before
-integration. Other active worktrees were not changed.
+The branch was subsequently rebased onto `origin/league-night-mode` at `b9cd384`.
+The duplicate local League Night snapshot was omitted. The PR includes Solo's
+game-mode prerequisites and preserves planning, Board and invitation admission.
+See [rebase fixes and updated verification](solo-play-rebase-2026-09-28.md).
+It is not a feature-only diff from `main`. Other active worktrees were not changed.
 
 SQL remains in `supabase/tests/fixtures/solo_play.sql`; there is no deployable
-Solo SQL in `supabase/migrations/`. No hosted database changes, push, merge or
-deployment were performed. Follow the repository's
+Solo SQL in `supabase/migrations/`. Branch publication and a PR to League Night
+Mode were later authorized; merge and hosted deployment remain separate. Follow the repository's
 [Supabase release gate](supabase-github-integration-release-gate.md): current
 schema/RLS and audience review, backup/restore, migration-history adoption,
 representative rehearsal and rollback, then owner-approved rollout. Deploying

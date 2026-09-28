@@ -12,6 +12,8 @@ SELECT ok(NOT has_table_privilege('authenticated','public.solo_games','INSERT,UP
 SELECT ok(NOT has_function_privilege('anon','public.rdd_solo_write(uuid,jsonb)','EXECUTE'),'Anonymous writes denied');
 SELECT ok(NOT has_table_privilege('authenticated','rdd_private.solo_operations','SELECT'),'Replay log is private');
 SELECT is((SELECT count(*) FROM pg_proc WHERE proname IN ('rdd_solo_write','rdd_solo_profile','rdd_solo_night','rdd_set_solo_visibility') AND prosecdef AND proconfig=ARRAY['search_path=""']),4::bigint,'Definers have fixed empty search paths');
+INSERT INTO auth.users(id) VALUES('00000000-0000-4000-8000-000000000098') ON CONFLICT DO NOTHING;
+INSERT INTO public.league_members(user_id) VALUES('00000000-0000-4000-8000-000000000099'),('00000000-0000-4000-8000-000000000098');
 CREATE FUNCTION pg_temp.payload() RETURNS jsonb LANGUAGE sql AS $p$
  SELECT '{"action":"save","submitted_by":"00000000-0000-4000-8000-000000000099","id":"00000000-0000-4000-8000-000000000091","session_id":"00000000-0000-4000-8000-000000000092","expected_revision":null,"played_at":"2026-03-01T23:00:00Z","completed_at":null,"timezone":"America/New_York","game_type":"501","board_type":"Steel Tip","preset":"501-double-v1","status":"completed","score":60,"score_unit":"3DA","raw_total":501,"darts":30,"include_in_stats":true,"night_id":null,"share_with_night":false,"notes":"Private fixture note","location":"Private location"}'::jsonb;
 $p$;

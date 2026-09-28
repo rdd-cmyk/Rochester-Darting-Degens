@@ -764,7 +764,8 @@ function NightSession({
       setDraft((current) => ({
         ...freshDraft(),
         game: current.game,
-        gameConfig: current.gameConfig ? { ...current.gameConfig, sides: pending!.intent === "rematch" ? current.gameConfig.sides : {}, teamScores: {}, finish: "ordinary" } : null,
+        // Result status belongs to the saved game, not the next scorecard.
+        gameConfig: current.gameConfig ? { ...current.gameConfig, status: "completed", sides: pending!.intent === "rematch" ? current.gameConfig.sides : {}, teamScores: {}, finish: "ordinary" } : null,
         board: current.board,
         mode: current.mode,
         players:

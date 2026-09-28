@@ -307,6 +307,8 @@ function SoloEditor({ owner }: { owner: string }) {
             ? {
                 ...d,
                 entryId: crypto.randomUUID(),
+                // Completion is a per-game outcome; preserve practice settings.
+                status: "completed",
                 score: "",
                 raw: "",
                 darts: "",

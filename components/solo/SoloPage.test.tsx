@@ -43,6 +43,22 @@ beforeEach(() => {
   });
 });
 describe("Solo Play persistence boundaries", () => {
+  it("starts a completed game after saving a stopped game and playing again", async () => {
+    render(<SoloPage />);
+    fireEvent.change(await screen.findByLabelText("Game average"), { target: { value: "55" } });
+    fireEvent.change(screen.getByLabelText("Result", { exact: true }), { target: { value: "stopped" } });
+    fireEvent.click(screen.getByRole("button", { name: "Save & play again" }));
+    await screen.findByText(/Saved · 501/);
+    expect(mocks.write.mock.calls[0][0].payload.status).toBe("stopped");
+    expect(screen.getByLabelText("Result", { exact: true })).toHaveValue("completed");
+    await waitFor(() => expect(screen.getByLabelText("Game average")).toBeEnabled());
+    fireEvent.change(screen.getByLabelText("Game average"), { target: { value: "60" } });
+    fireEvent.click(screen.getByRole("button", { name: "Save game" }));
+    await waitFor(() => expect(mocks.write).toHaveBeenCalledTimes(2));
+    expect(mocks.write.mock.calls[1][0].payload.status).toBe("completed");
+    expect(mocks.write.mock.calls[1][0].payload.include_in_stats).toBe(true);
+    expect(mocks.write.mock.calls[1][0].payload.id).not.toBe(mocks.write.mock.calls[0][0].payload.id);
+  });
   it("keeps visibility unconfirmed after an unknown write and failed reconciliation", async () => {
     mocks.visibility
       .mockResolvedValueOnce(false)

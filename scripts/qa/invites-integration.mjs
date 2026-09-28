@@ -68,14 +68,17 @@ unwrap(await admin.auth.admin.updateUserById(provisional.id, { user_metadata: { 
 assert.equal((await api({ action: 'list' }, provisional.token)).status, 403);
 checked('unfinished account and forged metadata cannot bypass RLS');
 
-const match = unwrap(await sender.db.from('matches').insert({ created_by: sender.id, game_type: '501' }).select('id')).at(0);
-unwrap(await sender.db.from('match_players').insert({ match_id: match.id, player_id: sender.id, score: 50 }));
+const matchPayload = { played_at: new Date().toISOString(), game_type: '501', board_type: 'Steel Tip',
+  players: [{ player_id: sender.id, score: 50, is_winner: true }, { player_id: other.id, score: 40, is_winner: false }] };
+const match = unwrap(await sender.db.rpc('rdd_save_match', { p_operation_id: randomUUID(), p_payload: matchPayload }));
+assert.equal(match.status, 'saved');
 assert.equal(unwrap(await provisional.db.from('matches').select('id')).length, 0);
 assert.equal(unwrap(await provisional.db.from('match_players').select('id')).length, 0);
 assert.equal(unwrap(await provisional.db.from('stats_match_facts').select('match_id')).length, 0);
-assert.equal(unwrap(await other.db.from('matches').update({ notes: 'forged' }).eq('id',match.id).select()).length, 0);
+assert.equal((await other.db.rpc('rdd_save_match', { p_operation_id: randomUUID(),
+  p_payload: { ...matchPayload, match_id: match.match_id, expected_revision: match.revision, notes: 'forged' } })).error?.code, '42501');
 assert.ok((await other.db.from('matches').insert({ created_by: sender.id })).error);
-assert.ok(unwrap(await sender.db.from('stats_match_facts').select('match_id')).some(row=>row.match_id===match.id));
+assert.ok(unwrap(await sender.db.from('stats_match_facts').select('match_id')).some(row=>row.match_id===match.match_id));
 checked('league admission gates matches, participants and statistics while retaining owner writes');
 
 const invite = await invitation(sender, 'join');

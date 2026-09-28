@@ -7,8 +7,9 @@ records the original proposal; the handoff owns current implementation status.
 Prepared: 2026-09-27.
 Branch: `invite-only-registration`.
 Worktree: `F:\RDD\Rochester-Darting-Degens-invite-only`.
-Base: local `main` at `690a01b` (also the locally recorded `origin/main`;
-no remote refresh performed).
+Original proposal base: local `main` at `690a01b`. The implementation was
+subsequently rebased onto refreshed `origin/league-night-mode` at `0d40f83`
+on 2026-09-28; see the handoff and rebase verification for the combined scope.
 
 ## Goal and difficulty
 

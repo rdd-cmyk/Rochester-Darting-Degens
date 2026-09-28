@@ -64,12 +64,26 @@ async function main() {
   } else if (command === 'setup') {
     inviteStatus();
     const state = inviteSql("select to_regclass('public.profiles') is not null, to_regclass('public.seasons') is not null, to_regclass('public.league_members') is not null;");
-    if (state === 't|t|t') { console.log('Invitation schema already exists; no fixtures replayed.'); return; }
-    if (state !== 'f|f|f') throw new Error('Partial invitation schema; inspect it before replay.');
-    for (const fixture of ['existing_schema_baseline.sql', 'advanced_statistics_foundation.sql', 'invite_only_registration.sql']) {
-      inviteSql(readFileSync(path.join(root, 'supabase/tests/fixtures', fixture), 'utf8'));
+    if (state !== 't|t|t') {
+      if (state !== 'f|f|f') throw new Error('Partial invitation schema; inspect it before replay.');
+      for (const fixture of ['existing_schema_baseline.sql', 'advanced_statistics_foundation.sql', 'invite_only_registration.sql']) {
+        inviteSql(readFileSync(path.join(root, 'supabase/tests/fixtures', fixture), 'utf8'));
+      }
     }
-    console.log('Invitation fixtures applied to isolated local database. No accounts grandfathered automatically.');
+    // Older invitation-only stacks gain the rebased parent's fixtures once.
+    // Existing parent tables and invitation records are never replayed.
+    for (const [table, fixture] of [
+      ['public.league_nights', 'supabase/pending/league_night.sql'],
+      ['rdd_private.planning_polls', 'supabase/tests/fixtures/league_planning.sql'],
+      ['public.board_members', 'supabase/tests/fixtures/league_board.sql'],
+    ]) {
+      if (inviteSql(`select to_regclass('${table}') is null;`) === 't') inviteSql(readFileSync(path.join(root, fixture), 'utf8'));
+    }
+    inviteSql(readFileSync(path.join(root, 'supabase/pending/league_night_enforce.sql'), 'utf8'));
+    if (inviteSql("select to_regprocedure('invite_private.require_admission()') is null;") === 't') {
+      inviteSql(readFileSync(path.join(root, 'supabase/tests/fixtures/invite_parent_admission.sql'), 'utf8'));
+    }
+    console.log('Combined invitation/League Night/planning/Board fixtures ready in isolated local database. No accounts grandfathered automatically.');
   } else {
     const status = inviteStatus();
     const messages = [];

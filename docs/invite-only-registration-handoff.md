@@ -1,9 +1,11 @@
 # Invite-only registration handoff
 
-Implemented and locally verified: 2026-09-27.
+Implemented and locally verified: 2026-09-27; rebased and verified: 2026-09-28.
 Branch: `invite-only-registration`.
 Worktree: `F:\RDD\Rochester-Darting-Degens-invite-only`.
-Base: `690a01b`. Work remains local and uncommitted; nothing pushed or deployed.
+Base: `origin/league-night-mode` at `0d40f83ad68eef9ecda6638d1b84d95cb90c0429`.
+This branch targets a PR into `league-night-mode`; hosted rollout is separate.
+See [rebase verification](invite-only-registration-rebase-2026-09-28.md).
 
 ## Delivered behavior
 
@@ -31,8 +33,9 @@ Base: `690a01b`. Work remains local and uncommitted; nothing pushed or deployed.
   telemetry filters also discard their events. Join links use fragments,
   restrictive referrer headers, and explicit POSTs, so scanners cannot accept them.
 
-League admission does not imply organizer status or Board approval. The separate
-Board branch has not been merged here; its policy must be preserved when integrating.
+League admission does not imply organizer status or Board approval. The rebased
+parent includes League Night, planning and Board. Their direct reads and elevated
+RPCs require league admission; Board and planning organizer rights remain separate.
 
 ## Files and boundaries
 
@@ -42,9 +45,11 @@ Board branch has not been merged here; its policy must be preserved when integra
 | Server API and mail adapter | `app/api/invites/route.ts`, `lib/invites/server.ts` |
 | Validation and browser requests | `lib/invites/shared.ts`, `lib/invites/client.ts` |
 | Deferred database changes | `supabase/tests/fixtures/invite_only_registration.sql` |
+| Parent feature admission | `supabase/tests/fixtures/invite_parent_admission.sql` |
 | Isolated local stack/preview | `scripts/invites-local.mjs` |
 | Full Auth/RLS/failure verification | `scripts/qa/invites-integration.mjs` |
 | Review regressions | `scripts/qa/invites-review.mjs`, `app/invites/page.test.tsx`, `app/join/page.test.tsx` |
+| Combined feature regressions | `scripts/qa/invites-parent.mjs` |
 | Browser acceptance | `scripts/qa/invites.spec.mjs`, `scripts/qa/invites.config.mjs` |
 
 The only added runtime package is `server-only@0.0.1`, which guards privileged
@@ -80,6 +85,11 @@ With the preview running, run `npm run test:invites:local`. For browser checks,
 set `RDD_PLAYWRIGHT_ROOT` to an installed Playwright directory and run that
 package's `cli.js test -c scripts/qa/invites.config.mjs`. This reuses the existing
 QA runtime rather than changing the application lockfile for browser tooling.
+Run `node scripts/qa/invites-review.mjs` for the interrupted-account/resend
+regressions and `node scripts/qa/invites-parent.mjs` for combined admission,
+ownership, replay and organizer behavior. `setup` adds missing parent fixtures
+to older isolated invitation stacks, then installs admission wrappers once;
+existing invitations and parent tables are not replayed.
 
 For local function development only, `node scripts/invites-local.mjs refresh-functions`
 refreshes the known service/cleanup function definitions without replaying tables.
@@ -95,12 +105,13 @@ All evidence below is local to this worktree; hosted behavior is not verified.
 | Check | Result |
 | --- | --- |
 | Locked trusted install | Passed; audit reported zero vulnerabilities at this run |
-| Application tests | 210 passed across 25 files after clean install and review fixes |
-| Coverage gate | Passed: 99.28% statements, 93.25% branches, 100% functions/lines for the repository's existing stats/match-state coverage scope |
+| Application tests | 344 passed across 42 files after clean install and rebase fixes |
+| Coverage gate | Passed: 97.44% statements, 91.62% branches, 98.69% functions, 98.13% lines for the inherited stats/League Night/planning coverage scope |
 | Lint / TypeScript | Passed |
 | Production build | Passed, including `/api/invites`, `/invites`, `/join`; build used unset-hosted-env local defaults, not hosted credentials |
 | Local integration | 15 groups passed against isolated Supabase |
 | Review regressions | Two fault/race cases passed against isolated Supabase; focused client tests passed |
+| Combined feature admission | Four groups passed against the combined isolated schema |
 | Browser acceptance | Three scenarios passed, including a 390px dark-mode recipient screen |
 | Visual review | Desktop sender/history and mobile join screenshots inspected; no horizontal overflow |
 
@@ -167,6 +178,11 @@ Follow [the existing release gate](supabase-github-integration-release-gate.md):
 1. Refresh hosted schema, RLS, enabled Auth providers, migration history and backup.
    Rehearse the reviewed additive fixture against a representative database. The
    baseline fixture must never be deployed over existing hosted tables.
+   After the reviewed League Night/planning/Board and invitation SQL, apply
+   `invite_parent_admission.sql` to close elevated RPC bypasses. It moves the
+   parent implementations into the private schema and keeps the public API
+   signatures behind admission wrappers. Subsequent parent RPC updates must
+   preserve these wrappers and their restricted implementation grants.
 2. Establish the legitimate existing-account cutoff/list and backfill those IDs
    into `league_members` with `status='active'` and null `source_invite_id`. The
    fixture deliberately admits no existing users automatically. Rehearse this

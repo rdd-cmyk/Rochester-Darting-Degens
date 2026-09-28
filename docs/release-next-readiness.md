@@ -1,0 +1,429 @@
+# Next release: readiness and rollout plan
+
+Date: 2026-09-28. Status: W0 complete; W1-W8 implementation and release gates open.
+
+## Candidate and scope
+
+The integration branch is now `release/next`, renamed from `league-night-mode`
+on GitHub and locally. Both refs were verified at
+`42df060fdf7d26a63e00d00ccf0152a37f4abccb`. The existing worktree remains
+`F:\RDD\Rochester-Darting-Degens-league-night-mode`. `main` remains the default
+branch. No open PRs existed at rename time. Historical documents retain their
+original branch names and dated results.
+
+This candidate includes League Night Mode, planning (PR #70), the Board and its
+recovery fixes (#71/#72), invite-only registration (#73), and Solo Play plus
+game-mode/team-rating prerequisites (#74). Review the complete diff from `main`,
+not just the latest feature PR. Omni imports are outside this release.
+
+Scope decision confirmed by the owner on 2026-09-28: prepare the deferred
+statistics SQL as useful future infrastructure during this release's DB work.
+Do not add new statistics to the site. Include the reviewed seasons storage,
+optional detailed-stat columns, metadata, constraints and query view; keep the
+current dashboard, scoring entry and calculations unchanged unless correcting a
+verified regression in the existing release features. There is no season setup
+UI, automatic season assignment/rating reset, new raw-stat entry, enhanced-stat
+dashboard, import pipeline or turn-by-turn scoring in this release. Existing
+matches retain null season/raw-stat values where no evidence exists.
+
+Writing this plan does not execute its packages. Source corrections, test harness
+work, protected exports and release actions below are upcoming work, with their
+completion recorded against actual evidence rather than this scope decision.
+
+This document coordinates the combined release. The existing
+[Supabase release gate](supabase-github-integration-release-gate.md) and
+[League Night rollout](league-night-database-rollout.md) remain constraints.
+The earlier application-only release instructions do not make this combined
+application safe to deploy against the old database.
+
+Completed in this planning pass: fetched remote state, fast-forwarded the clean
+local checkout, inspected source/dependencies and handoffs, renamed the branch,
+and confirmed no tracked SQL under `supabase/migrations/`. No application/DB test
+suite, hosted audit, export, restore, migration, Auth change or deployment was run.
+The rename triggered [CI run 36480187732](https://github.com/rdd-cmyk/Rochester-Darting-Degens/actions/runs/36480187732),
+which passed for `42df060`. This is application CI evidence, not DB/browser,
+backup/restore or hosted acceptance. W0 now records the confirmed scope and
+initial source identities in its [completion evidence](release/w0-scope-and-candidate.md)
+and [candidate snapshot](release/w0-candidate.json). W0 documentation is local;
+publication and later-package work are separate actions.
+
+## Execution sequence and completion records
+
+Work through these packages in order. W1 inspection and W2 source preparation
+can overlap; finish the synthetic rehearsal before copying real data. W6
+prepares the hosted configuration and performs acceptance on an explicitly
+approved isolated target; actual production changes belong to W8. Do not hold
+up independent local preparation while a hosted decision remains outstanding.
+
+| Package | Work and deliverable | Exit gate | Status |
+| --- | --- | --- | --- |
+| W0: Scope and candidate | This plan, feature/SQL inventory and an initial candidate SHA. Keep subsequent fixes scoped on `release/next`. | Future stats storage included; no new stats UI. | Passed 2026-09-28; [completion evidence](release/w0-scope-and-candidate.md) and [source snapshot](release/w0-candidate.json). |
+| W1: Refresh environment facts | Read-only hosted/schema/Auth/integration assessment and differences from checked-in assumptions; target map and migration-history proposal. See section 1. | Every intended app/DB target is identified; drift, automatic deployment paths and baseline adoption are understood. | Pending refresh. |
+| W2: Finish statistics foundation | Update SQL, permissions, view and tests as specified in section 1A; document final defaults and dependency order. | Independent source review resolved; focused local checks pass; no new feature surface. | Planned. |
+| W3: Combined synthetic release | Dedicated isolated stack, repeatable full-chain upgrade, preservation checks, all application/DB/API/browser gates, and verified fixes. See sections 2 and 4. | Final combined candidate passes; legacy/new-client behavior and failure recovery are demonstrated. | Prior feature evidence only; release pass pending. |
+| W4: Backup and restore proof | Concrete export/handling proposal, owner decision, protected backup manifest, isolated restore and integrity/timing report. See section 3. | Complete recoverable backup demonstrated within agreed recovery limits. | Pending. |
+| W5: Production-shaped dress rehearsal | Run the exact release manifest and account-transition process on the protected restored copy; exercise rollback and compare original records. See section 4. | SQL hashes/order, preservation, migration-history adoption, interruption recovery and compatible rollback all pass. | Pending. |
+| W6: Operational and owner acceptance | Verified member/organizer lists, configuration plan, approved isolated email/Auth acceptance, cleanup ownership, phone walkthrough and maintenance procedure. See section 5. | Required real configuration/account decisions are settled; delivery, recovery and owner acceptance have evidence. | Pending. |
+| W7: Freeze and go/no-go | Release packet with exact app SHA/artifact, SQL hashes, evidence, final dry run, rollback and operator assignments. | Owner authorizes the concrete production release after reviewing the packet. | Pending; no deployment authorization. |
+| W8: Cutover and observation | Fresh backup, ordered production steps, controlled acceptance, activation, monitoring and first-night check. See section 6. | Accepted live behavior, preserved records, working recovery and completed watch period. | Not started. |
+
+The implementation operator prepares changes and evidence; an independent
+reviewer checks the combined security/migration/recovery changes; the owner
+decides legitimate membership/organizers, data handling, downtime and release
+acceptance. Assign the actual backup, deployment and monitoring operators before
+W7; do not assume a named person has accepted operational responsibility.
+
+For each package record: status (`planned`, `running`, `passed`, `blocked` or
+`deferred`), source SHA/SQL hashes, target, date, checks, results, unresolved items
+and evidence location. A required gate marked deferred does not permit release.
+Store sanitized summaries under `docs/release/`; keep credentials, membership
+lists, exports and detailed production-data evidence in approved protected storage.
+
+Keep local preparation commits separate from any later migration promotion or
+activation changes. Before an authorized push, inspect every outgoing commit;
+before merge, inspect the full release diff and effective deployment triggers.
+Re-run affected checks after fixes and the final required application checks
+on the frozen candidate. No unrelated dependency modernization is bundled here.
+
+## Database inventory and dependency order
+
+These are candidate source inputs, **not approved deployment scripts**. Build a
+reviewed release manifest with ordered steps, transaction boundaries, SHA-256
+hashes, preconditions, postconditions and recovery actions before execution.
+
+| Source | Purpose and release dependency |
+| --- | --- |
+| `supabase/tests/fixtures/advanced_statistics_foundation.sql` | Include and modernize the future statistics foundation per the owner's scope decision. Invitation SQL requires `public.seasons`. Install required storage before invitations; finalize a game-aware view only after `game_config` exists. Remove the temporary public-season access assumption. Exact SQL and hosted application remain review-gated. |
+| `supabase/pending/league_night.sql` | Nights, attendance, revisions and atomic match save/replay; precedes planning and game modes. |
+| `supabase/tests/fixtures/league_planning.sql` | Polls, votes, schedules, RSVPs and private organizer authority; requires League Night. Current source includes `published_at`. |
+| `supabase/tests/fixtures/league_board.sql` | Board content, approval, moderation and RPCs; precedes parent admission wrappers. |
+| `supabase/tests/fixtures/invite_only_registration.sql` | Invitation service, `league_members` and restrictive base-table policies; requires the reviewed statistics dependency. Does not admit existing users automatically. |
+| `supabase/tests/fixtures/invite_parent_admission.sql` | Admission wrappers around existing League Night/planning/Board RPCs and additional restrictive policies. Requires those parent functions and invitation schema. |
+| `supabase/tests/fixtures/game_modes.sql` | `game_config`, presets, audited corrections and replacement save implementation. Preserves an installed invitation wrapper in one transaction; test the private implementation grants and public wrapper after installation. New-mode writes default to disabled. |
+| `supabase/tests/fixtures/solo_play.sql` | Private solo sessions/games/preferences, operation records, consented projections and membership checks. Requires the combined parent/game-mode contract. |
+| `supabase/pending/league_night_enforce.sql` | Revokes direct split match/participant writes. Separate cutover step after the compatible application works and legacy writes are drained. |
+
+Exclude `existing_schema_baseline.sql` and synthetic seeds from production: the
+existing tables are already present. Exclude `game_modes_local_enable.sql`: it
+is a local demo switch, not hosted activation approval. The planning visibility
+upgrade is for older planning installations; use it only if refreshed schema
+evidence identifies that upgrade path. Do not blindly deploy every fixture.
+
+The existing Solo rehearsal installs the parent chain, but snapshots old rows
+only immediately before Solo SQL and primarily tests Solo/admission. It also
+installs enforcement earlier than a live rollout can. It is useful prior evidence,
+not proof of the complete production upgrade order or preservation across it.
+
+## 1. Freeze and inspect the combined candidate
+
+- [ ] Record release SHA, diff from refreshed `origin/main`, all included commits,
+  lockfile/runtime versions, and any uncommitted changes. Repeat affected gates
+  whenever the candidate changes; do not silently carry results to a new SHA.
+- [ ] Check CI for this exact SHA. Existing CI runs application tests, coverage,
+  lint, TypeScript and build; it does not run the full database/browser release matrix.
+- [ ] Refresh the hosted schema, RLS, grants/default grants, function signatures,
+  triggers, extensions, Postgres version and migration history read-only. Compare
+  with the complete SQL inventory, including pre-existing functions and policies.
+- [ ] Refresh GitHub/Supabase/Vercel integration settings and effective production,
+  preview and development targets. A preview must be shown to use an isolated DB;
+  do not infer this from a green Vercel build or Supabase connection.
+- [ ] Confirm no automatic migration/config deployment can race the reviewed
+  process. Keep SQL outside `supabase/migrations/` until deployment mechanism and
+  history adoption are agreed. Include `supabase/config.toml` Auth changes in the
+  review; committing local config does not prove hosted Auth settings changed.
+
+The [2026-09-27 hosted audit](league-night-hosted-audit-2026-09-27.md) reported an
+untracked migration baseline, no available scheduled backup/PITR, disabled
+automatic previews, and production integration targeting `main`. Those are dated
+findings, not reverified facts for this release. Resolve the history strategy
+explicitly; never replay the baseline or repair migration history just to silence
+a warning. A deployment dry run must list only the approved changes.
+
+## 1A. Finish future statistics storage without adding site features
+
+The older foundation and its 25 database/7 preservation checks were written
+before the combined admission, team-game and RPC-only saving contracts. They
+need integration work; their historical passing result is not a release pass.
+Use the existing fixture as the starting point, keeping deployment SQL deferred.
+
+### Storage and historical meaning
+
+- [ ] Retain optional season linkage, detail/source metadata, best-of format,
+  updated timestamp, raw scoring denominators/totals, checkout/First 9 counts,
+  achievements, throw order and legs fields after reviewing their definitions.
+  Keep unknown measurements null and do not populate old rows from averages.
+- [ ] Record defaults and backfill behavior field by field. In particular, verify
+  that `entry_source='manual'` is justified for the historical records before
+  assigning it; otherwise define an explicit unknown/legacy representation and
+  update the constraint/tests. Do not fabricate a historical modification time
+  from migration time; document or revise `updated_at` initialization semantics.
+- [ ] Keep seasons empty and old `season_id` values null unless a separate,
+  evidence-backed assignment is authorized. No initial season names, dates,
+  historical reassignment or rating-reset decision is needed for storage alone.
+- [ ] Preserve the existing league save API's scope: it does not accept the
+  future enhanced fields. Demonstrate that current valid saves, retries and
+  corrections still work and retained participant rows preserve unrelated values.
+  Document limits when a participant is removed or rules change; do not promise
+  future enhanced-stat editing that the current API does not implement.
+
+### Permissions and view compatibility
+
+- [ ] Replace the old public-season access assumption with the final members-only
+  contract, including the period before invitation policies are installed.
+  Ordinary clients must not gain season administration rights. Choose explicit
+  grants, safe default privileges and a tested installation order; fail closed
+  until the admission dependency is ready.
+- [ ] Keep `stats_match_facts` under caller permissions and test it with populated
+  data for anonymous, provisional, active and revoked identities. Minimize grants
+  and profile fields; the view must not bypass base-table admission/privacy rules.
+- [ ] Include game configuration needed to distinguish teams, presets, practice,
+  handicap and completion status before the view becomes usable for future
+  calculations. Keep a documented row meaning (one participant record) and
+  avoid duplicating team totals as individual evidence. Do not connect the site
+  to this view or change its calculation definitions in this package.
+- [ ] Split storage preparation from final view creation if needed: `game_config`
+  is created by the later game-mode SQL. Record this ordering in the release
+  manifest and cover both fresh install and upgrade. Do not create a circular
+  dependency between foundation, invitations and game modes.
+
+### Validation and acceptance
+
+- [ ] Review all ranges and relationships against the supported game/rule
+  definitions, including checkout limits and individual-versus-team attribution.
+  Retain only constraints that express an agreed storage contract; do not infer
+  scoring rules from an unspecified historical preset.
+- [ ] Inspect the `NOT VALID` constraints deliberately: profile existing values,
+  define treatment of any conflicts, and rehearse validation/locking. Do not
+  treat migration success as proof that historical rows have been validated.
+- [ ] Check the timestamp trigger with match/participant revision triggers and
+  the atomic save/correction path. Verify the final replay receipt revision and
+  unchanged pre-existing data through the complete upgrade.
+- [ ] Retain stage-specific tests for the older foundation where useful, but add
+  final-state tests. Public-season reads and direct match-table updates must no
+  longer be required to pass after membership/RPC-only enforcement is installed.
+- [ ] Seed future fields only with fictional values in tests. Verify null/default
+  behavior, invalid values, view context, client write denial, owner/nonowner
+  permissions, preservation and future-field isolation from current statistics.
+- [ ] Complete independent review, resolve verified findings, run focused SQL
+  checks, and include the result in W3/W5 whole-release rehearsals.
+
+W2 is complete when this future storage is coherent and tested under the new
+release's rules. It does not require any richer league-stat entry, new charts,
+season-management page, import integration or change to existing Solo metrics.
+
+## 2. Run the complete application and security checks locally
+
+Use the checked-in runtime and trusted installation workflow:
+
+```powershell
+npm run ci:install
+npm test
+npm run test:coverage
+npm run lint
+npm run typecheck
+```
+
+Build and serve with verified isolated Supabase settings. Existing
+`npm run solo:local -- build` provides a combined-parent starting point, but its
+stack identity must be inspected before use; do not reuse/reset another active
+feature's stack. A release rehearsal needs its own project ID, workdir, ports,
+container/database and output directory. A worktree alone does not isolate it.
+
+- [ ] Review the merged authorization and recovery code independently, reproduce
+  findings, fix confirmed defects and rerun affected gates.
+- [ ] Build a combined test harness using existing feature tests, with deliberate
+  fixture membership/organizer setup. Earlier tests assuming every authenticated
+  user is admitted need adaptation; do not weaken policies to make them pass.
+- [ ] Test through actual Auth/PostgREST/API clients as well as SQL. Test anonymous,
+  uninvited/provisional, active, revoked and cross-owner identities; separately
+  test Board approval, Board organizer and planning organizer authority.
+- [ ] Cover every public RPC, table/view and private implementation grant after
+  the entire SQL chain. Replacing `rdd_save_match` must not bypass admission.
+  Check denial after revocation even for prior valid replay IDs and cached pages.
+- [ ] Verify credential separation, invite origin checks, error/log redaction and
+  no service-role/mail/invite secrets in browser bundles. Confirm local preview
+  bypasses are disabled in the production configuration.
+
+Existing scripts to reuse after target/fixture review: `rehearse-league-night.mjs`,
+`rehearse-planning.mjs`, `rehearse-board.mjs`, `rehearse-game-modes.mjs`,
+`rehearse-solo.mjs`, the SQL suites under `supabase/tests`, and feature API/browser
+scripts under `scripts/qa`. Some scripts refresh their feature demo database after
+a successful rehearsal; do not run them against an arbitrary restored target.
+
+## 3. Establish and prove the backup
+
+Before exporting real data, agree the exact source/restore target, authorized
+operator, protected destination outside Git, retention, access and deletion rules.
+
+- [ ] Inventory schema/data/roles/grants, Auth identities and dependencies,
+  sequences, private schemas, operation logs and migration history. Record Auth
+  provider/redirect/SMTP settings, hosting configuration and recovery procedures
+  for secrets separately. Do not assume a default CLI dump covers everything.
+- [ ] Check Storage usage. Database backups contain Storage metadata, not object
+  bytes; back up actual objects separately when relevant. Record unused surfaces
+  explicitly rather than silently omitting them.
+- [ ] Produce a consistent protected backup, record timestamp, source identity,
+  tool versions, checksums and a contents manifest. Retain a separate secure copy.
+  Verify the backup is readable by the recovery operator; an export exit code alone
+  is insufficient.
+- [ ] Restore into a genuinely isolated compatible target with outbound email,
+  webhooks and other integrations disabled or redirected. Never expose restored
+  real identities/data in the synthetic demo or ordinary preview.
+- [ ] Prove restored schema, relationships, representative complete rows and
+  usable Auth/profile relationships. Compare counts plus stable-key row digests
+  and relevant aggregates. Keep detailed private evidence out of tracked logs.
+- [ ] Measure restore time and agree acceptable downtime/data-loss limits.
+  Rehearse recovery access and document exclusions. Obtain a fresh final backup
+  during the release write pause; an earlier rehearsal snapshot will age.
+
+## 4. Rehearse the exact upgrade and failure recovery
+
+- [ ] Start from the refreshed production-shaped schema, not a database already
+  upgraded with every feature. First use synthetic data; then repeat the approved
+  upgrade on the protected restored copy when its handling is authorized.
+- [ ] Snapshot existing rows before **any** release SQL. Apply the proposed exact
+  manifest/order, membership backfill and permissions. Compare all original field
+  values and identities after the full chain, allowing only documented additive
+  defaults/changes. Verify foreign keys, duplicates, orphan rows and chronology.
+- [ ] Test old-client behavior at each staged boundary, schema-cache refresh,
+  lock duration/timeouts, interrupted SQL, partial multi-file completion and
+  repeat attempts. Many fixtures use one-time CREATE statements; do not assume
+  blindly rerunning a failed batch is safe.
+- [ ] Exercise save/edit/rematch, concurrent revisions, duplicate submissions,
+  dropped responses after commit and exact retry. Preserve pending operation IDs
+  and payloads; a timeout is not proof that nothing was saved.
+- [ ] Verify all feature workflows on one production build and combined database:
+
+| Area | Required acceptance |
+| --- | --- |
+| Existing league records | Login/recovery, profiles, history, filters, legacy null game rules, chronology and statistics remain usable. |
+| Future statistics storage | Optional fields/defaults preserve historical meaning; member-only seasons and caller-permission view are enforced; game/team context survives; current UI/calculations and save scope remain unchanged. |
+| League Night | Shared attendance, creator-only edits, atomic saves/recovery, rematches, recap awards and share-card export. |
+| Planning | Organizer-only actions, draft privacy, two-suggestion limit under concurrency, vote privacy, closure, rescheduling/reconfirmation, cancellations and next-night rollover. RSVP remains distinct from attendance. |
+| Board | Separate request/approval, feed/thread paging, post/reply/reaction recovery, retained drafts, moderation/reporting, revocation and temporary read failures. |
+| Invitations | Verified inbox ownership, forwarded-link denial, expiry/reissue/revoke, rate limits, duplicate requests, uncertain provisioning, corrected passwords, active-member admission and no public signup path. |
+| Games/teams | All supported modes/presets, doubles/triples, corrections/audit privacy, winners/ties/abandonment, disabled/enabled write gate, compatible score cohorts and team ratings. |
+| Solo | Owner privacy, admission, draft/retry/edit/delete/undo, profile consent/revocation and night sharing without notes/location leakage. No competitive wins, ratings, awards or attendance from solo games. |
+
+- [ ] Include multiple devices/accounts, sign-out/account-switch cleanup, stale
+  tabs, session refresh, network loss, 320/390/768/1440 layouts, dark mode,
+  keyboard/error focus, and browser/hydration errors. Complete owner phone review.
+- [ ] Rehearse application rollback with the upgraded DB and data created after
+  upgrade. Keep a version that understands RPC saving, admission, teams and Solo.
+  The current pre-release `main` is not automatically a safe rollback target.
+- [ ] Rehearse failed rollout recovery and a separate disaster restore. Determine
+  how post-backup writes would be preserved/reconciled before any restore; never
+  silently overwrite fresh league data with an older snapshot.
+
+## 5. Prepare hosted cutover and operational ownership
+
+- [ ] Approve the legitimate existing-member UUID list and cutoff. Reconcile
+  accounts created between initial inventory and cutover. Backfill active
+  `league_members` with null `source_invite_id`; do not auto-admit every Auth user.
+  Restrictive policies immediately deny members not yet admitted, so rehearse
+  the backfill/policy boundary under maintenance or a reviewed atomic package.
+- [ ] Assign planning organizers and Board organizers from verified IDs through
+  trusted administration. League membership never implies Board approval or
+  either organizer role; do not infer authority from editable profile metadata.
+- [ ] Prepare server-only invitation configuration described in the
+  [handoff](invite-only-registration-handoff.md): enable flag, exact origin,
+  matching service-role key, stable invite secret, Resend key and verified sender.
+  Arrange controlled email-delivery acceptance separately from provider submission.
+- [ ] Prepare hosted public-signup disablement while retaining email login,
+  review alternate providers, recovery URLs and Auth SMTP. Test existing login
+  and account recovery across this transition.
+- [ ] Arrange the approved daily server-only `invite_cleanup()` job, its failure
+  handling and retention policy. No cleanup schedule is present merely because
+  the function exists. Preserve required replay/history records.
+- [ ] Choose deployment mechanism and final migration-history adoption procedure;
+  inspect the dry run. Specify owner/operator, maintenance window, stop criteria,
+  rollback artifact, final backup, and monitored acceptance checks.
+- [ ] Rehearse an enforceable write pause across old browser tabs, API clients
+  and signup/provisioning. A banner alone is not a write barrier. Document how
+  only controlled operator acceptance writes proceed during the pause, and prove
+  that normal writers cannot race backup, admission backfill or enforcement.
+- [ ] Prepare an owner walkthrough on the final isolated build: existing login
+  and history; plan/RSVP to attendance; save/rematch and team recap; Board
+  approval/post/recovery; invitation join/recovery; private Solo and sharing.
+  Record phone/browser used and any deferred nonblocking polish separately.
+- [ ] Define observable stop conditions: unexplained record differences,
+  privilege bypass, legitimate-member lockout, broken login/recovery, duplicate
+  or partial saves, missing expected RPCs, or failed integrity checks stop the
+  rollout. Set acceptable lock/error limits and watch duration from rehearsal
+  evidence before W7, with a named operator to act on failures.
+
+## 6. Explicit go/no-go, then a separately authorized deployment
+
+The review packet must contain the exact app SHA/artifact, SQL hashes and order,
+target identities, fresh hosted diff, test/browser evidence, successful restore
+receipt and timing, approved admission list, configuration checklist and rehearsed
+rollback. Any missing item remains an open gate. This plan is not approval to
+merge to `main`, export private data or modify hosted DB/Auth/configuration.
+
+Proposed cutover, to finalize after rehearsal:
+
+1. Enter a coordinated write/admission maintenance window, drain in-flight old
+   split saves and reconcile incomplete records. Confirm target and fresh backup.
+   A DB lock alone cannot drain a save split across two HTTP requests.
+2. Apply the approved dependency/schema chain and membership/organizer setup,
+   preserving tested policy boundaries. Keep invitations and new game-mode writes
+   disabled. Coordinate Auth signup closure with the approved account cutoff.
+3. Deploy and verify the compatible application before direct-write enforcement
+   and feature activation. Validate actual hosted configuration and controlled
+   test identities; preserve production records during acceptance.
+4. Apply the separately staged RPC-only enforcement; verify grants, old-tab
+   behavior, retries and persistence. Enable game-mode writes and invitations
+   only after their reader, access and delivery acceptance succeeds. Do not run
+   the local demo enable script on hosting.
+5. Resume activity only after acceptance; require old tabs to refresh. Observe
+   errors, failed saves, access denials, invitation delivery/cleanup and data
+   integrity during the agreed watch window and first real league night.
+
+Sequence GitHub merge and Vercel publication explicitly: if merging to `main`
+automatically deploys the app, the merge belongs at the compatible-app step,
+after schema prerequisites. If Supabase also deploys from that event, first
+choose and rehearse a mechanism that prevents uncontrolled simultaneous steps.
+Use one deployment authority; do not apply the same SQL manually and then let
+the integration replay it. A Git push or merge must not become an accidental
+substitute for the staged DB/app/activation process.
+
+If a gate fails, remain in maintenance or disable the affected feature, preserve
+data/operation logs and use the tested compatible rollback. Do not automatically
+reopen public signup, strip restrictive RLS, drop new tables or revert to split
+saving. Prefer a reviewed forward repair when it preserves new records safely.
+
+### Release completion
+
+- [ ] Record deployed app identity, applied SQL/history entries, configured
+  feature switches and sanitized acceptance results; refresh the readiness table.
+- [ ] Confirm new legitimate members and existing members can use their intended
+  features; verify old records plus controlled new create/edit/retry results.
+- [ ] Complete the agreed watch period and first real league-night review, with
+  no unresolved release-blocking access, save, privacy or integrity issue.
+- [ ] Confirm backup cadence, invitation cleanup and failure alerts have owners.
+  Retain the compatible rollback artifact and protected pre-release backup for
+  the agreed period; clean protected rehearsal copies only under that policy.
+- [ ] Record remaining future-stat UI, seasons management and imports as later
+  work. Do not count them as unfinished acceptance for this storage-only scope.
+
+## Immediate next work
+
+Begin W1 and W2: refresh hosted metadata read-only and modernize the statistics
+foundation under the confirmed storage-only scope. Build the dedicated combined
+synthetic harness in W3 and take preservation snapshots before any release SQL.
+Prepare the concrete W4 backup/restore proposal while local testing proceeds.
+Finish the evidence and exact target details before requesting a data-export or
+production-release decision; no decision is required merely to read this plan.
+
+## References
+
+- [Solo combined-parent verification](solo-play-rebase-2026-09-28.md)
+- [Game-mode activation and rollback](game-modes-verification-2026-09-27.md)
+- [Planning handoff](league-night-planning-handoff.md)
+- [Board handoff](league-message-board-handoff.md)
+- [Supabase backups](https://supabase.com/docs/guides/platform/backups), checked
+  2026-09-28: backup coverage, Free-plan exports and Storage-object exclusion.
+- [Supabase GitHub integration](https://supabase.com/docs/guides/deployment/branching/github-integration),
+  checked 2026-09-28: inspect automatic production migration/config deployment.
+- [GitHub branch rename](https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/managing-branches-in-your-repository/renaming-a-branch),
+  checked 2026-09-28: branch rename and local tracking behavior.

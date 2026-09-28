@@ -1,0 +1,485 @@
+{
+  "package": "W0",
+  "status": "passed",
+  "recorded_at_utc": "2026-09-28T21:34:21.373Z",
+  "evidence_scope": "Read-only Git/source verification plus documentation; not hosted database or release acceptance.",
+  "repository": "https://github.com/rdd-cmyk/Rochester-Darting-Degens",
+  "branch": "release/next",
+  "upstream": "origin/release/next",
+  "source_sha": "42df060fdf7d26a63e00d00ccf0152a37f4abccb",
+  "remote_release_sha": "42df060fdf7d26a63e00d00ccf0152a37f4abccb",
+  "production_base_sha": "690a01b84d96c55b8ec455a6e298c17ec6093b50",
+  "merge_base_sha": "690a01b84d96c55b8ec455a6e298c17ec6093b50",
+  "initial_ahead_behind": [
+    0,
+    0
+  ],
+  "included_scope": [
+    "League Night Mode",
+    "League Night planning",
+    "Message Board and recovery fixes",
+    "Invite-only registration",
+    "Game modes and team games/ratings",
+    "Solo Play",
+    "Future statistics SQL foundation after W2 integration"
+  ],
+  "excluded_product_scope": [
+    "New statistics UI/calculations",
+    "Season management UI or automatic assignment/rating resets",
+    "Enhanced league-stat entry",
+    "Omni/CSV/OCR imports",
+    "Turn-level scoring",
+    "Unrelated dependency modernization"
+  ],
+  "ci": {
+    "run_id": 36480187732,
+    "source_sha": "42df060fdf7d26a63e00d00ccf0152a37f4abccb",
+    "conclusion": "success",
+    "url": "https://github.com/rdd-cmyk/Rochester-Darting-Degens/actions/runs/36480187732",
+    "scope": "Application install/tests/coverage/lint/typecheck/build; no combined DB/browser or backup acceptance."
+  },
+  "commits_since_base": [
+    {
+      "sha": "16a532fae984f3107c9d7c610ef8711c44490020",
+      "subject": "feat: add atomic match saving and League Night database contract"
+    },
+    {
+      "sha": "d6557a6c01644898e0322facb8f5a530a1d5c611",
+      "subject": "feat: add shared League Night entry and earned recap awards"
+    },
+    {
+      "sha": "ff7e0fe94c1233dc58572b89c22bd9570fed83bb",
+      "subject": "docs: record League Night plan, verification and hosted release gates"
+    },
+    {
+      "sha": "aa8fda8631af7e990144876d8db8f512280555ab",
+      "subject": "Add League Night planning polls and binary RSVPs"
+    },
+    {
+      "sha": "bcd2fb07059ba0c62f0d2211bac1ae43cc1ecbec",
+      "subject": "Fix planning draft privacy and RSVP reconfirmation window"
+    },
+    {
+      "sha": "bdad317ae53e7a98aba746253bf8f3f1b5753263",
+      "subject": "Advance the next League Night card when events start"
+    },
+    {
+      "sha": "6b11f7d77ae719b792cf89caffdc8dcb9bcea712",
+      "subject": "Merge pull request #70 from rdd-cmyk/league-night-planning"
+    },
+    {
+      "sha": "5fc25bffd8899c11c5d4b6dfb7891774125e3132",
+      "subject": "Add members-only League Board with organizer approval"
+    },
+    {
+      "sha": "537875e1fa26fb6e565cb1263a1f1525f0b3acbf",
+      "subject": "Verify Board integration after League Night rebase"
+    },
+    {
+      "sha": "fc513de974c4e21729ecc92747da4071a0dd9745",
+      "subject": "Allow full repository lint check to finish on CI"
+    },
+    {
+      "sha": "0045c16d7b614a9206db847cac13036c8f62c79f",
+      "subject": "Preserve Board drafts and loaded conversations during refreshes"
+    },
+    {
+      "sha": "121387829926411f6fbeb5f4c9b4dcca1af52ebd",
+      "subject": "Merge pull request #71 from rdd-cmyk/league-message-board"
+    },
+    {
+      "sha": "b27613d5d45f945263ddc18c6ccd04be7d67fc80",
+      "subject": "Preserve Board content through temporary read failures"
+    },
+    {
+      "sha": "0d40f83ad68eef9ecda6638d1b84d95cb90c0429",
+      "subject": "Merge pull request #72 from rdd-cmyk/board-read-recovery"
+    },
+    {
+      "sha": "adc7fa995b3216c8bb112f0e2db4c48dc727e7a2",
+      "subject": "Add invite-only league registration and invitation tracking"
+    },
+    {
+      "sha": "4a9e90de86edf39ab9e31190b11e12b746ec4430",
+      "subject": "Enforce invitation admission across rebased League Night features"
+    },
+    {
+      "sha": "fb75143d785d9ae4c2b5a593f17326dd0934f61b",
+      "subject": "Allow correcting registration after definite Auth validation failures"
+    },
+    {
+      "sha": "93a3d810279c699a0a8b6e70a4660fad7cafbd62",
+      "subject": "Preserve invitation retries and validate Auth password limits"
+    },
+    {
+      "sha": "b9cd384b413dc20ff467c4f3145fb9dd047149a9",
+      "subject": "Merge pull request #73 from rdd-cmyk/invite-only-registration"
+    },
+    {
+      "sha": "c2ded8fbb9b9b386c3537c9651017fb7e5d8a7da",
+      "subject": "feat: add game modes and shared team power ratings"
+    },
+    {
+      "sha": "1d4d28a2f02add3fa56232890987fcfad2fab56d",
+      "subject": "fix: resolve game modes review findings"
+    },
+    {
+      "sha": "51dd4083754bbb4c294c50934db4fb2a48801603",
+      "subject": "fix: hydrate saved seasonal preference without mismatches"
+    },
+    {
+      "sha": "b2137637220da54e535e88771e86bf16e51bba9f",
+      "subject": "feat: add private solo play and practice performance"
+    },
+    {
+      "sha": "5ae10bacc557b801c4ad73fc2ca438d489ac2241",
+      "subject": "fix: resolve solo play independent review findings"
+    },
+    {
+      "sha": "1aac4b2485d0a4194a166e74053f597099781450",
+      "subject": "fix: preserve league admission after Solo Play rebase"
+    },
+    {
+      "sha": "78b7cb69a2a931d3bcef19de96956010fb374b1e",
+      "subject": "fix: retain valid unrated games in night recap"
+    },
+    {
+      "sha": "25065c08c45c1027ad0aabeb89455c743716acf1",
+      "subject": "fix: reset per-game outcomes for fresh entries"
+    },
+    {
+      "sha": "42df060fdf7d26a63e00d00ccf0152a37f4abccb",
+      "subject": "Merge pull request #74 from rdd-cmyk/solo-play"
+    }
+  ],
+  "changed_paths_since_base": [
+    ".gitignore",
+    "README.md",
+    "app/api/invites/route.ts",
+    "app/auth/page.test.tsx",
+    "app/auth/page.tsx",
+    "app/board/[id]/page.tsx",
+    "app/board/layout.tsx",
+    "app/board/page.tsx",
+    "app/components/LayoutShell.test.tsx",
+    "app/components/LayoutShell.tsx",
+    "app/components/Navbar.tsx",
+    "app/components/Observability.test.tsx",
+    "app/components/Observability.tsx",
+    "app/globals.css",
+    "app/invites/layout.tsx",
+    "app/invites/page.test.tsx",
+    "app/invites/page.tsx",
+    "app/join/layout.tsx",
+    "app/join/page.test.tsx",
+    "app/join/page.tsx",
+    "app/league-night/night.css",
+    "app/league-night/page.test.tsx",
+    "app/league-night/page.tsx",
+    "app/league-night/plan/page.tsx",
+    "app/league-night/plan/planning.css",
+    "app/matches/page.tsx",
+    "app/page.tsx",
+    "app/profile/page.tsx",
+    "app/profiles/[id]/page.test.tsx",
+    "app/profiles/[id]/page.tsx",
+    "app/profiles/page.tsx",
+    "app/solo/layout.tsx",
+    "app/solo/page.tsx",
+    "app/solo/solo.css",
+    "app/stats/page.test.tsx",
+    "app/stats/page.tsx",
+    "components/GameOptions.tsx",
+    "components/board/BoardComposer.test.tsx",
+    "components/board/BoardComposer.tsx",
+    "components/board/BoardModeration.tsx",
+    "components/board/BoardPostCard.test.tsx",
+    "components/board/BoardPostCard.tsx",
+    "components/board/BoardPreview.tsx",
+    "components/board/LeagueBoard.test.tsx",
+    "components/board/LeagueBoard.tsx",
+    "components/board/useBoardAccess.test.tsx",
+    "components/board/useBoardAccess.ts",
+    "components/league-night/NightRecapPanel.test.tsx",
+    "components/league-night/NightRecapPanel.tsx",
+    "components/planning/NextPlannedNight.test.tsx",
+    "components/planning/NextPlannedNight.tsx",
+    "components/planning/PlanningForms.tsx",
+    "components/planning/PlanningPage.test.tsx",
+    "components/planning/PlanningPage.tsx",
+    "components/solo/NightSoloActivity.tsx",
+    "components/solo/PracticePerformance.tsx",
+    "components/solo/ProfileSoloStats.test.tsx",
+    "components/solo/ProfileSoloStats.tsx",
+    "components/solo/SoloPage.test.tsx",
+    "components/solo/SoloPage.tsx",
+    "components/stats/StatsStoryCard.tsx",
+    "docs/advanced-statistics-roadmap.md",
+    "docs/game-modes-and-team-ratings-plan.md",
+    "docs/game-modes-verification-2026-09-27.md",
+    "docs/info-registry.md",
+    "docs/invite-only-registration-handoff.md",
+    "docs/invite-only-registration-plan.md",
+    "docs/invite-only-registration-rebase-2026-09-28.md",
+    "docs/league-message-board-design.md",
+    "docs/league-message-board-handoff.md",
+    "docs/league-message-board-read-recovery-2026-09-28.md",
+    "docs/league-message-board-rebase-2026-09-28.md",
+    "docs/league-message-board-review-2026-09-28.md",
+    "docs/league-night-database-rollout.md",
+    "docs/league-night-hosted-audit-2026-09-27.md",
+    "docs/league-night-mode-plan.md",
+    "docs/league-night-planning-design.md",
+    "docs/league-night-planning-handoff.md",
+    "docs/league-night-planning-rebase-2026-09-27.md",
+    "docs/league-night-planning-review-2026-09-27.md",
+    "docs/league-night-planning-source.json",
+    "docs/league-night-verification-2026-09-26.md",
+    "docs/mockups/dark-review.png",
+    "docs/mockups/desktop-review.png",
+    "docs/mockups/league-night-planning-preview.html",
+    "docs/mockups/league-night-planning.html",
+    "docs/mockups/mobile-review.png",
+    "docs/solo-play-bot-review-2026-09-28.md",
+    "docs/solo-play-plan.md",
+    "docs/solo-play-pr-review-2026-09-28.md",
+    "docs/solo-play-rebase-2026-09-28.md",
+    "docs/solo-play-review-2026-09-28.md",
+    "docs/solo-play-verification-2026-09-28.md",
+    "docs/testing/game-modes/correction-mobile.png",
+    "docs/testing/game-modes/doubles-mobile.png",
+    "docs/testing/game-modes/league-night-mobile.png",
+    "docs/testing/game-modes/rankings-mobile.png",
+    "docs/testing/solo/entry-desktop.png",
+    "docs/testing/solo/entry-mobile.png",
+    "docs/testing/solo/night-practice-mobile.png",
+    "docs/testing/solo/progress-dark-mobile.png",
+    "docs/testing/solo/progress-desktop.png",
+    "lib/authReturn.test.ts",
+    "lib/authReturn.ts",
+    "lib/board.test.ts",
+    "lib/board.ts",
+    "lib/games/catalog.test.ts",
+    "lib/games/catalog.ts",
+    "lib/games/correction.test.ts",
+    "lib/games/correction.ts",
+    "lib/games/review-regressions.test.ts",
+    "lib/invites/client.ts",
+    "lib/invites/server.test.ts",
+    "lib/invites/server.ts",
+    "lib/invites/shared.test.ts",
+    "lib/invites/shared.ts",
+    "lib/league-night/api.test.ts",
+    "lib/league-night/api.ts",
+    "lib/league-night/draft.test.ts",
+    "lib/league-night/draft.ts",
+    "lib/league-night/match-write.test.ts",
+    "lib/league-night/match-write.ts",
+    "lib/league-night/recap.test.ts",
+    "lib/league-night/recap.ts",
+    "lib/league-night/recovery.test.ts",
+    "lib/league-night/recovery.ts",
+    "lib/league-night/share-card.test.ts",
+    "lib/league-night/share-card.ts",
+    "lib/league-night/types.ts",
+    "lib/league-night/use-current-user.ts",
+    "lib/planning.test.ts",
+    "lib/planning.ts",
+    "lib/solo/analysis.test.ts",
+    "lib/solo/analysis.ts",
+    "lib/solo/api.ts",
+    "lib/solo/recovery.test.ts",
+    "lib/solo/recovery.ts",
+    "lib/solo/types.ts",
+    "lib/stats/engine.test.ts",
+    "lib/stats/engine.ts",
+    "lib/stats/stories.ts",
+    "lib/stats/team-ratings.test.ts",
+    "lib/stats/types.ts",
+    "next.config.ts",
+    "package-lock.json",
+    "package.json",
+    "scripts/board-local.mjs",
+    "scripts/eslint-compatibility.test.mjs",
+    "scripts/game-modes-local.mjs",
+    "scripts/invites-local.mjs",
+    "scripts/league-night-local.mjs",
+    "scripts/local-environment.mjs",
+    "scripts/planning-demo.mjs",
+    "scripts/planning-local.mjs",
+    "scripts/qa/board-preview.mjs",
+    "scripts/qa/board-regressions.config.mjs",
+    "scripts/qa/board-regressions.spec.mjs",
+    "scripts/qa/board.config.mjs",
+    "scripts/qa/board.spec.mjs",
+    "scripts/qa/game-modes-api.mjs",
+    "scripts/qa/game-modes-browser.cjs",
+    "scripts/qa/invites-integration.mjs",
+    "scripts/qa/invites-parent.mjs",
+    "scripts/qa/invites-reservation.mjs",
+    "scripts/qa/invites-review.mjs",
+    "scripts/qa/invites.config.mjs",
+    "scripts/qa/invites.spec.mjs",
+    "scripts/qa/league-night.config.mjs",
+    "scripts/qa/league-night.spec.mjs",
+    "scripts/qa/planning-browser.mjs",
+    "scripts/qa/profile-outcome-filter.mjs",
+    "scripts/qa/solo-api.mjs",
+    "scripts/qa/solo-browser.cjs",
+    "scripts/qa/solo-review-browser.cjs",
+    "scripts/qa/team-rating-simulation.mjs",
+    "scripts/rehearse-board.mjs",
+    "scripts/rehearse-game-modes.mjs",
+    "scripts/rehearse-league-night.mjs",
+    "scripts/rehearse-planning.mjs",
+    "scripts/rehearse-solo.mjs",
+    "scripts/solo-local.mjs",
+    "scripts/supabase-local.mjs",
+    "supabase/config.toml",
+    "supabase/pending/league_night.sql",
+    "supabase/pending/league_night_enforce.sql",
+    "supabase/tests/board/league_board.test.sql",
+    "supabase/tests/fixtures/game_modes.sql",
+    "supabase/tests/fixtures/game_modes_local_enable.sql",
+    "supabase/tests/fixtures/invite_only_registration.sql",
+    "supabase/tests/fixtures/invite_parent_admission.sql",
+    "supabase/tests/fixtures/league_board.sql",
+    "supabase/tests/fixtures/league_planning.sql",
+    "supabase/tests/fixtures/league_planning_visibility_upgrade.sql",
+    "supabase/tests/fixtures/solo_play.sql",
+    "supabase/tests/league-night/league-night.test.sql",
+    "supabase/tests/planning/planning.test.sql",
+    "supabase/tests/solo/admission.test.sql",
+    "supabase/tests/solo/solo.test.sql",
+    "vitest.config.mts"
+  ],
+  "diff_summary": "199 files changed, 26893 insertions(+), 856 deletions(-)",
+  "sha256_basis": "Exact committed Git blob bytes, independent of worktree CRLF conversion. Starting-source hashes are not approval of deployment SQL.",
+  "sql_inputs": [
+    {
+      "path": "supabase/tests/fixtures/advanced_statistics_foundation.sql",
+      "purpose": "Future statistics storage; W2 modernizes it and finalizes the view after game_config exists.",
+      "git_blob": "d4d6edb2949527a10ad34e7ba0821a054f806b8c",
+      "sha256": "b8e595e744073f4981ce0aec8121913c504f3dfde6db8f42ed8849bd9cc97f5f"
+    },
+    {
+      "path": "supabase/pending/league_night.sql",
+      "purpose": "Atomic saving, revisions, nights and attendance.",
+      "git_blob": "bbe3df0ed5d295e0f9e124092c4a91fff8a67b27",
+      "sha256": "e94ba4bd37b11f76fc1486c4b4c498bee2feab84e303cbdbe2bd134e7790fc82"
+    },
+    {
+      "path": "supabase/tests/fixtures/league_planning.sql",
+      "purpose": "Polls, scheduling, RSVPs and planning organizer authority.",
+      "git_blob": "8d82d6c64273b61db799317a7c906db227dafce4",
+      "sha256": "66aa6d8b5b6877a06db7b9e83b9376bd3382011ecda04d52db88541651d9441f"
+    },
+    {
+      "path": "supabase/tests/fixtures/league_board.sql",
+      "purpose": "Board approval, content, moderation and RPCs.",
+      "git_blob": "9412fbf719b1b7205abf67a6a8485733c5a6a760",
+      "sha256": "73a86c6997bece0af6d9f874aa53ba6f787a104ce804f5e9cc35ab46727d0fc4"
+    },
+    {
+      "path": "supabase/tests/fixtures/invite_only_registration.sql",
+      "purpose": "Invitation service, league membership and base-table admission.",
+      "git_blob": "4b6bc3d1f77c5c6a0c555ecaaaa7463f3991cdab",
+      "sha256": "f812179eabd8245ecf0598298a3e9cea5233fe1ec917aef10ef31b179e360f25"
+    },
+    {
+      "path": "supabase/tests/fixtures/invite_parent_admission.sql",
+      "purpose": "Admission wrappers around League Night, planning and Board.",
+      "git_blob": "06ecd387bec45d8fee106adde08537508af84fd1",
+      "sha256": "93923f653aeed189070c08e3375132c841620092bbcb121fbd074ceb01636794"
+    },
+    {
+      "path": "supabase/tests/fixtures/game_modes.sql",
+      "purpose": "Game configuration, team rules, corrections and wrapped save upgrade.",
+      "git_blob": "1903dc5a4a8e6c9d97056bb93e897b380ac1b6a0",
+      "sha256": "4dc9333cd92cd3061a88cda970e8d8c043617e7db4d781f9e4926953d79d0bea"
+    },
+    {
+      "path": "supabase/tests/fixtures/solo_play.sql",
+      "purpose": "Private solo logging and consented projections.",
+      "git_blob": "1c3a22df7b2a492cb6144878c7e3bc31b64ef83b",
+      "sha256": "74ca8a4a0b1421c09e461cc0414798a53260ae543da8380d2c081df3ade82f10"
+    },
+    {
+      "path": "supabase/pending/league_night_enforce.sql",
+      "purpose": "Separately staged direct-write enforcement after compatible-app acceptance.",
+      "git_blob": "4373a54fa048808be8a936bd90da7c62455b786b",
+      "sha256": "b162ee8ecfafce0ff83d9fc242791b14c1ed7d45331bade935e2918e6c01ed81"
+    }
+  ],
+  "excluded_or_conditional_sql": [
+    {
+      "path": "supabase/tests/fixtures/existing_schema_baseline.sql",
+      "purpose": "Local schema recreation only; existing hosted tables must not be replayed.",
+      "git_blob": "413587e9c7efa4116bd6fcf631979d6a200b3578",
+      "sha256": "efa8c093139277a00e3dbe9f9a6f206636f9b9f805aa1184acffe0474c992559"
+    },
+    {
+      "path": "supabase/tests/fixtures/game_modes_local_enable.sql",
+      "purpose": "Local demo activation only.",
+      "git_blob": "c682e9547e9309ab668d45c4497d66769183a261",
+      "sha256": "2df689015286e9a5b33490f8f287ef42e3c7282a19a1d2fe6af70e28050474bf"
+    },
+    {
+      "path": "supabase/tests/fixtures/league_planning_visibility_upgrade.sql",
+      "purpose": "Conditional older-planning upgrade; outside the initial fresh-install candidate.",
+      "git_blob": "22985907cfae3508565f9407ce06c4c87d2c515d",
+      "sha256": "804ec1617c51c5d85203966702445339629d0ccd7369fd00cfe736abda0bec32"
+    }
+  ],
+  "runtime_and_configuration": [
+    {
+      "path": ".nvmrc",
+      "purpose": "Candidate contract/configuration snapshot; hosted effect not verified.",
+      "git_blob": "b7179aed06e82122334777a7363cab0bc0a92e18",
+      "sha256": "5b9d0e73029969ae9000117cb877f17bb9841c1279bfe8024e294acfcf017800"
+    },
+    {
+      "path": "package.json",
+      "purpose": "Candidate contract/configuration snapshot; hosted effect not verified.",
+      "git_blob": "3a70f186d8cc136ebad13a0eaa9429ff36dea1a1",
+      "sha256": "bcb4a109d2e75e0cba8f94dac0ad8703534ae4032c5e451087875fedd728bd65"
+    },
+    {
+      "path": "package-lock.json",
+      "purpose": "Candidate contract/configuration snapshot; hosted effect not verified.",
+      "git_blob": "1f4658895c8ba104f3f0b168d15197b476c77cbb",
+      "sha256": "98857929bd5c6dff6c4b77a9aa81ba464b2f12569ecb6bfe737d3f27889ae5b7"
+    },
+    {
+      "path": ".github/workflows/ci.yml",
+      "purpose": "Candidate contract/configuration snapshot; hosted effect not verified.",
+      "git_blob": "aa689b80b5364b4632c7b2a862765aca7fff5fdb",
+      "sha256": "d78cd4aa900e24f971748831bdbca3ed9024996154aeb2690d07ca636bbf36b5"
+    },
+    {
+      "path": "supabase/config.toml",
+      "purpose": "Candidate contract/configuration snapshot; hosted effect not verified.",
+      "git_blob": "75828c7e105b1c7296cf1543c92fb0f571c36015",
+      "sha256": "66da4c1fc12a56b37b4edde1344ed547547f715a6b56f4b060a3e2efb9b7a65c"
+    }
+  ],
+  "node_pin": "24.20.0",
+  "npm_installer_pin": "11.19.0",
+  "tracked_deployable_migration_paths": [],
+  "existing_local_draft_paths": [
+    "M README.md",
+    " M docs/advanced-statistics-roadmap.md",
+    "?? docs/release-next-readiness.md"
+  ],
+  "open_prs_at_verification": [],
+  "outstanding_packages": [
+    "W1",
+    "W2",
+    "W3",
+    "W4",
+    "W5",
+    "W6",
+    "W7",
+    "W8"
+  ]
+}

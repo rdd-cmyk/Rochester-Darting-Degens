@@ -1,5 +1,15 @@
 # Rochester Darting Degens Advanced Statistics Roadmap
 
+Current combined-release coordination: [Next release readiness](release-next-readiness.md).
+`release/next` now contains League Night, planning, Board, invitations, game modes,
+team ratings and Solo Play. Prior feature results below remain dated evidence;
+the full release's backup/restore, migration and deployment gates are open.
+The owner confirmed future statistics SQL/storage preparation for this release
+on 2026-09-28, with no new statistics UI or calculation features. See package W2
+and section 1A of the release plan; seasons remain storage-only for this scope.
+W0 scope/candidate preparation is complete; see its
+[evidence record](release/w0-scope-and-candidate.md). W1-W8 remain open.
+
 Status: advanced-statistics PR #69 merged; League Night Mode implemented and locally verified; hosted database changes deferred
 
 Supabase project: `hrqsbzmsfichiimtxijj`

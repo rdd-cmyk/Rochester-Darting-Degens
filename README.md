@@ -2,6 +2,10 @@ This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-
 
 ## Configuration
 
+The combined next-version branch is `release/next` (formerly `league-night-mode`).
+Follow the [release readiness plan](docs/release-next-readiness.md) for the full
+testing, backup, restore rehearsal and hosted cutover gates before deployment.
+
 This branch implements invitation-only registration. See the
 [invitation handoff](docs/invite-only-registration-handoff.md) for isolated local
 preview commands, server email configuration, verification, and the hosted release

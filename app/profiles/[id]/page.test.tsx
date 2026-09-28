@@ -5,6 +5,9 @@ import { defaultConfig, type GameConfig } from '@/lib/games/catalog';
 
 const { from } = vi.hoisted(() => ({ from: vi.fn() }));
 vi.mock('@/lib/supabaseClient', () => ({ supabase: { from } }));
+// These match-history tests run as a signed-out profile viewer. Solo summaries
+// have their own authenticated/privacy tests and must not issue extra queries.
+vi.mock('@/lib/league-night/use-current-user',()=>({useCurrentUser:()=>({user:null,loading:false})}));
 vi.mock('next/navigation', () => ({ useParams: () => ({ id: 'player-1' }) }));
 
 function match(id: number, note: string, gameType = '501', winner = true, status?: GameConfig['status']) {

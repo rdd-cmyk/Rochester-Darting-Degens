@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { ProfileSoloStats } from '@/components/solo/ProfileSoloStats';
 import { GAME_TYPES, gameUnit, ratingExclusion, isLegacyScoreCohort, type GameConfig } from '@/lib/games/catalog';
 import { GameResultDetails } from '@/components/GameOptions';
 import Link from 'next/link';
@@ -145,6 +146,9 @@ export default function ProfilePage() {
 
   const [profile, setProfile] = useState<Profile | null>(null);
   const [stats, setStats] = useState<PlayerStatsSummary | null>(null);
+  const [scopeSelection, setScopeSelection] = useState<{owner:string | undefined;scope:'league'|'solo'|'all'}>({owner:id,scope:'league'});
+  const statsScope = scopeSelection.owner === id ? scopeSelection.scope : 'league';
+  const setStatsScope = (scope:'league'|'solo'|'all') => setScopeSelection({owner:id,scope});
   const [recentMatches, setRecentMatches] = useState<MatchSummary[]>([]);
   const [allMatches, setAllMatches] = useState<MatchSummary[]>([]);
   const [loading, setLoading] = useState<boolean>(() => Boolean(id));
@@ -653,6 +657,8 @@ export default function ProfilePage() {
       {/* Stats summary */}
       <section>
         <h2 className="section-heading">Stats Summary</h2>
+        <ProfileSoloStats key={id} owner={id!} scope={statsScope} onScopeChange={setStatsScope}/>
+        <div hidden={statsScope!=='league'}>
         {!stats || stats.games === 0 ? (
           <p>No matches recorded for this player yet.</p>
         ) : (
@@ -712,6 +718,7 @@ export default function ProfilePage() {
             </div>
           </>
         )}
+        </div>
       </section>
 
       {/* Match history tabs */}

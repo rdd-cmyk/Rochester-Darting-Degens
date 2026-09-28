@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
+import { NightSoloActivity } from '@/components/solo/NightSoloActivity';
 import { formatLabel } from '@/lib/games/catalog';
 import {
   buildNightRecap,
@@ -167,10 +168,11 @@ export function NightRecapPanel({
           <br />A lot to talk about.
         </h2>
         <p>
-          {recap.matches.length} confirmed games · {recap.standings.length}{" "}
+          {recap.matches.length} confirmed league games · {recap.standings.length}{" "}
           players in action
         </p>
       </div>
+      <NightSoloActivity nightId={night.id} refreshToken={history}/>
       {recap.incompleteHistory > 0 && (
         <p className="night-small">
           Some recorded history is incomplete. Affected awards are withheld;

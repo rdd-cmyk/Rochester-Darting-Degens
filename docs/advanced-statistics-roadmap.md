@@ -4,7 +4,7 @@ Status: advanced-statistics PR #69 merged; League Night Mode implemented and loc
 
 Supabase project: `hrqsbzmsfichiimtxijj`
 
-Last updated: 2026-09-27
+Last updated: 2026-09-28
 
 Release checkpoint: PR #69 merged into `main` as `690a01b` on 2026-09-25.
 The package rows below retain their dated implementation evidence; they are not
@@ -27,6 +27,7 @@ SQL, organizer assignments or publication.
 | 3 — Statistics experience | Implemented | The responsive `/stats` dashboard, filters, stories, trend chart, table, and methodology are in place. |
 | 4A–4C — League Night Mode | Implemented; Ben's local demo review complete | Shared attendance, atomic saving, recovery, rematches, recap awards and export. [Local verification](league-night-verification-2026-09-26.md) and [read-only hosted audit](league-night-hosted-audit-2026-09-27.md); backup/restore, migration-history adoption and hosted rollout remain open. |
 | Game modes and team Power Rating | Implemented and locally verified in an isolated branch | Eight game additions, rule presets, shared 2v2/3v3 entry, split team ratings, score cohorts and audited correction previews. [Implementation evidence and release boundaries](game-modes-verification-2026-09-27.md). Depends on the local League Night snapshot; hosted deployment and activation remain gated. |
+| Solo Play and Practice & Performance | Implemented in an isolated branch; local verification documented | Private solo logging, profile scopes, consented night activity and descriptive practice comparisons. [Plan](solo-play-plan.md) and [verification / release boundaries](solo-play-verification-2026-09-28.md). Inherits the local League Night and game-modes snapshot; hosted rollout remains gated. |
 | 3A — Runtime and delivery contract | Complete | Local verification, GitHub Actions run `33327531198`, and Vercel deployment `7Q8bJBqSjuM3hhGKYkcPNomx7ADt` pass on commit `db5816d`. |
 | Local Supabase readiness follow-up | User approved | Approved on 2026-09-07 before beginning 3B; reviewed baseline, loopback core services, local RLS/preservation tests, and synthetic browser acceptance. See `docs/local-approval-readiness-2026-09-07.md`. Hosted deployment remains gated. |
 | 3B — Next.js security baseline | Implemented and locally verified | Next/eslint-config-next 16.3.4, React/DOM 19.2.8; production audit zero; 59 unit tests and two production-browser scenarios pass. CI/Vercel remain pending push. |

@@ -136,6 +136,9 @@ export default function Navbar({ summerEnabled, onToggleSummer }: NavbarProps) {
           <Link style={linkStyle} href="/stats" onClick={handleNavSelection}>
             Advanced Stats
           </Link>
+          <Link style={linkStyle} href="/solo" onClick={handleNavSelection}>
+            Solo Play
+          </Link>
           <Link style={linkStyle} href="/matches" onClick={handleNavSelection}>
             Matches
           </Link>

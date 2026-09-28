@@ -12,6 +12,8 @@ import { pickEligibleUpset, pickPositiveLeader } from '@/lib/stats/stories';
 import type { MatchFact, PlayerAdvancedStats } from '@/lib/stats/types';
 import { supabase } from '@/lib/supabaseClient';
 
+import { GAME_TYPES as CATALOG_GAMES, comparisonKey, formatLabel, presetLabel, type GameConfig } from '@/lib/games/catalog';
+
 type ProfileRelation = {
   id: string;
   display_name: string | null;
@@ -20,6 +22,7 @@ type ProfileRelation = {
 };
 
 type MatchRelation = {
+  game_config?: GameConfig | null;
   played_at: string;
   game_type: string | null;
   board_type: string | null;
@@ -36,7 +39,7 @@ type RawFact = {
   matches: MatchRelation | MatchRelation[] | null;
 };
 
-const GAME_TYPES = ['All', '501', '301', 'Cricket', 'Other'] as const;
+const GAME_TYPES = ['All', ...CATALOG_GAMES];
 const BOARD_TYPES = ['All', 'Soft Tip', 'Steel Tip'] as const;
 const MINIMUM_GAMES = [1, 3, 5, 10] as const;
 
@@ -52,7 +55,7 @@ function signed(value: number, digits = 0): string {
 function pickMostConsistent(players: PlayerAdvancedStats[]): PlayerAdvancedStats | null {
   return (
     [...players]
-      .filter((player) => (player.scoreDistribution?.games ?? 0) >= 3)
+      .filter((player) => (player.scoreDistribution?.games ?? 0) >= 3 && Number.isFinite(player.scoreDistribution?.normalizedDeviation))
       .sort(
         (a, b) =>
           (a.scoreDistribution?.normalizedDeviation ?? Number.POSITIVE_INFINITY) -
@@ -65,6 +68,8 @@ export default function AdvancedStatsPage() {
   const [facts, setFacts] = useState<MatchFact[]>([]);
   const [gameType, setGameType] = useState<(typeof GAME_TYPES)[number]>('All');
   const [boardType, setBoardType] = useState<(typeof BOARD_TYPES)[number]>('All');
+  const [formatFilter, setFormatFilter] = useState('All');
+  const [scoreCohort, setScoreCohort] = useState('All');
   const [minimumGames, setMinimumGames] = useState<(typeof MINIMUM_GAMES)[number]>(3);
   const [includeOtherScores, setIncludeOtherScores] = useState(false);
   const [userId, setUserId] = useState<string | null>(null);
@@ -149,7 +154,7 @@ export default function AdvancedStatsPage() {
                 ),
                 matches!inner (
                   played_at,
-                  game_type,
+                  game_type, game_config,
                   board_type,
                   venue
                 )
@@ -188,6 +193,7 @@ export default function AdvancedStatsPage() {
                 : 'Unknown player',
               playedAt: match.played_at,
               gameType: match.game_type,
+              gameConfig: match.game_config,
               boardType: match.board_type,
               venue: match.venue,
               isWinner: row.is_winner === true,
@@ -213,14 +219,17 @@ export default function AdvancedStatsPage() {
     };
   }, [userId]);
 
+  const playerCounts = useMemo(() => { const counts = new Map<string,number>(); for (const fact of facts) counts.set(fact.matchId,(counts.get(fact.matchId) ?? 0)+1); return counts; }, [facts]);
   const filteredFacts = useMemo(
     () =>
       facts.filter(
         (fact) =>
           (gameType === 'All' || fact.gameType === gameType) &&
-          (boardType === 'All' || fact.boardType === boardType)
+          (boardType === 'All' || fact.boardType === boardType) &&
+          (formatFilter === 'All' || (formatFilter === 'Singles' ? (!fact.gameConfig || fact.gameConfig.format === 'individual') && playerCounts.get(fact.matchId) === 2 : formatFilter === 'Free-for-all' ? (!fact.gameConfig || fact.gameConfig.format === 'individual') && (playerCounts.get(fact.matchId) ?? 0) > 2 : fact.gameConfig?.format === formatFilter)) &&
+          (scoreCohort === 'All' || comparisonKey(fact.gameType, fact.boardType, fact.gameConfig) === scoreCohort)
       ),
-    [boardType, facts, gameType]
+    [boardType, facts, gameType, formatFilter, scoreCohort, playerCounts]
   );
   const leagueStats = useMemo(
     () => buildLeagueAdvancedStats(filteredFacts, {
@@ -242,7 +251,9 @@ export default function AdvancedStatsPage() {
   const eligibleUpset = pickEligibleUpset(leagueStats.upsets, eligiblePlayers);
   const chartPlayers = eligiblePlayers.slice(0, 5);
   const maxConsistencyValue = Math.max(
-    ...eligiblePlayers.map((player) => player.scoreDistribution?.best ?? 0),
+    // For completion games, "best" is the smallest score. Scale from the
+    // top of the displayed range, independent of the comparison direction.
+    ...eligiblePlayers.map((player) => player.scoreDistribution?.upperQuartile ?? 0),
     1
   );
 
@@ -271,10 +282,11 @@ export default function AdvancedStatsPage() {
         <label>
           <span>Game type</span>
           <select
+            aria-label="Game type"
             value={gameType}
             onChange={(event) => {
               setGameType(event.target.value as (typeof GAME_TYPES)[number]);
-              setIncludeOtherScores(false);
+              setIncludeOtherScores(false); setScoreCohort('All');
             }}
           >
             {GAME_TYPES.map((option) => (
@@ -316,6 +328,11 @@ export default function AdvancedStatsPage() {
         </div>
       </section>
 
+      <div className="stats-filters">
+        <label>Competition format<select aria-label="Competition format" value={formatFilter} onChange={e => {setFormatFilter(e.target.value);setScoreCohort('All');}}>{['All','Singles','Free-for-all','2v2','3v3'].map(f => <option key={f}>{f}</option>)}</select></label>
+        <label>Comparable score group<select aria-label="Comparable score group" value={scoreCohort} onChange={e => setScoreCohort(e.target.value)}><option value="All">All rules — combined results</option>{Array.from(new Map(facts.filter(f => gameType === 'All' || f.gameType === gameType).map(f => [comparisonKey(f.gameType,f.boardType,f.gameConfig),f])).entries()).map(([key,f]) => <option value={key} key={key}>{f.gameType} · {f.boardType ?? 'Unknown board'} · {formatLabel(f.gameConfig?.format)} · {presetLabel(f.gameType,f.gameConfig)}</option>)}</select></label>
+      </div>
+      <p className="stats-data-note">Ratings are recalculated using the selected history. Score records require one compatible game, rules, board and format. Team totals appear in match details; these distributions describe recorded individual performance.</p>
       {gameType === 'Other' ? (
         <section className="stats-other-score-panel" aria-label="Other score comparisons">
           <div>
@@ -365,7 +382,7 @@ export default function AdvancedStatsPage() {
           <p className="stats-eyebrow">No eligible players</p>
           <h2>Lower the minimum-games filter or record another match.</h2>
           <p>
-            Ratings require one valid winner and at least two different players in a match.
+            Ratings require a completed competitive result with one winning player or team and valid participants.
           </p>
         </section>
       ) : (
@@ -403,7 +420,7 @@ export default function AdvancedStatsPage() {
                 <StatsStoryCard
                   eyebrow="Giant killer"
                   value={`${(eligibleUpset.expectedWinProbability * 100).toFixed(0)}% chance`}
-                  playerId={eligibleUpset.winnerId}
+                  playerId={(eligibleUpset.winnerIds?.length ?? 1) === 1 ? eligibleUpset.winnerId : undefined}
                   playerName={eligibleUpset.winnerName}
                   detail={`Beat ${eligibleUpset.opponentNames.join(', ')} on ${new Date(
                     eligibleUpset.playedAt
@@ -550,7 +567,7 @@ export default function AdvancedStatsPage() {
                         >
                           <span
                             className="stats-consistency-band"
-                            style={{ left: `${left}%`, width: `${Math.max(width, 2)}%` }}
+                            style={{ left: `${left}%`, width: `${Math.min(Math.max(width, 2), 100 - left)}%` }}
                           />
                           <span
                             className="stats-consistency-median"
@@ -583,6 +600,7 @@ export default function AdvancedStatsPage() {
         </>
       )}
 
+      <details className="stats-data-note"><summary>Rating changes explained</summary>{eligiblePlayers.map(player => <details key={player.playerId}><summary>{player.displayName} · {(player.evidenceGames ?? player.games).toFixed(1)} evidence games · {Object.entries(player.formatGames ?? {}).map(([format,count]) => `${format}: ${count}`).join(', ')}</summary><ul>{player.ratingHistory.filter(p => p.change !== undefined).slice(-20).reverse().map(p => <li key={p.matchId}>Match #{p.matchId} · {p.format} · vs {p.opponents?.join(' + ')} · {((p.expectedWin ?? 0)*100).toFixed(1)}% expected win · {signed(p.change ?? 0,2)} points</li>)}</ul></details>)}</details>
       <section className="stats-methodology" id="methodology">
         <p className="stats-eyebrow">Methodology</p>
         <h2>Advanced without becoming mysterious</h2>
@@ -591,7 +609,7 @@ export default function AdvancedStatsPage() {
             <h3>Power rating</h3>
             <p>
               Everyone begins at 1500. Ratings move after every match based on the
-              pre-match chance of winning. Unexpected wins move ratings more.
+              pre-match chance of winning. Unexpected wins move ratings more. For 2v2 and 3v3, team strength is the mean of player ratings and the result adjustment is divided among teammates.
             </p>
           </div>
           <div>
@@ -604,7 +622,7 @@ export default function AdvancedStatsPage() {
           <div>
             <h3>Sample guardrails</h3>
             <p>
-              Ratings are provisional before ten matches. Use the minimum-games filter
+              Ratings are provisional before ten evidence games: singles/free-for-all count as one, doubles as one-half, triples as one-third. Use the minimum-games filter
               and always read consistency beside its scored-match count.
             </p>
           </div>
@@ -612,8 +630,7 @@ export default function AdvancedStatsPage() {
         {leagueStats.matchesIgnored > 0 ? (
           <p className="stats-data-note">
             {leagueStats.matchesIgnored} match{leagueStats.matchesIgnored === 1 ? '' : 'es'}
-            {' '}were excluded because they did not contain at least two players and exactly one
-            winner.
+            {' '}were excluded because their result, participants or rating eligibility was unsupported (including practice, handicaps and unresolved results).
           </p>
         ) : null}
       </section>

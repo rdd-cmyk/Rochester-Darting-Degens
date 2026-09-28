@@ -2,6 +2,8 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
+import { NightSoloActivity } from '@/components/solo/NightSoloActivity';
+import { formatLabel, ratingExclusion } from '@/lib/games/catalog';
 import {
   buildNightRecap,
   participantName,
@@ -64,6 +66,9 @@ export function NightRecapPanel({
     () => buildNightRecap(history, night.id),
     [history, night.id],
   );
+  const playerCount = new Set(
+    recap.matches.flatMap((m) => m.match_players!.map((p) => p.player_id)),
+  ).size;
   const [chosen, setChosen] = useState<string[] | null>(null);
   const [shareOpen, setShareOpen] = useState(false);
   const [shareNotice, setShareNotice] = useState("");
@@ -83,25 +88,25 @@ export function NightRecapPanel({
         canvasRef.current,
         nightDate(night.night_date),
         recap.matches.length,
-        recap.standings.length,
+        playerCount,
         featured,
       );
   }, [
     featured,
     night.night_date,
     recap.matches.length,
-    recap.standings.length,
+    playerCount,
     shareOpen,
     loading,
     error,
   ]);
   const shareText = [
     `Rochester Darting Degens — ${nightDate(night.night_date)}`,
-    `${recap.matches.length} recorded games · ${recap.standings.length} players · So far tonight`,
+    `${recap.matches.length} recorded games · ${playerCount} players · So far tonight`,
     ...featured.map(
       (a) => `${a.title}: ${a.playerName} — ${a.reason} (${a.scope})`,
     ),
-    "Based on confirmed site results; awards use recorded history.",
+    "Based on confirmed site results; awards use competitive recorded history.",
   ].join("\n");
   async function downloadCard() {
     try {
@@ -112,7 +117,7 @@ export function NightRecapPanel({
           canvas,
           nightDate(night.night_date),
           recap.matches.length,
-          recap.standings.length,
+          playerCount,
           featured,
         )
       )
@@ -166,10 +171,18 @@ export function NightRecapPanel({
           <br />A lot to talk about.
         </h2>
         <p>
-          {recap.matches.length} confirmed games · {recap.standings.length}{" "}
+          {recap.matches.length} recorded game{recap.matches.length === 1 ? "" : "s"} · {playerCount}{" "}
           players in action
         </p>
       </div>
+      <NightSoloActivity nightId={night.id} refreshToken={history}/>
+      {recap.unrated > 0 && (
+        <p className="night-small">
+          {recap.unrated} unrated game{recap.unrated === 1 ? "" : "s"} recorded.
+          {" "}These stay in the activity log and contribute no competitive
+          results, ratings or awards.
+        </p>
+      )}
       {recap.incompleteHistory > 0 && (
         <p className="night-small">
           Some recorded history is incomplete. Affected awards are withheld;
@@ -289,6 +302,7 @@ export function NightRecapPanel({
       <div className="night-recap-columns">
         <section className="night-panel">
           <h2>Tonight’s results</h2>
+          {recap.unrated > 0 && <p className="night-small">Competitive results only.</p>}
           <table className="night-table">
             <thead>
               <tr>
@@ -344,9 +358,15 @@ export function NightRecapPanel({
           <div className="night-result" key={m.id}>
             <div>
               <strong>
-                {participantName(m.match_players!.find((p) => p.is_winner)!)}{" "}
-                won
+                {m.game_config?.status === 'tied' ? 'Tied game'
+                  : m.game_config?.status === 'abandoned' ? 'Abandoned game'
+                  : <>{m.match_players!.filter((p) => p.is_winner).map(participantName).join(' + ')}{' '}
+                    won{m.game_config?.format && m.game_config.format !== 'individual'
+                      ? ` as ${formatLabel(m.game_config.format)}` : ''}</>}
               </strong>
+              {ratingExclusion(m.game_config) && (
+                <p className="night-small">Unrated · {ratingExclusion(m.game_config)}</p>
+              )}
               <p className="night-small">
                 {m.match_players!.map(participantName).join(" · ")} ·{" "}
                 {m.game_type || "Unknown format"} ·{" "}

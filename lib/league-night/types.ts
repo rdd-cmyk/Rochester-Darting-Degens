@@ -1,3 +1,4 @@
+import type { GameConfig } from '@/lib/games/catalog';
 export type PlayerProfile = {
   id: string;
   display_name: string | null;
@@ -30,6 +31,7 @@ export type MatchParticipant = {
   profiles?: Omit<PlayerProfile, "id"> | Omit<PlayerProfile, "id">[] | null;
 };
 export type NightMatch = {
+  game_config?: GameConfig | null;
   id: number;
   played_at: string;
   game_type: string | null;
@@ -42,6 +44,7 @@ export type NightMatch = {
   match_players: MatchParticipant[] | null;
 };
 export type MatchWrite = {
+  game_config?: GameConfig | null;
   match_id: number | null;
   expected_revision: number | null;
   night_id: string | null;
@@ -63,6 +66,7 @@ export type SaveResult =
   | { status: "possible_duplicate"; match_ids: number[] };
 export type PlayerDraft = { playerId: string; score: string; points: string };
 export type NightDraft = {
+  gameConfig?: GameConfig | null;
   players: PlayerDraft[];
   winnerId: string;
   game: string;

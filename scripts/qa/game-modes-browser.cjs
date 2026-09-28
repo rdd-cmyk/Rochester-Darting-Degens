@@ -1,0 +1,93 @@
+/* eslint-disable @typescript-eslint/no-require-imports -- Standalone CommonJS QA uses the bundled browser runtime, not an application dependency. */
+const {chromium}=require('C:/Users/linfo/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright');
+const fs=require('node:fs');
+const assert=require('node:assert/strict');
+const demo=JSON.parse(fs.readFileSync('.local/game-modes/demo.json','utf8'));
+(async()=>{
+ const browser=await chromium.launch({channel:'msedge',headless:true});
+ const context=await browser.newContext({viewport:{width:390,height:1100}});
+ await context.route('**/*',route=>['http://127.0.0.1:3013','http://127.0.0.1:55721'].includes(new URL(route.request().url()).origin)?route.continue():route.abort());
+ const page=await context.newPage();const errors=[];
+ page.on('pageerror',e=>errors.push(e.message));
+ page.on('dialog',d=>d.accept());
+ await page.goto('http://127.0.0.1:3013/auth');
+ await page.getByLabel('Email',{exact:true}).fill(demo.people[0].email);
+ await page.getByLabel('Password',{exact:true}).fill(demo.password);
+ await page.locator('form button[type=submit]').click();
+ await page.getByRole('heading',{name:'Darts Matches',exact:true}).waitFor();
+ for(const game of ['701','Cut-Throat Cricket','No-Score Cricket','Count-Up','Around the Clock','Shanghai','Gotcha','Halve-It / Bermuda Triangle']) {
+  await page.getByLabel('Game type',{exact:true}).selectOption(game);
+  assert((await page.getByLabel('Rule preset').locator('option').count())>=2,game);
+ }
+ await page.getByLabel('Game type',{exact:true}).selectOption('Cut-Throat Cricket');
+ await page.getByLabel('Player 1 penalty points (optional)',{exact:true}).waitFor();
+ await page.getByLabel('Game type',{exact:true}).selectOption('701');
+ await page.getByLabel('Match format').selectOption('2v2');
+ for(let i=0;i<4;i++)await page.getByLabel(`Player ${i+1}`,{exact:true}).selectOption(demo.people[i].id);
+ for(let i=0;i<4;i++)await page.getByLabel(`${demo.people[i].name} team`,{exact:true}).selectOption(i<2?'A':'B');
+ await page.getByLabel('Rule preset').selectOption('701-double-v1');
+ await page.getByLabel('Team A score',{exact:true}).fill('62.5');
+ await page.getByLabel('Player 1 3DA',{exact:true}).fill((65+Math.random()*10).toFixed(2));
+ await page.getByLabel('Winning team',{exact:true}).selectOption('A');
+ await page.getByLabel('Notes',{exact:false}).fill(`Browser QA ${Date.now()}`);
+ fs.mkdirSync('docs/testing/game-modes',{recursive:true});
+ await page.screenshot({path:'docs/testing/game-modes/doubles-mobile.png',fullPage:true});
+ assert(!(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth)),'mobile overflow');
+ let interrupted=false;
+ await page.route('**/rest/v1/rpc/rdd_save_match',async route=>{
+  if(!interrupted){interrupted=true;await route.fetch();await route.abort('failed');}
+  else await route.continue();
+ });
+ await page.locator('form button[type=submit]').click();
+ await page.getByRole('button',{name:'Check / retry save',exact:true}).click();
+ await page.getByText(/Saved match #/).waitFor();
+ await page.getByText(/previous save confirmed/i).waitFor();
+ await page.unroute('**/rest/v1/rpc/rdd_save_match');
+ await page.reload();
+ await page.getByText('Team A: 62.5 3DA',{exact:false}).first().waitFor();
+ await page.getByRole('button',{name:'Edit',exact:true}).first().click();
+ assert.equal(await page.getByLabel('Match format').inputValue(),'2v2');
+ assert.equal(await page.getByLabel('Rule preset').inputValue(),'701-double-v1');
+ assert.equal(await page.getByLabel('Team A score',{exact:true}).inputValue(),'62.5');
+ await page.getByLabel('Game type',{exact:true}).selectOption('Gotcha');
+ await page.getByLabel('Rule preset').selectOption('gotcha-301-return-v1');
+ await page.getByLabel('Team A score',{exact:true}).fill('18');
+ await page.getByRole('button',{name:'Preview correction',exact:true}).click();
+ await page.getByText('No overall rating change.',{exact:false}).waitFor();
+ await page.screenshot({path:'docs/testing/game-modes/correction-mobile.png',fullPage:true});
+ await page.locator('form button[type=submit]').click();
+ await page.getByText(/Saved match #/).waitFor();
+ await page.goto('http://127.0.0.1:3013/stats');
+ await page.getByLabel('Minimum games').selectOption('1');
+ await page.getByLabel('Game type',{exact:true}).selectOption('701');
+ await page.getByLabel('Competition format').selectOption('2v2');
+ await page.getByRole('link',{name:/Demo Ace/}).first().waitFor();
+ await page.getByText('Rating changes explained',{exact:true}).click();
+ assert((await page.locator('main').innerText()).includes('evidence games'));
+ await page.screenshot({path:'docs/testing/game-modes/rankings-mobile.png',fullPage:true});
+ assert(!(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth)),'rankings overflow');
+ await page.goto(`http://127.0.0.1:3013/league-night?night=${demo.nightId}`);
+ await page.getByRole('heading',{name:'Game modes test night',exact:true}).waitFor();
+ await page.getByLabel('Match format').selectOption('3v3');
+ await page.getByRole('button',{name:/Manage attendance/}).click();
+ for(const person of demo.people) {
+  const checkbox=page.locator(`.night-attendance-list input[value="${person.id}"]`);
+  if(!(await checkbox.isChecked())) await checkbox.click();
+  await page.locator(`.night-attendance-list input[value="${person.id}"]:checked`).waitFor();
+ }
+ for(const person of demo.people) await page.locator(`.night-player-pool button[value="${person.id}"]`).click();
+ for(let i=0;i<6;i++) await page.getByLabel(new RegExp(`${demo.people[i].name}.* team`)).selectOption(i<3?'A':'B');
+ await page.getByLabel('Winning team',{exact:true}).selectOption('B');
+ await page.getByLabel('Rule preset').selectOption('501-double-v1');
+ await page.getByLabel('Team B score',{exact:true}).fill((50+Math.random()*10).toFixed(2));
+ await page.screenshot({path:'docs/testing/game-modes/league-night-mobile.png',fullPage:true});
+ assert(!(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth)),'night overflow');
+ await page.getByRole('button',{name:'Save & Rematch',exact:true}).click();
+ await page.getByText(/Saved.*Demo Dee.*Demo Eli.*Demo Fay/).first().waitFor();
+ assert.equal(await page.getByLabel('Match format').inputValue(),'3v3');
+ assert.equal(await page.getByLabel('Team B score',{exact:true}).inputValue(),'');
+ assert.equal(await page.locator('.night-player-pool button[aria-pressed=true]').count(),6);
+ assert.deepEqual(errors,[]);
+ console.log('Browser QA passed: all modes, mobile doubles save/reload/edit, filtered ratings, and League Night team controls.');
+ await browser.close();
+})().catch(e=>{console.error(e);process.exit(1)});

@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { buildNightRecap, scoreSummary } from "./recap";
 import type { NightMatch } from "./types";
+import { defaultConfig, type GameConfig } from "@/lib/games/catalog";
 function match(
   id: number,
   winner = "a",
@@ -33,6 +34,29 @@ function match(
   };
 }
 describe("night recap and earned awards", () => {
+  it.each([
+    { context: "practice" },
+    { handicap: true },
+    { status: "tied" },
+    { status: "abandoned" },
+  ] as Partial<GameConfig>[])("retains valid unrated activity without changing competitive results: %j", (config) => {
+    const history = Array.from({ length: 12 }, (_, i) => match(i + 1, "a", null));
+    const night = [match(13, "b"), match(14, "b"), match(15, "b")];
+    const unrated = match(0, config.status ? "nobody" : "a", "night", {
+      game_config: { ...defaultConfig(), ...config },
+    });
+    unrated.match_players = unrated.match_players!.map((p) => ({ ...p, player_id: p.player_id === "a" ? "c" : "d" }));
+    const invalid = match(16, "nobody");
+    const baseline = buildNightRecap([...history, ...night, invalid], "night");
+    const recap = buildNightRecap([...night, unrated, ...history, invalid], "night");
+    expect(recap.matches.map((m) => m.id)).toEqual([0, 13, 14, 15]);
+    expect(recap.ignored).toBe(1);
+    expect(recap.unrated).toBe(1);
+    expect(recap.incompleteHistory).toBe(1);
+    expect(recap.standings).toEqual(baseline.standings);
+    expect(recap.awards).toEqual(baseline.awards);
+    expect(recap.ratingMoves).toEqual(baseline.ratingMoves);
+  });
   it("labels saved scores without inventing missing values or units", () => {
     expect(scoreSummary(match(1))).toContain("60 3DA");
     const cricket = match(2, "a", "night", { game_type: "Cricket" });

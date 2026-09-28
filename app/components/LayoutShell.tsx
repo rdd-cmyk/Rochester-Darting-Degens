@@ -5,47 +5,55 @@ import Navbar from "./Navbar";
 import SummerOverlay from "./SummerOverlay";
 
 const STORAGE_KEY = "summer-overlay-enabled";
-const SETTING_EVENT = "rdd-summer-setting";
-let fallbackSummerEnabled = true;
-
-function readSummerSetting() {
-  try {
-    const stored = localStorage.getItem(STORAGE_KEY);
-    return stored === null ? fallbackSummerEnabled : stored === "true";
-  } catch { return fallbackSummerEnabled; }
-}
-
-function subscribeSummerSetting(onChange: () => void) {
-  window.addEventListener("storage", onChange);
-  window.addEventListener(SETTING_EVENT, onChange);
+const PREFERENCE_EVENT = "rdd-summer-preference";
+let fallbackSummer = true;
+let unsavedSummer: boolean | undefined;
+function subscribe(callback: () => void) {
+  window.addEventListener("storage", callback);
+  window.addEventListener(PREFERENCE_EVENT, callback);
   return () => {
-    window.removeEventListener("storage", onChange);
-    window.removeEventListener(SETTING_EVENT, onChange);
+    window.removeEventListener("storage", callback);
+    window.removeEventListener(PREFERENCE_EVENT, callback);
   };
 }
-
-// Match the server during hydration, then apply the browser's saved preference.
-const serverSummerSetting = () => true;
+function readPreference() {
+  if (unsavedSummer !== undefined) return unsavedSummer;
+  try {
+    const stored = localStorage.getItem(STORAGE_KEY);
+    return stored === null ? true : stored === "true";
+  } catch {
+    return fallbackSummer;
+  }
+}
+const serverPreference = () => true;
 
 type LayoutShellProps = {
   children: React.ReactNode;
 };
 
 export default function LayoutShell({ children }: LayoutShellProps) {
-  const summerEnabled = useSyncExternalStore(subscribeSummerSetting, readSummerSetting, serverSummerSetting);
+  // The server snapshot also supplies the first hydration render. Reading a
+  // saved Off preference before hydration caused a server/client text mismatch.
+  const summerEnabled = useSyncExternalStore(
+    subscribe,
+    readPreference,
+    serverPreference,
+  );
   function toggleSummer() {
-    fallbackSummerEnabled = !summerEnabled;
-    try { localStorage.setItem(STORAGE_KEY, String(fallbackSummerEnabled)); } catch { /* Keep the switch usable when storage is blocked. */ }
-    window.dispatchEvent(new Event(SETTING_EVENT));
+    fallbackSummer = !summerEnabled;
+    try {
+      localStorage.setItem(STORAGE_KEY, String(fallbackSummer));
+      unsavedSummer = undefined;
+    } catch {
+      unsavedSummer = fallbackSummer;
+    }
+    window.dispatchEvent(new Event(PREFERENCE_EVENT));
   }
 
   return (
     <>
       {summerEnabled && <SummerOverlay />}
-      <Navbar
-        summerEnabled={summerEnabled}
-        onToggleSummer={toggleSummer}
-      />
+      <Navbar summerEnabled={summerEnabled} onToggleSummer={toggleSummer} />
 
       {/* Main page content */}
       <div style={{ flex: 1 }}>{children}</div>

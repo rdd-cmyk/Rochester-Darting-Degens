@@ -34,7 +34,7 @@ SET LOCAL timezone = 'UTC';
 SELECT throws_ok($$SELECT public.rdd_save_match('00000000-0000-4000-8000-000000000001',jsonb_set(pg_temp.payload(),'{notes}','"changed"'))$$,'22023',null,'Same save ID with changed content is rejected');
 SELECT throws_ok($$SELECT public.rdd_save_match('00000000-0000-4000-8000-000000000002',jsonb_set(pg_temp.payload(),'{players,1,player_id}','"AAAAAAAA-0000-4000-8000-000000000001"'))$$,'22023',null,'Alternate UUID spelling cannot duplicate a player');
 SELECT throws_ok($$SELECT public.rdd_save_match('00000000-0000-4000-8000-000000000002',jsonb_set(pg_temp.payload(),'{players,1,is_winner}','true'))$$,'22023',null,'Two winners are rejected');
-SELECT throws_ok($$SELECT public.rdd_save_match('00000000-0000-4000-8000-000000000002',jsonb_set(pg_temp.payload(),'{players,0,score}','168'))$$,'22023',null,'Server score bounds are enforced');
+SELECT throws_ok($$SELECT public.rdd_save_match('00000000-0000-4000-8000-000000000002',jsonb_set(pg_temp.payload(),'{players,0,score}','181'))$$,'22023',null,'Server score bounds are enforced');
 SELECT throws_ok($$INSERT INTO public.matches(game_type) VALUES('501')$$,'42501',null,'Legacy split creates are blocked after enforcement');
 SELECT throws_ok($$UPDATE public.match_players SET score=20$$,'42501',null,'Direct participant writes cannot bypass revisions');
 SELECT set_config('request.jwt.claims','{"role":"authenticated","sub":"bbbbbbbb-0000-4000-8000-000000000002"}',true);

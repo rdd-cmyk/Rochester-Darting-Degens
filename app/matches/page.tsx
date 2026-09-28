@@ -15,6 +15,11 @@ import type { User } from '@supabase/supabase-js';
 import { isDefiniteSaveRejection, parseCricketPoints, parseScore, saveErrorMessage, saveMatch, validateMatchWrite } from '@/lib/league-night/match-write';
 import type { MatchWrite } from '@/lib/league-night/types';
 
+import { loadMatches } from '@/lib/league-night/api';
+import { previewCorrection } from '@/lib/games/correction';
+import { GameOptions, GameResultDetails } from '@/components/GameOptions';
+import { GAME_TYPES, defaultConfig, gameDefinition, gameUnit, hasCricketPoints, isX01, type GameConfig } from '@/lib/games/catalog';
+
 // Simple types
 type Profile = {
   id: string;
@@ -41,6 +46,7 @@ type MatchPlayer = {
 };
 
 type Match = {
+  game_config?: GameConfig | null;
   id: number;
   played_at: string;
   game_type: string | null;
@@ -86,6 +92,9 @@ function MatchesWorkspace({ user }: { user: User }) {
   const [matches, setMatches] = useState<Match[]>([]);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+  const [correction, setCorrection] = useState<ReturnType<typeof previewCorrection> | null>(null);
+  const [correctionKey, setCorrectionKey] = useState('');
+  const [previewing, setPreviewing] = useState(false);
   const [pendingSave, setPendingSave] = useState<{ operationId: string; payload: MatchWrite } | null>(null);
   const [duplicateMatch, setDuplicateMatch] = useState(false);
   const [saveReceipt, setSaveReceipt] = useState('');
@@ -102,6 +111,8 @@ function MatchesWorkspace({ user }: { user: User }) {
     toLocalDateTimeInput(new Date())
   );
   const [gameType, setGameType] = useState('501');
+  const [gameConfig, setGameConfig] = useState<GameConfig | null>(null);
+  const teamGame = Boolean(gameConfig && gameConfig.format !== 'individual');
   const [notes, setNotes] = useState('');
   const [numPlayers, setNumPlayers] = useState(2);
   const [playerEntries, setPlayerEntries] = useState<PlayerEntry[]>([
@@ -124,9 +135,9 @@ function MatchesWorkspace({ user }: { user: User }) {
   const [totalPages, setTotalPages] = useState(1);
   const PAGE_SIZE = 10;
 
-  const isCricket = gameType === 'Cricket';
+  const isCricket = hasCricketPoints(gameType);
   const isOther = gameType === 'Other';
-  const isO1 = gameType === '501' || gameType === '301';
+  const isO1 = isX01(gameType);
 
   const formStyle = {
     display: 'flex',
@@ -197,6 +208,8 @@ function MatchesWorkspace({ user }: { user: User }) {
   }
 
   function handlePlayerChange(index: number, playerId: string) {
+    const previousId=playerEntries[index]?.playerId;
+    if(previousId && previousId!==playerId) {setGameConfig(config=>config ? {...config,sides:Object.fromEntries(Object.entries(config.sides).filter(([id])=>id!==previousId))} : null);if(winnerPlayerId===previousId)setWinnerPlayerId('');}
     setPlayerEntries((prev) => {
       const copy = prev.map((entry) => normalizePlayerEntry(entry));
       if (!copy[index]) copy[index] = createEmptyPlayerEntry();
@@ -266,7 +279,7 @@ function MatchesWorkspace({ user }: { user: User }) {
         `
         id,
         played_at,
-        game_type,
+        game_type, game_config,
         notes,
         board_type,
         venue,
@@ -313,6 +326,7 @@ function MatchesWorkspace({ user }: { user: User }) {
     // Keep the actual entry visible/editable after a definite rejection.
     setPlayedAt(toLocalDateTimeInput(payload.played_at));
     setGameType(payload.game_type ?? '');
+    setGameConfig(payload.game_config ?? null);
     setBoardType(payload.board_type ?? '');
     setVenue(payload.venue ?? '');
     setNotes(payload.notes ?? '');
@@ -392,6 +406,7 @@ function MatchesWorkspace({ user }: { user: User }) {
   function resetForm() {
     setPlayedAt(toLocalDateTimeInput(new Date()));
     setGameType('501');
+    setGameConfig(null);
     setNotes('');
     setNumPlayers(2);
     setPlayerEntries([
@@ -402,9 +417,35 @@ function MatchesWorkspace({ user }: { user: User }) {
     setBoardType('');
     setVenue('');
     setO1StatInputMode('3da');
-    setEditingMatchId(null);
+    setEditingMatchId(null); setCorrection(null); setCorrectionKey('');
     setEditSnapshot(null);
     setRecoveredEntryId(null);
+  }
+
+  function currentPayload(): MatchWrite {
+        const original = editSnapshot;
+        if (editingMatchId && original?.created_by !== user.id) throw new Error('You can only edit matches you created.');
+        const selected = playerEntries.slice(0, numPlayers);
+    return validateMatchWrite({
+          match_id: editingMatchId, expected_revision: original?.revision ?? null,
+          night_id: original?.night_id ?? null,
+          played_at: resolvePlayedAtIso(playedAt, original?.played_at ?? null),
+          game_type: gameType || null, game_config: gameConfig, board_type: boardType || null, venue: venue || null, notes: notes || null,
+          players: selected.map(p => ({ player_id: p.playerId,
+            score: parseScore(p.stat, gameType, o1StatInputMode),
+            points_scored: isCricket ? parseCricketPoints(p.cricketPoints) : null,
+            is_winner: gameConfig?.status && gameConfig.status !== 'completed' ? false : teamGame ? Boolean(gameConfig?.sides[winnerPlayerId] && gameConfig.sides[p.playerId] === gameConfig.sides[winnerPlayerId]) : p.playerId === winnerPlayerId })),
+          allow_duplicate: false,
+        });
+  }
+  async function previewEdit() {
+    setPreviewing(true); setErrorMessage(null); setCorrection(null); setCorrectionKey('');
+    try {
+      const payload=currentPayload();
+      const history=await loadMatches();
+      setCorrection(previewCorrection(history,payload)); setCorrectionKey(JSON.stringify(payload));
+    } catch(error) {setErrorMessage(saveErrorMessage(error));}
+    finally {setPreviewing(false);}
   }
 
   async function handleSaveMatch(e: FormEvent) {
@@ -414,20 +455,9 @@ function MatchesWorkspace({ user }: { user: User }) {
     let pending = pendingSave;
     try {
       if (!pending) {
-        const original = editSnapshot;
-        if (editingMatchId && original?.created_by !== user.id) throw new Error('You can only edit matches you created.');
-        const selected = playerEntries.slice(0, numPlayers);
-        const payload = validateMatchWrite({
-          match_id: editingMatchId, expected_revision: original?.revision ?? null,
-          night_id: original?.night_id ?? null,
-          played_at: resolvePlayedAtIso(playedAt, original?.played_at ?? null),
-          game_type: gameType || null, board_type: boardType || null, venue: venue || null, notes: notes || null,
-          players: selected.map(p => ({ player_id: p.playerId,
-            score: parseScore(p.stat, gameType, o1StatInputMode),
-            points_scored: isCricket ? parseCricketPoints(p.cricketPoints) : null,
-            is_winner: p.playerId === winnerPlayerId })),
-          allow_duplicate: false,
-        });
+        const payload = currentPayload();
+        const originalGame = matches.find(m => m.id === editingMatchId)?.game_type;
+        if (editingMatchId && originalGame !== gameType && correctionKey !== JSON.stringify(payload)) throw new Error('Preview this classification correction before saving.');
         pending = { operationId: crypto.randomUUID(), payload };
       }
       setPendingSave(pending);
@@ -513,6 +543,7 @@ function MatchesWorkspace({ user }: { user: User }) {
     setEditSnapshot({ revision: match.revision, night_id: match.night_id, played_at: match.played_at, created_by: match.created_by });
     setPlayedAt(toLocalDateTimeInput(match.played_at));
     setGameType(match.game_type || '');
+    setGameConfig(match.game_config ?? null);
     setO1StatInputMode('3da');
     setNotes(match.notes || '');
     setBoardType(match.board_type || '');
@@ -685,25 +716,26 @@ function MatchesWorkspace({ user }: { user: User }) {
             <select
               aria-label="Game type"
               value={gameType}
-              onChange={(e) => setGameType(e.target.value)}
+              onChange={(e) => {
+                if (playerEntries.some(p => p.stat || p.cricketPoints) && !window.confirm('Changing game clears scores. Original saved values remain in the correction audit. Continue?')) return;
+                setGameType(e.target.value); setGameConfig({ ...(gameConfig ?? defaultConfig()), preset: 'unspecified', teamScores: {}, finish: 'ordinary' });
+                setPlayerEntries(prev => prev.map(p => ({...p, stat: '', cricketPoints: ''}))); setO1StatInputMode('3da');
+              }}
               style={selectStyle}
             >
-              {!['501','301','Cricket','Other'].includes(gameType) && <option value={gameType} style={optionStyle}>{gameType || 'Unknown recorded format'}</option>}
-              <option value="501" style={optionStyle}>
-                501
-              </option>
-              <option value="301" style={optionStyle}>
-                301
-              </option>
-              <option value="Cricket" style={optionStyle}>
-                Cricket
-              </option>
-              <option value="Other" style={optionStyle}>
-                Other
-              </option>
+              {!GAME_TYPES.includes(gameType) && <option value={gameType}>{gameType || 'Unknown recorded format'}</option>}
+              {GAME_TYPES.map(g => <option key={g} value={g}>{g}</option>)}
             </select>
           </div>
 
+          <GameOptions game={gameType} value={gameConfig} onChange={config => {
+            if (config.format !== (gameConfig?.format ?? 'individual')) {
+              setPlayerEntries(prev => prev.map(p => ({ ...p, stat: '', cricketPoints: '' })));
+              if (config.format !== 'individual') handleNumPlayersChange(config.format === '2v2' ? '4' : '6');
+            }
+            setGameConfig(config);
+          }} players={playerEntries.slice(0,numPlayers).map((p,i) => ({id:p.playerId, name:profiles.find(q => q.id === p.playerId)?.display_name ?? `Player ${i+1}`}))} winner={winnerPlayerId} onWinner={setWinnerPlayerId} />
+          {editingMatchId && <section aria-label="Correction preview"><p>Changing the game clears incompatible scores and keeps their original values in the audit.</p><button type="button" disabled={previewing} onClick={previewEdit}>{previewing ? 'Calculating…' : 'Preview correction'}</button>{correction && <div role="status"><p>{correction.from} → {correction.to}. Affected overall ratings:</p>{correction.changes.length ? <ul>{correction.changes.map(p => <li key={p.id}>{p.name}: {p.before.toFixed(1)} → {p.after.toFixed(1)}</li>)}</ul> : <p>No overall rating change. Discipline views and score groups will be recalculated.</p>}<p>Save changes applies the correction; the original result remains in the audit.</p></div>}</section>}
           {/* Stat entry mode for 01 games */}
           {isO1 && (
             <div style={fieldRowStyle}>
@@ -754,6 +786,7 @@ function MatchesWorkspace({ user }: { user: User }) {
             <span style={labelTextStyle}>Number of players</span>
             <select
               aria-label="Number of players"
+              disabled={teamGame}
               value={numPlayers}
               onChange={(e) => handleNumPlayersChange(e.target.value)}
               style={selectStyle}
@@ -769,13 +802,8 @@ function MatchesWorkspace({ user }: { user: User }) {
           {/* Dynamic players */}
           {playerEntries.slice(0, numPlayers).map((entry, index) => {
             const playerLabel = `Player ${index + 1}`;
-            const statLabel = isCricket
-              ? `${playerLabel} MPR`
-              : isOther
-              ? `${playerLabel} Score`
-              : isO1 && o1StatInputMode === 'ppd'
-              ? `${playerLabel} PPD`
-              : `${playerLabel} 3-Dart Average`;
+            const statLabel = `${playerLabel} ${isO1 && o1StatInputMode === 'ppd' ? 'PPD' : gameUnit(gameType)}`;
+            const allowPersonal = !teamGame || ['3DA','MPR'].includes(gameUnit(gameType));
 
             return (
               <div
@@ -813,13 +841,13 @@ function MatchesWorkspace({ user }: { user: User }) {
                     ))}
                   </select>
                 </div>
-                <div style={{ ...fieldRowStyle, marginTop: '0.25rem' }}>
+                <div hidden={!allowPersonal} style={{ ...fieldRowStyle, marginTop: '0.25rem' }}>
                   <span style={labelTextStyle}>{statLabel}</span>
                   <input
                     aria-label={statLabel}
                     type="number"
-                    step={isOther ? 1 : 0.01}
-                    min={isOther ? 1 : 0}
+                    step={gameDefinition(gameType)?.whole ? 1 : 'any'}
+                    min={0}
                     max={isOther ? 9999 : undefined}
                     value={entry.stat}
                     onChange={(e) => handleStatChange(index, e.target.value)}
@@ -838,10 +866,10 @@ function MatchesWorkspace({ user }: { user: User }) {
                 {isCricket && (
                   <div style={{ ...fieldRowStyle, marginTop: '0.35rem' }}>
                     <span style={labelTextStyle}>
-                      {playerLabel} points scored (optional)
+                      {playerLabel} {gameType === 'Cut-Throat Cricket' ? 'penalty points' : 'points scored'} (optional)
                     </span>
                     <input
-                      aria-label={`${playerLabel} points scored (optional)`}
+                      aria-label={`${playerLabel} ${gameType === 'Cut-Throat Cricket' ? 'penalty points' : 'points scored'} (optional)`}
                       type="number"
                       step={1}
                       min={0}
@@ -860,7 +888,7 @@ function MatchesWorkspace({ user }: { user: User }) {
           })}
 
           {/* Winner selection */}
-          <div style={fieldRowStyle}>
+          <div hidden={teamGame || Boolean(gameConfig && gameConfig.status !== 'completed')} style={fieldRowStyle}>
             <span style={labelTextStyle}>Winner</span>
             <select
               aria-label="Winner"
@@ -998,12 +1026,7 @@ function MatchesWorkspace({ user }: { user: User }) {
               }}
             >
               {matches.map((m) => {
-                const metricLabel =
-                  m.game_type === 'Cricket'
-                    ? 'MPR'
-                    : m.game_type === 'Other'
-                      ? 'Score'
-                      : '3-Dart Avg';
+                const metricLabel = gameUnit(m.game_type);
 
                 const canEdit = m.created_by === user.id;
 
@@ -1030,6 +1053,7 @@ function MatchesWorkspace({ user }: { user: User }) {
                           {m.game_type || 'Unknown game'} –{' '}
                           {new Date(m.played_at).toLocaleString()}
                         </strong>
+                        <GameResultDetails game={m.game_type} config={m.game_config} />
                         {m.notes && <div>Notes: {m.notes}</div>}
                         {m.board_type && <div>Board: {m.board_type}</div>}
                         {m.venue && <div>Venue: {m.venue}</div>}
@@ -1081,10 +1105,10 @@ function MatchesWorkspace({ user }: { user: User }) {
                               )}{' '}
                               – {metricLabel}:{' '}
                               {mp.score != null ? mp.score.toString() : 'Not recorded'}
-                              {m.game_type === 'Cricket' && mp.points_scored != null
-                                ? ` (Points: ${mp.points_scored})`
+                              {(m.game_type === 'Cricket' || m.game_type === 'Cut-Throat Cricket') && mp.points_scored != null
+                                ? ` (${m.game_type === 'Cut-Throat Cricket' ? 'Penalty points' : 'Points'}: ${mp.points_scored})`
                                 : ''}{' '}
-                              {mp.is_winner ? <strong>(winner)</strong> : null}
+                              {m.game_config?.sides[mp.player_id] ? ` · Team ${m.game_config.sides[mp.player_id]}` : ''} {mp.is_winner ? <strong>(winner)</strong> : null}
                             </li>
                           );
                         })}

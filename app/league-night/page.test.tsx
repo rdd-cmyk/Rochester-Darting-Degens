@@ -3,6 +3,7 @@ import { afterEach, beforeEach, expect, it, vi } from "vitest";
 import LeagueNightPage from "./page";
 import { draftKey, freshDraft, nightEntryKey, nightOperationKey, readNightSavedEntries, type StoredDraft } from "@/lib/league-night/draft";
 import type { LeagueNight, MatchWrite, NightMatch } from "@/lib/league-night/types";
+import { defaultConfig } from "@/lib/games/catalog";
 
 const mocks = vi.hoisted(() => ({ save: vi.fn(), matches: vi.fn() }));
 vi.mock("@/lib/supabaseClient", () => ({ supabase: { rpc: vi.fn() } }));
@@ -71,6 +72,29 @@ beforeEach(() => {
   vi.spyOn(window, "confirm").mockReturnValue(true);
 });
 afterEach(() => { vi.restoreAllMocks(); vi.unstubAllEnvs(); });
+
+it.each(["tied", "abandoned"] as const)("starts a completed rematch after recording a %s game", async (status) => {
+  const stored = seed("unrated", "60", null);
+  stored.draft.pending = null;
+  stored.draft.winnerId = "";
+  stored.draft.gameConfig = { ...defaultConfig(), preset: "501-double-v1", status };
+  localStorage.removeItem(nightOperationKey(key, "unrated"));
+  localStorage.setItem(key, JSON.stringify(stored));
+  mocks.save.mockResolvedValue({ status: "saved", match_id: 13, revision: 1, replayed: false });
+  await openRecovery();
+  fireEvent.click(screen.getByRole("button", { name: "Save & Rematch" }));
+  await screen.findByText(/Saved match #13/);
+  expect(mocks.save.mock.calls[0][1].game_config.status).toBe(status);
+  expect(mocks.save.mock.calls[0][1].players.every((p: {is_winner:boolean}) => !p.is_winner)).toBe(true);
+  expect(screen.getByRole("combobox", { name: "Result status" })).toHaveValue("completed");
+  expect(screen.getByRole("combobox", { name: "Rule preset" })).toHaveValue("501-double-v1");
+  expect(screen.getByRole("button", { name: "Save & Rematch" })).toBeDisabled();
+  fireEvent.click(screen.getByRole("button", { name: "ace is the winner" }));
+  fireEvent.click(screen.getByRole("button", { name: "Save & Rematch" }));
+  await waitFor(() => expect(mocks.save).toHaveBeenCalledTimes(2));
+  expect(mocks.save.mock.calls[1][1].game_config.status).toBe("completed");
+  expect(mocks.save.mock.calls[1][1].players.filter((p: {is_winner:boolean}) => p.is_winner)).toHaveLength(1);
+});
 
 it.each(["/league-night", "/league-night?night=night"])("shows cancellation on %s", async (url) => {
   night.planning_status = "cancelled";

@@ -23,6 +23,7 @@
     "invites:setup:local": "node scripts/invites-local.mjs setup",
     "invites:preview:local": "node scripts/invites-local.mjs preview",
     "test:invites:local": "node scripts/qa/invites-integration.mjs",
+    "solo:local": "node scripts/solo-local.mjs",
     "dev": "next dev",
     "dev:local": "node scripts/dev-local.mjs",
     "build:local": "node scripts/dev-local.mjs --build",

@@ -143,7 +143,7 @@ export default function AllProfilesPage() {
               fontWeight: 500,
             }}
           >
-            Go to sign in / sign up
+            Go to sign in
           </Link>
         </p>
       </main>

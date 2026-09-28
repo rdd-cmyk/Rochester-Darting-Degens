@@ -1,5 +1,72 @@
 @import "tailwindcss";
 
+/* League Board: scoped to avoid changing the existing match/statistics surfaces. */
+.board-page { background: var(--stats-page); color: var(--stats-ink); min-height: 75vh; padding: 2.5rem var(--page-padding) 4rem; }
+.board-shell { max-width: 820px; margin: 0 auto; }
+.board-heading { margin-bottom: 1.6rem; }
+.board-heading h1 { font-size: clamp(2rem, 5vw, 2.7rem); line-height: 1.12; letter-spacing: -.04em; font-weight: 750; margin: .35rem 0 .65rem; }
+.board-heading p { color: var(--stats-muted); margin: .6rem 0; }
+.board-eyebrow { color: var(--stats-navy-soft); font-size: .72rem; font-weight: 700; letter-spacing: .09em; text-transform: uppercase; margin-bottom: .75rem; }
+.board-access-label { display: inline-block; color: var(--stats-muted); font-size: .8rem; }
+.board-shell h2, .board-home h2 { font-size: 1.2rem; line-height: 1.4; font-weight: 700; margin: 0 0 .6rem; }
+.board-shell h3 { font-size: 1rem; font-weight: 650; margin: 1rem 0 .5rem; }
+.board-shell p, .board-home p { line-height: 1.6; margin: .6rem 0; }
+.board-panel, .board-post, .board-composer { background: var(--stats-panel); color: var(--stats-ink); border: 1px solid var(--stats-border); border-radius: 12px; padding: 1.25rem; margin: 1rem 0; }
+.board-pinned { border-left: 4px solid var(--stats-orange); }
+.board-pinned .board-eyebrow { margin-bottom: 1rem; }
+.board-shell button, .board-button { display: inline-flex; align-items: center; justify-content: center; gap: .4rem; font: inherit; font-size: .85rem; min-height: 44px; padding: .55rem .85rem; border: 1px solid var(--stats-border); border-radius: 8px; background: var(--stats-panel); color: var(--stats-ink); text-decoration: none; cursor: pointer; }
+.board-shell button:hover, .board-button:hover { background: var(--stats-page); }
+.board-shell button:disabled { cursor: not-allowed; opacity: .55; }
+.board-shell button:focus-visible, .board-shell a:focus-visible, .board-shell summary:focus-visible, .board-home a:focus-visible { outline: 3px solid var(--focus-ring); outline-offset: 3px; }
+.board-shell .board-primary, .board-shell button[aria-pressed="true"], a.board-primary { background: var(--stats-navy); color: #fff3dc; border-color: var(--stats-navy); }
+.board-shell .board-primary:hover { background: #123d73; }
+.board-shell a, .board-home a { color: var(--link-color); text-underline-offset: 3px; }
+.board-shell a.board-primary { color: #fff3dc; }
+.board-actions { display: flex; align-items: center; flex-wrap: wrap; gap: .5rem; }
+.board-composer .board-actions { margin-top: .75rem; }
+.board-shell .board-composer-prompt { width: 100%; text-align: left; justify-content: flex-start; color: var(--stats-muted); padding: .8rem 1rem; }
+.board-shell label { display: block; font-size: .9rem; font-weight: 600; margin: .85rem 0 .35rem; }
+.board-shell textarea { width: 100%; display: block; resize: vertical; min-height: 110px; font-size: 1rem; line-height: 1.6; margin: .35rem 0; padding: .75rem; }
+.board-shell select { margin-left: .75rem; max-width: 100%; font-size: 1rem; }
+.board-small, .board-meta { font-size: .78rem; }
+.board-muted, .board-meta { color: var(--stats-muted); }
+.board-section-heading { display: flex; align-items: center; justify-content: space-between; gap: .75rem; flex-wrap: wrap; margin: 1.8rem 0 .75rem; }
+.board-section-heading h2 { margin: 0; }
+.board-post-header { display: flex; gap: .7rem; align-items: center; margin-bottom: .9rem; }
+.board-post-header > div { min-width: 0; overflow-wrap: anywhere; }
+.board-avatar { display: grid; place-items: center; width: 38px; height: 38px; flex-shrink: 0; border-radius: 50%; background: var(--stats-page); color: var(--stats-ink); font-size: .75rem; font-weight: 700; }
+.board-author { font-weight: 700; }
+.board-meta a { color: inherit; }
+.board-body { white-space: pre-wrap; overflow-wrap: anywhere; }
+.board-post-actions { margin-top: 1rem; }
+.board-tools { margin-top: .65rem; }
+.board-tools summary { cursor: pointer; width: fit-content; min-height: 36px; padding: .4rem .2rem; color: var(--stats-muted); font-size: .8rem; }
+.board-tools .board-actions { margin: .4rem 0; }
+.board-replies { margin-top: 1rem; padding-top: .5rem; border-top: 1px solid var(--stats-border); }
+.board-replies[hidden] { display: none; }
+.board-reply { padding: 1rem 0; border-bottom: 1px solid var(--stats-border); }
+.board-reply-header { display: flex; gap: .5rem; align-items: baseline; flex-wrap: wrap; }
+.board-replies .board-composer { padding: 0; border: 0; margin-top: 1.2rem; }
+.board-error { color: var(--stats-negative); background: var(--stats-page); border-left: 3px solid var(--stats-negative); padding: .75rem 1rem; overflow-wrap: anywhere; }
+.board-empty { padding: 1.2rem .2rem 1.5rem; }
+.board-guideline { color: var(--stats-muted); font-size: .78rem; margin-top: 2rem !important; }
+.board-admin-row { padding: .85rem 0; border-bottom: 1px solid var(--stats-border); overflow-wrap: anywhere; }
+.board-admin-row .board-actions { margin-top: .5rem; }
+.board-load-more { width: 100%; margin-top: 1rem; }
+.board-home { margin: 0; }
+.board-home .board-section-heading { margin-top: 0; }
+.board-home-post { display: block; text-decoration: none; padding: 1rem 0; border-top: 1px solid var(--stats-border); overflow-wrap: anywhere; }
+.board-home-post p { color: var(--stats-ink); }
+.board-back { display: inline-block; margin-bottom: 1rem; }
+@media (max-width: 480px) {
+  .board-page { padding-top: 1.6rem; }
+  .board-panel, .board-post, .board-composer { padding: 1rem; }
+  .board-starters { gap: .4rem; }
+  .board-shell .board-starters button { flex: 1 1 auto; }
+  .board-shell select { display: block; margin: .4rem 0 0; }
+  .board-tools summary { min-height: 44px; }
+}
+
 :root {
   --background: #ffffff;
   --foreground: #171717;

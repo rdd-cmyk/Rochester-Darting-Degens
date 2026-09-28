@@ -7,6 +7,7 @@ import Image from 'next/image';
 import { supabase } from '@/lib/supabaseClient';
 import { formatPlayerName } from '@/lib/playerName';
 import { LinkedPlayerName } from '@/components/LinkedPlayerName';
+import BoardPreview from '@/components/board/BoardPreview';
 import type { User } from '@supabase/supabase-js';
 
 type Profile = {
@@ -1082,6 +1083,7 @@ export default function Home() {
       </section>
 
       {/* Overall W/L Leaderboard */}
+      <BoardPreview />
       <section>
         <h2 className="leaderboard-title">Overall Leaderboard (All Match Types)</h2>
 

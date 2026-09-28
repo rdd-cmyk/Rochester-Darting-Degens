@@ -148,3 +148,68 @@ it.each([
   expect(within(article).getByLabelText('Your reply')).toHaveValue('Keep the precise boundary draft');
   expect(within(article).getByRole('button', { name: 'Cheers · 1 · You' })).toBeVisible();
 });
+
+it.each(['Refresh', 'Load more conversations'])('keeps loaded conversations, a pin and an open draft after a failed %s, then retries', async action => {
+  mocks.access.user = { id: 'member' }; mocks.access.member = { status: 'approved', role: 'member' };
+  const posts = feedPosts(21);
+  const pinned = { ...feedPosts(1)[0], id: 'pinned', body: 'League announcement', pinned: true };
+  mocks.feed.mockImplementation(async ({ before, pinned: pin }: { before?: BoardPost; pinned?: boolean }) =>
+    pin ? [pinned] : posts.slice(before ? posts.findIndex(post => post.id === before.id) + 1 : 0).slice(0, 20).map(post => ({ ...post })));
+  render(<LeagueBoard />);
+  await screen.findByText('Conversation 20');
+  const article = screen.getByText('Conversation 1').closest('article')!;
+  fireEvent.click(within(article).getByRole('button', { name: 'Reply' }));
+  fireEvent.change(within(article).getByLabelText('Your reply'), { target: { value: 'Keep my reply through an outage' } });
+  mocks.feed.mockRejectedValueOnce(new TypeError('Failed to fetch'));
+  fireEvent.click(screen.getByText(action, { selector: 'button' }));
+  await screen.findByRole('alert');
+  expect(screen.getByText('Conversation 20')).toBeVisible();
+  expect(screen.getByText('League announcement')).toBeVisible();
+  expect(within(article).getByLabelText('Your reply')).toHaveValue('Keep my reply through an outage');
+  // A successful retry still replaces stale bodies and removes missing posts.
+  posts.splice(4, 1);
+  posts[0].body = 'Updated conversation after retry';
+  fireEvent.click(screen.getByRole('button', { name: 'Retry conversations' }));
+  expect(await screen.findByText('Updated conversation after retry')).toBeVisible();
+  expect(screen.queryByText('Conversation 5')).not.toBeInTheDocument();
+  expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+  expect(within(article).getByLabelText('Your reply')).toHaveValue('Keep my reply through an outage');
+});
+
+it.each([{ code: '42501' }, { code: 'PGRST301' }, { code: 'PGRST302' }, { code: 'PGRST303' }, { status: 401 }, { status: 403 }])('clears cached conversations and the pin after access error %j', async failure => {
+  mocks.access.user = { id: 'member' }; mocks.access.member = { status: 'approved', role: 'member' };
+  mocks.feed.mockImplementation(async ({ pinned }: { pinned?: boolean }) => pinned ? [{ ...feedPosts(1)[0], id: 'pinned', body: 'Private pin', pinned: true }] : feedPosts(1));
+  render(<LeagueBoard />);
+  await screen.findByText('Conversation 1');
+  mocks.feed.mockRejectedValueOnce(failure);
+  fireEvent.click(screen.getByRole('button', { name: 'Refresh' }));
+  expect(await screen.findByRole('alert')).toHaveTextContent('Your access changed');
+  expect(screen.queryByText('Conversation 1')).not.toBeInTheDocument();
+  expect(screen.queryByText('Private pin')).not.toBeInTheDocument();
+});
+
+it('clears private content when a pinned access denial accompanies a feed network failure', async () => {
+  mocks.access.user = { id: 'member' }; mocks.access.member = { status: 'approved', role: 'member' };
+  mockFeed(feedPosts(1));
+  render(<LeagueBoard />);
+  await screen.findByText('Conversation 1');
+  mocks.feed.mockImplementation(async ({ pinned }: { pinned?: boolean }) => { throw pinned ? { status: 403 } : new TypeError('Failed to fetch'); });
+  fireEvent.click(screen.getByRole('button', { name: 'Refresh' }));
+  expect(await screen.findByRole('alert')).toHaveTextContent('Your access changed');
+  expect(screen.queryByText('Conversation 1')).not.toBeInTheDocument();
+});
+
+it.each(['sign out', 'revoke membership', 'change account'])('clears loaded private content on %s even after a transient read failure', async change => {
+  mocks.access.user = { id: 'member' }; mocks.access.member = { status: 'approved', role: 'member' };
+  mockFeed(feedPosts(1));
+  const { rerender } = render(<LeagueBoard />);
+  await screen.findByText('Conversation 1');
+  mocks.feed.mockRejectedValueOnce(new TypeError('Failed to fetch'));
+  fireEvent.click(screen.getByRole('button', { name: 'Refresh' }));
+  await screen.findByRole('alert');
+  if (change === 'sign out') { mocks.access.user = null; mocks.access.member = null; }
+  else if (change === 'revoke membership') mocks.access.member = { status: 'revoked', role: 'member' };
+  else { mocks.access.user = { id: 'another-member' }; mocks.access.member = { status: 'pending', role: 'member' }; }
+  rerender(<LeagueBoard />);
+  expect(screen.queryByText('Conversation 1')).not.toBeInTheDocument();
+});

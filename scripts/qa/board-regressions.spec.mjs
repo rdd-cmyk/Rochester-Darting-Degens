@@ -194,7 +194,9 @@ test('second-page actions retain an open conversation and draft despite new acti
   posts[39].id = `ffffffff-ffff-4fff-afff-${randomUUID().slice(-12)}`;
   posts[39].last_activity = `${boundarySecond}.123901Z`;
   unwrap(await admin.from('board_posts').insert(posts));
-  await page.getByRole('button', { name: 'Refresh', exact: true }).click();
+  // Start the loaded window after fixtures exist; an in-flight initial read
+  // could otherwise remember an older boundary and refresh through all rows.
+  await page.goto('/board');
   await expect(page.getByText(`${prefix} conversation 20`, { exact: true })).toBeVisible();
   await page.getByRole('button', { name: 'Load more conversations', exact: true }).click();
   const conversation = page.getByRole('article').filter({ has: page.getByText(`${prefix} conversation 40`, { exact: true }) });
@@ -215,6 +217,119 @@ test('second-page actions retain an open conversation and draft despite new acti
   const edited = page.getByRole('article').filter({ has: page.getByText(`${prefix} edited second-page conversation`, { exact: true }) });
   await expect(edited.getByLabel('Your reply', { exact: true })).toHaveValue('Keep this second-page reply draft');
   expect(await page.evaluate(key => sessionStorage.getItem(key), `rdd-board:${user.id}:edit:${posts[39].id}`)).toBeNull();
+});
+
+test('feed outages preserve loaded conversations, the pin and an open draft until retry succeeds', async ({ page }) => {
+  const prefix = `Feed outage ${randomUUID()}`;
+  const timestamp = Date.now() + 60000;
+  const posts = Array.from({ length: 21 }, (_, index) => ({
+    id: randomUUID(), author_id: user.id, body: `${prefix} conversation ${index + 1}`,
+    last_activity: new Date(timestamp - index * 1000).toISOString(),
+  }));
+  unwrap(await admin.from('board_posts').insert(posts));
+  await page.goto('/board');
+  await expect(page.getByText(`${prefix} conversation 20`, { exact: true })).toBeVisible();
+  const pinCount = await page.locator('.board-pinned').count();
+  const conversation = page.getByRole('article').filter({ has: page.locator(`#replies-${posts[0].id}`) });
+  await conversation.getByRole('button', { name: 'Reply', exact: true }).click();
+  await conversation.getByLabel('Your reply', { exact: true }).fill('Draft kept through feed outages');
+  let outage = false;
+  const intercept = route => outage ? route.abort('failed') : route.continue();
+  await page.route('**/rest/v1/rpc/board_feed', intercept);
+  try {
+    for (const action of ['Load more conversations', 'Refresh']) {
+      outage = true;
+      await page.getByRole('button', { name: action, exact: true }).click();
+      await expect(page.getByRole('button', { name: 'Retry conversations', exact: true })).toBeVisible();
+      await expect(page.getByText(`${prefix} conversation 20`, { exact: true })).toBeVisible();
+      await expect(page.locator('.board-pinned')).toHaveCount(pinCount);
+      await expect(conversation.getByLabel('Your reply', { exact: true })).toHaveValue('Draft kept through feed outages');
+      if (action === 'Refresh') {
+        unwrap(await admin.from('board_posts').update({ body: `${prefix} updated conversation` }).eq('id', posts[0].id));
+        unwrap(await admin.from('board_posts').update({ hidden: true }).eq('id', posts[4].id));
+      }
+      outage = false;
+      await page.getByRole('button', { name: 'Retry conversations', exact: true }).click();
+      await expect(page.getByRole('button', { name: 'Retry conversations', exact: true })).toHaveCount(0);
+      await expect(conversation.getByLabel('Your reply', { exact: true })).toHaveValue('Draft kept through feed outages');
+    }
+    await expect(page.getByText(`${prefix} updated conversation`, { exact: true })).toBeVisible();
+    await expect(page.getByText(`${prefix} conversation 5`, { exact: true })).toHaveCount(0);
+  } finally {
+    outage = false;
+    await page.unroute('**/rest/v1/rpc/board_feed', intercept);
+  }
+});
+
+test('reply outages preserve loaded and confirmed recent replies, and retry removes hidden content', async ({ page }) => {
+  const postId = await longConversation(page);
+  await page.getByLabel('Your reply', { exact: true }).fill('Confirmed reply kept through outages');
+  await page.getByRole('button', { name: 'Post reply', exact: true }).click();
+  await expect(page.getByText('Confirmed reply kept through outages', { exact: true })).toBeVisible();
+  const saved = unwrap(await admin.from('board_replies').select('id,body').eq('post_id', postId).eq('body', 'Confirmed reply kept through outages').single());
+  await page.getByLabel('Your reply', { exact: true }).fill('Unfinished next reply during outage');
+  let threadOutage = false;
+  let recentOutage = false;
+  const interceptThread = route => threadOutage ? route.abort('failed') : route.continue();
+  const interceptRecent = route => recentOutage ? route.abort('failed') : route.continue();
+  await page.route('**/rest/v1/rpc/board_thread', interceptThread);
+  await page.route('**/rest/v1/board_replies?*', interceptRecent);
+  try {
+    for (const action of ['load more', 'refresh', 'recent reply read']) {
+      threadOutage = action !== 'recent reply read';
+      recentOutage = action === 'recent reply read';
+      if (action === 'load more') await page.getByRole('button', { name: 'Load more replies', exact: true }).click();
+      else if (action === 'refresh') await page.getByRole('button', { name: /^Cheers/ }).click();
+      else await page.getByRole('button', { name: 'Refresh', exact: true }).click();
+      await expect(page.getByRole('button', { name: 'Retry replies', exact: true })).toBeVisible();
+      await expect(page.getByText('Historical reply 30', { exact: true })).toBeVisible();
+      await expect(page.getByText('Confirmed reply kept through outages', { exact: true })).toBeVisible();
+      await expect(page.getByLabel('Your reply', { exact: true })).toHaveValue('Unfinished next reply during outage');
+      if (action === 'recent reply read') unwrap(await admin.from('board_replies').update({ hidden: true }).eq('id', saved.id));
+      threadOutage = false; recentOutage = false;
+      await page.getByRole('button', { name: 'Retry replies', exact: true }).click();
+      await expect(page.getByRole('button', { name: 'Retry replies', exact: true })).toHaveCount(0);
+      await expect(page.getByText('Historical reply 30', { exact: true })).toBeVisible();
+      await expect(page.getByLabel('Your reply', { exact: true })).toHaveValue('Unfinished next reply during outage');
+    }
+    await expect(page.getByText('Confirmed reply kept through outages', { exact: true })).toHaveCount(0);
+    expect(unwrap(await admin.from('board_replies').select('body,hidden').eq('id', saved.id).single())).toMatchObject({ body: saved.body, hidden: true });
+    unwrap(await admin.from('board_posts').update({ hidden: true }).eq('id', postId));
+    await page.getByRole('button', { name: 'Load more replies', exact: true }).click();
+    await expect(page.getByRole('main').getByRole('alert')).toContainText('no longer available');
+    await expect(page.getByText('Historical reply 30', { exact: true })).toHaveCount(0);
+  } finally {
+    threadOutage = false; recentOutage = false;
+    await page.unroute('**/rest/v1/rpc/board_thread', interceptThread);
+    await page.unroute('**/rest/v1/board_replies?*', interceptRecent);
+  }
+});
+
+test('uncoded HTTP access denials clear cached feed and reply content', async ({ page }) => {
+  const postId = randomUUID();
+  const body = `Private denial regression ${randomUUID()}`;
+  unwrap(await admin.from('board_posts').insert({ id: postId, author_id: user.id, body }));
+  await page.getByRole('button', { name: 'Refresh', exact: true }).click();
+  await expect(page.getByText(body, { exact: true })).toBeVisible();
+  const denyFeed = route => route.request().postDataJSON()?.p_pinned
+    ? route.fulfill({ status: 403, contentType: 'application/json', body: JSON.stringify({ message: 'Regression access denied' }) })
+    : route.abort('failed');
+  await page.route('**/rest/v1/rpc/board_feed', denyFeed);
+  await page.getByRole('button', { name: 'Refresh', exact: true }).click();
+  await expect(page.getByRole('main').getByRole('alert')).toContainText('Your access changed');
+  await expect(page.getByText(body, { exact: true })).toHaveCount(0);
+  await page.unroute('**/rest/v1/rpc/board_feed', denyFeed);
+  await longConversation(page);
+  await page.getByLabel('Your reply', { exact: true }).fill('Private confirmed reply to clear');
+  await page.getByRole('button', { name: 'Post reply', exact: true }).click();
+  await expect(page.getByText('Private confirmed reply to clear', { exact: true })).toBeVisible();
+  const denyReplies = route => route.fulfill({ status: 401, contentType: 'application/json', body: JSON.stringify({ message: 'Regression authentication denied' }) });
+  await page.route('**/rest/v1/rpc/board_thread', denyReplies);
+  await page.getByRole('button', { name: /^Cheers/ }).click();
+  await expect(page.getByRole('main').getByRole('alert')).toContainText('Your access changed');
+  await expect(page.getByText('Historical reply 30', { exact: true })).toHaveCount(0);
+  await expect(page.getByText('Private confirmed reply to clear', { exact: true })).toHaveCount(0);
+  await page.unroute('**/rest/v1/rpc/board_thread', denyReplies);
 });
 
 test('rebased navigation preserves Board, League Night and planning routes on desktop and mobile', async ({ page }) => {

@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { BOARD_PAGE_SIZE, boardError, boardFeed, boardWrite, mergeBoardRows, type BoardPost } from '@/lib/board';
+import { BOARD_PAGE_SIZE, boardError, boardFeed, boardWrite, isBoardReadInvalidation, mergeBoardRows, type BoardPost } from '@/lib/board';
 import { useBoardAccess } from './useBoardAccess';
 import BoardComposer from './BoardComposer';
 import BoardPostCard from './BoardPostCard';
@@ -56,11 +56,18 @@ function BoardFeed({ userId, organizer, postId }: { userId: string; organizer: b
         } while (hasMore && (pages < pageCount || !boundaryReached));
         return { rows, nextCursor, hasMore, pages };
       };
-      const [window, pin] = await Promise.all([
+      const [feedRead, pinRead] = await Promise.allSettled([
         readWindow(),
         !postId && !before ? boardFeed({ pinned: true, limit: 1 }) : Promise.resolve(null),
       ]);
-      if(current !== generation.current || !window) return;
+      if(current !== generation.current) return;
+      // A denied pinned read must not be masked by a concurrent network error.
+      if (pinRead.status === 'rejected' && isBoardReadInvalidation(pinRead.reason)) throw pinRead.reason;
+      if (feedRead.status === 'rejected') throw feedRead.reason;
+      if (pinRead.status === 'rejected') throw pinRead.reason;
+      const window = feedRead.value;
+      const pin = pinRead.value;
+      if (!window) return;
       setError('');
       setPosts(previous => before ? mergeBoardRows(previous, window.rows) : window.rows);
       if (before) { if (window.rows.length) loadedPages.current++; }
@@ -69,7 +76,11 @@ function BoardFeed({ userId, organizer, postId }: { userId: string; organizer: b
       if(pin) setPinned(pin);
       setCursor(window.nextCursor); setMore(window.hasMore);
     } catch (cause) {
-      if(current === generation.current) { setPosts([]); setPinned([]); setError(boardError(cause)); }
+      if(current === generation.current) {
+        // Preserve loaded content unless access or availability is invalidated.
+        if (isBoardReadInvalidation(cause)) { setPosts([]); setPinned([]); }
+        setError(boardError(cause));
+      }
     } finally { if(current === generation.current) setLoading(false); }
   }, [postId]);
   useEffect(() => {
@@ -89,7 +100,7 @@ function BoardFeed({ userId, organizer, postId }: { userId: string; organizer: b
       await boardWrite('create_post', undefined, body, topic, id); refresh();
     }} />}
     <div className="board-section-heading"><h2>{postId ? 'Conversation' : 'League conversations'}</h2><div className="board-actions">{!postId && <span className="board-small board-muted">Latest replies first</span>}<button type="button" disabled={loading} onClick={refresh}>Refresh</button></div></div>
-    {error && <p className="board-error" role="alert">{error}</p>}
+    {error && <p className="board-error" role="alert">{error} <button type="button" disabled={loading} onClick={refresh}>Retry conversations</button></p>}
     {posts.map(post => <BoardPostCard key={post.id} post={post} userId={userId} organizer={organizer} initiallyOpen={!!postId} onChange={refresh} />)}
     {loading && <p role="status" className="board-loading">Loading league conversations…</p>}
     {!loading && !error && !posts.length && <section className="board-empty">

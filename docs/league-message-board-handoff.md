@@ -6,6 +6,9 @@ Date: 2026-09-27; rebased and reverified on 2026-09-28. Branch:
 See [rebase verification](league-message-board-rebase-2026-09-28.md).
 The later PR review and fixes are recorded in
 [PR review verification](league-message-board-review-2026-09-28.md).
+After PR #71 merged, read failure handling was corrected on `board-read-recovery`,
+based on `origin/league-night-mode` at `1213878`. See
+[read recovery verification](league-message-board-read-recovery-2026-09-28.md).
 
 ## Delivered behavior
 
@@ -44,6 +47,12 @@ Feed refreshes also revalidate the previously loaded window and continue
 through its prior boundary when new activity pushes it onto another page.
 Open conversations and unfinished replies remain mounted through reactions
 and edits, while hidden/deleted posts are removed.
+Temporary refresh/pagination failures retain the last loaded conversations,
+pin, replies and recently confirmed contributions. Retry revalidates that
+window and removes hidden/deleted content. Explicit authentication or
+permission failures and unavailable conversations clear the cached content;
+sign-out, account changes and membership revocation still unmount private
+board content.
 
 Board access rechecks on sign-in changes, tab visibility, and every minute.
 Server permissions apply to every request, including direct table/API access.

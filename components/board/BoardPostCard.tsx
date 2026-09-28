@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { boardError, boardName, boardReply, boardThread, boardTopics, boardWrite, mergeBoardRows, REPLY_PAGE_SIZE, type BoardPost, type BoardReply } from '@/lib/board';
+import { boardError, boardName, boardReply, boardThread, boardTopics, boardWrite, isBoardReadInvalidation, mergeBoardRows, REPLY_PAGE_SIZE, type BoardPost, type BoardReply } from '@/lib/board';
 import BoardComposer from './BoardComposer';
 
 function PostDate({ value }: { value: string }) {
@@ -82,7 +82,7 @@ export default function BoardPostCard({ post, userId, organizer, initiallyOpen =
       } while (hasMore && pages < pageCount);
       // A newly saved reply may sit beyond an unopened page. Re-read those IDs
       // independently; simply merging cached rows would retain hidden content.
-      const recent = after ? null : await Promise.all([...recentIds.current].filter(id => !rows.some(row => row.id === id)).map(async id => {
+      const recentReads = after ? null : await Promise.allSettled([...recentIds.current].filter(id => !rows.some(row => row.id === id)).map(async id => {
         try { return await boardReply(id); }
         catch (cause) {
           if ((cause as { code?: string })?.code === 'PGRST116') return null;
@@ -90,6 +90,10 @@ export default function BoardPostCard({ post, userId, organizer, initiallyOpen =
         }
       }));
       if (current !== generation.current) return;
+      const failedRecent = recentReads?.find(result => result.status === 'rejected' && isBoardReadInvalidation(result.reason))
+        ?? recentReads?.find(result => result.status === 'rejected');
+      if (failedRecent?.status === 'rejected') throw failedRecent.reason;
+      const recent = recentReads?.flatMap(result => result.status === 'fulfilled' && result.value ? [result.value] : []) ?? [];
       setError('');
       setReplies(previous => after ? mergeBoardRows(previous, rows).sort((a,b) => a.created_at.localeCompare(b.created_at) || a.id.localeCompare(b.id)) : rows);
       if (after) {
@@ -98,12 +102,18 @@ export default function BoardPostCard({ post, userId, organizer, initiallyOpen =
         rows.forEach(row => recentIds.current.delete(row.id));
       } else {
         loadedPages.current = pages;
-        const visibleRecent = (recent ?? []).filter((row): row is BoardReply => row !== null);
+        const visibleRecent = recent;
         recentIds.current = new Set(visibleRecent.map(row => row.id));
         setRecentReplies(visibleRecent.sort((a,b) => a.created_at.localeCompare(b.created_at) || a.id.localeCompare(b.id)));
       }
       setCursor(nextCursor); setMore(hasMore); setLoaded(true);
-    } catch (cause) { if(current === generation.current) { setReplies([]); setRecentReplies([]); setError(boardError(cause)); } }
+    } catch (cause) {
+      if(current === generation.current) {
+        // Keep confirmed replies through outages, but clear invalidated content.
+        if (isBoardReadInvalidation(cause)) { setReplies([]); setRecentReplies([]); }
+        setError(boardError(cause));
+      }
+    }
     finally { if(current === generation.current) setLoading(false); }
   }, [post.id]);
   useEffect(() => {
@@ -146,7 +156,7 @@ export default function BoardPostCard({ post, userId, organizer, initiallyOpen =
     </div>
     <ContributionTools item={post} kind="post" userId={userId} organizer={organizer} locked={post.locked} onChange={onChange} />
     {message && <p role="status" className="board-small">{message}</p>}
-    {error && <p role="alert" className="board-error">{error} {open && <button type="button" onClick={() => load()}>Retry replies</button>}</p>}
+    {error && <p role="alert" className="board-error">{error} {open && <button type="button" disabled={loading} onClick={() => { setLoading(true); void load(); }}>Retry replies</button>}</p>}
     <section id={`replies-${post.id}`} className="board-replies" hidden={!open} aria-label="Conversation replies">
       <h3>Replies</h3>
       {replies.map(renderReply)}

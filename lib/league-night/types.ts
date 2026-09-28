@@ -11,6 +11,7 @@ export type LeagueNight = {
   night_date: string;
   created_by: string;
   created_at: string;
+  planning_status?: "scheduled" | "cancelled" | null;
 };
 export type Attendee = {
   night_id: string;

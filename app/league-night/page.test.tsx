@@ -62,6 +62,7 @@ async function openRecovery() {
 const scoreInput = () => screen.getAllByRole("textbox", { name: "3DA optional" })[0];
 
 beforeEach(() => {
+  delete night.planning_status;
   vi.resetAllMocks();
   localStorage.clear();
   vi.stubEnv("NEXT_PUBLIC_SUPABASE_URL", "http://127.0.0.1:55421");
@@ -70,6 +71,13 @@ beforeEach(() => {
   vi.spyOn(window, "confirm").mockReturnValue(true);
 });
 afterEach(() => { vi.restoreAllMocks(); vi.unstubAllEnvs(); });
+
+it.each(["/league-night", "/league-night?night=night"])("shows cancellation on %s", async (url) => {
+  night.planning_status = "cancelled";
+  window.history.replaceState({}, "", url);
+  render(<LeagueNightPage />);
+  await screen.findByText(url.includes("?") ? "This league night was cancelled." : "Cancelled");
+});
 
 it("keeps rejected A's corrections recoverable when another pending save B is restored", async () => {
   seed("a", "88.88", 12);

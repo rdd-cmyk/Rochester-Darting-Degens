@@ -13,11 +13,18 @@ export const boardTopics: Record<string, string> = { conversation: 'Conversation
 export function boardName(profile: BoardProfile | null | undefined) {
   return profile ? formatPlayerName(profile.display_name, profile.first_name, profile.include_first_name_in_display) : 'Former player';
 }
+export function isBoardAccessError(error: unknown): boolean {
+  const detail = error as { code?: string; status?: number };
+  return ['42501', 'PGRST301', 'PGRST302', 'PGRST303'].includes(detail?.code ?? '') || detail?.status === 401 || detail?.status === 403;
+}
+export function isBoardReadInvalidation(error: unknown): boolean {
+  return isBoardAccessError(error) || (error as { code?: string })?.code === 'P0002';
+}
 export function boardError(error: unknown): string {
   const detail = error as { code?: string; message?: string };
   if (isBoardRetryConflict(error)) return 'Your earlier attempt was saved with different content. Your revised draft is kept. Open the saved conversation to edit it, or use this draft for a separate contribution.';
   if (['PGRST202', '42P01', 'PGRST205'].includes(detail?.code ?? '')) return 'The League Board is not ready yet. Please try again later.';
-  if (detail?.code === '42501') return 'Your access changed or this conversation is closed. Refresh the board to continue.';
+  if (isBoardAccessError(error)) return 'Your access changed or this conversation is closed. Refresh the board to continue.';
   if (detail?.code === 'P0002') return 'This conversation or contribution is no longer available.';
   if (detail?.code === '23505') return 'This action conflicts with a recent change. Refresh and try again.';
   if (['P0001', '22023'].includes(detail?.code ?? '')) return detail.message || 'Please check your post and try again.';
@@ -27,8 +34,8 @@ export function isBoardRetryConflict(error: unknown): boolean {
   return !!error && typeof error === 'object' && 'code' in error && error.code === 'PT409';
 }
 async function rpc<T>(name: string, args: Record<string, unknown> = {}): Promise<T> {
-  const { data, error } = await supabase.rpc(name, args);
-  if (error) throw error;
+  const { data, error, status } = await supabase.rpc(name, args);
+  if (error) throw { ...error, status };
   return data as T;
 }
 export async function getBoardMember(userId: string): Promise<BoardMember | null> {
@@ -44,10 +51,10 @@ export function boardThread(postId: string, after?: BoardReply) {
   return rpc<BoardReply[]>('board_thread', { p_post: postId, p_after: after?.created_at ?? null, p_after_id: after?.id ?? null, p_limit: REPLY_PAGE_SIZE });
 }
 export async function boardReply(id: string): Promise<BoardReply> {
-  const { data, error } = await supabase.from('board_replies')
+  const { data, error, status } = await supabase.from('board_replies')
     .select('id,post_id,author_id,body,created_at,updated_at,profile:profiles(display_name,first_name,include_first_name_in_display)')
     .eq('id', id).eq('hidden', false).eq('deleted', false).single();
-  if (error) throw error;
+  if (error) throw { ...error, status };
   return { ...data, profile: Array.isArray(data.profile) ? data.profile[0] ?? null : data.profile };
 }
 export const boardAdmin = (offset = 0) => rpc<BoardAdmin>('board_admin', { p_offset: offset });

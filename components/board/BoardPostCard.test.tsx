@@ -56,3 +56,77 @@ it('shows a saved reply beyond unopened pages and removes it if later hidden', a
   await waitFor(() => expect(screen.queryByText('Saved beyond the first page')).not.toBeInTheDocument());
   expect(screen.getByText('Reply number 30')).toBeVisible();
 });
+
+it.each(['refresh', 'load more', 'recent reply read'])('keeps loaded and confirmed recent replies after a failed %s, then revalidates on retry', async action => {
+  const onChange = vi.fn();
+  const { rerender } = render(<BoardPostCard post={post} userId="member" organizer={false} initiallyOpen onChange={onChange} />);
+  await screen.findByText('Reply number 30');
+  fireEvent.change(screen.getByLabelText('Your reply'), { target: { value: 'Confirmed recent reply' } });
+  fireEvent.click(screen.getByRole('button', { name: 'Post reply' }));
+  await waitFor(() => expect(onChange).toHaveBeenCalled());
+  expect(screen.getByText('Confirmed recent reply')).toBeVisible();
+  fireEvent.change(screen.getByLabelText('Your reply'), { target: { value: 'Unfinished next reply' } });
+  if (action === 'recent reply read') mocks.reply.mockRejectedValueOnce(new TypeError('Failed to fetch'));
+  else mocks.thread.mockRejectedValueOnce(new TypeError('Failed to fetch'));
+  if (action === 'load more') fireEvent.click(screen.getByRole('button', { name: 'Load more replies' }));
+  else rerender(<BoardPostCard post={{ ...post, reply_count: 34 }} userId="member" organizer={false} initiallyOpen onChange={onChange} />);
+  await screen.findByRole('alert');
+  expect(screen.getByText('Reply number 30')).toBeVisible();
+  expect(screen.getByText('Confirmed recent reply')).toBeVisible();
+  expect(screen.getByLabelText('Your reply')).toHaveValue('Unfinished next reply');
+  rows = rows.filter(row => row.id !== 'reply-1' && row.body !== 'Confirmed recent reply').map(row => row.id === 'reply-30' ? { ...row, body: 'Updated reply after retry' } : row);
+  fireEvent.click(screen.getByRole('button', { name: 'Retry replies' }));
+  expect(await screen.findByText('Updated reply after retry')).toBeVisible();
+  expect(screen.queryByText('Reply number 1', { exact: true })).not.toBeInTheDocument();
+  expect(screen.queryByText('Confirmed recent reply')).not.toBeInTheDocument();
+  expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+  expect(screen.getByLabelText('Your reply')).toHaveValue('Unfinished next reply');
+});
+
+it.each([{ code: '42501' }, { code: 'PGRST301' }, { code: 'PGRST302' }, { code: 'PGRST303' }, { status: 401 }, { status: 403 }])('clears loaded and recent replies after access error %j', async failure => {
+  const onChange = vi.fn();
+  const { rerender } = render(<BoardPostCard post={post} userId="member" organizer={false} initiallyOpen onChange={onChange} />);
+  await screen.findByText('Reply number 30');
+  fireEvent.change(screen.getByLabelText('Your reply'), { target: { value: 'Confirmed recent reply' } });
+  fireEvent.click(screen.getByRole('button', { name: 'Post reply' }));
+  await waitFor(() => expect(onChange).toHaveBeenCalled());
+  expect(screen.getByText('Confirmed recent reply')).toBeVisible();
+  mocks.thread.mockRejectedValueOnce(failure);
+  rerender(<BoardPostCard post={{ ...post, reply_count: 34 }} userId="member" organizer={false} initiallyOpen onChange={onChange} />);
+  expect(await screen.findByRole('alert')).toHaveTextContent('Your access changed');
+  expect(screen.queryByText('Reply number 30')).not.toBeInTheDocument();
+  expect(screen.queryByText('Confirmed recent reply')).not.toBeInTheDocument();
+});
+
+it('clears replies when concurrent recent reads include an access denial and a network failure', async () => {
+  const onChange = vi.fn();
+  const { rerender } = render(<BoardPostCard post={post} userId="member" organizer={false} initiallyOpen onChange={onChange} />);
+  await screen.findByText('Reply number 30');
+  for (const body of ['First confirmed recent reply', 'Second confirmed recent reply']) {
+    fireEvent.change(screen.getByLabelText('Your reply'), { target: { value: body } });
+    fireEvent.click(screen.getByRole('button', { name: 'Post reply' }));
+    await screen.findByText(body);
+    await waitFor(() => expect(screen.getByLabelText('Your reply')).toBeEnabled());
+  }
+  const firstId = rows.find(row => row.body === 'First confirmed recent reply')!.id;
+  mocks.reply.mockImplementation(async (id: string) => { throw id === firstId ? new TypeError('Failed to fetch') : { status: 403 }; });
+  rerender(<BoardPostCard post={{ ...post, reply_count: 35 }} userId="member" organizer={false} initiallyOpen onChange={onChange} />);
+  expect(await screen.findByRole('alert')).toHaveTextContent('Your access changed');
+  expect(screen.queryByText('Reply number 30')).not.toBeInTheDocument();
+  expect(screen.queryByText('First confirmed recent reply')).not.toBeInTheDocument();
+  expect(screen.queryByText('Second confirmed recent reply')).not.toBeInTheDocument();
+});
+
+it('clears cached replies when the server says the conversation is unavailable', async () => {
+  const onChange = vi.fn();
+  const { rerender } = render(<BoardPostCard post={post} userId="member" organizer={false} initiallyOpen onChange={onChange} />);
+  await screen.findByText('Reply number 30');
+  fireEvent.change(screen.getByLabelText('Your reply'), { target: { value: 'Confirmed recent reply' } });
+  fireEvent.click(screen.getByRole('button', { name: 'Post reply' }));
+  await waitFor(() => expect(onChange).toHaveBeenCalled());
+  mocks.thread.mockRejectedValueOnce({ code: 'P0002' });
+  rerender(<BoardPostCard post={{ ...post, reply_count: 34 }} userId="member" organizer={false} initiallyOpen onChange={onChange} />);
+  expect(await screen.findByRole('alert')).toHaveTextContent('no longer available');
+  expect(screen.queryByText('Reply number 30')).not.toBeInTheDocument();
+  expect(screen.queryByText('Confirmed recent reply')).not.toBeInTheDocument();
+});

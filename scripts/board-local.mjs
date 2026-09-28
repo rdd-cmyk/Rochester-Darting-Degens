@@ -1,7 +1,10 @@
 import { execFileSync, spawnSync } from 'node:child_process';
 import { readFileSync, readdirSync } from 'node:fs';
 import path from 'node:path';
-import { docker, dockerHost, localDockerEnv, localStatus, projectId, root } from './local-environment.mjs';
+// Board QA owns the original loopback stack. An inherited League Night/planning
+// selection must never install the board fixture into those separate databases.
+delete process.env.RDD_LOCAL_STACK;
+const { docker, dockerHost, localDockerEnv, localStatus, projectId, root } = await import('./local-environment.mjs');
 
 // Only the inspected loopback stack is accepted. No hosted connection option.
 const mode = process.argv[2];

@@ -1,6 +1,9 @@
 # League Board local handoff
 
-Date: 2026-09-27. Branch: `league-message-board`, based on `690a01b`.
+Date: 2026-09-27; rebased and reverified on 2026-09-28. Branch:
+`league-message-board`, originally based on `690a01b`, now based on
+`origin/league-night-mode` at `6b11f7d`. The combined parent includes Plan & RSVP.
+See [rebase verification](league-message-board-rebase-2026-09-28.md).
 
 ## Delivered behavior
 
@@ -64,6 +67,19 @@ The board test runner mounts the SQL tests read-only and runs pgTAP through the
 inspected database container's network namespace at `127.0.0.1:5432`. This avoids
 the CLI helper's shared `db` alias when another Supabase stack uses the same
 Docker network. It does not change either stack's network configuration.
+Board setup, preview and browser QA ignore an inherited `RDD_LOCAL_STACK`
+selection in their own processes and always use the original board stack.
+
+To rehearse the board alongside the parent League Night and planning SQL:
+
+```powershell
+node scripts/rehearse-board.mjs
+```
+
+This creates a new local database from Auth DDL and the legacy baseline, applies
+all three additive features, and runs their transactional test suites. It retains
+the rehearsal database for inspection and does not refresh any development
+functions or change existing demo records.
 
 The browser acceptance test uses the installed Playwright runtime:
 
@@ -116,7 +132,8 @@ schema and records intact while the feature is investigated.
 ## Verification
 
 - Trusted lockfile install completed; no dependency versions changed.
-- Application suite and configured coverage gate passed: 207 tests.
+- Initial application suite and configured coverage gate passed: 207 tests on
+  2026-09-27. The combined rebased suite passes 281 tests on 2026-09-28.
 - ESLint and TypeScript checks passed.
 - Local-target production build passed with `/board` and `/board/[id]`.
 - All 60 local board database checks passed, covering policy, ownership,
@@ -136,6 +153,11 @@ schema and records intact while the feature is investigated.
 - Independent source re-review found all three reported defects resolved and no
   additional actionable findings. The existing local database received only a
   backed-up replacement of `board_write`; its tables and demo data were preserved.
+- Post-rebase verification on 2026-09-28 passes the trusted install, combined
+  tests/coverage, lint, typecheck, standard and local production builds, 181 fresh
+  combined database checks, 60 existing-board database checks, and four browser
+  regression/navigation checks. Independent integration review found no
+  actionable issues. The Board and parent organizer authorities stay separate.
 
 All evidence is local. No hosted schema, hosted auth/RLS, deployed application,
 production data, or publication is claimed verified.

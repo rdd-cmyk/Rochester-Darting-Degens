@@ -1,6 +1,7 @@
 import { execFileSync, spawn } from 'node:child_process';
 import path from 'node:path';
-import { localStatus, root } from '../local-environment.mjs';
+delete process.env.RDD_LOCAL_STACK;
+const { localStatus, root } = await import('../local-environment.mjs');
 
 const status = localStatus();
 // Always rebuild with the guarded local environment; never serve a bundle that

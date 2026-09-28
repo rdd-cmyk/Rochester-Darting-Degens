@@ -2,7 +2,8 @@ import { createRequire } from 'node:module';
 import { randomUUID } from 'node:crypto';
 import path from 'node:path';
 import { createClient } from '@supabase/supabase-js';
-import { localStatus } from '../local-environment.mjs';
+delete process.env.RDD_LOCAL_STACK;
+const { localStatus } = await import('../local-environment.mjs');
 
 const require = createRequire(import.meta.url);
 if (!process.env.RDD_PLAYWRIGHT_ROOT) throw new Error('Set RDD_PLAYWRIGHT_ROOT to the installed Playwright package directory.');
@@ -131,4 +132,24 @@ test('organizers can hide a recent reply beyond unopened pages', async ({ page }
   await expect(page.getByRole('button', { name: 'Load more replies' })).toBeVisible();
   const hidden = unwrap(await admin.from('board_replies').select('hidden').eq('post_id', postId).eq('body', 'Recent reply to hide').single());
   expect(hidden.hidden).toBe(true);
+});
+
+test('rebased navigation preserves Board, League Night and planning routes on desktop and mobile', async ({ page }) => {
+  const nav = page.getByRole('navigation');
+  for (const width of [1366, 375]) {
+    await page.setViewportSize({ width, height: 1000 });
+    if (width < 640) await nav.getByRole('button', { name: '☰ Menu', exact: true }).click();
+    await expect(nav.getByRole('link', { name: 'League Board', exact: true })).toBeVisible();
+    await nav.getByRole('link', { name: 'League Night', exact: true }).click();
+    await expect(page).toHaveURL(/\/league-night$/);
+    await expect(page.getByRole('heading', { name: 'Good darts. Better company.', exact: true })).toBeVisible();
+    await page.getByRole('link', { name: 'Plan & RSVP →', exact: true }).click();
+    await expect(page).toHaveURL(/\/league-night\/plan$/);
+    await expect(page.getByRole('heading', { name: 'Make the next night happen.', exact: true })).toBeVisible();
+    if (width < 640) await nav.getByRole('button', { name: '☰ Menu', exact: true }).click();
+    await nav.getByRole('link', { name: 'League Board', exact: true }).click();
+    await expect(page).toHaveURL(/\/board$/);
+    await expect(page.getByRole('heading', { name: 'League Board', exact: true })).toBeVisible();
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
+  }
 });

@@ -1,7 +1,8 @@
 import { createRequire } from 'node:module';
 import path from 'node:path';
 import { createClient } from '@supabase/supabase-js';
-import { localStatus, root } from '../local-environment.mjs';
+delete process.env.RDD_LOCAL_STACK;
+const { localStatus, root } = await import('../local-environment.mjs');
 
 const require=createRequire(import.meta.url);
 if(!process.env.RDD_PLAYWRIGHT_ROOT) throw new Error('Set RDD_PLAYWRIGHT_ROOT to the installed Playwright package directory.');

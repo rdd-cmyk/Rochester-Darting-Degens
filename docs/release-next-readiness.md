@@ -2,7 +2,7 @@
 
 Updated: 2026-09-29. Status: W0 complete and manifest refreshed; W1 read-only
 assessment complete, Vercel access resolved, isolated-preview gate passed;
-W2-W8 implementation and release gates open.
+W2 statistics foundation passed locally; W3-W8 release gates open.
 
 ## Candidate and scope
 
@@ -70,7 +70,8 @@ publication and later-package work are separate actions.
 
 The [2026-09-29 W0 manifest](release/w0-candidate-2026-09-29.json) now identifies
 combined source `51cc3c3`, 40 commits / 375 paths versus main and ten SQL inputs.
-Remote release remains `42df060`; the combined source is unpublished. The
+At that original snapshot, remote release was `42df060` and the combined source
+was unpublished; W1 later published it as recorded below. The
 [W1 completion record](release/w1-completion-2026-09-29.md) and
 [fresh facts](release/w1-environment-facts-2026-09-29.json) resolve Vercel access,
 production/build controls and the earlier targets. The owner subsequently
@@ -98,7 +99,7 @@ up independent local preparation while a hosted decision remains outstanding.
 | --- | --- | --- | --- |
 | W0: Scope and candidate | This plan, feature/SQL inventory and an initial candidate SHA. Keep subsequent fixes scoped on `release/next`. | Future stats storage included; no new stats UI. | Passed; refreshed 2026-09-29 for UI/Rivalry. [Completion evidence](release/w0-scope-and-candidate.md) and [current source manifest](release/w0-candidate-2026-09-29.json); initial snapshot preserved. |
 | W1: Refresh environment facts | Read-only hosted/schema/Auth/integration assessment and differences from checked-in assumptions; target map and migration-history proposal. See section 1. | Every intended app/DB target is identified; drift, automatic deployment paths and baseline adoption are understood. The original isolated-preview prerequisite must pass before hosted testing. | **Passed 2026-09-29.** Assessment, target selection, scope split and exact combined Preview isolation verified. Browser/server credentials use RDD Release Testing; GitHub CI/Vercel pass. See [completion evidence](release/w1-preview-gate-2026-09-29.md). Hosted schema/gameplay/email and later release gates remain open. |
-| W2: Finish statistics foundation | Update SQL, permissions, view and tests as specified in section 1A; document final defaults and dependency order. | Independent source review resolved; focused local checks pass; no new feature surface. | Planned. |
+| W2: Finish statistics foundation | Update SQL, permissions, view and tests as specified in section 1A; document final defaults and dependency order. | Independent source review resolved; focused local checks pass; no new feature surface. | **Passed locally 2026-09-29.** Member-only final view, unknown historical provenance/timestamps, optional measurements, dependency order, validation/conflict/lock handling and recorder preservation verified. Independent review resolved. [Completion evidence](release/w2-statistics-foundation-2026-09-29.md). No hosted SQL or new statistics UI. |
 | W3: Combined synthetic release | Dedicated isolated stack, repeatable full-chain upgrade, preservation checks, all application/DB/API/browser gates, and verified fixes. See sections 2 and 4. | Final combined candidate passes; legacy/new-client behavior and failure recovery are demonstrated. | Prior feature evidence only; release pass pending. |
 | W4: Backup and restore proof | Concrete export/handling proposal, owner decision, protected backup manifest, isolated restore and integrity/timing report. See section 3. | Complete recoverable backup demonstrated within agreed recovery limits. | Pending. |
 | W5: Production-shaped dress rehearsal | Run the exact release manifest and account-transition process on the protected restored copy; exercise rollback and compare original records. See section 4. | SQL hashes/order, preservation, migration-history adoption, interruption recovery and compatible rollback all pass. | Pending. |
@@ -132,16 +133,19 @@ hashes, preconditions, postconditions and recovery actions before execution.
 
 | Source | Purpose and release dependency |
 | --- | --- |
-| `supabase/tests/fixtures/advanced_statistics_foundation.sql` | Include and modernize the future statistics foundation per the owner's scope decision. Invitation SQL requires `public.seasons`. Install required storage before invitations; finalize a game-aware view only after `game_config` exists. Remove the temporary public-season access assumption. Exact SQL and hosted application remain review-gated. |
+| `supabase/tests/fixtures/advanced_statistics_foundation.sql` | W2 storage preparation: unknown historical provenance/modification time, optional measurements, closed seasons and compatibility view. Install before invitations. No season seeded. Refuses the older experimental foundation pending reconciliation. |
 | `supabase/pending/league_night.sql` | Nights, attendance, revisions and atomic match save/replay; precedes planning and game modes. |
 | `supabase/tests/fixtures/league_planning.sql` | Polls, votes, schedules, RSVPs and private organizer authority; requires League Night. Current source includes `published_at`. |
 | `supabase/tests/fixtures/league_board.sql` | Board content, approval, moderation and RPCs; precedes parent admission wrappers. |
 | `supabase/tests/fixtures/invite_only_registration.sql` | Invitation service, `league_members` and restrictive base-table policies; requires the reviewed statistics dependency. Does not admit existing users automatically. |
 | `supabase/tests/fixtures/invite_parent_admission.sql` | Admission wrappers around existing League Night/planning/Board RPCs and additional restrictive policies. Requires those parent functions and invitation schema. |
 | `supabase/tests/fixtures/game_modes.sql` | `game_config`, presets, audited corrections and replacement save implementation. Preserves an installed invitation wrapper in one transaction; test the private implementation grants and public wrapper after installation. New-mode writes default to disabled. |
+| `supabase/tests/fixtures/advanced_statistics_final.sql` | W2 final caller-permission view and member-only season reads; after invitation admission and game modes. Includes complete game/team context and all optional measurements; no current site consumer. |
 | `supabase/tests/fixtures/solo_play.sql` | Private solo sessions/games/preferences, operation records, consented projections and membership checks. Requires the combined parent/game-mode contract. |
 | `supabase/tests/fixtures/rivalry_room.sql` | Private avatar catalog/selections, challenge terms, game links, audit events and replay receipts; requires profiles, League Night/planning, invitation admission and the final game-mode save implementation. Installs an outer `rdd_save_match` wrapper for atomic challenge linking; test ordinary/team saving and admission through the entire wrapper chain. Solo does not replace that RPC and may precede this input. |
 | `supabase/pending/league_night_enforce.sql` | Revokes direct split match/participant writes. Separate cutover step after the compatible application works and legacy writes are drained. |
+| `supabase/tests/fixtures/advanced_statistics_profile.sql` | W2 read-only actual-CHECK conflict counts; inspect before validation. Does not repair or expose conflicting real rows in tracked output. |
+| `supabase/tests/fixtures/advanced_statistics_validate.sql` | W2 separate atomic constraint validation with bounded lock/statement timeouts. Promote only after profiling and representative rehearsal; not an automatic installation step. |
 
 Exclude `existing_schema_baseline.sql` and synthetic seeds from production: the
 existing tables are already present. Exclude `game_modes_local_enable.sql`: it
@@ -194,25 +198,27 @@ to silence a warning. A deployment dry run must list only the approved changes.
 ## 1A. Finish future statistics storage without adding site features
 
 The older foundation and its 25 database/7 preservation checks were written
-before the combined admission, team-game and RPC-only saving contracts. They
-need integration work; their historical passing result is not a release pass.
+before the combined admission, team-game and RPC-only saving contracts. W2's
+integration is now locally complete; their historical passing result is not a release pass.
 Use the existing fixture as the starting point, keeping deployment SQL deferred.
+Checked items below mean source/focused synthetic acceptance, not real-data or
+hosted acceptance. W3/W5 must repeat the contract on their approved targets.
 
 ### Storage and historical meaning
 
-- [ ] Retain optional season linkage, detail/source metadata, best-of format,
+- [x] Retain optional season linkage, detail/source metadata, best-of format,
   updated timestamp, raw scoring denominators/totals, checkout/First 9 counts,
   achievements, throw order and legs fields after reviewing their definitions.
   Keep unknown measurements null and do not populate old rows from averages.
-- [ ] Record defaults and backfill behavior field by field. In particular, verify
+- [x] Record defaults and backfill behavior field by field. In particular, verify
   that `entry_source='manual'` is justified for the historical records before
   assigning it; otherwise define an explicit unknown/legacy representation and
   update the constraint/tests. Do not fabricate a historical modification time
   from migration time; document or revise `updated_at` initialization semantics.
-- [ ] Keep seasons empty and old `season_id` values null unless a separate,
+- [x] Keep seasons empty and old `season_id` values null unless a separate,
   evidence-backed assignment is authorized. No initial season names, dates,
   historical reassignment or rating-reset decision is needed for storage alone.
-- [ ] Preserve the existing league save API's scope: it does not accept the
+- [x] Preserve the existing league save API's scope: it does not accept the
   future enhanced fields. Demonstrate that current valid saves, retries and
   corrections still work and retained participant rows preserve unrelated values.
   Document limits when a participant is removed or rules change; do not promise
@@ -220,48 +226,52 @@ Use the existing fixture as the starting point, keeping deployment SQL deferred.
 
 ### Permissions and view compatibility
 
-- [ ] Replace the old public-season access assumption with the final members-only
+- [x] Replace the old public-season access assumption with the final members-only
   contract, including the period before invitation policies are installed.
   Ordinary clients must not gain season administration rights. Choose explicit
   grants, safe default privileges and a tested installation order; fail closed
   until the admission dependency is ready.
-- [ ] Keep `stats_match_facts` under caller permissions and test it with populated
+- [x] Keep `stats_match_facts` under caller permissions and test it with populated
   data for anonymous, provisional, active and revoked identities. Minimize grants
   and profile fields; the view must not bypass base-table admission/privacy rules.
-- [ ] Include game configuration needed to distinguish teams, presets, practice,
+- [x] Include game configuration needed to distinguish teams, presets, practice,
   handicap and completion status before the view becomes usable for future
   calculations. Keep a documented row meaning (one participant record) and
   avoid duplicating team totals as individual evidence. Do not connect the site
   to this view or change its calculation definitions in this package.
-- [ ] Split storage preparation from final view creation if needed: `game_config`
+- [x] Split storage preparation from final view creation if needed: `game_config`
   is created by the later game-mode SQL. Record this ordering in the release
   manifest and cover both fresh install and upgrade. Do not create a circular
   dependency between foundation, invitations and game modes.
 
 ### Validation and acceptance
 
-- [ ] Review all ranges and relationships against the supported game/rule
+- [x] Review all ranges and relationships against the supported game/rule
   definitions, including checkout limits and individual-versus-team attribution.
   Retain only constraints that express an agreed storage contract; do not infer
   scoring rules from an unspecified historical preset.
-- [ ] Inspect the `NOT VALID` constraints deliberately: profile existing values,
+- [x] Inspect the `NOT VALID` constraints deliberately: profile existing values,
   define treatment of any conflicts, and rehearse validation/locking. Do not
   treat migration success as proof that historical rows have been validated.
-- [ ] Check the timestamp trigger with match/participant revision triggers and
+- [x] Check the timestamp trigger with match/participant revision triggers and
   the atomic save/correction path. Verify the final replay receipt revision and
   unchanged pre-existing data through the complete upgrade.
-- [ ] Retain stage-specific tests for the older foundation where useful, but add
+- [x] Retain stage-specific tests for the older foundation where useful, but add
   final-state tests. Public-season reads and direct match-table updates must no
   longer be required to pass after membership/RPC-only enforcement is installed.
-- [ ] Seed future fields only with fictional values in tests. Verify null/default
+- [x] Seed future fields only with fictional values in tests. Verify null/default
   behavior, invalid values, view context, client write denial, owner/nonowner
   permissions, preservation and future-field isolation from current statistics.
-- [ ] Complete independent review, resolve verified findings, run focused SQL
-  checks, and include the result in W3/W5 whole-release rehearsals.
+- [x] Complete independent review, resolve verified findings, run focused SQL
+  checks, and hand off the ordered inputs/results for W3/W5 whole-release rehearsals.
 
 W2 is complete when this future storage is coherent and tested under the new
 release's rules. It does not require any richer league-stat entry, new charts,
 season-management page, import integration or change to existing Solo metrics.
+
+Completed locally 2026-09-29: all section 1A W2 items passed in the focused
+synthetic scope. See the [field contracts, source order, review and test evidence](release/w2-statistics-foundation-2026-09-29.md).
+Hosted conflicts/volume/locking and full release behavior remain W3/W5 gates.
 
 ## 2. Run the complete application and security checks locally
 
@@ -489,8 +499,8 @@ saving. Prefer a reviewed forward repair when it preserves new records safely.
 
 ## Immediate next work
 
-W0's expanded manifest and W1's assessment/isolation gate are finished. Begin W2:
-modernize the statistics foundation under the confirmed storage-only scope.
+W0, W1 and local W2 preparation are finished. Begin W3: build the dedicated
+combined synthetic release harness using W2's ordered inputs and acceptance limits.
 W1's isolated Preview is available; prepare the reviewed schema and controlled
 Auth/email configuration before any hosted W6 tests. Build the
 dedicated combined synthetic harness in W3 and take preservation snapshots before

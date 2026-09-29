@@ -274,6 +274,15 @@ it superseded or retired and point to the replacement.
   deployment; refresh the snapshot and approve reconciliation separately.
 - **Related:** supersedes RDD-INFO-010; RDD-INFO-003 remains in force.
 
+W2 follow-up, 2026-09-29: the future statistics storage is now locally verified
+under final member admission and RPC-only permissions, with truthful unknown
+legacy provenance/modification time and a game-aware caller-permission view.
+The new final/profile/validate fixtures remain deferred. Independent review and
+synthetic fresh/upgrade/conflict/refusal checks passed; hosted baseline/history,
+backup/restore and representative timing remain release gates. See the
+[W2 contracts and evidence](release/w2-statistics-foundation-2026-09-29.md).
+The earlier 25/7-assertion results above remain historical, not the new test counts.
+
 ### RDD-INFO-012 — Desktop port proxy needs its own localhost default
 
 - **Status:** active

@@ -1,0 +1,183 @@
+{
+  "package": "W2",
+  "status": "passed_local",
+  "implementation_sha": "6019d7b46c65a43c7f8f70cb74f49b987bd17a2d",
+  "base_sha": "9c582fa35cb03f644c0a8eb22e2a5cc59922b00f",
+  "branch": "release/next",
+  "publication": "local commits only; no push",
+  "date": "2026-09-29T15:40:03.988Z",
+  "project": "rdd-w2-statistics",
+  "api": "http://127.0.0.1:56821",
+  "scope": "local synthetic SQL only",
+  "sql": [
+    {
+      "file": "supabase/tests/fixtures/advanced_statistics_foundation.sql",
+      "sha256": "9e7c5c72ff67a7360771537121056fcde4e664d065697f9af6b6ee9395709d6e",
+      "repository_lf_sha256": "b94636f673f8e9902f80aa96f78200b617623480aef081316c2b589d0e6aa4d0"
+    },
+    {
+      "file": "supabase/pending/league_night.sql",
+      "sha256": "e94ba4bd37b11f76fc1486c4b4c498bee2feab84e303cbdbe2bd134e7790fc82",
+      "repository_lf_sha256": "e94ba4bd37b11f76fc1486c4b4c498bee2feab84e303cbdbe2bd134e7790fc82"
+    },
+    {
+      "file": "supabase/tests/fixtures/league_planning.sql",
+      "sha256": "7e55641326c886f5f904b2fe6cc0e572cdeab91116fa72d47e2bb28c4762af7c",
+      "repository_lf_sha256": "66aa6d8b5b6877a06db7b9e83b9376bd3382011ecda04d52db88541651d9441f"
+    },
+    {
+      "file": "supabase/tests/fixtures/league_board.sql",
+      "sha256": "e98ab0c142e216061e39270c307073e75a7b44b3d6fcfcb6069a8e1249f2f90b",
+      "repository_lf_sha256": "73a86c6997bece0af6d9f874aa53ba6f787a104ce804f5e9cc35ab46727d0fc4"
+    },
+    {
+      "file": "supabase/tests/fixtures/invite_only_registration.sql",
+      "sha256": "8cb57f3db7d69ee43384ab9481284ab6aa520b7396f7cf8e841e2b94f50fe2bb",
+      "repository_lf_sha256": "f812179eabd8245ecf0598298a3e9cea5233fe1ec917aef10ef31b179e360f25"
+    },
+    {
+      "file": "supabase/tests/fixtures/invite_parent_admission.sql",
+      "sha256": "2213bac51479eff1a2b25c6076eba990fbc4890bf2d6d68b16ef4b5da0774843",
+      "repository_lf_sha256": "93923f653aeed189070c08e3375132c841620092bbcb121fbd074ceb01636794"
+    },
+    {
+      "file": "supabase/tests/fixtures/game_modes.sql",
+      "sha256": "07d9737d7d37d22e24b63982be596666a325b3905de70bfe9d1a6484c4e5a124",
+      "repository_lf_sha256": "4dc9333cd92cd3061a88cda970e8d8c043617e7db4d781f9e4926953d79d0bea"
+    },
+    {
+      "file": "supabase/tests/fixtures/advanced_statistics_final.sql",
+      "sha256": "47debada4f2cfa25bda32c1d63e8ce5ae1ac5db4bae88247f2784fdd1f3f6a23",
+      "repository_lf_sha256": "47debada4f2cfa25bda32c1d63e8ce5ae1ac5db4bae88247f2784fdd1f3f6a23"
+    },
+    {
+      "file": "supabase/tests/fixtures/solo_play.sql",
+      "sha256": "e142c0855f7005283dee44f5616bd3cb59465000293423e8ffd841c77db8b408",
+      "repository_lf_sha256": "74ca8a4a0b1421c09e461cc0414798a53260ae543da8380d2c081df3ade82f10"
+    },
+    {
+      "file": "supabase/tests/fixtures/rivalry_room.sql",
+      "sha256": "198968ad84e4cf00dcaa1cfd5fc20012aee9e19a702698093f0bc15d092244dd",
+      "repository_lf_sha256": "4640de1b46210adf05e7f2d99676666a85a07327b14dbc4b53db8b4641a34853"
+    },
+    {
+      "file": "supabase/pending/league_night_enforce.sql",
+      "sha256": "b162ee8ecfafce0ff83d9fc242791b14c1ed7d45331bade935e2918e6c01ed81",
+      "repository_lf_sha256": "b162ee8ecfafce0ff83d9fc242791b14c1ed7d45331bade935e2918e6c01ed81"
+    },
+    {
+      "file": "supabase/tests/fixtures/advanced_statistics_profile.sql",
+      "sha256": "b89c0aa36d58bc595e8c57be407e785108a3c29cc0fba557e66a368274121e64",
+      "repository_lf_sha256": "b89c0aa36d58bc595e8c57be407e785108a3c29cc0fba557e66a368274121e64"
+    },
+    {
+      "file": "supabase/tests/fixtures/advanced_statistics_validate.sql",
+      "sha256": "2a5aa883550899aee51d9e26ee5029b06bca2f6c961736c0c29ca72ee096cb05",
+      "repository_lf_sha256": "2a5aa883550899aee51d9e26ee5029b06bca2f6c961736c0c29ca72ee096cb05"
+    }
+  ],
+  "sourceFiles": [
+    {
+      "file": "scripts/rehearse-statistics.mjs",
+      "repository_lf_sha256": "0d1fac71b06573c9cea2475605c21c8d6a65dd1e336d095fe9a10b94f5df68be"
+    },
+    {
+      "file": "scripts/rehearse-solo.mjs",
+      "repository_lf_sha256": "98adc336ab843f171a3a49bbb8d0200fc9ecf47a1f75d488c065048ee6678085"
+    },
+    {
+      "file": "scripts/qa/invites-integration.mjs",
+      "repository_lf_sha256": "c7c3f701e84e09fdbbccaf3721176db42e09636630d1f2b4f0f5087f3cd56cd3"
+    },
+    {
+      "file": "lib/stats/engine.test.ts",
+      "repository_lf_sha256": "03567e7af13a6e0a7ba7274fff1a3202166591a205d7cfdbc2df7da54ea84d9a"
+    },
+    {
+      "file": "supabase/tests/database/statistics_foundation.test.sql",
+      "repository_lf_sha256": "25d7d3d3a59d21496382dde2d6c01a9b03e074f2f72bed13056e0d90e2f34b80"
+    },
+    {
+      "file": "supabase/tests/statistics/final.test.sql",
+      "repository_lf_sha256": "7b1958f09046c806c7d159175ed1a56dd3ea3dfeccca08dfbdd553c17a6fe4ab"
+    },
+    {
+      "file": "supabase/tests/rehearsal/legacy-preservation.test.sql",
+      "repository_lf_sha256": "46029e0d35e8a73e979f119af5729fe1bd75f68257b886552b7ca0878dcadaaf"
+    }
+  ],
+  "hashContract": "sha256 identifies executed checkout bytes; repository_lf_sha256 identifies Git-normalized source independent of checkout CRLF",
+  "runs": [
+    {
+      "mode": "fresh",
+      "database": "rdd_w2_fresh_1790696405559",
+      "stage": 26,
+      "final": 69,
+      "preservation": 0,
+      "validationMs": 220,
+      "validated": 4,
+      "lockTimeoutVerified": false
+    },
+    {
+      "mode": "legacy",
+      "database": "rdd_w2_legacy_1790696409029",
+      "stage": 26,
+      "final": 69,
+      "preservation": 9,
+      "validationMs": 222,
+      "validated": 4,
+      "lockTimeoutVerified": true
+    },
+    {
+      "mode": "conflict",
+      "database": "rdd_w2_conflict_1790696419031",
+      "stage": 26,
+      "final": 69,
+      "preservation": 9,
+      "validationMs": 225,
+      "validated": 4,
+      "lockTimeoutVerified": false
+    },
+    {
+      "mode": "old-foundation",
+      "database": "rdd_w2_old-foundation_1790696423562",
+      "outcome": "explicitly refused; old rows preserved"
+    }
+  ],
+  "postgres": "PostgreSQL 17.6 on x86_64-pc-linux-gnu, compiled by gcc (GCC) 15.2.0, 64-bit",
+  "passed": true,
+  "assertions": 303,
+  "independent_review": {
+    "authorized_by_owner": true,
+    "reviewer": "w2_review",
+    "confirmed_findings": 1,
+    "resolved": 1,
+    "unresolved": 0,
+    "scope": "Independent source review; local evidence inspected; no hosted operations"
+  },
+  "checks": {
+    "unit_tests": 531,
+    "test_files": 68,
+    "coverage": {
+      "statements": 96.53,
+      "branches": 90.9,
+      "functions": 97.76,
+      "lines": 97.59
+    },
+    "lint": "passed",
+    "typecheck": "passed",
+    "guard_target_override": "--linked refused before CLI/DB mutation",
+    "whitespace": "passed",
+    "build": "not rerun; runtime app/components/dependencies/workflows unchanged from W1 accepted app",
+    "unchanged_original_sql_inputs": 9
+  },
+  "boundaries": {
+    "hosted_sql_applied": false,
+    "real_data_exported": false,
+    "production_changed": false,
+    "new_statistics_interface": false,
+    "http_auth_browser_acceptance": "W3 pending",
+    "protected_restore": "W4/W5 pending",
+    "production_volume_locking": "W3/W5 pending"
+  }
+}

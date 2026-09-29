@@ -15,7 +15,9 @@ W0 scope/candidate preparation is complete; see its
 Vercel access/configuration is verified. Its original isolated-preview gate
 is now passed: the [exact combined Preview](release/w1-preview-gate-2026-09-29.md)
 has verified browser/server credentials on RDD Release Testing, with passing
-CI/Vercel. W2-W8 remain open; no hosted SQL or production rollout was performed.
+CI/Vercel. W2's [storage preparation](release/w2-statistics-foundation-2026-09-29.md)
+now passes independent source review and focused local SQL/application checks.
+W3-W8 remain open; no hosted SQL or production rollout was performed.
 
 Status: advanced-statistics PR #69 merged; League Night Mode implemented and locally verified; hosted database changes deferred
 

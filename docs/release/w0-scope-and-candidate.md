@@ -127,3 +127,12 @@ to establish Preview connection isolation. This is release tooling, not a new
 product/statistics feature or SQL scope change. The ten existing SQL inputs are
 unchanged from assessed implementation `51cc3c3`; original W0 snapshots remain
 historical starting manifests. See the [W1 completion record](w1-preview-gate-2026-09-29.md).
+
+W2 source addendum, 2026-09-29: storage-only scope remains unchanged. The
+statistics foundation is modernized and three deferred inputs are added:
+`advanced_statistics_final.sql`, `advanced_statistics_profile.sql`, and
+`advanced_statistics_validate.sql`. The other nine existing release SQL inputs
+remain unchanged. The original W0 snapshots are historical; the
+[W2 completion evidence](w2-statistics-foundation-2026-09-29.md) and
+[13-input hash record](w2-statistics-evidence-2026-09-29.json) extend that inventory.
+W0 remains passed; the future release freeze must use the then-current inputs.

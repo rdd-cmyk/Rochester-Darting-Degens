@@ -3,7 +3,7 @@
 Updated: 2026-09-29. Status: W0 complete and manifest refreshed; W1 read-only
 assessment complete, Vercel access resolved, isolated-preview gate passed;
 W2 statistics foundation and W3 combined synthetic rehearsal passed locally;
-W5-W8 release gates open.
+W5's production-shaped local rehearsal has passed; W6-W8 release gates remain open.
 
 ## Candidate and scope
 
@@ -103,7 +103,7 @@ up independent local preparation while a hosted decision remains outstanding.
 | W2: Finish statistics foundation | Update SQL, permissions, view and tests as specified in section 1A; document final defaults and dependency order. | Independent source review resolved; focused local checks pass; no new feature surface. | **Passed locally 2026-09-29.** Member-only final view, unknown historical provenance/timestamps, optional measurements, dependency order, validation/conflict/lock handling and recorder preservation verified. Independent review resolved. [Completion evidence](release/w2-statistics-foundation-2026-09-29.md). No hosted SQL or new statistics UI. |
 | W3: Combined synthetic release | Dedicated isolated stack, repeatable full-chain upgrade, preservation checks, all application/DB/API/browser gates, and verified fixes. See sections 2 and 4. | Final combined candidate passes; legacy/new-client behavior and failure recovery are demonstrated. | **Passed locally 2026-09-29.** Eleven ordered SQL inputs, 442 SQL assertions, real Auth/HTTP and combined browser suites, interruption/retry and compatible-app rollback with original rows intact. See [W3 completion record](release/w3-combined-synthetic-2026-09-29.md). W4 has since proved protected backup/restore; hosted test schema, owner phone and deployment gates remain open. |
 | W4: Backup and restore proof | Concrete export/handling proposal, owner decision, protected backup manifest, isolated restore and integrity/timing report. See section 3. | Complete recoverable backup demonstrated within agreed recovery limits. | **Passed 2026-09-29.** Owner-attested BitLocker copies on F: and D:, stable production export, independent-copy local restore, all 677 dump rows, row/sequence/rights checks and timing passed. The hosted/local managed Storage trigger difference is recorded. Owner accepts 48 hours or more of downtime but zero lost committed records; a fresh cutover backup and write pause remain W8 gates. See [W4 record](release/w4-backup-restore-2026-09-29.md). |
-| W5: Production-shaped dress rehearsal | Run the exact release manifest and account-transition process on the protected restored copy; exercise rollback and compare original records. See section 4. | SQL hashes/order, preservation, migration-history adoption, interruption recovery and compatible rollback all pass. | Pending. |
+| W5: Production-shaped dress rehearsal | Run the exact release manifest and account-transition process on the protected restored copy; exercise rollback and compare original records. See section 4. | SQL hashes/order, preservation, migration-history adoption, interruption recovery and compatible rollback all pass. | **Passed locally 2026-09-29.** Eleven exact SQL inputs, local history anchor, ten injected transaction failures, all 677 original rows preserved, fictional account transition and compatible-app rollback passed. See [W5 record](release/w5-production-shaped-2026-09-29.md). Hosted configuration and owner acceptance remain W6-W8. |
 | W6: Operational and owner acceptance | Verified member/organizer lists, configuration plan, approved isolated email/Auth acceptance, cleanup ownership, phone walkthrough and maintenance procedure. See section 5. | Required real configuration/account decisions are settled; delivery, recovery and owner acceptance have evidence. | Pending; W1 isolation passed, schema/acceptance preparation remains. Production-connected historical previews cannot be used. Credential rotation/consumer verification is required before hosted acceptance. |
 | W7: Freeze and go/no-go | Release packet with exact app SHA/artifact, SQL hashes, evidence, final dry run, rollback and operator assignments. | Owner authorizes the concrete production release after reviewing the packet. | Pending; no deployment authorization. |
 | W8: Cutover and observation | Fresh backup, ordered production steps, controlled acceptance, activation, monitoring and first-night check. See section 6. | Accepted live behavior, preserved records, working recovery and completed watch period. | Not started. |
@@ -505,8 +505,7 @@ saving. Prefer a reviewed forward repair when it preserves new records safely.
 
 ## Immediate next work
 
-W0-W4 have passed in their documented scopes. W5 can use the protected restored
-copy for a production-shaped dress rehearsal. W1's isolated Preview is available
+W0-W5 have passed in their documented scopes. W1's isolated Preview is available
 for later hosted testing after reviewed schema and controlled Auth/email setup.
 No production-release decision has been requested or granted.
 

@@ -20,7 +20,10 @@ now passes independent source review and focused local SQL/application checks.
 W3's [combined synthetic rehearsal](release/w3-combined-synthetic-2026-09-29.md)
 passed locally. W4's [protected backup and restore proof](release/w4-backup-restore-2026-09-29.md)
 passed with owner-accepted recovery limits: downtime of 48 hours or more is
-acceptable, but committed records must not be lost. W5-W8 remain open. No
+acceptable, but committed records must not be lost. W5's
+[protected production-shaped rehearsal](release/w5-production-shaped-2026-09-29.md)
+also passed locally, including exact original-row preservation and compatible
+app rollback. W6-W8 remain open. No
 hosted SQL or production rollout was performed.
 
 Status: advanced-statistics PR #69 merged; League Night Mode implemented and locally verified; hosted database changes deferred

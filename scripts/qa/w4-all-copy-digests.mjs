@@ -6,8 +6,9 @@ import {createHash} from 'node:crypto';
 import path from 'node:path';
 import {root,dockerHost,localDockerEnv} from '../local-environment.mjs';
 
-const folder=process.argv[2];
-if(!folder||process.argv.length!==3)throw Error('Supply independent W4 backup folder');
+const [folder,mode,...extra]=process.argv.slice(2);
+const allowNew=mode==='--allow-new-rows';
+if(!folder||extra.length||(mode&&!allowNew))throw Error('Supply independent W4 backup folder, optionally --allow-new-rows');
 const lines=readFileSync(path.join(folder,'data.sql'),'utf8').split(/\r?\n/);
 const excludedEmpty=new Set(['auth.mfa_recovery_code_sets','auth.mfa_recovery_codes',
  'auth.one_time_tokens','auth.scim_tokens','auth.scim_users','storage.buckets']);
@@ -36,11 +37,23 @@ for(let i=0;i<lines.length;i++){
   });
   targetRows=raw?raw.replace(/\r?\n$/,'').split(/\r?\n/):[];
  }catch{throw Error(`Could not read restored COPY rows: ${table}`);}
- results.push({table,rows:rows.length,status:rows.length===targetRows.length&&
-  digest(rows)===digest(targetRows)?'matched':'MISMATCH'});
+ let matched;
+ if(allowNew){
+  const remaining=new Map();
+  for(const row of targetRows)remaining.set(row,(remaining.get(row)??0)+1);
+  matched=rows.every(row=>{
+   const copies=remaining.get(row)??0;
+   if(!copies)return false;
+   remaining.set(row,copies-1);
+   return true;
+  });
+ }else matched=rows.length===targetRows.length&&digest(rows)===digest(targetRows);
+ results.push({table,rows:rows.length,newRows:targetRows.length-rows.length,
+  status:matched?'matched':'MISMATCH'});
 }
 const failures=results.filter(item=>item.status==='MISMATCH');
 console.log(JSON.stringify({blocks:results.length,nonempty:results.filter(item=>item.rows>0).length,
- totalRows:results.reduce((sum,item)=>sum+item.rows,0),emptyManagedExceptions:[...excludedEmpty],
+ totalRows:results.reduce((sum,item)=>sum+item.rows,0),newRows:results.reduce((sum,item)=>sum+(item.newRows??0),0),
+ allowNew,emptyManagedExceptions:[...excludedEmpty],
  failures,allMatched:failures.length===0},null,2));
 if(failures.length)process.exitCode=1;

@@ -4,14 +4,15 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 export const root = fileURLToPath(new URL('../', import.meta.url));
+export const releaseLocal = process.env.RDD_LOCAL_STACK === 'release-w3';
 export const rivalryLocal = process.env.RDD_LOCAL_STACK === 'rivalry-room';
 export const soloLocal = process.env.RDD_LOCAL_STACK === 'solo';
 export const gameModesLocal = process.env.RDD_LOCAL_STACK === 'game-modes';
 export const leagueNightLocal = process.env.RDD_LOCAL_STACK === 'league-night';
 export const planningLocal = process.env.RDD_LOCAL_STACK === 'league-planning';
-export const projectId = rivalryLocal ? 'rdd-rivalry-room' : soloLocal ? 'rdd-solo-play' : planningLocal ? 'rdd-league-planning' : gameModesLocal ? 'rdd-game-modes' : leagueNightLocal ? 'rdd-league-night' : 'Rochester-Darting-Degens-advanced-statis';
-export const localWorkdir = rivalryLocal ? path.join(root, '.local', 'rivalry-room') : soloLocal ? path.join(root, '.local', 'solo') : planningLocal ? path.join(root, '.local', 'league-planning') : gameModesLocal ? path.join(root, '.local', 'game-modes') : leagueNightLocal ? path.join(root, '.local', 'league-night') : root;
-export const apiPort = rivalryLocal ? '56621' : soloLocal ? '56321' : planningLocal ? '55821' : gameModesLocal ? '55721' : leagueNightLocal ? '55421' : '54321';
+export const projectId = releaseLocal ? 'rdd-release-w3' : rivalryLocal ? 'rdd-rivalry-room' : soloLocal ? 'rdd-solo-play' : planningLocal ? 'rdd-league-planning' : gameModesLocal ? 'rdd-game-modes' : leagueNightLocal ? 'rdd-league-night' : 'Rochester-Darting-Degens-advanced-statis';
+export const localWorkdir = releaseLocal ? path.join(root, '.local', 'release-w3') : rivalryLocal ? path.join(root, '.local', 'rivalry-room') : soloLocal ? path.join(root, '.local', 'solo') : planningLocal ? path.join(root, '.local', 'league-planning') : gameModesLocal ? path.join(root, '.local', 'game-modes') : leagueNightLocal ? path.join(root, '.local', 'league-night') : root;
+export const apiPort = releaseLocal ? '56921' : rivalryLocal ? '56621' : soloLocal ? '56321' : planningLocal ? '55821' : gameModesLocal ? '55721' : leagueNightLocal ? '55421' : '54321';
 export const dockerHost = process.platform === 'win32'
   ? 'npipe:////./pipe/dockerDesktopLinuxEngine' : 'unix:///var/run/docker.sock';
 

@@ -39,8 +39,13 @@ export default function ChangeLogClient() {
 
   useEffect(() => {
     let isMounted = true;
+    let generation = 0;
 
     async function loadPulls() {
+      const requestGeneration = ++generation;
+      const current = () => isMounted && requestGeneration === generation;
+      setPulls([]);
+      setHasNextPage(false);
       setLoading(true);
       setErrorMessage(null);
       setAuthRequired(false);
@@ -48,7 +53,7 @@ export default function ChangeLogClient() {
       try {
         const { data: sessionData, error: sessionError } =
           await supabase.auth.getSession();
-        if (!isMounted) return;
+        if (!current()) return;
         if (sessionError) throw sessionError;
 
         const accessToken = sessionData.session?.access_token;
@@ -63,7 +68,7 @@ export default function ChangeLogClient() {
             Authorization: `Bearer ${accessToken}`,
           },
         });
-        if (!isMounted) return;
+        if (!current()) return;
 
         if (response.status === 401) {
           setAuthRequired(true);
@@ -75,27 +80,40 @@ export default function ChangeLogClient() {
           const body = (await response.json().catch(() => null)) as
             | { message?: string }
             | null;
+          if (!current()) return;
           setErrorMessage(body?.message ?? LOAD_ERROR_MESSAGE);
           setLoading(false);
           return;
         }
 
         const body = (await response.json()) as PullResponse;
-        if (!isMounted) return;
+        if (!current()) return;
         setPulls(body.pulls);
         setHasNextPage(body.hasNextPage);
         setLoading(false);
       } catch {
-        if (!isMounted) return;
+        if (!current()) return;
         setErrorMessage(LOAD_ERROR_MESSAGE);
         setLoading(false);
       }
     }
 
     loadPulls();
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
+      if (event === 'SIGNED_OUT' || event === 'SIGNED_IN' || event === 'USER_UPDATED') {
+        // Invalidate a pending response immediately, including another tab's
+        // account change. Queue session reads outside Supabase's Auth callback.
+        generation++;
+        setPulls([]);
+        setHasNextPage(false);
+        setLoading(true);
+        queueMicrotask(() => { if (isMounted) void loadPulls(); });
+      }
+    });
 
     return () => {
       isMounted = false;
+      subscription.unsubscribe();
     };
   }, [page]);
 

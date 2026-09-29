@@ -5,9 +5,9 @@ import Link from 'next/link';
 import { boardError, isBoardRetryConflict } from '@/lib/board';
 
 type Draft = { body: string; id: string; topic: string };
-export default function BoardComposer({ draftKey, label, submitLabel, initialBody = '', initialTopic = 'conversation', starters = false, organizer = false, conversationId, onSubmit, onCancel }:
+export default function BoardComposer({ draftKey, label, submitLabel, initialBody = '', initialTopic = 'conversation', starters = false, organizer = false, conversationId, onSubmit, onCancel, onSuccess }:
   { draftKey: string; label: string; submitLabel: string; initialBody?: string; initialTopic?: string; starters?: boolean; organizer?: boolean; conversationId?: string;
-    onSubmit: (body: string, topic: string, id: string) => Promise<void>; onCancel?: () => void }) {
+    onSubmit: (body: string, topic: string, id: string) => Promise<void>; onCancel?: () => void; onSuccess?: () => void }) {
   const fieldId = useId();
   const [draft, setDraft] = useState<Draft>(() => {
     try {
@@ -49,6 +49,7 @@ export default function BoardComposer({ draftKey, label, submitLabel, initialBod
         const stored = JSON.parse(sessionStorage.getItem(draftKey) || 'null');
         if (stored?.id === draft.id && stored.body === draft.body && stored.topic === draft.topic) sessionStorage.removeItem(draftKey);
       } catch { /* The confirmed post is already safe. */ }
+      onSuccess?.();
       if (!mounted.current) return;
       setDraft({ body: '', topic: initialTopic, id: crypto.randomUUID() });
       setMessage('Saved to the league.');

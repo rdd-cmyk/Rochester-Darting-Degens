@@ -188,6 +188,23 @@ export async function GET(request: NextRequest) {
     return NextResponse.json(visualFixture(page), { status: 200 });
   }
 
+  // Auth validity alone is not league admission. Check the caller on every
+  // request before consulting shared GitHub caches or returning private notes.
+  const memberClient = createClient(supabaseUrl, supabaseAnonKey, {
+    auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false },
+    global: { headers: { Authorization: `Bearer ${token}` } },
+  });
+  const membership = await memberClient.rpc('league_is_member').then(
+    (result) => result,
+    () => ({ data: null, error: true }),
+  );
+  if (membership.error) {
+    return NextResponse.json({ message: 'Unable to verify league access.' }, { status: 503 });
+  }
+  if (membership.data !== true) {
+    return NextResponse.json({ message: 'League membership required.' }, { status: 403 });
+  }
+
   try {
     const payload = await fetchMergedPullRequests(page);
     return NextResponse.json(payload, { status: 200 });

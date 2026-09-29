@@ -17,6 +17,21 @@ beforeEach(() => {
   mocks.rpc.mockResolvedValue({ data: {}, error: null });
 });
 afterEach(() => { vi.resetAllMocks(); vi.unstubAllEnvs(); vi.unstubAllGlobals(); });
+it('supports only the fixed W3 synthetic pair and routes email to its own sink', async () => {
+  vi.stubEnv('RDD_INVITE_ORIGIN','http://127.0.0.1:3093');
+  vi.stubEnv('NEXT_PUBLIC_SUPABASE_URL','http://127.0.0.1:56921');
+  vi.stubGlobal('fetch',vi.fn().mockResolvedValue(new Response(JSON.stringify({id:'fictional-mail'}),{status:200})));
+  mocks.rpc.mockResolvedValueOnce({data:{id,email:'fictional@example.test',inviter:'Fictional'},error:null});
+  const req = new NextRequest('http://127.0.0.1:3093/api/invites',{method:'POST',headers:{origin:'http://127.0.0.1:3093','content-type':'application/json',authorization:'Bearer fictional'},
+    body:JSON.stringify({action:'create',requestId:id,email:'fictional@example.test'})});
+  expect((await handleInvite(req)).status).toBe(200);
+  expect(fetch).toHaveBeenCalledWith('http://127.0.0.1:56930/send',expect.any(Object));
+});
+it.each(['http://127.0.0.1:56521','https://production.supabase.co'])('rejects a mixed W3 target: %s',async target=>{
+  vi.stubEnv('RDD_INVITE_ORIGIN','http://127.0.0.1:3093');vi.stubEnv('NEXT_PUBLIC_SUPABASE_URL',target);
+  expect((await handleInvite(request({action:'list'}))).status).toBe(503);
+  expect(mocks.getUser).not.toHaveBeenCalled();expect(mocks.rpc).not.toHaveBeenCalled();
+});
 it('fails closed when disabled and does not touch Auth or SQL', async () => {
   vi.stubEnv('RDD_INVITES_ENABLED', '0');
   expect((await handleInvite(request({ action: 'list' }))).status).toBe(503);

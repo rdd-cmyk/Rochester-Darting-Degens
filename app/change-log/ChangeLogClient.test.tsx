@@ -1,20 +1,23 @@
-import { render, screen, waitFor } from '@testing-library/react';
+import { act, render, screen, waitFor } from '@testing-library/react';
 import { afterEach, beforeEach, expect, it, vi } from 'vitest';
 import ChangeLogClient from './ChangeLogClient';
 
-const { getSession, push, fetchUpdates } = vi.hoisted(() => ({
+const { getSession, push, fetchUpdates, onAuthStateChange, unsubscribe } = vi.hoisted(() => ({
   getSession: vi.fn(),
   push: vi.fn(),
   fetchUpdates: vi.fn(),
+  onAuthStateChange: vi.fn(),
+  unsubscribe: vi.fn(),
 }));
 
 vi.mock('next/navigation', () => ({
   useSearchParams: () => new URLSearchParams('page=1'),
   useRouter: () => ({ push }),
 }));
-vi.mock('@/lib/supabaseClient', () => ({ supabase: { auth: { getSession } } }));
+vi.mock('@/lib/supabaseClient', () => ({ supabase: { auth: { getSession, onAuthStateChange } } }));
 
 beforeEach(() => {
+  onAuthStateChange.mockReturnValue({ data: { subscription: { unsubscribe } } });
   getSession.mockResolvedValue({ data: { session: { access_token: 'synthetic-local-token' } }, error: null });
   vi.stubGlobal('fetch', fetchUpdates);
 });
@@ -60,6 +63,30 @@ it('shows a sign-in path when no session exists', async () => {
   expect(await screen.findByRole('link', { name: 'Go to sign in' })).toHaveAttribute('href', '/auth');
   expect(screen.getByRole('main')).toHaveTextContent('Please sign in to view the change log.');
   expect(fetchUpdates).not.toHaveBeenCalled();
+});
+it('clears another account’s notes on an Auth event and unsubscribes', async () => {
+  fetchUpdates.mockResolvedValue({ status: 200, ok: true, json: async () => ({
+    pulls: [{ id: 1, title: 'Private prior notes', merged_at: '2026-09-01', summary: null }], hasNextPage: false,
+  }) });
+  const view = render(<ChangeLogClient />);
+  await screen.findByText('Private prior notes');
+  getSession.mockResolvedValue({ data: { session: null }, error: null });
+  await act(async () => { onAuthStateChange.mock.calls[0][0]('SIGNED_OUT'); });
+  expect(screen.queryByText('Private prior notes')).not.toBeInTheDocument();
+  await screen.findByRole('link', { name: 'Go to sign in' });
+  view.unmount(); expect(unsubscribe).toHaveBeenCalled();
+});
+it('discards a delayed response from the previous account', async () => {
+  let resolve!: (value: unknown) => void;
+  fetchUpdates.mockReturnValue(new Promise(done => { resolve = done; }));
+  render(<ChangeLogClient />);
+  await waitFor(() => expect(fetchUpdates).toHaveBeenCalled());
+  getSession.mockResolvedValue({ data: { session: null }, error: null });
+  await act(async () => { onAuthStateChange.mock.calls[0][0]('SIGNED_OUT'); });
+  await screen.findByRole('link', { name: 'Go to sign in' });
+  await act(async () => { resolve({ status: 200, ok: true, json: async () => ({ pulls: [{ id: 1, title: 'Late private notes', merged_at: '2026-09-01', summary: null }], hasNextPage: true }) }); });
+  expect(screen.queryByText('Late private notes')).not.toBeInTheDocument();
+  expect(screen.queryByRole('link', { name: 'Next' })).not.toBeInTheDocument();
 });
 
 it('shows a request error when the session check fails', async () => {

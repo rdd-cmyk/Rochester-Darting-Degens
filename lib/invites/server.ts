@@ -16,13 +16,18 @@ function settings() {
   if (process.env.RDD_INVITES_ENABLED !== '1') throw new Error('disabled');
   const origin = new URL(process.env.RDD_INVITE_ORIGIN || 'invalid');
   const url = new URL(process.env.NEXT_PUBLIC_SUPABASE_URL || 'invalid');
-  const local = process.env.RDD_LOCAL_PREVIEW === '1' && origin.origin === 'http://127.0.0.1:3102' && url.origin === 'http://127.0.0.1:56521';
+  // Two fixed synthetic targets, never arbitrary loopback or a hosted DB.
+  const localMail = origin.origin === 'http://127.0.0.1:3102' && url.origin === 'http://127.0.0.1:56521'
+    ? 'http://127.0.0.1:56530/send'
+    : origin.origin === 'http://127.0.0.1:3093' && url.origin === 'http://127.0.0.1:56921'
+      ? 'http://127.0.0.1:56930/send' : null;
+  const local = process.env.RDD_LOCAL_PREVIEW === '1' && localMail !== null;
   if ((!local && (origin.protocol !== 'https:' || url.protocol !== 'https:')) || origin.pathname !== '/' || origin.search || origin.hash || origin.username || origin.password) throw new Error('disabled');
   const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
   const secret = process.env.RDD_INVITE_SECRET;
   if (!key || !secret || secret.length < 32) throw new Error('disabled');
   if (!local && (!process.env.RESEND_API_KEY || !process.env.RDD_INVITE_FROM)) throw new Error('disabled');
-  return { origin: origin.origin, local, secret, url: url.origin, key, cookie: local ? 'rdd-join' : '__Host-rdd-join' };
+  return { origin: origin.origin, local, localMail, secret, url: url.origin, key, cookie: local ? 'rdd-join' : '__Host-rdd-join' };
 }
 function keyed(config: Settings, domain: string, value: string) {
   return createHmac('sha256', config.secret).update(`${domain}:${value}`).digest('base64url');
@@ -52,7 +57,7 @@ async function readBody(request: NextRequest): Promise<Data> {
 
 async function sendMail(config: Settings, id: string, to: string, subject: string, text: string) {
   try {
-    const result = await fetch(config.local ? 'http://127.0.0.1:56530/send' : 'https://api.resend.com/emails', {
+    const result = await fetch(config.local && config.localMail ? config.localMail : 'https://api.resend.com/emails', {
       method: 'POST', signal: AbortSignal.timeout(12000),
       headers: { 'Content-Type': 'application/json', 'Idempotency-Key': id,
         ...(!config.local ? { Authorization: `Bearer ${process.env.RESEND_API_KEY}` } : {}) },

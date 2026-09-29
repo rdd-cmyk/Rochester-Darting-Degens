@@ -38,7 +38,7 @@ function ContributionTools({ item, kind, userId, organizer, locked, onChange }: 
       </>}
     </div></details>
     {mode === 'edit' && <BoardComposer draftKey={`rdd-board:${userId}:edit:${item.id}`} label={`Edit ${kind}`} submitLabel="Save changes" initialBody={item.body}
-      onCancel={() => setMode(null)} onSubmit={async body => { await boardWrite(`edit_${kind}`, item.id, body); setMode(null); onChange(); }} />}
+      onCancel={() => setMode(null)} onSubmit={async body => { await boardWrite(`edit_${kind}`, item.id, body); }} onSuccess={() => { setMode(null); onChange(); }} />}
     {mode === 'report' && <form className="board-report" onSubmit={event => { event.preventDefault(); void act(`report_${kind}`, reason); }}>
       <label>What should the organizers know?<textarea maxLength={500} required value={reason} onChange={e => setReason(e.target.value)} disabled={busy} /></label>
       <div className="board-actions"><button type="submit" disabled={busy || !reason.trim()}>Send report</button><button type="button" disabled={busy} onClick={() => setMode(null)}>Cancel</button></div>

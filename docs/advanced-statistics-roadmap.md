@@ -32,6 +32,11 @@ polls, two suggestions per profile, scheduling and binary RSVPs. See the
 [local handoff](league-night-planning-handoff.md). This does not approve hosted
 SQL, organizer assignments or publication.
 
+The Rivalry Room and 24 player avatars are implemented on the separate
+`rivalry-room` worktree, based on the current local release candidate at
+`16e58f9`. See the [local handoff](rivalry-room-handoff-2026-09-28.md).
+This does not add the feature to `release/next` or approve hosted rollout.
+
 | Phase | Status | Notes |
 | --- | --- | --- |
 | 0 — Delivery guardrails | Implemented | Vitest, Testing Library, jsdom, and V8 coverage are configured. |

@@ -145,6 +145,7 @@ export default function Navbar({ summerEnabled, onToggleSummer }: NavbarProps) {
           <Link style={linkStyle} href="/league-night" onClick={handleNavSelection}>
             League Night
           </Link>
+          <Link style={linkStyle} href="/rivalries" onClick={handleNavSelection}>Rivalry Room</Link>
           <Link style={linkStyle} href="/board" onClick={handleNavSelection}>
             League Board
           </Link>

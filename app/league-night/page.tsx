@@ -53,6 +53,10 @@ import {
 } from "@/components/league-night/NightRecapPanel";
 import "./night.css";
 import { NextPlannedNight } from "@/components/planning/NextPlannedNight";
+import { loadChallenge } from '@/lib/rivalries/api';
+import type { Challenge } from '@/lib/rivalries/types';
+import { PlayerAvatar } from '@/components/avatars/PlayerAvatar';
+import { presetLabel } from '@/lib/games/catalog';
 
 export default function LeagueNightPage() {
   const { user, loading } = useCurrentUser();
@@ -79,6 +83,7 @@ function NightLobby({ user }: { user: User }) {
   const [profiles, setProfiles] = useState<PlayerProfile[]>([]);
   const [nights, setNights] = useState<LeagueNight[]>([]);
   const [night, setNight] = useState<LeagueNight | null>(null);
+  const [challenge, setChallenge] = useState<Challenge | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [title, setTitle] = useState("League night");
@@ -102,17 +107,22 @@ function NightLobby({ user }: { user: User }) {
       const selected = id
         ? (list.find((n) => n.id === id) ?? (await loadNight(id)))
         : null;
+      const challengeId = new URLSearchParams(window.location.search).get('challenge');
+      const selectedChallenge = challengeId ? await loadChallenge(challengeId) : null;
+      if (selectedChallenge && (selectedChallenge.night_id !== selected?.id || ![selectedChallenge.sender,selectedChallenge.recipient].includes(user.id)))
+        throw new Error('Open this challenge from its series page before recording.');
       if (mounted.current) {
         setProfiles(players);
         setNights(list);
         setNight(selected);
+        setChallenge(selectedChallenge);
       }
     } catch (cause) {
       if (mounted.current) setError(saveErrorMessage(cause));
     } finally {
       if (mounted.current) setLoading(false);
     }
-  }, []);
+  }, [user.id]);
   useEffect(() => {
     mounted.current = true;
     // eslint-disable-next-line react-hooks/set-state-in-effect -- Load external data on mount; response updates follow the request.
@@ -131,6 +141,7 @@ function NightLobby({ user }: { user: User }) {
       n ? `/league-night?night=${n.id}` : "/league-night",
     );
     setNight(n);
+    setChallenge(null);
   }
   async function create() {
     if (creating) return;
@@ -168,8 +179,9 @@ function NightLobby({ user }: { user: User }) {
   if (night)
     return (
       <NightSession
-        key={night.id}
+        key={`${night.id}:${challenge?.id??'ordinary'}`}
         night={night}
+        initialChallenge={challenge}
         profiles={profiles}
         userId={user.id}
         onLeave={() => {
@@ -302,11 +314,13 @@ function NightLobby({ user }: { user: User }) {
 
 function NightSession({
   night,
+  initialChallenge,
   profiles: initialProfiles,
   userId,
   onLeave,
 }: {
   night: LeagueNight;
+  initialChallenge: Challenge | null;
   profiles: PlayerProfile[];
   userId: string;
   onLeave: () => void;
@@ -315,7 +329,13 @@ function NightSession({
   const [attendees, setAttendees] = useState<Attendee[]>([]);
   const [matches, setMatches] = useState<NightMatch[]>([]);
   const [history, setHistory] = useState<NightMatch[]>([]);
-  const [draft, setDraft] = useState<NightDraft>(freshDraft);
+  const [challenge,setChallenge] = useState(initialChallenge);
+  function sessionDraft(): NightDraft {
+    if (!initialChallenge) return freshDraft();
+    return {...freshDraft(),game:initialChallenge.game,board:initialChallenge.board,gameConfig:{...defaultConfig(),preset:initialChallenge.preset},players:[initialChallenge.sender,initialChallenge.recipient].map(playerId=>({playerId,score:'',points:''}))};
+  }
+  const [draft, setDraft] = useState<NightDraft>(sessionDraft);
+  const challengeEntry = Boolean(challenge) && !draft.editId;
   const [restore, setRestore] = useState<StoredDraft | null>(null);
   const [savedEntries, setSavedEntries] = useState<SavedNightEntry[]>([]);
   const [ready, setReady] = useState(false);
@@ -358,15 +378,16 @@ function NightSession({
     Boolean(draft.pending) ||
     Boolean(restore) ||
     tabConflict ||
-    !ready;
+    !ready || (challengeEntry && (Boolean(refreshError) || !['accepted','in_progress'].includes(challenge!.state) || Boolean(challenge!.abandonment_by)));
   const refresh = useCallback(async () => {
     const version = ++requestRevision.current;
     setRefreshing(true);
     try {
-      const [attendance, results, players] = await Promise.all([
+      const [attendance, results, players, currentChallenge] = await Promise.all([
         loadAttendees(night.id),
         loadMatches(night.id),
         loadProfiles(),
+        initialChallenge ? loadChallenge(initialChallenge.id) : Promise.resolve(null),
       ]);
       if (mounted.current && version === requestRevision.current) {
         setAttendees((current) =>
@@ -388,6 +409,7 @@ function NightSession({
         );
         setMatches(results);
         setProfiles(players);
+        setChallenge(currentChallenge);
         setRefreshError("");
         setRefreshedAt(
           new Date().toLocaleTimeString([], {
@@ -403,7 +425,7 @@ function NightSession({
       if (mounted.current && version === requestRevision.current)
         setRefreshing(false);
     }
-  }, [night.id]);
+  }, [night.id, initialChallenge]);
   const refreshHistory = useCallback(async () => {
     const version = ++historyRevision.current;
     setHistoryLoading(true);
@@ -450,7 +472,7 @@ function NightSession({
     storedKey.current = draftKey(
       process.env.NEXT_PUBLIC_SUPABASE_URL ?? window.location.origin,
       userId,
-      night.id,
+      `${night.id}${initialChallenge?`:challenge:${initialChallenge.id}`:''}`,
     );
     try {
       const stored = readNightRecovery(localStorage, storedKey.current);
@@ -483,7 +505,7 @@ function NightSession({
     };
     window.addEventListener("storage", onStorage);
     return () => window.removeEventListener("storage", onStorage);
-  }, [night.id, userId]);
+  }, [night.id, userId, initialChallenge]);
   useEffect(() => {
     if (!ready || restore || tabConflict || !dirty.current) return;
     try {
@@ -553,7 +575,7 @@ function NightSession({
         localStorage.removeItem(storedKey.current);
       if (draft.recoveredEntryId === id) {
         dirty.current = false;
-        setDraft(freshDraft());
+        setDraft(sessionDraft());
         setError("");
       }
       setSavedEntries(readNightSavedEntries(localStorage, storedKey.current));
@@ -659,6 +681,7 @@ function NightSession({
             "Reload the saved match before editing. Your draft is still here.",
           );
         const payload = validateMatchWrite({
+          ...(challengeEntry ? {challenge_id:challenge!.id,challenge_revision:challenge!.revision} : {}),
           match_id: draft.editId,
           expected_revision: draft.revision,
           night_id: night.id,
@@ -740,6 +763,7 @@ function NightSession({
         void refresh();
         return;
       }
+      if (result.challenge) setChallenge(result.challenge);
       const winnerNames = pending.payload.players.filter(p => p.is_winner).map(p => names.get(p.player_id) ?? "Player").join(" + ");
       setReceipt(
         `Saved match #${result.match_id} — ${winnerNames ? `${winnerNames} won.` : "Result recorded."}${result.replayed ? " Previous save confirmed." : ""}`,
@@ -769,7 +793,7 @@ function NightSession({
         board: current.board,
         mode: current.mode,
         players:
-          pending!.intent === "rematch"
+          initialChallenge || pending!.intent === "rematch"
             ? current.players.map((p) => ({ ...p, score: "", points: "" }))
             : [],
       }));
@@ -786,7 +810,7 @@ function NightSession({
       saveLock.current = false;
       if (mounted.current) setSaving(false);
     }
-  }, [draft, restore, tabConflict, night.id, night.venue, names, userId, refresh, releaseEntry, matches, correction]);
+  }, [draft, restore, tabConflict, night.id, night.venue, names, userId, refresh, releaseEntry, matches, correction, challengeEntry, challenge, initialChallenge]);
   const present = attendees.filter((a) => a.present);
   const pool = profiles.filter(
     (p) =>
@@ -823,6 +847,7 @@ function NightSession({
           </button>
         </div>
         <h1>{night.title}</h1>
+        {challenge&&<section className="rr-series-banner"><strong>Rivalry series · {challenge.wins.join(' : ')} · first to {challenge.target}</strong><p>{challenge.game} · {presetLabel(challenge.game,{...defaultConfig(),preset:challenge.preset})} · {challenge.board}</p><p>{challenge.state.replaceAll('_',' ')} · RSVP and attendance stay separate.</p><Link href={`/rivalries/challenges/${challenge.id}`}>Open challenge details ↗</Link></section>}
         {night.planning_status === "cancelled" && (
           <p className="night-warning" role="status">
             This league night was cancelled.
@@ -925,7 +950,7 @@ function NightSession({
                         );
                         dirty.current = true;
                       } else {
-                        setDraft(freshDraft());
+                        setDraft(sessionDraft());
                         dirty.current = false;
                         try {
                           localStorage.removeItem(storedKey.current);
@@ -969,6 +994,8 @@ function NightSession({
                   Game
                   <select
                     value={draft.game}
+                    aria-label="Game"
+                    disabled={challengeEntry}
                     onChange={(e) => {
                       if (
                         draft.players.some((p) => p.score || p.points) &&
@@ -1001,6 +1028,8 @@ function NightSession({
                   Board
                   <select
                     value={draft.board}
+                    aria-label="Board"
+                    disabled={challengeEntry}
                     onChange={(e) => update({ board: e.target.value })}
                   >
                     <option value="">Unspecified</option>
@@ -1021,20 +1050,21 @@ function NightSession({
                     type="button"
                     key={p.id}
                     value={p.id}
+                    disabled={challengeEntry}
                     aria-pressed={draft.players.some(
                       (s) => s.playerId === p.id,
                     )}
                     onClick={() => choosePlayer(p.id)}
                   >
                     {draft.players.some((s) => s.playerId === p.id) ? "✓ " : ""}
-                    {names.get(p.id)}
+                    <PlayerAvatar playerId={p.id} name={names.get(p.id)??'Player'} size={28}/> {names.get(p.id)}
                   </button>
                 ))}
-                <button type="button" onClick={() => setManage(true)}>
+                <button type="button" disabled={challengeEntry} onClick={() => setManage(true)}>
                   + Add someone
                 </button>
               </div>
-              <GameOptions game={draft.game} value={draft.gameConfig ?? null} players={draft.players.map(p => ({id:p.playerId,name:names.get(p.playerId) ?? 'Player'}))} winner={draft.winnerId} onWinner={winnerId => update({winnerId})} onChange={gameConfig => update({gameConfig, ...(gameConfig.format !== (draft.gameConfig?.format ?? 'individual') ? {players:draft.players.map(p => ({...p,score:'',points:''}))} : {})})} />
+              {!challengeEntry && <GameOptions game={draft.game} value={draft.gameConfig ?? null} players={draft.players.map(p => ({id:p.playerId,name:names.get(p.playerId) ?? 'Player'}))} winner={draft.winnerId} onWinner={winnerId => update({winnerId})} onChange={gameConfig => update({gameConfig, ...(gameConfig.format !== (draft.gameConfig?.format ?? 'individual') ? {players:draft.players.map(p => ({...p,score:'',points:''}))} : {})})} />}
               {isX01(draft.game) && (
                 <label className="night-unit">
                   Enter averages as

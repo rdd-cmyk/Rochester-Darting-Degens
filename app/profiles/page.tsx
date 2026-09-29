@@ -5,6 +5,7 @@ import Link from 'next/link';
 import type { User } from '@supabase/supabase-js';
 import { supabase } from '@/lib/supabaseClient';
 import { formatPlayerName } from '@/lib/playerName';
+import { PlayerAvatar } from '@/components/avatars/PlayerAvatar';
 
 type ProfileListItem = {
   id: string;
@@ -247,7 +248,8 @@ export default function AllProfilesPage() {
                     transition: 'border-color 0.2s ease, box-shadow 0.2s ease',
                   }}
                 >
-                  <div>
+                  <PlayerAvatar playerId={profile.id} name={primaryName}/>
+                  <div style={{flex:1,marginLeft:14}}>
                     <div style={{ fontWeight: 700 }}>{primaryName}</div>
                     {hasSecondary && (
                       <div style={{ color: 'var(--muted-foreground)' }}>

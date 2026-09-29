@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { supabase } from '@/lib/supabaseClient';
 import { formatPlayerName } from '@/lib/playerName';
 import type { User } from '@supabase/supabase-js';
+import { AvatarPicker } from '@/components/avatars/AvatarPicker';
 
 type Profile = {
   id: string;
@@ -265,6 +266,7 @@ export default function ProfilePage() {
       </header>
 
       {/* How your name will appear */}
+      <AvatarPicker key={user.id} userId={user.id} name={formattedLeagueName()}/>
       <section
         style={{
           padding: '1rem',

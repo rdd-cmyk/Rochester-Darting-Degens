@@ -1,5 +1,12 @@
 import { expect, it } from 'vitest';
 import { authReturnPath } from './authReturn';
+it('retains allowlisted Rivalry Room destinations through sign in',()=>{
+ const id='bc000000-0000-4000-8000-000000000001';
+ expect(authReturnPath('?next=/rivalries')).toBe('/rivalries');
+ expect(authReturnPath(`?next=/rivalries/challenges/${id}`)).toBe(`/rivalries/challenges/${id}`);
+ expect(authReturnPath(`?next=/rivalries/pair/${id}/${id}`)).toBe(`/rivalries/pair/${id}/${id}`);
+ expect(authReturnPath('?next=/rivalries/../../evil')).toBe('/matches');
+});
 
 it('returns members to their board conversation after sign-in', () => {
   expect(authReturnPath('?next=%2Fboard')).toBe('/board');

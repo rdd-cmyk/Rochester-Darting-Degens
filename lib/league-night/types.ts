@@ -1,4 +1,5 @@
 import type { GameConfig } from '@/lib/games/catalog';
+import type { Challenge } from '@/lib/rivalries/types';
 export type PlayerProfile = {
   id: string;
   display_name: string | null;
@@ -44,6 +45,8 @@ export type NightMatch = {
   match_players: MatchParticipant[] | null;
 };
 export type MatchWrite = {
+  challenge_id?: string;
+  challenge_revision?: number;
   game_config?: GameConfig | null;
   match_id: number | null;
   expected_revision: number | null;
@@ -62,7 +65,7 @@ export type MatchWrite = {
   allow_duplicate: boolean;
 };
 export type SaveResult =
-  | { status: "saved"; match_id: number; revision: number; replayed: boolean }
+  | { status: "saved"; match_id: number; revision: number; replayed: boolean; challenge?: Challenge }
   | { status: "possible_duplicate"; match_ids: number[] };
 export type PlayerDraft = { playerId: string; score: string; points: string };
 export type NightDraft = {

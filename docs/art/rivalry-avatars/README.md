@@ -1,0 +1,28 @@
+# Rivalry avatar production manifest
+
+Generated on 2026-09-28 (America/New_York) with the built-in image_gen tool. No user photographs, runtime AI, external API credential, or image-generation feature is shipped.
+
+The owner accepted the six-character visual direction by requesting implementation. The expanded roster is available for final owner visual acceptance. All four 1536 x 1024 masters have alpha minimum 0. Source PNGs stay in this directory; public assets are individual transparent WebP files, not sprite sheets. The exporter preserves character artwork and makes routine crops/resizes only.
+
+- Pilot master: pilot.png; original selected pilot and its prompt are preserved in ../../mockups/rivalry-room-assets/preview-notes.md. The original chosen output was exec-afc199a1-cace-4f3c-a5b1-67ca4ae35b90.png.
+- pack-b.png: original exec-d8fd8385-51f4-4b37-8184-74ac0a253c9b.png.
+- pack-c.png: original exec-0082837d-e7d6-4730-9ebc-5ce81c4c59dc.png.
+- pack-d.png: original exec-c6afd974-5e01-47b8-9a59-4d0a2451378b.png.
+
+All originals remain in the generation tool's output folder. No subsequent creative edit was applied to these production masters. The alternative background-removal pilot remains in the mockup folder and is not selected for production.
+
+[Catalog](catalog.json) records stable IDs, labels, source/cell, availability, version, provenance and dimensions. [Exporter](../../../scripts/export-rivalry-avatars.mjs) rebuilds 512 px hero, 256 px profile and 96 px list variants. The shared renderer falls back to initials for unknown IDs or failed image loads. Multiple members may select the same avatar. Retirement should mark server selectability false and preserve the ID and files for existing selections.
+
+## Production prompts
+
+### pack-b
+
+Use the provided six-character sheet ONLY as an art-style reference, not an edit target. Create a NEW six-character avatar production sheet for the Rochester Darting Degens darts league. Exactly 3 columns by 2 rows, landscape 1536 by 1024, six equal 512-square cells. Each portrait centered in its cell, all ears/horns/details and body silhouette inside the cell with at least 20 pixels of safe transparent margin on left/right/top, chest-up crop at bottom of cell. Exact same framing, scale, eye line, lighting and hand-inked cartoon illustration quality as the reference: bold charcoal outlines, painterly cel shading, angular sports mascot shapes, controlled print texture, expressive friendly confident personalities, orange/navy/cream uniforms. Original designs. True transparent alpha everywhere behind and between the six characters. No gradients or background scenes. No hands, props, lettering, numerals, badges, trademarks, frames or watermarks. Characters in left-to-right top row then bottom row order: a confident badger in orange jersey; a cool black panther in cream/navy jersey; a determined brown bear in navy jersey; a relaxed green crocodile in orange jersey; a clever purple octopus in cream/navy jersey; an energetic white rabbit in navy/orange jersey
+
+### pack-c
+
+Use the provided six-character sheet ONLY as an art-style reference, not an edit target. Create a NEW six-character avatar production sheet for the Rochester Darting Degens darts league. Exactly 3 columns by 2 rows, landscape 1536 by 1024, six equal 512-square cells. Each portrait centered in its cell, all ears/horns/details and body silhouette inside the cell with at least 20 pixels of safe transparent margin on left/right/top, chest-up crop at bottom of cell. Exact same framing, scale, eye line, lighting and hand-inked cartoon illustration quality as the reference: bold charcoal outlines, painterly cel shading, angular sports mascot shapes, controlled print texture, expressive friendly confident personalities, orange/navy/cream uniforms. Original designs. True transparent alpha everywhere behind and between the six characters. No gradients or background scenes. No hands, props, lettering, numerals, badges, trademarks, frames or watermarks. Characters in left-to-right top row then bottom row order: a fearless grey wolf in orange/navy jersey; a charming red panda in cream/navy jersey; a focused brown eagle in navy jersey; a cheeky pink pig in orange jersey; a happy green alien in cream/navy jersey; a friendly blue shark in navy/orange jersey
+
+### pack-d
+
+Use the provided six-character sheet ONLY as an art-style reference, not an edit target. Create a NEW six-character avatar production sheet for the Rochester Darting Degens darts league. Exactly 3 columns by 2 rows, landscape 1536 by 1024, six equal 512-square cells. Each portrait centered in its cell, all ears/horns/details and body silhouette inside the cell with at least 20 pixels of safe transparent margin on left/right/top, chest-up crop at bottom of cell. Exact same framing, scale, eye line, lighting and hand-inked cartoon illustration quality as the reference: bold charcoal outlines, painterly cel shading, angular sports mascot shapes, controlled print texture, expressive friendly confident personalities, orange/navy/cream uniforms. Original designs. True transparent alpha everywhere behind and between the six characters. No gradients or background scenes. No hands, props, lettering, numerals, badges, trademarks, frames or watermarks. Characters in left-to-right top row then bottom row order: a determined orange tiger in orange/navy jersey; a playful cream bulldog in cream/navy jersey; a cool black-and-white penguin in navy jersey; a confident golden lion in orange jersey; a wise tortoise in cream/navy jersey; a mischievous grey cat in navy/orange jersey

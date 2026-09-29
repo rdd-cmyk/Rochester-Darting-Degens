@@ -9,6 +9,7 @@ import { useParams } from 'next/navigation';
 import { supabase } from '@/lib/supabaseClient';
 import { formatPlayerName } from '@/lib/playerName';
 import { LinkedPlayerName } from '@/components/LinkedPlayerName';
+import { PlayerAvatar } from '@/components/avatars/PlayerAvatar';
 
 type Profile = {
   id: string;
@@ -604,7 +605,7 @@ export default function ProfilePage() {
       }}
     >
       <header>
-        <h1>{title}</h1>
+        <div style={{display:'flex',alignItems:'center',gap:18}}><PlayerAvatar playerId={profile.id} name={title} size={80}/><h1>{title}</h1></div>
         <p style={{ marginTop: '0.5rem' }}>
           <Link
             href="/matches"

@@ -14,6 +14,15 @@ identifies the reviewed source and checks. The live release inventory now adds
 `rivalry_room.sql`; the nine SQL identities below and the original JSON remain
 the dated W0 starting point. W3-W7 must use the expanded candidate.
 
+W0 refresh completed 2026-09-29: the
+[updated source manifest](w0-candidate-2026-09-29.json) records combined source
+`51cc3c3c367a319787ebf1091187b9d2a415ac2a`, both merge parents, refreshed remote
+refs, all 40 commits / 375 changed paths versus main, and ten SQL input hashes.
+The remote release remains `42df060`; the assessed source was 12 commits ahead
+before this documentation refresh. No push occurred. W0 remains passed; this is
+an updated preparation record, not W7's freeze. The initial identities below
+and original JSON are preserved. See the [W1 refresh](w1-completion-2026-09-29.md).
+
 ## Candidate identity
 
 | Item | Verified value |
@@ -52,6 +61,8 @@ recorded after W2 and the combined rehearsal.
 | Game modes and team games/ratings | Included through PR #74; prerequisite commits `c2ded8f` and `1d4d28a`, plus combined admission fixes. |
 | Solo Play | PR #74, merged as `42df060`; private practice, consented sharing and existing practice comparisons. |
 | Future statistics storage | Owner confirmed inclusion on 2026-09-28; modernize the existing foundation in W2 before any rollout. |
+| Shared interface revamp | PR #75 source `804b74f`, integrated as `d667dbe` while retaining the release's admission/workflow behavior. |
+| Rivalry Room / avatars | Reviewed local `rivalry-room` source `5f9a24c`, integrated as `51cc3c3`; 24 curated avatars and canonical challenge series. |
 
 Future statistics work is storage and compatibility only: seasons table/linkage,
 optional detailed-stat columns, source/detail metadata, constraints, timestamp
@@ -69,6 +80,8 @@ The [release plan's SQL inventory](../release-next-readiness.md) contains the ni
 starting inputs: statistics foundation, League Night, planning, Board,
 invitations, parent admission, game modes, Solo, and separately staged direct-write
 enforcement. Their exact identities are in `w0-candidate.json`.
+The current ten-input inventory adds `rivalry_room.sql`; use
+`w0-candidate-2026-09-29.json` for the expanded candidate.
 
 The existing schema baseline is for local reconstruction; the game-mode enable
 fixture is for local demos; the planning visibility upgrade is conditional on an
@@ -88,7 +101,7 @@ Known follow-up work remains assigned to later packages:
 - W7/W8 govern release approval, staged cutover and live observation. A passing W0
   does not authorize a data export, hosted DB/Auth change, push, merge or deployment.
 
-## W0 acceptance record
+## Initial W0 acceptance record
 
 - [x] Owner's existing-feature and future-storage scope is recorded without adding
   new statistics features.

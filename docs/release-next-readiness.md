@@ -1,7 +1,8 @@
 # Next release: readiness and rollout plan
 
-Updated: 2026-09-29. Status: W0 complete; W1 assessment complete with its Vercel
-target exit gate open; W2-W8 implementation and release gates open.
+Updated: 2026-09-29. Status: W0 complete and manifest refreshed; W1 read-only
+assessment complete, Vercel access resolved, isolated-preview gate blocked;
+W2-W8 implementation and release gates open.
 
 ## Candidate and scope
 
@@ -22,16 +23,17 @@ branch (`804b74f`) into `release/next`, preserving the newer release behavior.
 The original W0 snapshot remains the initial candidate record. See the
 [UI integration record](release/pr75-ui-integration.md) for the new source
 parents, conflict decisions, checks and remaining acceptance gates. The merge
-adds no SQL or dependency changes. W1 facts remain useful; its owner checklist
-now includes both visual-fixture flags. W3 must test this combined interface
+adds no SQL or dependency changes. W1 now verifies both visual-fixture flags are
+absent in Vercel. W3 must test this combined interface
 and feature set; W4-W8 backup, rehearsal and release gates still apply.
 
 Scope addition authorized 2026-09-29: merge the reviewed local `rivalry-room`
 branch at `5f9a24c` onto the combined UI candidate at `d667dbe`. Rivalry Room,
 24 curated player avatars and accepted challenge series are now included.
 See the [Rivalry/UI integration record](release/rivalry-ui-integration.md).
-W0 remains passed with this scope addendum; W1's dated assessment and pending
-Vercel verification remain valid. The new private schema and save wrapper must
+W0 remains passed with this scope addendum and its refreshed manifest; the
+[W1 refresh](release/w1-completion-2026-09-29.md) covers Vercel and Rivalry's
+absence from hosting. The new private schema and save wrapper must
 join W3-W5's full-chain tests, backup inventory and rollback rehearsal. Local
 feature checks do not close those packages or authorize hosted changes.
 
@@ -66,6 +68,16 @@ initial source identities in its [completion evidence](release/w0-scope-and-cand
 and [candidate snapshot](release/w0-candidate.json). W0 documentation is local;
 publication and later-package work are separate actions.
 
+The [2026-09-29 W0 manifest](release/w0-candidate-2026-09-29.json) now identifies
+combined source `51cc3c3`, 40 commits / 375 paths versus main and ten SQL inputs.
+Remote release remains `42df060`; the combined source is unpublished. The
+[W1 completion record](release/w1-completion-2026-09-29.md) and
+[fresh facts](release/w1-environment-facts-2026-09-29.json) resolve Vercel access,
+production/build controls and current targets. Existing Preview and configured
+Development use production Supabase; Preview also receives the production
+service-role credential. No isolated hosted test pair is available. Preserve
+the original isolation prerequisite; hosted mutations remain blocked.
+
 ## Execution sequence and completion records
 
 Work through these packages in order. W1 inspection and W2 source preparation
@@ -76,13 +88,13 @@ up independent local preparation while a hosted decision remains outstanding.
 
 | Package | Work and deliverable | Exit gate | Status |
 | --- | --- | --- | --- |
-| W0: Scope and candidate | This plan, feature/SQL inventory and an initial candidate SHA. Keep subsequent fixes scoped on `release/next`. | Future stats storage included; no new stats UI. | Passed 2026-09-28; [completion evidence](release/w0-scope-and-candidate.md) and [source snapshot](release/w0-candidate.json). |
-| W1: Refresh environment facts | Read-only hosted/schema/Auth/integration assessment and differences from checked-in assumptions; target map and migration-history proposal. See section 1. | Every intended app/DB target is identified; drift, automatic deployment paths and baseline adoption are understood. | Assessment complete 2026-09-28; Vercel owner target/configuration verification remains open. See [evidence and checklist](release/w1-environment-assessment.md) and [facts snapshot](release/w1-environment-facts.json). This is not a passed exit gate; W2 can proceed locally. |
+| W0: Scope and candidate | This plan, feature/SQL inventory and an initial candidate SHA. Keep subsequent fixes scoped on `release/next`. | Future stats storage included; no new stats UI. | Passed; refreshed 2026-09-29 for UI/Rivalry. [Completion evidence](release/w0-scope-and-candidate.md) and [current source manifest](release/w0-candidate-2026-09-29.json); initial snapshot preserved. |
+| W1: Refresh environment facts | Read-only hosted/schema/Auth/integration assessment and differences from checked-in assumptions; target map and migration-history proposal. See section 1. | Every intended app/DB target is identified; drift, automatic deployment paths and baseline adoption are understood. The original isolated-preview prerequisite must pass before hosted testing. | Read-only work complete 2026-09-29; Vercel access/configuration resolved. **Exit gate blocked:** existing Preview targets production; no isolated combined-candidate preview exists. See [completion/disposition](release/w1-completion-2026-09-29.md) and [fresh facts](release/w1-environment-facts-2026-09-29.json). W2/W3 can proceed locally; close isolation with approved target preparation before W6 tests. |
 | W2: Finish statistics foundation | Update SQL, permissions, view and tests as specified in section 1A; document final defaults and dependency order. | Independent source review resolved; focused local checks pass; no new feature surface. | Planned. |
 | W3: Combined synthetic release | Dedicated isolated stack, repeatable full-chain upgrade, preservation checks, all application/DB/API/browser gates, and verified fixes. See sections 2 and 4. | Final combined candidate passes; legacy/new-client behavior and failure recovery are demonstrated. | Prior feature evidence only; release pass pending. |
 | W4: Backup and restore proof | Concrete export/handling proposal, owner decision, protected backup manifest, isolated restore and integrity/timing report. See section 3. | Complete recoverable backup demonstrated within agreed recovery limits. | Pending. |
 | W5: Production-shaped dress rehearsal | Run the exact release manifest and account-transition process on the protected restored copy; exercise rollback and compare original records. See section 4. | SQL hashes/order, preservation, migration-history adoption, interruption recovery and compatible rollback all pass. | Pending. |
-| W6: Operational and owner acceptance | Verified member/organizer lists, configuration plan, approved isolated email/Auth acceptance, cleanup ownership, phone walkthrough and maintenance procedure. See section 5. | Required real configuration/account decisions are settled; delivery, recovery and owner acceptance have evidence. | Pending. |
+| W6: Operational and owner acceptance | Verified member/organizer lists, configuration plan, approved isolated email/Auth acceptance, cleanup ownership, phone walkthrough and maintenance procedure. See section 5. | Required real configuration/account decisions are settled; delivery, recovery and owner acceptance have evidence. | Pending; first close W1's isolation prerequisite. Production-connected previews cannot be used. Credential rotation/consumer verification is required before hosted acceptance. |
 | W7: Freeze and go/no-go | Release packet with exact app SHA/artifact, SQL hashes, evidence, final dry run, rollback and operator assignments. | Owner authorizes the concrete production release after reviewing the packet. | Pending; no deployment authorization. |
 | W8: Cutover and observation | Fresh backup, ordered production steps, controlled acceptance, activation, monitoring and first-night check. See section 6. | Accepted live behavior, preserved records, working recovery and completed watch period. | Not started. |
 
@@ -160,13 +172,13 @@ recovery before promoting any reviewed deployment SQL. Keep this input outside
   history adoption are agreed. Include `supabase/config.toml` Auth changes in the
   review; committing local config does not prove hosted Auth settings changed.
 
-The [W1 assessment](release/w1-environment-assessment.md) refreshed the
-[2026-09-27 hosted audit](league-night-hosted-audit-2026-09-27.md): the legacy
-schema, empty migration history, unavailable scheduled backups/PITR, disabled
-automatic DB previews and Supabase production integration targeting `main` remain
-current. It also records current Auth/signup/SMTP gaps and hosted redirects.
-The live browser target is verified; Vercel preview/development and server
-configuration still need the owner's evidence. W1 proposes a checked legacy
+The [W1 refresh](release/w1-completion-2026-09-29.md) confirms the legacy schema,
+empty migration history, unavailable backups/PITR, disabled automatic DB previews,
+Auth/signup/SMTP gaps and eight hosted redirects. Both Supabase and Vercel
+production integrations target `main`. Vercel public targets and current
+invitation server project metadata agree with production, including Preview.
+This resolves inspection, not isolation or credential validity/runtime server
+acceptance. W1 proposes a checked legacy
 starting contract and a first history anchor followed by reviewed increments,
 rehearsed in W3/W5 and approved in W7. Never replay the baseline or repair history
 to silence a warning. A deployment dry run must list only the approved changes.
@@ -358,6 +370,17 @@ operator, protected destination outside Git, retention, access and deletion rule
 
 ## 5. Prepare hosted cutover and operational ownership
 
+- [ ] Close W1's isolated-preview prerequisite before hosted acceptance: approve
+  the actual nonproduction DB/project and app pair, configure only its own public
+  and server credentials, build the intended source, and verify both deployed
+  targets agree. Existing Preview/Development settings point at production;
+  Preview also receives its service-role key. No write/email/signup tests may run
+  there. Keep protected restore data separate from synthetic/email acceptance.
+- [ ] Complete owner-approved rotation of the service-role credential disclosed
+  in one browser-tool response during W1 and verify its affected consumers.
+  Review removal of production credentials from test Preview scope and Vercel
+  Secret handling/scopes for service-role/GitHub tokens. W1 remasked the value and
+  recorded no credentials in files; it did not rotate keys or change settings.
 - [ ] Approve the legitimate existing-member UUID list and cutoff. Reconcile
   accounts created between initial inventory and cutover. Backfill active
   `league_members` with null `source_invite_id`; do not auto-admit every Auth user.
@@ -373,6 +396,10 @@ operator, protected destination outside Git, retention, access and deletion rule
 - [ ] Prepare hosted public-signup disablement while retaining email login,
   review alternate providers, recovery URLs and Auth SMTP. Test existing login
   and account recovery across this transition.
+  W1 found Vercel redirects the apex to `www.rocdartdegens.com`, while Auth's
+  eight-entry allowlist has no explicit `www` reset URL and the recovery client
+  uses its current origin. Resolve/test this canonical-origin discrepancy; no
+  hosted recovery failure was reproduced during the read-only assessment.
 - [ ] Arrange the approved daily server-only `invite_cleanup()` job, its failure
   handling and retention policy. No cleanup schedule is present merely because
   the function exists. Preserve required replay/history records.
@@ -451,9 +478,12 @@ saving. Prefer a reviewed forward repair when it preserves new records safely.
 
 ## Immediate next work
 
-Begin W1 and W2: refresh hosted metadata read-only and modernize the statistics
-foundation under the confirmed storage-only scope. Build the dedicated combined
-synthetic harness in W3 and take preservation snapshots before any release SQL.
+W0's expanded manifest and W1's read-only inspection are finished. Begin W2:
+modernize the statistics foundation under the confirmed storage-only scope.
+W1's original isolated-preview gate remains blocked; prepare the concrete target
+and configuration changes for owner review before any hosted W6 tests. Build the
+dedicated combined synthetic harness in W3 and take preservation snapshots before
+any release SQL.
 Prepare the concrete W4 backup/restore proposal while local testing proceeds.
 Finish the evidence and exact target details before requesting a data-export or
 production-release decision; no decision is required merely to read this plan.

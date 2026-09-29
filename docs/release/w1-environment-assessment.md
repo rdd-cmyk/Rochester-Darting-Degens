@@ -1,8 +1,14 @@
-# W1: release environment assessment
+# W1: historical environment assessment (2026-09-28)
 
 Date: 2026-09-28. Read-only assessment and migration-history proposal complete.
-**W1's exit gate remains open for Vercel owner verification.** This is not a
-deployment, hosted write test, backup or restore pass. W2 can proceed locally.
+This dated assessment is supplemented by the
+[2026-09-29 refresh and gate disposition](w1-completion-2026-09-29.md) and
+[fresh facts](w1-environment-facts-2026-09-29.json). Vercel access/configuration
+inspection is now complete. **W1's original isolated-preview prerequisite is
+blocked because the existing Preview uses production.** The owner checklist and
+unknowns below describe the earlier state; they are preserved as historical
+evidence. No hosted test, backup/restore or deployment gate has passed. W2 can
+proceed locally.
 
 Candidate addendum, 2026-09-29: the local release now includes the PR #75 UI and
 reviewed Rivalry Room/avatars. This assessment remains the dated hosted baseline;
@@ -175,7 +181,7 @@ from the existing [release gate](../supabase-github-integration-release-gate.md)
 If a fully self-contained fresh-project migration chain becomes required, review
 that alternative separately before changing the proposal or adoption records.
 
-## Vercel owner checklist to close W1
+## Historical Vercel owner checklist (current disposition linked above)
 
 Provide non-secret settings/evidence for the owning project. Screenshots should
 keep API keys, tokens, personal contact details and variable values hidden; report

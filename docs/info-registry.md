@@ -439,19 +439,24 @@ it superseded or retired and point to the replacement.
 - **Type:** verified repository delivery constraint and hosted configuration fact
 - **Scope:** Supabase Auth recovery and Vercel preview acceptance
 - **Statement:** The Supabase organization's Vercel connection and Auth URL
-  configuration are independent. On 2026-09-24 the RDD Main Project was linked
-  to `rochester-darting-degens`, with production credential sync enabled only
-  for Production; Preview and Development sync were off. Its Auth Site URL was
-  `https://rocdartdegens.com`, and its three allowed redirects were production
-  root, production `/reset-password`, and `http://localhost:3000`. No preview
-  reset URL was allowed. The organization and project integration views showed
-  no connected GitHub repository. A working preview login does not establish
-  automatic preview credential sync, Supabase branching, or recovery redirects.
+  configuration are independent. Refreshed 2026-09-29: RDD Main Project is linked
+  to `rochester-darting-degens`, with Production credential sync on and
+  Preview/Development sync off. Nevertheless, the actual Vercel public URL is
+  scoped All Environments and points to production; its service-role credential
+  is scoped Production and Preview. The inspected old preview's running client
+  contacts production. Auth Site URL is `https://rocdartdegens.com`, with eight
+  allowed redirects. GitHub is now connected to this repository, branch `main`,
+  Deploy to production on; automatic DB branching is off. A working preview or
+  disabled credential sync does not establish isolation or correct recovery
+  redirects. The linked 2026-09-24 handoff remains historical evidence.
 - **Evidence:** authenticated dashboard inspection of [Auth URL Configuration](https://supabase.com/dashboard/project/hrqsbzmsfichiimtxijj/auth/url-configuration)
   and [project integration settings](https://supabase.com/dashboard/project/hrqsbzmsfichiimtxijj/settings/integrations);
-  `docs/hosted-preview-checks-2026-09-24.md` records the recovery source fix.
-- **Validation:** read-only dashboard observations on 2026-09-24. No connection
-  or Auth settings were changed by this inspection.
+  `docs/hosted-preview-checks-2026-09-24.md` records the recovery source fix;
+  [W1 refresh](release/w1-completion-2026-09-29.md) and
+  [facts](release/w1-environment-facts-2026-09-29.json) record the current targets,
+  settings and unmet isolation prerequisite.
+- **Validation:** read-only authenticated Supabase/Vercel settings and old
+  preview runtime target on 2026-09-29. No connection or Auth setting was changed.
 - **Invalidation trigger:** any Supabase Auth URL, organization integration,
   Vercel project environment, or Supabase branching change. Recheck before
   each hosted recovery test or preview database claim.

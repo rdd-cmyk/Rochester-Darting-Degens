@@ -67,6 +67,7 @@ try {
     "supabase/tests/fixtures/invite_only_registration.sql",
     "supabase/tests/fixtures/invite_parent_admission.sql",
     "supabase/tests/fixtures/game_modes.sql",
+    "supabase/tests/fixtures/advanced_statistics_final.sql",
   ])
     sql(readFileSync(path.join(root, file), "utf8"));
   sql(`CREATE SCHEMA solo_before;

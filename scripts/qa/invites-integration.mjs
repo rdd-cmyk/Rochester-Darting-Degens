@@ -74,12 +74,14 @@ const match = unwrap(await sender.db.rpc('rdd_save_match', { p_operation_id: ran
 assert.equal(match.status, 'saved');
 assert.equal(unwrap(await provisional.db.from('matches').select('id')).length, 0);
 assert.equal(unwrap(await provisional.db.from('match_players').select('id')).length, 0);
-assert.equal(unwrap(await provisional.db.from('stats_match_facts').select('match_id')).length, 0);
+// This invitation-only stage does not install game modes/final statistics view.
+// W2/W3 final-state tests separately prove populated caller-RLS member reads.
+assert.equal((await provisional.db.from('stats_match_facts').select('match_id')).error?.code, '42501');
 assert.equal((await other.db.rpc('rdd_save_match', { p_operation_id: randomUUID(),
   p_payload: { ...matchPayload, match_id: match.match_id, expected_revision: match.revision, notes: 'forged' } })).error?.code, '42501');
 assert.ok((await other.db.from('matches').insert({ created_by: sender.id })).error);
-assert.ok(unwrap(await sender.db.from('stats_match_facts').select('match_id')).some(row=>row.match_id===match.match_id));
-checked('league admission gates matches, participants and statistics while retaining owner writes');
+assert.equal((await sender.db.from('stats_match_facts').select('match_id')).error?.code, '42501');
+checked('league admission gates canonical records; statistics view stays closed until final game-aware installation');
 
 const invite = await invitation(sender, 'join');
 assert.equal((await api({ action: 'preview', token: invite.token })).body.email_hint, 'j***@example.test');

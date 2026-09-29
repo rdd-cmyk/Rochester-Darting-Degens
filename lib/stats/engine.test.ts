@@ -27,6 +27,18 @@ function match(
 }
 
 describe('RDD rating engine', () => {
+  test('future storage measurements do not change current ratings or summary calculations', () => {
+    const facts = [
+      ...match('1', 'A', [{ id: 'A', score: 60 }, { id: 'B', score: 45 }]),
+      ...match('2', 'B', [{ id: 'A', score: 50 }, { id: 'B', score: 55 }]),
+    ];
+    const storedFutureFields = facts.map(fact => ({ ...fact,
+      season_id: 'fictional-future-season', detail_level: 'enhanced', entry_source: 'csv',
+      darts_thrown: 30, x01_points_scored: 501, cricket_marks: 42,
+      first_nine_average: 120, checkouts_made: 3, highest_checkout: 180,
+    }));
+    expect(buildLeagueAdvancedStats(storedFutureFields)).toEqual(buildLeagueAdvancedStats(facts));
+  });
   test.each([
     ['A', 'B'], ['B', 'A'],
     ['A', 'B', 'C'], ['C', 'A', 'B'], ['B', 'C', 'A'],

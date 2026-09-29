@@ -2,12 +2,14 @@
 begin;
 create extension if not exists pgtap with schema extensions;
 set local search_path = public, extensions;
-select plan(25);
+select plan(26);
 
 select has_table('public', 'seasons', 'Seasons table exists');
 select has_column('public', 'matches', 'season_id', 'Matches support seasons');
 select has_column('public', 'match_players', 'darts_thrown', 'Raw denominator exists');
-select has_view('public', 'stats_match_facts', 'Statistics view exists');
+-- Storage-stage suite only; final admission/RPC permissions have their own
+-- W2 suite after the complete feature chain and direct-write enforcement.
+select has_view('public', 'stats_match_facts', 'Closed compatibility view exists');
 select ok((select reloptions @> array['security_invoker=true'] from pg_class
   where oid = 'public.stats_match_facts'::regclass), 'Statistics view uses caller permissions');
 select is((select count(*)::integer from pg_class where oid in (
@@ -41,18 +43,20 @@ select throws_ok($$update public.match_players set checkout_attempts = 1, checko
 
 set local role anon;
 select set_config('request.jwt.claims', '{"role":"anon"}', true);
-select is((select count(*)::integer from public.stats_match_facts where match_id = -900001),
-  0, 'Anonymous callers cannot read match facts through the view');
-select is((select count(*)::integer from public.seasons where id = '00000000-0000-4000-8000-000000000003'),
-  1, 'Seasons are publicly readable');
+select throws_ok($$select * from public.stats_match_facts$$,
+  '42501', null, 'Storage-stage view denies anonymous reads');
+select throws_ok($$select * from public.seasons$$,
+  '42501', null, 'Anonymous season reads are denied');
 select throws_ok($$insert into public.matches (id, game_type) values (-900002, '501')$$,
   '42501', null, 'Anonymous match creation is denied');
 
 reset role;
 set local role authenticated;
 select set_config('request.jwt.claims', '{"role":"authenticated","sub":"00000000-0000-4000-8000-000000000001"}', true);
-select is((select count(*)::integer from public.stats_match_facts where match_id = -900001),
-  1, 'Authenticated caller can read match facts');
+select throws_ok($$select * from public.stats_match_facts$$,
+  '42501', null, 'Storage-stage view stays closed before finalization');
+select is((select count(*)::integer from public.seasons), 0,
+  'Seasons fail closed before admission dependency is ready');
 with changed as (update public.matches set venue = 'Local fixture venue' where id = -900001 returning id)
 select is((select count(*)::integer from changed), 1, 'Creator can update own match');
 with changed as (update public.match_players set darts_thrown = 30 where id = -900001 returning id)

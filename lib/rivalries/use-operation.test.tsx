@@ -55,6 +55,39 @@ it("clears only definite no-write rejections", async () => {
   expect(hook.result.current.pending).toBeNull();
   expect(localStorage.getItem(operationKey("a", "room"))).toBeNull();
 });
+it.each(["42501", "PGRST202"])(
+  "retains an unresolved dispatched attempt when a retry cannot check its receipt (%s)",
+  async (code) => {
+    const confirmed = vi.fn();
+    rpc.mockRejectedValueOnce(new Error("response lost after commit"));
+    const hook = renderHook(() => useRivalryOperation("a", "room", confirmed));
+    await waitFor(() => expect(hook.result.current.ready).toBe(true));
+    await act(() =>
+      hook.result.current.submit({ action: "accept", id: "challenge" }),
+    );
+    const original = rpc.mock.calls[0][1];
+    rpc.mockResolvedValueOnce({
+      data: null,
+      error: { code, message: "Cannot check receipt" },
+    });
+    await act(() => hook.result.current.submit());
+    expect(hook.result.current.pending).not.toBeNull();
+    expect(localStorage.getItem(operationKey("a", "room"))).not.toBeNull();
+    hook.unmount();
+    rpc.mockResolvedValueOnce({
+      data: { challenge: { id: "challenge" }, replayed: true },
+      error: null,
+    });
+    const restored = renderHook(() =>
+      useRivalryOperation("a", "room", confirmed),
+    );
+    await waitFor(() => expect(restored.result.current.ready).toBe(true));
+    await act(() => restored.result.current.submit());
+    expect(rpc.mock.calls[2][1]).toEqual(original);
+    expect(confirmed).toHaveBeenCalledOnce();
+    expect(restored.result.current.pending).toBeNull();
+  },
+);
 it("does not dispatch when durable operation storage fails", async () => {
   const hook = renderHook(() => useRivalryOperation("a", "room", vi.fn()));
   await waitFor(() => expect(hook.result.current.ready).toBe(true));
@@ -66,6 +99,13 @@ it("does not dispatch when durable operation storage fails", async () => {
   );
   expect(rpc).not.toHaveBeenCalled();
   expect(hook.result.current.pending).not.toBeNull();
+});
+it("releases an initial admission rejection with no earlier ambiguous dispatch", async () => {
+  rpc.mockResolvedValue({ data: null, error: { code: "42501" } });
+  const hook = renderHook(() => useRivalryOperation("a", "room", vi.fn()));
+  await waitFor(() => expect(hook.result.current.ready).toBe(true));
+  await act(() => hook.result.current.submit({ action: "accept" }));
+  expect(hook.result.current.pending).toBeNull();
 });
 it("ignores an old user receipt after its component unmounts", async () => {
   let resolve!: (v: unknown) => void;

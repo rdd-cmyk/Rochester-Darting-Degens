@@ -36,6 +36,8 @@ The Rivalry Room and 24 player avatars are implemented on the separate
 `rivalry-room` worktree, based on the current local release candidate at
 `16e58f9`. See the [local handoff](rivalry-room-handoff-2026-09-28.md).
 This does not add the feature to `release/next` or approve hosted rollout.
+Its [independent review and verified repairs](rivalry-room-review-2026-09-29.md)
+completed locally on 2026-09-29; publication remains deferred.
 
 | Phase | Status | Notes |
 | --- | --- | --- |

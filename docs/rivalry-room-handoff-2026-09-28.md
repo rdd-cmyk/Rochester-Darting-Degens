@@ -7,6 +7,12 @@ at `42df060fdf7d26a63e00d00ccf0152a37f4abccb`; the two newer local commits
 were release-preparation documentation. Their tracked content is included.
 The original worktree and its untracked plan/mockup were preserved.
 
+Independent review and verified repairs completed on 2026-09-29. See the
+[review record](rivalry-room-review-2026-09-29.md) for six confirmed findings,
+the repaired permissions/recovery flows, and the later 473-test, 65-API-check,
+23-browser-check evidence. The verification table below retains the original
+2026-09-28 implementation checkpoint.
+
 ## Delivered
 
 - `/rivalries`: featured faceoff, evidence-based rivalry stories, lifetime
@@ -31,6 +37,9 @@ The original worktree and its untracked plan/mockup were preserved.
 - Schedule changes require both players to reconfirm. Unstarted cancellation,
   proposed/agreed abandonment, withdrawal of a proposal, explicit audited
   link repair and server-owned organizer resolution preserve recorded games.
+- Participants can link/unlink eligible ordinary results, including games
+  entered by another member. Only the original recorder can edit their
+  canonical results; new challenge recording remains participant-only.
 - Derived completion, invalid/post-clinch game review and canonical source
   change triggers. A correction can remove a winner and reopen the series.
 - Explicit fullscreen TV view, responsive dark/light layouts, reduced-motion

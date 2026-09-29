@@ -72,5 +72,6 @@ export type RivalryRequest = {
 export type RivalryReceipt = {
   challenge?: Challenge;
   avatar?: AvatarChoice;
+  avatar_superseded?: boolean;
   replayed: boolean;
 };

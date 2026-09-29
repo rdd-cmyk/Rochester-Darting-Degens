@@ -191,6 +191,32 @@ ok(
     avatarRaces.filter((r) => r.error?.code === "40001").length === 1,
   "Concurrent avatar saves require a fresh revision",
 );
+const latestAvatar = unwrap(await a.db.rpc("rdd_avatar_self"));
+const supersededAvatar = unwrap(await write(avatarPayload, a.db, avatarOp));
+ok(
+  supersededAvatar.replayed &&
+    supersededAvatar.avatar_superseded &&
+    supersededAvatar.avatar.avatar_id === latestAvatar.avatar_id &&
+    supersededAvatar.avatar.revision === latestAvatar.revision,
+  "Old avatar receipt reconciles the latest server selection and revision",
+);
+sql(
+  `UPDATE public.league_members SET status='revoked' WHERE user_id='${a.id}'`,
+);
+try {
+  ok(
+    (await write(avatarPayload, a.db, avatarOp)).error?.code === "42501",
+    "Revoked admission cannot inspect a previously committed receipt",
+  );
+} finally {
+  sql(
+    `UPDATE public.league_members SET status='active' WHERE user_id='${a.id}'`,
+  );
+}
+ok(
+  unwrap(await write(avatarPayload, a.db, avatarOp)).replayed,
+  "Original operation can be reconciled after admission is restored",
+);
 ok(
   (
     await a.db.rpc("rdd_rivalry_write", {
@@ -446,10 +472,10 @@ ok(
         match_id: second.match_id,
         match_revision: second.revision,
       }),
-      b.db,
+      c.db,
     )
   ).error?.code === "42501",
-  "Only result creator can unlink",
+  "Only series participants can unlink",
 );
 // Expiry, cooldown and abandonment have no timeout winner.
 let cd = unwrap(
@@ -678,6 +704,108 @@ ok(
   "All private Rivalry tables enable RLS",
 );
 // Populate a convincing but explicitly synthetic preview using canonical games.
+const delegatedNight = unwrap(
+  await a.db.rpc("rdd_create_night", {
+    p_id: crypto.randomUUID(),
+    p_title: "Demo delegated recorder review",
+    p_venue: "Synthetic Darts Club",
+    p_date: new Date(Date.now() + 2 * 86400000).toISOString().slice(0, 10),
+  }),
+);
+const delegatedId = crypto.randomUUID();
+sql(
+  `INSERT INTO rdd_private.planning_schedules(night_id,starts_at,rsvp_closes_at) VALUES('${delegatedNight.id}',now()+interval '2 days',now()+interval '1 day'); INSERT INTO rivalry_private.challenges(id,sender,recipient,night_id,game,preset,board,best_of,state,expires_at,accepted_at,event_revision,sender_confirmed,recipient_confirmed) VALUES('${delegatedId}','${a.id}','${b.id}','${delegatedNight.id}','501','501-double-v1','Steel Tip',3,'accepted',now()+interval '2 days',now()-interval '1 minute',1,1,1);`,
+);
+let delegated = await read(delegatedId);
+const delegatedPayload = {
+  ...gamePayload(delegated),
+  submitted_by: c.id,
+  challenge_id: undefined,
+  challenge_revision: undefined,
+  night_id: delegatedNight.id,
+};
+const delegatedSave = unwrap(
+  await save(delegatedPayload, crypto.randomUUID(), c.db),
+);
+ok(
+  (
+    await write(
+      mutation(delegated, "link", {
+        match_id: delegatedSave.match_id,
+        match_revision: delegatedSave.revision,
+      }),
+      c.db,
+    )
+  ).error?.code === "42501",
+  "Nonparticipant recorder cannot change series links",
+);
+delegated = unwrap(
+  await write(
+    mutation(delegated, "link", {
+      match_id: delegatedSave.match_id,
+      match_revision: delegatedSave.revision,
+    }),
+  ),
+).challenge;
+ok(
+  delegated.state === "in_progress" && delegated.games.length === 1,
+  "Participant can link an eligible ordinary game recorded by another member",
+);
+const delegatedCorrection = {
+  ...delegatedPayload,
+  match_id: delegatedSave.match_id,
+  expected_revision: delegatedSave.revision,
+  notes: "Original recorder corrects linked game",
+};
+ok(
+  (
+    await save(
+      { ...delegatedCorrection, submitted_by: b.id },
+      crypto.randomUUID(),
+      b.db,
+    )
+  ).error?.code === "42501",
+  "Link authority does not grant a participant canonical edit permission",
+);
+const creatorCorrection = unwrap(
+  await save(delegatedCorrection, crypto.randomUUID(), c.db),
+);
+delegated = creatorCorrection.challenge;
+ok(
+  creatorCorrection.status === "saved" &&
+    creatorCorrection.revision > delegatedSave.revision,
+  "Nonparticipant original creator retains linked-result correction permission",
+);
+ok(
+  (
+    await save(
+      {
+        ...delegatedPayload,
+        challenge_id: delegated.id,
+        challenge_revision: delegated.revision,
+      },
+      crypto.randomUUID(),
+      c.db,
+    )
+  ).error?.code === "42501",
+  "Nonparticipant cannot record a new challenge game",
+);
+delegated = unwrap(
+  await write(
+    mutation(delegated, "unlink", {
+      match_id: delegatedSave.match_id,
+      match_revision: creatorCorrection.revision,
+    }),
+    b.db,
+  ),
+).challenge;
+ok(
+  delegated.games.length === 0 &&
+    sql(
+      `SELECT count(*) FROM public.matches WHERE id=${delegatedSave.match_id}`,
+    ) === "1",
+  "Participant unlink repairs series membership while preserving canonical result",
+);
 if (
   sql(
     `SELECT count(*) FROM public.matches WHERE notes='rivalry-demo-history'`,

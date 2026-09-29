@@ -123,7 +123,15 @@ export function rivalryError(error: unknown) {
     "Could not reach the league. Your pending action is kept; check it again before making changes."
   );
 }
-export function definiteRejection(error: unknown) {
+export function definiteRejection(
+  error: unknown,
+  previouslyDispatched = false,
+) {
+  const code = (error as { code?: string })?.code ?? "";
+  // Admission and endpoint availability are checked before durable receipts.
+  // A rejected retry cannot establish that an earlier dispatch did not commit.
+  if (previouslyDispatched && ["42501", "PGRST202"].includes(code))
+    return false;
   return [
     "22023",
     "22003",
@@ -135,12 +143,13 @@ export function definiteRejection(error: unknown) {
     "42501",
     "P0002",
     "PGRST202",
-  ].includes((error as { code?: string })?.code ?? "");
+  ].includes(code);
 }
 export type PendingAction = {
   id: string;
   payload: RivalryRequest;
   createdAt?: number;
+  dispatched?: boolean;
 };
 export function operationKey(user: string, scope: string) {
   return `rdd:rivalry:v1:${encodeURIComponent(process.env.NEXT_PUBLIC_SUPABASE_URL ?? "local")}:${user}:${scope}`;

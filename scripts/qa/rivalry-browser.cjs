@@ -8,12 +8,31 @@ const demo = JSON.parse(
   fs.readFileSync(".local/rivalry-room/demo.json", "utf8"),
 );
 let browser, diagnosticPage;
+const artifactDir =
+  process.env.RDD_REVIEW_ARTIFACTS === "1"
+    ? ".local/rivalry-room/browser-review"
+    : "docs/testing/rivalry-room";
 let checks = 0;
 const ok = (v, label) => {
   assert(v, label);
   checks++;
 };
 (async () => {
+  process.env.RDD_LOCAL_STACK = "rivalry-room";
+  const { localStatus } = await import("../local-environment.mjs");
+  const local = localStatus();
+  const { createClient } = require("@supabase/supabase-js");
+  const db = createClient(local.API_URL, local.ANON_KEY, {
+    auth: { persistSession: false, autoRefreshToken: false },
+  });
+  const signed = await db.auth.signInWithPassword({
+    email: demo.people[0].email,
+    password: demo.password,
+  });
+  assert(
+    !signed.error && signed.data.user.id === demo.people[0].id,
+    "Synthetic local browser recorder identity",
+  );
   browser = await chromium.launch({ channel: "msedge", headless: true });
   const errors = [];
   async function context(person) {
@@ -48,7 +67,7 @@ const ok = (v, label) => {
   const a = await context(demo.people[0]);
   const page = a.page;
   diagnosticPage = page;
-  fs.mkdirSync("docs/testing/rivalry-room", { recursive: true });
+  fs.mkdirSync(artifactDir, { recursive: true });
   await page.locator(".rr-faceoff img").first().waitFor();
   await page.waitForFunction(() =>
     Array.from(document.querySelectorAll(".rr-faceoff img")).every(
@@ -65,18 +84,18 @@ const ok = (v, label) => {
     );
     if ([390, 1440].includes(width))
       await page.screenshot({
-        path: `docs/testing/rivalry-room/lobby-${width}.png`,
+        path: `${artifactDir}/lobby-${width}.png`,
         fullPage: true,
       });
   }
   await page.emulateMedia({ colorScheme: "light" });
   await page.screenshot({
-    path: "docs/testing/rivalry-room/lobby-light.png",
+    path: `${artifactDir}/lobby-light.png`,
     fullPage: true,
   });
   await page.emulateMedia({ colorScheme: "dark" });
   await page.screenshot({
-    path: "docs/testing/rivalry-room/lobby-dark.png",
+    path: `${artifactDir}/lobby-dark.png`,
     fullPage: true,
   });
   ok(
@@ -86,7 +105,7 @@ const ok = (v, label) => {
   // Poster is an explicit preview, then a browser download.
   await page.getByRole("button", { name: "TV view ⛶" }).click();
   await page.waitForFunction(() => !!document.fullscreenElement);
-  await page.screenshot({ path: "docs/testing/rivalry-room/tv-view.png" });
+  await page.screenshot({ path: `${artifactDir}/tv-view.png` });
   await page.getByRole("button", { name: "Exit TV view" }).click();
   ok(
     await page.evaluate(() => !document.fullscreenElement),
@@ -111,7 +130,7 @@ const ok = (v, label) => {
     download.suggestedFilename() === "rdd-rivalry-poster.png",
     "Poster download comes from reviewed preview",
   );
-  await download.saveAs("docs/testing/rivalry-room/export-poster.png");
+  await download.saveAs(`${artifactDir}/export-poster.png`);
   await page.getByLabel("Include player names").uncheck();
   ok(
     (await page.getByRole("link", { name: "Download this poster" }).count()) ===
@@ -209,7 +228,7 @@ const ok = (v, label) => {
     "Exactly the accepted players are prefilled",
   );
   await page.screenshot({
-    path: "docs/testing/rivalry-room/recorder-desktop.png",
+    path: `${artifactDir}/recorder-desktop.png`,
     fullPage: true,
   });
   await page
@@ -253,7 +272,7 @@ const ok = (v, label) => {
     "Recorded game advances real series",
   );
   await page.screenshot({
-    path: "docs/testing/rivalry-room/series-desktop.png",
+    path: `${artifactDir}/series-desktop.png`,
     fullPage: true,
   });
   await page.setViewportSize({ width: 390, height: 1080 });
@@ -264,9 +283,112 @@ const ok = (v, label) => {
     "Challenge page has no mobile overflow",
   );
   await page.screenshot({
-    path: "docs/testing/rivalry-room/series-mobile.png",
+    path: `${artifactDir}/series-mobile.png`,
     fullPage: true,
   });
+  const ordinary = await db.rpc("rdd_save_match", {
+    p_operation_id: crypto.randomUUID(),
+    p_payload: {
+      submitted_by: demo.people[0].id,
+      match_id: null,
+      expected_revision: null,
+      night_id: demo.nightId,
+      game_type: "Cricket",
+      game_config: {
+        version: 1,
+        preset: "cricket-v1",
+        format: "individual",
+        context: "competitive",
+        status: "completed",
+        handicap: false,
+        sides: {},
+        teamScores: {},
+        otherName: "",
+        finish: "ordinary",
+      },
+      board_type: "Soft Tip",
+      venue: "Synthetic Darts Club",
+      notes: "Review ordinary correction",
+      played_at: new Date().toISOString(),
+      allow_duplicate: true,
+      players: [demo.people[0].id, demo.people[2].id].map((player_id, i) => ({
+        player_id,
+        score: null,
+        points_scored: null,
+        is_winner: i === 0,
+      })),
+    },
+  });
+  assert(!ordinary.error, "Ordinary synthetic review result saved");
+  const seriesId = new URL(challengeUrl).pathname.split("/").at(-1);
+  await page.setViewportSize({ width: 1440, height: 1080 });
+  await page.goto(
+    `http://127.0.0.1:3040/league-night?night=${demo.nightId}&challenge=${seriesId}`,
+  );
+  await page.locator(".rr-series-banner").waitFor();
+  await page
+    .locator(".night-result")
+    .filter({ hasText: `#${ordinary.data.match_id}` })
+    .getByRole("button", { name: "Edit", exact: true })
+    .click();
+  await page.getByRole("button", { name: "Save changes", exact: true }).click();
+  await page
+    .getByText(new RegExp(`Saved match #${ordinary.data.match_id}`))
+    .waitFor();
+  ok(
+    (await page.getByLabel("Game", { exact: true }).inputValue()) === "501" &&
+      (await page.getByLabel("Board", { exact: true }).inputValue()) ===
+        "Steel Tip",
+    "Ordinary correction restores accepted challenge game and board",
+  );
+  ok(
+    (await page.locator(".night-scorecard").allTextContents()).some((t) =>
+      t.includes("Demo Mike"),
+    ) &&
+      !(await page.locator(".night-scorecard").allTextContents()).some((t) =>
+        t.includes("Demo Alex"),
+      ),
+    "Ordinary correction restores accepted challenge participants",
+  );
+  await page.getByLabel("Enter averages as").selectOption("ppd");
+  await page
+    .getByRole("button", { name: "Demo Ben is the winner", exact: true })
+    .click();
+  const nextSaveResponse = page.waitForResponse((response) =>
+    response.url().endsWith("/rest/v1/rpc/rdd_save_match"),
+  );
+  await page
+    .getByRole("button", { name: "Save & Rematch", exact: true })
+    .click();
+  const nextSave = await (await nextSaveResponse).json();
+  if (nextSave.status === "possible_duplicate")
+    await page
+      .getByRole("button", { name: "This is another game", exact: true })
+      .click();
+  else
+    assert.equal(
+      nextSave.status,
+      "saved",
+      "New challenge game has an acknowledged save",
+    );
+  await page.waitForFunction(() =>
+    document
+      .querySelector(".rr-series-banner")
+      ?.textContent.includes("completed"),
+  );
+  ok(
+    (await page.getByLabel("Enter averages as").inputValue()) === "ppd",
+    "Challenge rematch retains the selected average input unit",
+  );
+  await b.page.goto(challengeUrl);
+  await b.page
+    .getByRole("heading", { name: "Demo Ben takes the series.", exact: true })
+    .waitFor();
+  ok(
+    (await b.page.locator(".rr-headline h2").innerText()) ===
+      "THE CHAPTER IS WON.",
+    "Losing viewer sees an accurate completed-series headline",
+  );
   ok(errors.length === 0, `No browser exceptions: ${errors.join("; ")}`);
   fs.writeFileSync(
     ".local/rivalry-room/browser-evidence.json",

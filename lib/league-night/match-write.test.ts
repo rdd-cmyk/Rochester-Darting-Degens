@@ -53,6 +53,10 @@ describe("shared match validation", () => {
     expect(isDefiniteSaveRejection({ code: "40001" })).toBe(true);
     expect(isDefiniteSaveRejection(new Error("network failure"))).toBe(false);
     expect(isDefiniteSaveRejection({ code: "503" })).toBe(false);
+    expect(isDefiniteSaveRejection({ code: "42501" }, true)).toBe(false);
+    expect(isDefiniteSaveRejection({ code: "PGRST202" }, true)).toBe(false);
+    expect(isDefiniteSaveRejection({ code: "42501" }, false)).toBe(true);
+    expect(isDefiniteSaveRejection({ code: "40001" }, true)).toBe(true);
     expect(
       saveErrorMessage({ message: "rdd_save_match absent from schema cache" }),
     ).toContain("not available");

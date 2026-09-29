@@ -21,7 +21,11 @@ export function AvatarPicker({
     if (receipt.avatar) {
       setSelected(receipt.avatar.avatar_id);
       setRevision(receipt.avatar.revision);
-      setMessage("Your player avatar is saved.");
+      setMessage(
+        receipt.avatar_superseded
+          ? "Your earlier save is confirmed. Showing your latest avatar from a later save."
+          : "Your player avatar is saved.",
+      );
       window.dispatchEvent(new Event(AVATAR_CHANGED));
     }
   });

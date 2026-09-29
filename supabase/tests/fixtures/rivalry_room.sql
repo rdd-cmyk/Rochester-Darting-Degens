@@ -140,6 +140,10 @@ BEGIN
   IF prior.payload<>p_payload THEN RAISE EXCEPTION 'Earlier attempt has different content. Reconcile it first.' USING ERRCODE='PT409'; END IF;
   result:=prior.result||jsonb_build_object('replayed',true);
   IF result->'challenge'->>'id' IS NOT NULL THEN result:=result||jsonb_build_object('challenge',rivalry_private.summary((result->'challenge'->>'id')::uuid)); END IF;
+  IF result ? 'avatar' THEN
+   SELECT * INTO av FROM rivalry_private.avatars WHERE user_id=actor;
+   result:=result||jsonb_build_object('avatar',to_jsonb(av),'avatar_superseded',av.revision IS DISTINCT FROM (prior.result->'avatar'->>'revision')::integer);
+  END IF;
   RETURN result;
  END IF;
  IF action='avatar' THEN
@@ -212,7 +216,9 @@ BEGIN
   ELSIF action IN ('link','unlink') THEN
    mid:=(p_payload->>'match_id')::bigint;
    SELECT * INTO m FROM public.matches WHERE id=mid FOR UPDATE;
-   IF NOT FOUND OR m.created_by<>actor THEN RAISE EXCEPTION 'Only the result recorder can repair its link.' USING ERRCODE='42501'; END IF;
+   -- Participants own series membership, while the canonical creator retains
+   -- sole authority to edit the underlying result through the base recorder.
+   IF NOT FOUND THEN RAISE EXCEPTION 'Recorded result unavailable.' USING ERRCODE='P0002'; END IF;
    IF m.revision IS DISTINCT FROM (p_payload->>'match_revision')::integer THEN RAISE EXCEPTION 'The result changed. Review it again.' USING ERRCODE='40001'; END IF;
    IF action='link' THEN
     IF c.state<>'accepted' OR rivalry_private.eligible(m,c) IS NOT TRUE THEN RAISE EXCEPTION 'Result does not match the accepted series terms.' USING ERRCODE='22023'; END IF;
@@ -257,8 +263,9 @@ BEGIN
  END IF;
  IF cid IS NOT NULL THEN
   SELECT * INTO c FROM rivalry_private.challenges WHERE id=cid FOR UPDATE;
-  IF NOT FOUND OR actor NOT IN (c.sender,c.recipient) THEN RAISE EXCEPTION 'Only series participants can record this challenge.' USING ERRCODE='42501'; END IF;
+  IF NOT FOUND THEN RAISE EXCEPTION 'Series unavailable.' USING ERRCODE='P0002'; END IF;
   IF p_payload->>'match_id' IS NULL THEN
+   IF actor NOT IN (c.sender,c.recipient) THEN RAISE EXCEPTION 'Only series participants can record this challenge.' USING ERRCODE='42501'; END IF;
    PERFORM 1 FROM rdd_private.planning_schedules WHERE night_id=c.night_id FOR UPDATE;
    IF (SELECT count(*) FROM public.league_members WHERE status='active' AND user_id IN (c.sender,c.recipient))<>2 THEN
     RAISE EXCEPTION 'Both participants must still be active league members.' USING ERRCODE='42501'; END IF;

@@ -62,10 +62,13 @@ export function useRivalryOperation(
         ? {
             id: crypto.randomUUID(),
             createdAt: Date.now(),
+            dispatched: false,
             payload: { ...payload, submitted_by: user } as RivalryRequest,
           }
         : null);
     if (!attempt) return;
+    // Version-1 records without this marker may already have reached the server.
+    const previouslyDispatched = attempt.dispatched !== false;
     lock.current = true;
     setBusy(true);
     setError("");
@@ -79,8 +82,13 @@ export function useRivalryOperation(
           "Another tab has an unfinished action. Check that action first.",
         );
       }
-      localStorage.setItem(`${key}:op:${attempt.id}`, JSON.stringify(attempt));
-      localStorage.setItem(key, JSON.stringify(attempt));
+      const dispatchedAttempt = { ...attempt, dispatched: true };
+      localStorage.setItem(
+        `${key}:op:${attempt.id}`,
+        JSON.stringify(dispatchedAttempt),
+      );
+      localStorage.setItem(key, JSON.stringify(dispatchedAttempt));
+      setPending(dispatchedAttempt);
       const result = await rivalryWrite(attempt.id, attempt.payload);
       const current = readPending(localStorage.getItem(key), user);
       if (current?.id === attempt.id) localStorage.removeItem(key);
@@ -90,7 +98,7 @@ export function useRivalryOperation(
         callback.current(result);
       }
     } catch (cause) {
-      if (definiteRejection(cause)) {
+      if (definiteRejection(cause, previouslyDispatched)) {
         try {
           if (readPending(localStorage.getItem(key), user)?.id === attempt.id)
             localStorage.removeItem(key);

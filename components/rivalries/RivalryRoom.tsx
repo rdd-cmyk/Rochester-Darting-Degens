@@ -200,6 +200,7 @@ function Room({
     : [];
   const right = selectedChallenge?.recipient ?? pair?.[1] ?? opponent ?? "";
   const actualRight = right || rivals[0]?.opponent || "";
+  const pairHistory = buildRivalry(data?.matches ?? [], left, actualRight);
   const rivalry = buildRivalry(
     data?.matches ?? [],
     left,
@@ -224,7 +225,7 @@ function Room({
   const safeWinner = !stale ? selectedChallenge?.winner : null;
   const heading = selectedChallenge
     ? safeWinner
-      ? "THE CHAPTER IS YOURS."
+      ? "THE CHAPTER IS WON."
       : selectedChallenge.state === "completed"
         ? "RECORDED SERIES."
         : "TIME TO SETTLE IT."
@@ -500,21 +501,19 @@ function Room({
                     >
                       Match #{g.id}
                     </Link>
-                    {personal &&
-                      data.matches.find((m) => m.id === g.id)?.created_by ===
-                        userId && (
-                        <button
-                          disabled={locked}
-                          onClick={() =>
-                            act("unlink", {
-                              match_id: g.id,
-                              match_revision: g.revision,
-                            })
-                          }
-                        >
-                          Unlink result
-                        </button>
-                      )}
+                    {personal && (
+                      <button
+                        disabled={locked}
+                        onClick={() =>
+                          act("unlink", {
+                            match_id: g.id,
+                            match_revision: g.revision,
+                          })
+                        }
+                      >
+                        Unlink result
+                      </button>
+                    )}
                   </li>
                 ))}
               </ol>
@@ -524,8 +523,8 @@ function Room({
                   <details>
                     <summary>Series repair and resolution</summary>
                     <p>
-                      Keep the recorded results. Only their recorder can repair
-                      a link.
+                      Participants can repair the links in this series. Only the
+                      original recorder can edit the underlying results.
                     </p>
                     <label>
                       Existing eligible match ID
@@ -651,16 +650,17 @@ function Room({
                     <option value="">All singles games</option>
                     {[
                       ...new Set(
-                        rivalry.meetings
+                        pairHistory.meetings
                           .map((m) => m.match.game_type)
                           .filter(Boolean),
                       ),
                     ].map((g) => (
                       <option key={g!}>{g}</option>
                     ))}
-                    {gameFilter && !rivalry.meetings.length && (
-                      <option>{gameFilter}</option>
-                    )}
+                    {gameFilter &&
+                      !pairHistory.meetings.some(
+                        (m) => m.match.game_type === gameFilter,
+                      ) && <option>{gameFilter}</option>}
                   </select>
                 </label>
                 <label>
@@ -867,7 +867,7 @@ function Room({
           </div>
           {modal === "poster" ? (
             <RivalryPoster
-              key={JSON.stringify([names,avatarIds,heading,score,terms])}
+              key={JSON.stringify([names, avatarIds, heading, score, terms])}
               userId={userId}
               names={names}
               avatars={avatarIds}

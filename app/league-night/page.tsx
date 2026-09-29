@@ -22,6 +22,7 @@ import {
   decodeDraft,
   draftKey,
   freshDraft,
+  challengeDraft,
   nightEntryKey,
   nightOperationKey,
   readNightRecovery,
@@ -331,8 +332,7 @@ function NightSession({
   const [history, setHistory] = useState<NightMatch[]>([]);
   const [challenge,setChallenge] = useState(initialChallenge);
   function sessionDraft(): NightDraft {
-    if (!initialChallenge) return freshDraft();
-    return {...freshDraft(),game:initialChallenge.game,board:initialChallenge.board,gameConfig:{...defaultConfig(),preset:initialChallenge.preset},players:[initialChallenge.sender,initialChallenge.recipient].map(playerId=>({playerId,score:'',points:''}))};
+    return challengeDraft(initialChallenge);
   }
   const [draft, setDraft] = useState<NightDraft>(sessionDraft);
   const challengeEntry = Boolean(challenge) && !draft.editId;
@@ -674,6 +674,7 @@ function NightSession({
   ) => {
     if (saveLock.current || restore || tabConflict) return;
     let pending = draft.pending;
+    const previouslyDispatched = Boolean(pending) && pending!.dispatched !== false;
     try {
       if (!pending) {
         if (draft.editId && !draft.original)
@@ -711,7 +712,7 @@ function NightSession({
           setError('Review the correction preview, then save again to apply it.');
           return;
         }
-        pending = { operationId: crypto.randomUUID(), payload, intent };
+        pending = { operationId: crypto.randomUUID(), payload, intent, dispatched: false };
       }
       if (allowDuplicate)
         pending = {
@@ -719,6 +720,7 @@ function NightSession({
           payload: { ...pending.payload, allow_duplicate: true },
         };
       // Persist the exact submission before sending, so refresh/retry uses its ID.
+      pending = { ...pending, dispatched: true };
       const submitting = { ...draft, pending };
       dirty.current = true;
       setDraft(submitting);
@@ -785,7 +787,7 @@ function NightSession({
       } catch {
         /* Confirmation is still authoritative when storage is unavailable. */
       }
-      setDraft((current) => ({
+      setDraft((current) => initialChallenge ? { ...challengeDraft(initialChallenge), mode: current.mode } : ({
         ...freshDraft(),
         game: current.game,
         // Result status belongs to the saved game, not the next scorecard.
@@ -793,7 +795,7 @@ function NightSession({
         board: current.board,
         mode: current.mode,
         players:
-          initialChallenge || pending!.intent === "rematch"
+          pending!.intent === "rematch"
             ? current.players.map((p) => ({ ...p, score: "", points: "" }))
             : [],
       }));
@@ -803,7 +805,7 @@ function NightSession({
     } catch (cause) {
       if (mounted.current) {
         setError(saveErrorMessage(cause));
-        if (pending && isDefiniteSaveRejection(cause))
+        if (pending && isDefiniteSaveRejection(cause, previouslyDispatched))
           releaseEntry({ ...draft, pending });
       }
     } finally {

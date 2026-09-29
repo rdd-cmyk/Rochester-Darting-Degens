@@ -3,7 +3,7 @@
 Updated: 2026-09-29. Status: W0 complete and manifest refreshed; W1 read-only
 assessment complete, Vercel access resolved, isolated-preview gate passed;
 W2 statistics foundation and W3 combined synthetic rehearsal passed locally;
-W4-W8 release gates open.
+W5-W8 release gates open.
 
 ## Candidate and scope
 
@@ -101,8 +101,8 @@ up independent local preparation while a hosted decision remains outstanding.
 | W0: Scope and candidate | This plan, feature/SQL inventory and an initial candidate SHA. Keep subsequent fixes scoped on `release/next`. | Future stats storage included; no new stats UI. | Passed; refreshed 2026-09-29 for UI/Rivalry. [Completion evidence](release/w0-scope-and-candidate.md) and [current source manifest](release/w0-candidate-2026-09-29.json); initial snapshot preserved. |
 | W1: Refresh environment facts | Read-only hosted/schema/Auth/integration assessment and differences from checked-in assumptions; target map and migration-history proposal. See section 1. | Every intended app/DB target is identified; drift, automatic deployment paths and baseline adoption are understood. The original isolated-preview prerequisite must pass before hosted testing. | **Passed 2026-09-29.** Assessment, target selection, scope split and exact combined Preview isolation verified. Browser/server credentials use RDD Release Testing; GitHub CI/Vercel pass. See [completion evidence](release/w1-preview-gate-2026-09-29.md). Hosted schema/gameplay/email and later release gates remain open. |
 | W2: Finish statistics foundation | Update SQL, permissions, view and tests as specified in section 1A; document final defaults and dependency order. | Independent source review resolved; focused local checks pass; no new feature surface. | **Passed locally 2026-09-29.** Member-only final view, unknown historical provenance/timestamps, optional measurements, dependency order, validation/conflict/lock handling and recorder preservation verified. Independent review resolved. [Completion evidence](release/w2-statistics-foundation-2026-09-29.md). No hosted SQL or new statistics UI. |
-| W3: Combined synthetic release | Dedicated isolated stack, repeatable full-chain upgrade, preservation checks, all application/DB/API/browser gates, and verified fixes. See sections 2 and 4. | Final combined candidate passes; legacy/new-client behavior and failure recovery are demonstrated. | **Passed locally 2026-09-29.** Eleven ordered SQL inputs, 442 SQL assertions, real Auth/HTTP and combined browser suites, interruption/retry and compatible-app rollback with original rows intact. See [W3 completion record](release/w3-combined-synthetic-2026-09-29.md). Hosted test schema, protected backup/restore, owner phone and deployment gates remain open. |
-| W4: Backup and restore proof | Concrete export/handling proposal, owner decision, protected backup manifest, isolated restore and integrity/timing report. See section 3. | Complete recoverable backup demonstrated within agreed recovery limits. | **Recovery limits pending 2026-09-29.** Owner-attested BitLocker copies on F: and D:, stable production export, independent-copy local restore, row/sequence/rights checks and timing passed. The hosted/local managed Storage trigger difference is recorded. Await agreed downtime/data-loss limits to close the gate. See [W4 record](release/w4-backup-restore-2026-09-29.md). |
+| W3: Combined synthetic release | Dedicated isolated stack, repeatable full-chain upgrade, preservation checks, all application/DB/API/browser gates, and verified fixes. See sections 2 and 4. | Final combined candidate passes; legacy/new-client behavior and failure recovery are demonstrated. | **Passed locally 2026-09-29.** Eleven ordered SQL inputs, 442 SQL assertions, real Auth/HTTP and combined browser suites, interruption/retry and compatible-app rollback with original rows intact. See [W3 completion record](release/w3-combined-synthetic-2026-09-29.md). W4 has since proved protected backup/restore; hosted test schema, owner phone and deployment gates remain open. |
+| W4: Backup and restore proof | Concrete export/handling proposal, owner decision, protected backup manifest, isolated restore and integrity/timing report. See section 3. | Complete recoverable backup demonstrated within agreed recovery limits. | **Passed 2026-09-29.** Owner-attested BitLocker copies on F: and D:, stable production export, independent-copy local restore, all 677 dump rows, row/sequence/rights checks and timing passed. The hosted/local managed Storage trigger difference is recorded. Owner accepts 48 hours or more of downtime but zero lost committed records; a fresh cutover backup and write pause remain W8 gates. See [W4 record](release/w4-backup-restore-2026-09-29.md). |
 | W5: Production-shaped dress rehearsal | Run the exact release manifest and account-transition process on the protected restored copy; exercise rollback and compare original records. See section 4. | SQL hashes/order, preservation, migration-history adoption, interruption recovery and compatible rollback all pass. | Pending. |
 | W6: Operational and owner acceptance | Verified member/organizer lists, configuration plan, approved isolated email/Auth acceptance, cleanup ownership, phone walkthrough and maintenance procedure. See section 5. | Required real configuration/account decisions are settled; delivery, recovery and owner acceptance have evidence. | Pending; W1 isolation passed, schema/acceptance preparation remains. Production-connected historical previews cannot be used. Credential rotation/consumer verification is required before hosted acceptance. |
 | W7: Freeze and go/no-go | Release packet with exact app SHA/artifact, SQL hashes, evidence, final dry run, rollback and operator assignments. | Owner authorizes the concrete production release after reviewing the packet. | Pending; no deployment authorization. |
@@ -341,9 +341,13 @@ operator, protected destination outside Git, retention, access and deletion rule
 - [x] Prove restored schema, relationships, representative complete rows and
   usable Auth/profile relationships. Compare counts plus stable-key row digests
   and relevant aggregates. Keep detailed private evidence out of tracked logs.
-- [ ] Measure restore time and agree acceptable downtime/data-loss limits.
-  Rehearse recovery access and document exclusions. Obtain a fresh final backup
-  during the release write pause; an earlier rehearsal snapshot will age.
+- [x] Measure restore time and agree acceptable downtime/data-loss limits.
+  Rehearse recovery access and document exclusions. The owner accepts 48 hours
+  or more of downtime, but **no loss of committed records**. An older snapshot
+  cannot overwrite writes made after it; reconcile any post-backup writes before
+  a recovery restore. The W4 copy proves recovery of its capture-time state.
+- [ ] Obtain a fresh final backup during the W8 release write pause, after
+  in-flight writes are drained; an earlier rehearsal snapshot will age.
 
 ## 4. Rehearse the exact upgrade and failure recovery
 
@@ -501,10 +505,8 @@ saving. Prefer a reviewed forward repair when it preserves new records safely.
 
 ## Immediate next work
 
-W0-W3 have passed in their documented scopes. W4's two protected copies and
-independent local restore passed; agree downtime and data-loss limits to close
-its recovery gate. W5 can use the protected restored copy for a production-shaped
-dress rehearsal. W1's isolated Preview is available
+W0-W4 have passed in their documented scopes. W5 can use the protected restored
+copy for a production-shaped dress rehearsal. W1's isolated Preview is available
 for later hosted testing after reviewed schema and controlled Auth/email setup.
 No production-release decision has been requested or granted.
 

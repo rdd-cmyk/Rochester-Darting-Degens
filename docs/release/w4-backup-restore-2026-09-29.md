@@ -1,7 +1,8 @@
 # W4: protected backup and restore proof
 
-Date: 2026-09-29. **Status: production backup and independent-copy local restore
-passed; owner recovery limits pending.** Branch: `release/next`, starting source `e304a43`.
+Date: 2026-09-29. **Status: W4 passed.** Production backup and independent-copy
+local restore passed; the owner accepted the recovery limits. Branch:
+`release/next`, starting source `e304a43`.
 W3 passed on fictional local data; W4 is the first package that may handle a
 copy of production records. W4 is not a hosted schema migration, feature
 activation, Vercel deployment or approval for W5–W8.
@@ -107,8 +108,11 @@ effective client privileges matched. The validation file on D: records this
 exception explicitly, with `catalogMismatches: []` after the narrow allowance.
 The SQL transaction took 0.227 seconds; local stack startup was roughly 30
 seconds. This is a measured local recovery drill, not a hosted restore-time
-guarantee. Owner downtime/data-loss limits are still being settled, and W8
-requires a fresh final backup during the release write pause.
+guarantee. The owner accepts 48 hours or more of downtime but no lost committed
+records. The W4 backup recovers the state at its capture time; it cannot cover
+later writes. W8 requires a fresh final backup during an enforceable release
+write pause after in-flight writes drain. If recovery is needed after new writes,
+operators must preserve and reconcile them before restoring an older snapshot.
 
 ## Completed synthetic proof and finding
 
@@ -141,5 +145,6 @@ The synthetic drill caught two issues before real data was involved:
 
 The synthetic results established the method before production data was
 handled. The protected production restore and its limited platform exceptions
-are recorded above. The owner must still agree acceptable downtime and data
-loss for W4; W8 needs a **fresh** final backup during the release write pause.
+are recorded above. The owner's zero-loss requirement is a stop condition for
+later rollout and recovery procedures; W8 needs a **fresh** final backup during
+the release write pause.

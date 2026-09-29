@@ -19,8 +19,9 @@ CI/Vercel. W2's [storage preparation](release/w2-statistics-foundation-2026-09-2
 now passes independent source review and focused local SQL/application checks.
 W3's [combined synthetic rehearsal](release/w3-combined-synthetic-2026-09-29.md)
 passed locally. W4's [protected backup and restore proof](release/w4-backup-restore-2026-09-29.md)
-passed its export and independent-copy restore; owner recovery limits remain
-open. W5-W8 remain open. No hosted SQL or production rollout was performed.
+passed with owner-accepted recovery limits: downtime of 48 hours or more is
+acceptable, but committed records must not be lost. W5-W8 remain open. No
+hosted SQL or production rollout was performed.
 
 Status: advanced-statistics PR #69 merged; League Night Mode implemented and locally verified; hosted database changes deferred
 

@@ -102,7 +102,7 @@ up independent local preparation while a hosted decision remains outstanding.
 | W1: Refresh environment facts | Read-only hosted/schema/Auth/integration assessment and differences from checked-in assumptions; target map and migration-history proposal. See section 1. | Every intended app/DB target is identified; drift, automatic deployment paths and baseline adoption are understood. The original isolated-preview prerequisite must pass before hosted testing. | **Passed 2026-09-29.** Assessment, target selection, scope split and exact combined Preview isolation verified. Browser/server credentials use RDD Release Testing; GitHub CI/Vercel pass. See [completion evidence](release/w1-preview-gate-2026-09-29.md). Hosted schema/gameplay/email and later release gates remain open. |
 | W2: Finish statistics foundation | Update SQL, permissions, view and tests as specified in section 1A; document final defaults and dependency order. | Independent source review resolved; focused local checks pass; no new feature surface. | **Passed locally 2026-09-29.** Member-only final view, unknown historical provenance/timestamps, optional measurements, dependency order, validation/conflict/lock handling and recorder preservation verified. Independent review resolved. [Completion evidence](release/w2-statistics-foundation-2026-09-29.md). No hosted SQL or new statistics UI. |
 | W3: Combined synthetic release | Dedicated isolated stack, repeatable full-chain upgrade, preservation checks, all application/DB/API/browser gates, and verified fixes. See sections 2 and 4. | Final combined candidate passes; legacy/new-client behavior and failure recovery are demonstrated. | **Passed locally 2026-09-29.** Eleven ordered SQL inputs, 442 SQL assertions, real Auth/HTTP and combined browser suites, interruption/retry and compatible-app rollback with original rows intact. See [W3 completion record](release/w3-combined-synthetic-2026-09-29.md). Hosted test schema, protected backup/restore, owner phone and deployment gates remain open. |
-| W4: Backup and restore proof | Concrete export/handling proposal, owner decision, protected backup manifest, isolated restore and integrity/timing report. See section 3. | Complete recoverable backup demonstrated within agreed recovery limits. | Pending. |
+| W4: Backup and restore proof | Concrete export/handling proposal, owner decision, protected backup manifest, isolated restore and integrity/timing report. See section 3. | Complete recoverable backup demonstrated within agreed recovery limits. | **Recovery limits pending 2026-09-29.** Owner-attested BitLocker copies on F: and D:, stable production export, independent-copy local restore, row/sequence/rights checks and timing passed. The hosted/local managed Storage trigger difference is recorded. Await agreed downtime/data-loss limits to close the gate. See [W4 record](release/w4-backup-restore-2026-09-29.md). |
 | W5: Production-shaped dress rehearsal | Run the exact release manifest and account-transition process on the protected restored copy; exercise rollback and compare original records. See section 4. | SQL hashes/order, preservation, migration-history adoption, interruption recovery and compatible rollback all pass. | Pending. |
 | W6: Operational and owner acceptance | Verified member/organizer lists, configuration plan, approved isolated email/Auth acceptance, cleanup ownership, phone walkthrough and maintenance procedure. See section 5. | Required real configuration/account decisions are settled; delivery, recovery and owner acceptance have evidence. | Pending; W1 isolation passed, schema/acceptance preparation remains. Production-connected historical previews cannot be used. Credential rotation/consumer verification is required before hosted acceptance. |
 | W7: Freeze and go/no-go | Release packet with exact app SHA/artifact, SQL hashes, evidence, final dry run, rollback and operator assignments. | Owner authorizes the concrete production release after reviewing the packet. | Pending; no deployment authorization. |
@@ -321,24 +321,24 @@ the dedicated W3 release stack or a protected restore target.
 Before exporting real data, agree the exact source/restore target, authorized
 operator, protected destination outside Git, retention, access and deletion rules.
 
-- [ ] Inventory schema/data/roles/grants, Auth identities and dependencies,
+- [x] Inventory schema/data/roles/grants, Auth identities and dependencies,
   sequences, private schemas, operation logs and migration history. Record Auth
   provider/redirect/SMTP settings, hosting configuration and recovery procedures
   for secrets separately. Do not assume a default CLI dump covers everything.
   Include `rivalry_private` avatar selections/catalog, challenge terms, links,
   audit events and replay receipts once installed; prove their grants, triggers
   and functions survive restore with canonical match/profile relationships.
-- [ ] Check Storage usage. Database backups contain Storage metadata, not object
+- [x] Check Storage usage. Database backups contain Storage metadata, not object
   bytes; back up actual objects separately when relevant. Record unused surfaces
   explicitly rather than silently omitting them.
-- [ ] Produce a consistent protected backup, record timestamp, source identity,
+- [x] Produce a consistent protected backup, record timestamp, source identity,
   tool versions, checksums and a contents manifest. Retain a separate secure copy.
   Verify the backup is readable by the recovery operator; an export exit code alone
   is insufficient.
-- [ ] Restore into a genuinely isolated compatible target with outbound email,
+- [x] Restore into a genuinely isolated compatible target with outbound email,
   webhooks and other integrations disabled or redirected. Never expose restored
   real identities/data in the synthetic demo or ordinary preview.
-- [ ] Prove restored schema, relationships, representative complete rows and
+- [x] Prove restored schema, relationships, representative complete rows and
   usable Auth/profile relationships. Compare counts plus stable-key row digests
   and relevant aggregates. Keep detailed private evidence out of tracked logs.
 - [ ] Measure restore time and agree acceptable downtime/data-loss limits.
@@ -449,8 +449,9 @@ operator, protected destination outside Git, retention, access and deletion rule
 The review packet must contain the exact app SHA/artifact, SQL hashes and order,
 target identities, fresh hosted diff, test/browser evidence, successful restore
 receipt and timing, approved admission list, configuration checklist and rehearsed
-rollback. Any missing item remains an open gate. This plan is not approval to
-merge to `main`, export private data or modify hosted DB/Auth/configuration.
+rollback. Any missing item remains an open gate. The owner separately authorized
+W4's protected export and isolated restore on 2026-09-29; this plan is not
+approval to merge to `main` or modify hosted DB/Auth/configuration.
 
 Proposed cutover, to finalize after rehearsal:
 
@@ -500,15 +501,12 @@ saving. Prefer a reviewed forward repair when it preserves new records safely.
 
 ## Immediate next work
 
-W0, W1 and local W2 preparation are finished. Begin W3: build the dedicated
-combined synthetic release harness using W2's ordered inputs and acceptance limits.
-W1's isolated Preview is available; prepare the reviewed schema and controlled
-Auth/email configuration before any hosted W6 tests. Build the
-dedicated combined synthetic harness in W3 and take preservation snapshots before
-any release SQL.
-Prepare the concrete W4 backup/restore proposal while local testing proceeds.
-Finish the evidence and exact target details before requesting a data-export or
-production-release decision; no decision is required merely to read this plan.
+W0-W3 have passed in their documented scopes. W4's two protected copies and
+independent local restore passed; agree downtime and data-loss limits to close
+its recovery gate. W5 can use the protected restored copy for a production-shaped
+dress rehearsal. W1's isolated Preview is available
+for later hosted testing after reviewed schema and controlled Auth/email setup.
+No production-release decision has been requested or granted.
 
 ## References
 

@@ -104,7 +104,7 @@ up independent local preparation while a hosted decision remains outstanding.
 | W3: Combined synthetic release | Dedicated isolated stack, repeatable full-chain upgrade, preservation checks, all application/DB/API/browser gates, and verified fixes. See sections 2 and 4. | Final combined candidate passes; legacy/new-client behavior and failure recovery are demonstrated. | **Passed locally 2026-09-29.** Eleven ordered SQL inputs, 442 SQL assertions, real Auth/HTTP and combined browser suites, interruption/retry and compatible-app rollback with original rows intact. See [W3 completion record](release/w3-combined-synthetic-2026-09-29.md). W4 has since proved protected backup/restore; hosted test schema, owner phone and deployment gates remain open. |
 | W4: Backup and restore proof | Concrete export/handling proposal, owner decision, protected backup manifest, isolated restore and integrity/timing report. See section 3. | Complete recoverable backup demonstrated within agreed recovery limits. | **Passed 2026-09-29.** Owner-attested BitLocker copies on F: and D:, stable production export, independent-copy local restore, all 677 dump rows, row/sequence/rights checks and timing passed. The hosted/local managed Storage trigger difference is recorded. Owner accepts 48 hours or more of downtime but zero lost committed records; a fresh cutover backup and write pause remain W8 gates. See [W4 record](release/w4-backup-restore-2026-09-29.md). |
 | W5: Production-shaped dress rehearsal | Run the exact release manifest and account-transition process on the protected restored copy; exercise rollback and compare original records. See section 4. | SQL hashes/order, preservation, migration-history adoption, interruption recovery and compatible rollback all pass. | **Passed locally 2026-09-29.** Eleven exact SQL inputs, local history anchor, ten injected transaction failures, all 677 original rows preserved, fictional account transition and compatible-app rollback passed. See [W5 record](release/w5-production-shaped-2026-09-29.md). Hosted configuration and owner acceptance remain W6-W8. |
-| W6: Operational and owner acceptance | Verified member/organizer lists, configuration plan, approved isolated email/Auth acceptance, cleanup ownership, phone walkthrough and maintenance procedure. See section 5. | Required real configuration/account decisions are settled; delivery, recovery and owner acceptance have evidence. | Pending; W1 isolation passed, schema/acceptance preparation remains. Production-connected historical previews cannot be used. Credential rotation/consumer verification is required before hosted acceptance. |
+| W6: Operational and owner acceptance | Verified member/organizer lists, configuration plan, approved isolated email/Auth acceptance, cleanup ownership, phone walkthrough and maintenance procedure. See section 5. | Required real configuration/account decisions are settled; delivery, recovery and owner acceptance have evidence. | **In progress 2026-09-29.** The isolated test schema and synthetic hosted/preview acceptance passed; the owner approved the current four-member roster and Ben/Tim organizer roles. Email/SMTP, Auth redirects/signup, cleanup schedule, write-pause rehearsal, credential rotation and owner phone walkthrough remain open. See [W6 record](release/w6-operational-acceptance-2026-09-29.md). |
 | W7: Freeze and go/no-go | Release packet with exact app SHA/artifact, SQL hashes, evidence, final dry run, rollback and operator assignments. | Owner authorizes the concrete production release after reviewing the packet. | Pending; no deployment authorization. |
 | W8: Cutover and observation | Fresh backup, ordered production steps, controlled acceptance, activation, monitoring and first-night check. See section 6. | Accepted live behavior, preserved records, working recovery and completed watch period. | Not started. |
 
@@ -398,22 +398,27 @@ operator, protected destination outside Git, retention, access and deletion rule
   browser/server target and both keys are verified. See the
   [W1 evidence](release/w1-preview-gate-2026-09-29.md). Historical deployments
   retain their old values and must not be used for write/email/signup tests.
-- [ ] Prepare the reviewed testing schema and exact origins/redirects/delivery
-  controls before hosted acceptance. Keep protected restore data separate from
-  synthetic/email acceptance.
+- [x] Prepare and apply the reviewed testing schema to the isolated RDD Release
+  Testing project, then validate its history, constraints and synthetic hosted
+  acceptance. Exact origins/redirects/delivery controls remain open. Keep
+  protected restore data separate from synthetic/email acceptance. See the
+  [W6 record](release/w6-operational-acceptance-2026-09-29.md).
 - [ ] Complete owner-approved rotation of the service-role credential disclosed
   in one browser-tool response during W1 and verify its affected consumers.
   Production credentials have been removed from new Preview scope and the test
   server key is a Secret. Review production-key/GitHub-token Secret handling and
   consumer scopes separately. W1 recorded no credentials in files and did not
   rotate the exposed key; the owner performed the environment scope changes.
-- [ ] Approve the legitimate existing-member UUID list and cutoff. Reconcile
-  accounts created between initial inventory and cutover. Backfill active
-  `league_members` with null `source_invite_id`; do not auto-admit every Auth user.
+- [x] Approve the legitimate existing-member UUID list and cutoff; the owner
+  chose all current production users except Captain Test, with the private UUID
+  snapshot held outside tracked files.
+- [ ] Reconcile accounts created between initial inventory and cutover. Backfill
+  active `league_members` with null `source_invite_id`; do not auto-admit every Auth user.
   Restrictive policies immediately deny members not yet admitted, so rehearse
   the backfill/policy boundary under maintenance or a reviewed atomic package.
-- [ ] Assign planning organizers and Board organizers from verified IDs through
-  trusted administration. League membership never implies Board approval or
+- [x] Decide planning organizers and Board organizers from verified IDs: Ben
+  Linford and Tim Kiefer for both roles.
+- [ ] Assign those roles through W8 trusted administration. League membership never implies Board approval or
   either organizer role; do not infer authority from editable profile metadata.
 - [ ] Prepare server-only invitation configuration described in the
   [handoff](invite-only-registration-handoff.md): enable flag, exact origin,

@@ -1,4 +1,21 @@
 import type { NightDraft } from "./types";
+import { defaultConfig } from "@/lib/games/catalog";
+import type { Challenge } from "@/lib/rivalries/types";
+
+export function challengeDraft(challenge: Challenge | null): NightDraft {
+  if (!challenge) return freshDraft();
+  return {
+    ...freshDraft(),
+    game: challenge.game,
+    board: challenge.board,
+    gameConfig: { ...defaultConfig(), preset: challenge.preset },
+    players: [challenge.sender, challenge.recipient].map((playerId) => ({
+      playerId,
+      score: "",
+      points: "",
+    })),
+  };
+}
 
 export const DRAFT_LIFETIME = 24 * 60 * 60_000;
 export type StoredDraft = {
@@ -135,15 +152,18 @@ export function readNightSavedEntries(
   key: string,
   now = Date.now(),
 ): SavedNightEntry[] {
-  const keys = Array.from({ length: storage.length }, (_, i) => storage.key(i))
-    .filter((candidate): candidate is string =>
-      Boolean(candidate?.startsWith(key + ":entry:")),
-    );
+  const keys = Array.from({ length: storage.length }, (_, i) =>
+    storage.key(i),
+  ).filter((candidate): candidate is string =>
+    Boolean(candidate?.startsWith(key + ":entry:")),
+  );
   const entries: SavedNightEntry[] = [];
   for (const candidate of keys) {
     const stored = decodeDraft(storage.getItem(candidate), now);
     if (
-      stored && !stored.draft.pending && stored.draft.recoveredEntryId &&
+      stored &&
+      !stored.draft.pending &&
+      stored.draft.recoveredEntryId &&
       nightEntryKey(key, stored.draft.recoveredEntryId) === candidate
     )
       entries.push(stored as SavedNightEntry);

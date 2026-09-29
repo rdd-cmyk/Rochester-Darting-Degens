@@ -2,7 +2,8 @@
 
 Current combined-release coordination: [Next release readiness](release-next-readiness.md).
 `release/next` now contains League Night, planning, Board, invitations, game modes,
-team ratings and Solo Play. Prior feature results below remain dated evidence;
+team ratings, Solo Play, the PR #75 interface and Rivalry Room/player avatars.
+Prior feature results below remain dated evidence;
 the full release's backup/restore, migration and deployment gates are open.
 The owner confirmed future statistics SQL/storage preparation for this release
 on 2026-09-28, with no new statistics UI or calculation features. See package W2
@@ -17,7 +18,7 @@ Status: advanced-statistics PR #69 merged; League Night Mode implemented and loc
 
 Supabase project: `hrqsbzmsfichiimtxijj`
 
-Last updated: 2026-09-28
+Last updated: 2026-09-29
 
 Release checkpoint: PR #69 merged into `main` as `690a01b` on 2026-09-25.
 The package rows below retain their dated implementation evidence; they are not
@@ -31,6 +32,13 @@ Plan & RSVP is implemented on the isolated `league-night-planning` worktree:
 polls, two suggestions per profile, scheduling and binary RSVPs. See the
 [local handoff](league-night-planning-handoff.md). This does not approve hosted
 SQL, organizer assignments or publication.
+
+Rivalry Room and 24 player avatars are integrated locally into `release/next`
+on 2026-09-29 from `rivalry-room` at `5f9a24c`, preserving the PR #75 interface.
+See the [integration record](release/rivalry-ui-integration.md), original
+[local handoff](rivalry-room-handoff-2026-09-28.md) and
+[independent review](rivalry-room-review-2026-09-29.md). The new SQL remains a
+fixture; publication, full release rehearsal and hosted rollout remain deferred.
 
 | Phase | Status | Notes |
 | --- | --- | --- |

@@ -4,6 +4,14 @@ Date: 2026-09-28. Read-only assessment and migration-history proposal complete.
 **W1's exit gate remains open for Vercel owner verification.** This is not a
 deployment, hosted write test, backup or restore pass. W2 can proceed locally.
 
+Candidate addendum, 2026-09-29: the local release now includes the PR #75 UI and
+reviewed Rivalry Room/avatars. This assessment remains the dated hosted baseline;
+no new hosted inspection or write was performed for those merges. Add
+`rivalry_private` and its public RPCs/save wrapper to W3's schema/grants comparison
+and W4/W5's backup/restore and rehearsal manifest. No additional hosted credential
+is required by Rivalry Room. The Vercel owner gate remains open. See the
+[integration evidence](rivalry-ui-integration.md).
+
 ## Evidence and boundaries
 
 Inspected `release/next` at `31cf034e98d49e3569eab34e42509110dec998af` (W0's

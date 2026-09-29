@@ -29,8 +29,9 @@ beforeEach(() => {
 afterEach(() => localStorage.clear());
 
 async function open() {
-  render(<MatchesPage />);
+  const view = render(<MatchesPage />);
   await screen.findByRole('heading', { name: 'Record a New Match' });
+  return view;
 }
 function selectPlayer(index: number) {
   fireEvent.change(screen.getByLabelText(`Player ${index + 1}`, { exact: true }), { target: { value: players[index].id } });
@@ -94,4 +95,25 @@ it('keeps a 2v2 shared score out of personal scores and sends both winning teamm
   expect(payload.game_config.teamScores).toEqual({ A: 400, B: 350 });
   expect(payload.players.map((player: { score: number | null; is_winner: boolean }) => [player.score, player.is_winner]))
     .toEqual([[null, true], [null, true], [null, false], [null, false]]);
+});
+
+it.each(['42501', 'PGRST202'])('retains a dispatched ordinary save after reload when its retry cannot check the receipt (%s)', async code => {
+  rpc.mockResolvedValueOnce({ data: null, error: { message: 'The response was interrupted.' } });
+  rpc.mockResolvedValueOnce({ data: null, error: { code, message: 'Access or the endpoint is temporarily unavailable.' } });
+  const view = await open(); individual();
+  fireEvent.click(screen.getByRole('button', { name: 'Save match' }));
+  await screen.findByRole('button', { name: 'Check / retry save' });
+  const original = rpc.mock.calls[0][1];
+  view.unmount();
+  await open();
+  fireEvent.click(await screen.findByRole('button', { name: 'Check / retry save' }));
+  await waitFor(() => expect(rpc).toHaveBeenCalledTimes(2));
+  expect(screen.getByRole('button', { name: 'Check / retry save' })).toBeInTheDocument();
+  expect(screen.getByLabelText('Game type')).toBeDisabled();
+  expect(localStorage.length).toBe(1);
+  fireEvent.click(screen.getByRole('button', { name: 'Check / retry save' }));
+  await screen.findByText('✓ Saved match #42.');
+  expect(rpc.mock.calls[1][1]).toEqual(original);
+  expect(rpc.mock.calls[2][1]).toEqual(original);
+  expect(localStorage.length).toBe(0);
 });

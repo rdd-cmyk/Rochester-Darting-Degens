@@ -5,6 +5,7 @@ import Link from 'next/link';
 import type { User } from '@supabase/supabase-js';
 import { supabase } from '@/lib/supabaseClient';
 import { formatPlayerName } from '@/lib/playerName';
+import { PlayerAvatar } from '@/components/avatars/PlayerAvatar';
 
 type ProfileListItem = {
   id: string;
@@ -221,7 +222,8 @@ export default function AllProfilesPage() {
                   href={`/profiles/${profile.id}`}
                   className="directory-item"
                 >
-                  <div>
+                  <PlayerAvatar playerId={profile.id} name={primaryName}/>
+                  <div className="directory-item-copy">
                     <div className="directory-item-name">{primaryName}</div>
                     {hasSecondary && (
                       <div className="directory-item-secondary">

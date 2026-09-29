@@ -148,6 +148,7 @@ export default function Navbar({ summerEnabled, onToggleSummer }: NavbarProps) {
           <Link href="/league-night" aria-current={pathname === "/league-night" || pathname.startsWith("/league-night/") ? "page" : undefined} onClick={handleNavSelection}>
             League Night
           </Link>
+          <Link href="/rivalries" aria-current={pathname === "/rivalries" || pathname.startsWith("/rivalries/") ? "page" : undefined} onClick={handleNavSelection}>Rivalry Room</Link>
           <Link href="/board" aria-current={pathname === "/board" || pathname.startsWith("/board/") ? "page" : undefined} onClick={handleNavSelection}>
             League Board
           </Link>

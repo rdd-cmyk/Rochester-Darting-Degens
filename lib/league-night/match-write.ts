@@ -1,6 +1,11 @@
 import { supabase } from "@/lib/supabaseClient";
 import type { MatchWrite, SaveResult } from "./types";
-import { GAME_TYPES, parseGameScore, hasCricketPoints, validateConfig } from '@/lib/games/catalog';
+import {
+  GAME_TYPES,
+  parseGameScore,
+  hasCricketPoints,
+  validateConfig,
+} from "@/lib/games/catalog";
 
 export { GAME_TYPES };
 export function parseScore(
@@ -30,7 +35,8 @@ export function validateMatchWrite(
     new Set(input.players.map((p) => p.player_id)).size !== input.players.length
   )
     throw new Error("Choose a different player for each place.");
-  if (input.game_config) validateConfig(input.game_type, input.game_config, input.players);
+  if (input.game_config)
+    validateConfig(input.game_type, input.game_config, input.players);
   else if (input.players.filter((p) => p.is_winner).length !== 1)
     throw new Error("Choose exactly one winner.");
   const played = Date.parse(input.played_at);
@@ -80,11 +86,16 @@ export function saveErrorMessage(error: unknown): string {
     return "League Night saving is not available on this site yet. Your entry is still here.";
   return message;
 }
-export function isDefiniteSaveRejection(error: unknown): boolean {
+export function isDefiniteSaveRejection(
+  error: unknown,
+  previouslyDispatched = false,
+): boolean {
   const code =
     error && typeof error === "object" && "code" in error
       ? String(error.code)
       : "";
+  if (previouslyDispatched && ["42501", "PGRST202"].includes(code))
+    return false;
   return [
     "22023",
     "22003",

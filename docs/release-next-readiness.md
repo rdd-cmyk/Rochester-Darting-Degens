@@ -26,6 +26,15 @@ adds no SQL or dependency changes. W1 facts remain useful; its owner checklist
 now includes both visual-fixture flags. W3 must test this combined interface
 and feature set; W4-W8 backup, rehearsal and release gates still apply.
 
+Scope addition authorized 2026-09-29: merge the reviewed local `rivalry-room`
+branch at `5f9a24c` onto the combined UI candidate at `d667dbe`. Rivalry Room,
+24 curated player avatars and accepted challenge series are now included.
+See the [Rivalry/UI integration record](release/rivalry-ui-integration.md).
+W0 remains passed with this scope addendum; W1's dated assessment and pending
+Vercel verification remain valid. The new private schema and save wrapper must
+join W3-W5's full-chain tests, backup inventory and rollback rehearsal. Local
+feature checks do not close those packages or authorize hosted changes.
+
 Scope decision confirmed by the owner on 2026-09-28: prepare the deferred
 statistics SQL as useful future infrastructure during this release's DB work.
 Do not add new statistics to the site. Include the reviewed seasons storage,
@@ -111,6 +120,7 @@ hashes, preconditions, postconditions and recovery actions before execution.
 | `supabase/tests/fixtures/invite_parent_admission.sql` | Admission wrappers around existing League Night/planning/Board RPCs and additional restrictive policies. Requires those parent functions and invitation schema. |
 | `supabase/tests/fixtures/game_modes.sql` | `game_config`, presets, audited corrections and replacement save implementation. Preserves an installed invitation wrapper in one transaction; test the private implementation grants and public wrapper after installation. New-mode writes default to disabled. |
 | `supabase/tests/fixtures/solo_play.sql` | Private solo sessions/games/preferences, operation records, consented projections and membership checks. Requires the combined parent/game-mode contract. |
+| `supabase/tests/fixtures/rivalry_room.sql` | Private avatar catalog/selections, challenge terms, game links, audit events and replay receipts; requires profiles, League Night/planning, invitation admission and the final game-mode save implementation. Installs an outer `rdd_save_match` wrapper for atomic challenge linking; test ordinary/team saving and admission through the entire wrapper chain. Solo does not replace that RPC and may precede this input. |
 | `supabase/pending/league_night_enforce.sql` | Revokes direct split match/participant writes. Separate cutover step after the compatible application works and legacy writes are drained. |
 
 Exclude `existing_schema_baseline.sql` and synthetic seeds from production: the
@@ -123,6 +133,14 @@ The existing Solo rehearsal installs the parent chain, but snapshots old rows
 only immediately before Solo SQL and primarily tests Solo/admission. It also
 installs enforcement earlier than a live rollout can. It is useful prior evidence,
 not proof of the complete production upgrade order or preservation across it.
+
+The Rivalry fixture is also a one-time rehearsal input. It moves the existing
+public save function into `rivalry_private.base_save_match`, then creates a new
+public wrapper. Installing game-mode SQL after it could replace that wrapper;
+rerunning Rivalry SQL blindly is unsafe. W3/W5 must freeze the function identities,
+dependency order, private grants, source-change triggers and interrupted-install
+recovery before promoting any reviewed deployment SQL. Keep this input outside
+`supabase/migrations/`.
 
 ## 1. Freeze and inspect the combined candidate
 
@@ -263,6 +281,9 @@ Existing scripts to reuse after target/fixture review: `rehearse-league-night.mj
 `rehearse-solo.mjs`, the SQL suites under `supabase/tests`, and feature API/browser
 scripts under `scripts/qa`. Some scripts refresh their feature demo database after
 a successful rehearsal; do not run them against an arbitrary restored target.
+Include the guarded Rivalry API/browser scripts and the shared-page integration
+matrix. The existing `rdd-rivalry-room` synthetic stack is feature evidence, not
+the dedicated W3 release stack or a protected restore target.
 
 ## 3. Establish and prove the backup
 
@@ -273,6 +294,9 @@ operator, protected destination outside Git, retention, access and deletion rule
   sequences, private schemas, operation logs and migration history. Record Auth
   provider/redirect/SMTP settings, hosting configuration and recovery procedures
   for secrets separately. Do not assume a default CLI dump covers everything.
+  Include `rivalry_private` avatar selections/catalog, challenge terms, links,
+  audit events and replay receipts once installed; prove their grants, triggers
+  and functions survive restore with canonical match/profile relationships.
 - [ ] Check Storage usage. Database backups contain Storage metadata, not object
   bytes; back up actual objects separately when relevant. Record unused surfaces
   explicitly rather than silently omitting them.
@@ -318,6 +342,7 @@ operator, protected destination outside Git, retention, access and deletion rule
 | Invitations | Verified inbox ownership, forwarded-link denial, expiry/reissue/revoke, rate limits, duplicate requests, uncertain provisioning, corrected passwords, active-member admission and no public signup path. |
 | Games/teams | All supported modes/presets, doubles/triples, corrections/audit privacy, winners/ties/abandonment, disabled/enabled write gate, compatible score cohorts and team ratings. |
 | Solo | Owner privacy, admission, draft/retry/edit/delete/undo, profile consent/revocation and night sharing without notes/location leakage. No competitive wins, ratings, awards or attendance from solo games. |
+| Rivalry Room / avatars | Owner-only revision-checked avatar saves, durable exact-operation retry and cross-account cleanup; admitted-only pair/challenge data, acceptance/expiry/caps, schedule reconfirmation, canonical atomic game links, corrections/reopening, delegated link repair, organizer authority, accurate completion headlines and explicit poster/TV export. Series never create another rating event. |
 
 - [ ] Include multiple devices/accounts, sign-out/account-switch cleanup, stale
   tabs, session refresh, network loss, 320/390/768/1440 layouts, dark mode,
@@ -325,6 +350,8 @@ operator, protected destination outside Git, retention, access and deletion rule
 - [ ] Rehearse application rollback with the upgraded DB and data created after
   upgrade. Keep a version that understands RPC saving, admission, teams and Solo.
   The current pre-release `main` is not automatically a safe rollback target.
+  The compatible rollback must also preserve Rivalry receipts, canonical links
+  and avatar state; test ordinary match saving through the outer Rivalry wrapper.
 - [ ] Rehearse failed rollout recovery and a separate disaster restore. Determine
   how post-backup writes would be preserved/reconciled before any restore; never
   silently overwrite fresh league data with an older snapshot.
@@ -359,6 +386,8 @@ operator, protected destination outside Git, retention, access and deletion rule
 - [ ] Prepare an owner walkthrough on the final isolated build: existing login
   and history; plan/RSVP to attendance; save/rematch and team recap; Board
   approval/post/recovery; invitation join/recovery; private Solo and sharing.
+  Include choosing an avatar, accepting/recording/correcting a challenge, and
+  phone/TV/poster review alongside the redesigned shared pages.
   Record phone/browser used and any deferred nonblocking polish separately.
 - [ ] Define observable stop conditions: unexplained record differences,
   privilege bypass, legitimate-member lockout, broken login/recovery, duplicate

@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { supabase } from '@/lib/supabaseClient';
 import { formatPlayerName } from '@/lib/playerName';
 import type { User } from '@supabase/supabase-js';
+import { AvatarPicker } from '@/components/avatars/AvatarPicker';
 
 type Profile = {
   id: string;
@@ -244,6 +245,7 @@ export default function ProfilePage() {
       </header>
 
       {/* How your name will appear */}
+      <AvatarPicker key={user.id} userId={user.id} name={formattedLeagueName()}/>
       <section className="rdd-panel account-name-preview">
         <h2 className="rdd-section-title">How your name will appear</h2>
         <p className="account-name-preview-value">

@@ -96,7 +96,7 @@ function MatchesWorkspace({ user }: { user: User }) {
   const [correction, setCorrection] = useState<ReturnType<typeof previewCorrection> | null>(null);
   const [correctionKey, setCorrectionKey] = useState('');
   const [previewing, setPreviewing] = useState(false);
-  const [pendingSave, setPendingSave] = useState<{ operationId: string; payload: MatchWrite } | null>(null);
+  const [pendingSave, setPendingSave] = useState<PendingMatchSave | null>(null);
   const [duplicateMatch, setDuplicateMatch] = useState(false);
   const [saveReceipt, setSaveReceipt] = useState('');
   const [otherRecoveries, setOtherRecoveries] = useState(0);
@@ -286,7 +286,7 @@ function MatchesWorkspace({ user }: { user: User }) {
 
   const restoreSave = useCallback((stored: PendingMatchSave) => {
     const payload = validateMatchWrite(stored.payload as MatchWrite);
-    setPendingSave(stored.released ? null : { operationId: stored.operationId, payload });
+    setPendingSave(stored.released ? null : { operationId: stored.operationId, payload, dispatched: stored.dispatched });
     // Keep the actual entry visible/editable after a definite rejection.
     setPlayedAt(toLocalDateTimeInput(payload.played_at));
     setGameType(payload.game_type ?? '');
@@ -417,13 +417,17 @@ function MatchesWorkspace({ user }: { user: User }) {
     if (saveLock.current || !user) return;
     setErrorMessage(null);
     let pending = pendingSave;
+    // Admission or endpoint failures on a retry cannot prove the first dispatch
+    // did not commit. Old recovery records without a marker are conservative.
+    const previouslyDispatched = Boolean(pending) && pending!.dispatched !== false;
     try {
       if (!pending) {
         const payload = currentPayload();
         const originalGame = matches.find(m => m.id === editingMatchId)?.game_type;
         if (editingMatchId && originalGame !== gameType && correctionKey !== JSON.stringify(payload)) throw new Error('Preview this classification correction before saving.');
-        pending = { operationId: crypto.randomUUID(), payload };
+        pending = { operationId: crypto.randomUUID(), payload, dispatched: false };
       }
+      pending = { ...pending, dispatched: true };
       setPendingSave(pending);
       // Preserve the exact payload/ID for an interrupted response or reload.
       try {
@@ -454,7 +458,7 @@ function MatchesWorkspace({ user }: { user: User }) {
     } catch (cause) {
       if (!mounted.current) return;
       setErrorMessage(saveErrorMessage(cause));
-      if (isDefiniteSaveRejection(cause)) {
+      if (isDefiniteSaveRejection(cause, previouslyDispatched)) {
         setPendingSave(null);
         if(pending) releaseSave(pending);
       }

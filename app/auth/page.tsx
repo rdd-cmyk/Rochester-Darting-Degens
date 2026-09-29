@@ -13,15 +13,18 @@ export default function AuthPage() {
   const [message, setMessage] = useState('');
   useEffect(() => {
     let current = true;
-    supabase.auth.getUser().then(({ data }) => { if (current && data.user) router.push(authReturnPath(window.location.search)); });
+    // Capture before awaiting: a concurrent sign-in can already navigate away.
+    const returnTo=authReturnPath(window.location.search);
+    supabase.auth.getUser().then(({ data }) => { if (current && data.user) router.push(returnTo); });
     return () => { current = false; };
   }, [router]);
   async function signIn(event: FormEvent) {
     event.preventDefault(); setBusy(true); setMessage('');
+    const returnTo=authReturnPath(window.location.search);
     try {
       const { error } = await supabase.auth.signInWithPassword({ email: email.trim(), password });
       if (error) setMessage('Sign in failed. Check your email and password.');
-      else router.push(authReturnPath(window.location.search));
+      else router.push(returnTo);
     } catch { setMessage('Could not reach the sign-in service. Please try again.'); }
     finally { setBusy(false); }
   }

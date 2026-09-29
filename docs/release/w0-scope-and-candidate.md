@@ -8,6 +8,12 @@ over its older main-based workflows. [Integration evidence](pr75-ui-integration.
 records this later candidate. The identities, counts and SQL hashes below remain
 the historical initial snapshot; W0 does not need to be repeated.
 
+Additional scope authorized 2026-09-29: Rivalry Room, 24 curated avatars and
+challenge series join the candidate. The [integration record](rivalry-ui-integration.md)
+identifies the reviewed source and checks. The live release inventory now adds
+`rivalry_room.sql`; the nine SQL identities below and the original JSON remain
+the dated W0 starting point. W3-W7 must use the expanded candidate.
+
 ## Candidate identity
 
 | Item | Verified value |

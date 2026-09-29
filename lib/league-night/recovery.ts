@@ -5,6 +5,7 @@ import { DRAFT_LIFETIME } from "./draft";
 export type PendingMatchSave = {
   operationId: string;
   payload: MatchWrite;
+  dispatched?: boolean;
   released?: boolean;
 };
 export function pendingSaveKey(prefix: string, operationId: string) {

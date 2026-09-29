@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import Observability from "./components/Observability";
 import "./globals.css";
 import LayoutShell from "./components/LayoutShell";
+import { AvatarProvider } from '@/components/avatars/PlayerAvatar';
+import '@/components/rivalries/rivalries.css';
 
 export const metadata: Metadata = {
   title: {
@@ -19,7 +21,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className="antialiased">
-        <LayoutShell>{children}</LayoutShell>
+        <AvatarProvider><LayoutShell>{children}</LayoutShell></AvatarProvider>
         {/* Local synthetic acceptance must not load external telemetry scripts. */}
         {process.env.RDD_LOCAL_PREVIEW !== "1" && (
           <Observability />

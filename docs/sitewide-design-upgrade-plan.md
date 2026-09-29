@@ -10,6 +10,13 @@ team/game rules, Solo preferences and the Board preview remain in place. The
 existing M1-M8 real-service/manual acceptance gaps are carried into release W3
 and W6; this local merge does not close them.
 
+Rivalry integration checkpoint, 2026-09-29: reviewed feature source `5f9a24c`
+joins the combined candidate at `d667dbe`. The new page heading, directory rows
+and My Profile keep the PR #75 classes while adding shared avatars and the
+curated picker. Navigation retains its current-page and Escape behavior and
+adds Rivalry Room. See the [combined evidence](release/rivalry-ui-integration.md)
+for the actual local DB-backed responsive matrix and remaining release gates.
+
 Repository location: `docs/sitewide-design-upgrade-plan.md`.
 
 Design authority: [RDD design standards](design-standards.md). Visual reference: Advanced Statistics at `/stats`. Repository snapshot: `rdd-cmyk/Rochester-Darting-Degens` at `690a01b84d96c55b8ec455a6e298c17ec6093b50`.

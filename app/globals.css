@@ -1491,6 +1491,9 @@ textarea:disabled {
 }
 
 /* Shared game settings fit both the Matches form and League Night cards. */
+.player-page-heading { display: flex; align-items: center; gap: 1rem; min-width: 0; }
+.player-page-heading h1 { min-width: 0; overflow-wrap: anywhere; }
+.directory-item-copy { flex: 1; min-width: 0; }
 .matches-details { border: 0; padding: 0; margin: 0; min-width: 0; }
 .game-options { border: 1px solid var(--input-border, #bbb); border-radius: .6rem; padding: .8rem; }
 .game-options label { display: grid; gap: .35rem; min-width: 0; font-weight: 600; }

@@ -10,6 +10,7 @@ import { supabase } from '@/lib/supabaseClient';
 import { formatPlayerName } from '@/lib/playerName';
 import { formatRecordedScore } from '@/lib/matchScore';
 import { LinkedPlayerName } from '@/components/LinkedPlayerName';
+import { PlayerAvatar } from '@/components/avatars/PlayerAvatar';
 
 type Profile = {
   id: string;
@@ -619,7 +620,7 @@ export default function ProfilePage() {
     <main className="page-shell player-page">
       <header className="rdd-page-header rdd-page-header--compact">
         <p className="rdd-eyebrow">Player profile</p>
-        <h1>{title}</h1>
+        <div className="player-page-heading"><PlayerAvatar playerId={profile.id} name={title} size={80}/><h1>{title}</h1></div>
         <div className="rdd-actions"><Link href="/matches" className="rdd-action rdd-action--outline">Back to matches</Link></div>
       </header>
 

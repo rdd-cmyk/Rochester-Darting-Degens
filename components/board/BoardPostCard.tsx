@@ -1,4 +1,6 @@
 'use client';
+import { PlayerAvatar } from '@/components/avatars/PlayerAvatar';
+import { BoardBody } from './BoardBody';
 
 import Link from 'next/link';
 import { useCallback, useEffect, useRef, useState } from 'react';
@@ -134,20 +136,20 @@ export default function BoardPostCard({ post, userId, organizer, initiallyOpen =
   }
   function renderReply(reply: BoardReply) {
     return <div className="board-reply" key={reply.id}>
-      <div className="board-reply-header"><strong>{boardName(reply.profile)}</strong><span className="board-meta"><PostDate value={reply.created_at} />{reply.updated_at !== reply.created_at ? ' · Edited' : ''}</span></div>
-      <p className="board-body">{reply.body}</p>
+      <div className="board-reply-header"><PlayerAvatar playerId={reply.author_id??undefined} name={boardName(reply.profile)} size={32}/><strong>{boardName(reply.profile)}</strong><span className="board-meta"><PostDate value={reply.created_at} />{reply.updated_at !== reply.created_at ? ' · Edited' : ''}</span></div>
+      <BoardBody body={reply.body}/>
       <ContributionTools item={reply} kind="reply" userId={userId} organizer={organizer} locked={post.locked} onChange={() => { void load(); onChange(); }} />
     </div>;
   }
   return <article className={`board-post${post.pinned ? ' board-pinned' : ''}`} aria-label={`Post by ${boardName(post.profile)}`}>
     {post.pinned && <div className="board-eyebrow">Pinned for the league</div>}
     <header className="board-post-header">
-      <span className="board-avatar" aria-hidden="true">{boardName(post.profile).slice(0,2).toUpperCase()}</span>
+      <PlayerAvatar playerId={post.author_id??undefined} name={boardName(post.profile)}/>
       <div>{post.author_id ? <Link className="board-author" href={`/profiles/${post.author_id}`}>{boardName(post.profile)}</Link> : <strong>{boardName(post.profile)}</strong>}
         <div className="board-meta"><Link href={`/board/${post.id}`}><PostDate value={post.created_at} /></Link><span> · {boardTopics[post.topic] ?? 'Conversation'}{post.updated_at !== post.created_at ? ' · Edited' : ''}</span></div>
       </div>
     </header>
-    <p className="board-body">{post.body}</p>
+    <BoardBody body={post.body}/>
     {post.locked && <p className="board-small board-muted">This conversation is closed. You can still read it or report a concern.</p>}
     <div className="board-actions board-post-actions">
       <button type="button" disabled={busy || post.locked} aria-pressed={post.reacted} onClick={react}>Cheers{post.reaction_count > 0 ? ` · ${post.reaction_count}` : ''}{post.reacted ? ' · You' : ''}</button>

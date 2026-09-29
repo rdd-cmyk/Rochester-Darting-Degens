@@ -6,6 +6,20 @@ Status: candidate ready for review; final acceptance **open** (2026-09-28). Bran
 
 ## What changed
 
+Independent review update (2026-09-29): the remote snapshot at `acef179` was
+reviewed against `690a01b` in the separate local checkout
+`F:\RDD\Rochester-Darting-Degens-sitewide-design-review`. Both verified P2
+findings were fixed locally: profile access is distinguished from absence, and
+temporary recovery-session failures retain passwords/tokens for retry. The
+independent reviewer rechecked the fixes with no outstanding actionable issue.
+All 213 tests, coverage, lint, typecheck and optimized build passed, along with
+six synthetic production-browser profile states. The owner authorized committing
+and pushing these fixes to `origin/sitewide-design-upgrade-review` on 2026-09-29,
+updating existing draft PR #75. This review-fix commit contains the repairs,
+regression tests and evidence; final acceptance remains open. See the
+[validation update](sitewide-validation-report.md#independent-code-review-and-fixes-2026-09-29)
+for exact evidence and remaining acceptance limits.
+
 The site now shares the Advanced Statistics visual language across its shell, Home, Matches, directory and player pages, My Profile, account/recovery, Change Log, diagnostic, and fallback states. Home retains the overall leaderboard as its first substantive section. Summer decorations remain optional, restrained and governed by the saved preference and reduced-motion setting. The implementation keeps existing metrics, filters, sorts, match entry/edit flows and route destinations. See [design standards](design-standards.md), the [milestone ledger](sitewide-design-upgrade-plan.md) and [detailed validation](sitewide-validation-report.md) for the exact scope and evidence.
 
 ## Verified candidate evidence
@@ -22,7 +36,7 @@ The branch diff has no changed dependency manifest/lockfile, deployable SQL migr
 
 ## Checks still required for sign-off
 
-1. **Non-production Supabase:** Start the repository's guarded local stack on a machine with a compatible Docker runtime, or provide a separate test project with equivalent schema and disposable accounts. Follow [the local setup guide](supabase-local-development.md); on a local Docker setup, run `npm run supabase:start`, `npm run supabase:status`, `npm run test:db:local`, `npm run dev:local`, and `scripts/qa/local-acceptance.spec.mjs` through its documented Playwright configuration. Review auth, recovery mail, persisted create/edit/profile changes, creator permissions and denied anonymous/spoofed writes. Never point these write tests at the hosted league. This execution host currently has no Docker executable/engine, PostgreSQL binary, installed WSL distribution or configured test Supabase endpoint, so this gate has not run here.
+1. **Non-production Supabase:** Start the repository's guarded local stack on a machine with a compatible Docker runtime, or provide a separate test project with equivalent schema and disposable accounts. Follow [the local setup guide](supabase-local-development.md); on a local Docker setup, run `npm run supabase:start`, `npm run supabase:status`, `npm run test:db:local`, `npm run dev:local`, and `scripts/qa/local-acceptance.spec.mjs` through its documented Playwright configuration. Review auth, recovery mail, persisted create/edit/profile changes, creator permissions and denied anonymous/spoofed writes. Never point these write tests at the hosted league. The original implementation host lacked the database prerequisites. The 2026-09-29 Windows review host has a Docker CLI executable, but this review did not start or validate a database stack; this gate remains open.
 2. **Real Change Log failure paths:** The authenticated candidate Vercel preview rendered real merged pull requests on pages 1 and 2, with distinct records and working pagination. In an isolated candidate runtime, induce an empty or unavailable GitHub response and verify safe error rendering. The local fixture covers those states, but a real external failure has not been observed. Do not place tokens in screenshots or tracked files.
 3. **Native browser/OS checks:** In an ordinary interactive browser, review Home, Advanced Statistics, Matches and account/recovery at actual 200% browser zoom, including sticky filters, focus visibility and deliberate inner scrolling. Switch the operating system's light/dark preference and confirm the site follows it without stale colors or content shift; separately enable reduced motion and check the Summer overlay. Automated viewport scaling and browser media emulation are useful existing evidence, but are not substitutes for these physical controls.
 4. **Assistive technology and remaining interaction states:** With a screen reader and keyboard, review the skip link/main landmark, navigation state and focus return, leaderboard sort direction, Statistics filters/chart exact-history alternative, repeated match-player labels and save errors, account/recovery status announcements, and Change Log Markdown/pagination. Record browser, screen reader, viewport, theme, state and any defect. Existing axe and Tab sweeps do not establish announcements or operation of every control.

@@ -2,8 +2,8 @@ import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { afterEach, beforeEach, expect, it, vi } from 'vitest';
 import ProfilePage from './page';
 
-const { from } = vi.hoisted(() => ({ from: vi.fn() }));
-vi.mock('@/lib/supabaseClient', () => ({ supabase: { from } }));
+const { from, getUser } = vi.hoisted(() => ({ from: vi.fn(), getUser: vi.fn() }));
+vi.mock('@/lib/supabaseClient', () => ({ supabase: { from, auth: { getUser } } }));
 vi.mock('next/navigation', () => ({ useParams: () => ({ id: 'player-1' }) }));
 
 function match(id: number, note: string, gameType = '501', winner = true, score: number | null = 60) {
@@ -20,6 +20,8 @@ let profileResult: {
 };
 
 beforeEach(() => {
+  vi.clearAllMocks();
+  getUser.mockResolvedValue({ data: { user: { id: 'viewer' } }, error: null });
   requests = [];
   profileResult = { data: { id: 'player-1', display_name: 'Test player' }, error: null };
   vi.spyOn(window, 'scrollTo').mockImplementation(() => {});
@@ -45,6 +47,29 @@ beforeEach(() => {
   });
 });
 afterEach(() => vi.restoreAllMocks());
+
+it('asks a signed-out visitor to sign in instead of reporting a hidden profile as missing', async () => {
+  getUser.mockResolvedValue({ data: { user: null }, error: { name: 'AuthSessionMissingError' } });
+  profileResult = { data: null, error: null };
+
+  render(<ProfilePage />);
+
+  expect(await screen.findByText('Sign in to view player profiles.')).toBeInTheDocument();
+  expect(screen.getByRole('link', { name: 'Go to sign in' })).toHaveAttribute('href', '/auth');
+  expect(screen.queryByRole('heading', { name: 'Player not found' })).not.toBeInTheDocument();
+  expect(from).not.toHaveBeenCalled();
+});
+
+it('keeps an account-check failure separate from a missing profile', async () => {
+  getUser.mockRejectedValue(new Error('Network unavailable'));
+  profileResult = { data: null, error: null };
+
+  render(<ProfilePage />);
+
+  expect(await screen.findByRole('alert')).toHaveTextContent('Could not check your account. Please try again later.');
+  expect(screen.queryByRole('heading', { name: 'Player not found' })).not.toBeInTheDocument();
+  expect(from).not.toHaveBeenCalled();
+});
 
 it('shows a distinct missing-player state with a directory link', async () => {
   profileResult = { data: null, error: null };

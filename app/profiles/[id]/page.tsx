@@ -149,6 +149,7 @@ export default function ProfilePage() {
     id ? null : 'No profile id provided.'
   );
   const [profileMissing, setProfileMissing] = useState(false);
+  const [signInRequired, setSignInRequired] = useState(false);
   const [allMatchesError, setAllMatchesError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<'recent' | 'all'>('recent');
   const [allMatchesPage, setAllMatchesPage] = useState(1);
@@ -174,6 +175,26 @@ export default function ProfilePage() {
       setLoading(true);
       setErrorMessage(null);
       setProfileMissing(false);
+      setSignInRequired(false);
+
+      // Anonymous profile reads are hidden by RLS. Check identity before
+      // interpreting an empty result as a missing player.
+      try {
+        const { data, error } = await supabase.auth.getUser();
+        if (error && error.name !== 'AuthSessionMissingError') throw error;
+        if (!data.user) {
+          setSignInRequired(true);
+          setProfile(null);
+          setStats(null);
+          setRecentMatches([]);
+          setLoading(false);
+          return;
+        }
+      } catch {
+        setErrorMessage('Could not check your account. Please try again later.');
+        setLoading(false);
+        return;
+      }
 
       // 1) Load profile
       const { data: profileData, error: profileError } = await supabase
@@ -535,6 +556,16 @@ export default function ProfilePage() {
       <main className="page-shell player-page">
         <header className="rdd-page-header rdd-page-header--compact"><p className="rdd-eyebrow">Player profile</p><h1>Player Profile</h1></header>
         <p className="rdd-state" role="status">Loading profile…</p>
+      </main>
+    );
+  }
+
+  if (signInRequired) {
+    return (
+      <main className="page-shell player-page">
+        <header className="rdd-page-header rdd-page-header--compact"><p className="rdd-eyebrow">Player profile</p><h1>Player Profile</h1></header>
+        <p className="rdd-state">Sign in to view player profiles.</p>
+        <Link href="/auth" className="rdd-action rdd-action--primary">Go to sign in</Link>
       </main>
     );
   }

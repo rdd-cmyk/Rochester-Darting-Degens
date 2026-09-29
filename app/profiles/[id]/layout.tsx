@@ -40,9 +40,9 @@ export async function generateMetadata({
     title: {
       absolute: displayName
         ? `RDD - ${displayName}`
-        : error
-          ? "RDD - Player Profile"
-          : "RDD - Player Not Found",
+        // This server client has no browser session. RLS can hide an existing
+        // profile, so an empty result cannot establish that the player is missing.
+        : "RDD - Player Profile",
     },
   };
 }

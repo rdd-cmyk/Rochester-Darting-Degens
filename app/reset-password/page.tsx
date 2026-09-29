@@ -106,8 +106,18 @@ export default function ResetPasswordPage() {
       });
 
       if (sessionError) {
-        setErrorMessage('Could not start password reset session. Please request a new password reset email.');
-        setRecoveryTokens(null);
+        const invalidRecovery = sessionError.name === 'AuthSessionMissingError' || [
+          'bad_jwt', 'refresh_token_not_found', 'refresh_token_already_used',
+          'session_not_found', 'session_expired', 'user_not_found', 'user_banned',
+        ].includes(sessionError.code ?? '');
+        if (invalidRecovery) {
+          setErrorMessage('Could not start password reset session. Please request a new password reset email.');
+          setRecoveryTokens(null);
+        } else {
+          // The hash has already been removed. Keep the only copy of the
+          // recovery tokens and the entered passwords after temporary failures.
+          setErrorMessage('Could not start password reset session. Please try again.');
+        }
         return;
       }
 

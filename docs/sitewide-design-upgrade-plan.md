@@ -313,6 +313,23 @@ Live candidate filter checkpoint, 2026-09-28: the protected preview changed from
 | M7 Remaining surfaces | In progress | Change Log error, diagnostic and titled unknown-page states restyled; actual framework error fallback and Try again checked at desktop dark and mobile light-token; route-shell mobile/desktop dark/light-token width pass had no document overflow; Change Log populated/paged/empty/signed-out browser flows and keyboard overflow checked on local fixture; its loading fallback now matches the loaded header and 390px light-token page 1/pagination stayed contained; obsolete shared nav CSS removed and rechecked at 1440/768/320px; deployed baseline and authenticated candidate real GitHub feed/page 2 observed read-only; static inline style debt removed from shared shell, account/match forms and histories, Home tables, profile/directory and Change Log | Candidate GitHub failure/empty behavior and full route/theme/accessibility matrix |
 | M8 Final acceptance | In progress | Latest clean install: 571 packages, with one moderate development-only `undici` advisory; production-only audit zero findings; source gate passed 206 tests, 206 coverage tests, lint, typecheck and build; branch diff scope check found no changed dependency manifest/lockfile, deployable SQL, environment file or workflow; sampled solid/gradient/nav/placeholder contrast, control boundaries, structure/focus, reduced motion and DPR-2 proxy layout passed; 128 responsive breakpoint renders and four new-width menu journeys passed; complete synthetic Home sort/Stats filter numerical comparison, 22 linked journey steps, one warning-free keyboard-only 501 save and 15 account/recovery mock states passed; an 80-render route plus 14-state axe sweep detected zero tagged A/AA violations, with contrast incomplete on 76/12 renders; all 250 indeterminate gradient-header targets passed exact-node endpoint comparisons and the Home/Stats/directory families have separate measured samples; a focused Home table audit passed 1,392 text contrast samples including 210 hovered-row cells; default-route and interactive-state Tab sweeps covered 924 visible site focus steps across 54 cases with no offscreen target or missing computed marker; all 106 saved before/after pairs and 12 candidate-only Change Log views reviewed with documented capture limits | Complete remaining browser/database matrix and reviewable handoff before sign-off; separately scope the new development dependency advisory |
 
+Independent code review checkpoint, 2026-09-29: reviewed remote branch
+`sitewide-design-upgrade-review` at `acef179` against `origin/main` at `690a01b`
+in `F:\RDD\Rochester-Darting-Degens-sitewide-design-review`. The primary agent
+reproduced and fixed the independent reviewer's two P2 findings: anonymous
+profile reads falsely classified as missing (M5), and temporary password-reset
+session errors discarding the recovery form (M6). The reviewer rechecked the
+fixes and tests with no outstanding actionable issue. Trusted install passed;
+dependency files stayed unchanged. Final tests and coverage passed 213/213,
+with lint, typecheck and optimized build passing. Six synthetic production
+browser profile states and four inspected guest screenshots passed at
+390px/1440px in light/dark; artifacts are in `.qa-artifacts/sitewide-review/`.
+The owner authorized committing and pushing this review-fix checkpoint to
+`origin/sitewide-design-upgrade-review` on 2026-09-29, updating existing draft
+PR #75. Branch history identifies the implementation/test/evidence commit.
+See `docs/sitewide-validation-report.md` for reproductions and limits. M5/M6/M8
+remain in progress because real-service and manual acceptance gates are open.
+
 At every checkpoint record: active branch/commit, changed files, inventory IDs completed, checks and artifact paths, intentional reference differences, failures or blockers, and the exact next step. Keep artifacts under the repository's established ignored QA location and keep a concise tracked evidence report; exclude credentials and private data. The current review entry point is `docs/sitewide-review-handoff.md`; it lists the candidate's verified evidence and remaining sign-off checks without treating this checkpoint as completion.
 
 When resuming, read the ledger, inspect the actual diff/branch and reverify changed prerequisites. Do not repeat completed work or trust stale status blindly. If another change alters shared CSS or a route after its acceptance, rerun the affected checks and update its evidence.

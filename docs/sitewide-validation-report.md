@@ -1,6 +1,6 @@
 # Site-wide design validation report
 
-Status: in progress, 2026-09-28. This report is a checkpoint, not acceptance sign-off.
+Status: in progress, updated 2026-09-29. This report is a checkpoint, not acceptance sign-off.
 
 Draft [PR #75](https://github.com/rdd-cmyk/Rochester-Darting-Degens/pull/75) contains an exact-tree review snapshot of the local implementation branch. GitHub Actions Node 24 runs `36515690194` and `36515988083` passed install, tests, coverage, lint, typecheck and build. The owner signed into the protected Vercel preview, enabling a read-only candidate visual review with live league data. The PR remains draft and all unverified real-service/manual acceptance limits below still apply.
 
@@ -186,10 +186,58 @@ At the current branch checkpoint, the review against `origin/main` found 47 chan
 
 After that cleanup, `npm run ci:install` completed with 571 packages. The first post-install `npm test` run failed only because an ignored QA audit script had an unused variable; that script was corrected. The rerun passed 206/206 tests, coverage passed 206/206 (configured stats engine: 99.28% statements, 93.25% branches), and lint, typecheck and optimized build passed. The build generated all 13 static pages with local Supabase defaults. The fresh install's security audit now reports one moderate [undici WebSocket advisory](https://github.com/advisories/GHSA-3wwx-pv8p-q78v): installed `undici@8.10.0` comes through development-only `jsdom@30.0.1`, while `npm audit --omit=dev` reports zero findings. The advisory lists `8.10.2` as patched. No dependency was changed under this design-upgrade goal; a separately scoped dependency fix remains open. Gate logs and audit JSON are in `.qa-artifacts/final-diff-audit-2026-09-28/`. This source and scope review does not close real-service, native zoom, physical OS-theme or screen-reader acceptance.
 
+## Independent code review and fixes, 2026-09-29
+
+The requested independent agent reviewed `origin/sitewide-design-upgrade-review`
+at `acef179` against `origin/main` at `690a01b`. The primary agent independently
+reproduced both P2 findings before fixing them in the isolated local checkout
+`F:\RDD\Rochester-Darting-Degens-sitewide-design-review` on
+`sitewide-design-upgrade-review`. The owner authorized committing and pushing
+these fixes to `origin/sitewide-design-upgrade-review` on 2026-09-29. This
+review-fix commit includes the implementation, regression tests and validation
+notes; draft PR #75 remains the review entry point. Final acceptance stays open.
+
+| Verified finding | Reproduction and correction |
+| --- | --- |
+| Empty anonymous profile reads were labeled as a missing player | The checked-in baseline permits profile reads only to authenticated users. Regression tests reproduced the false `Player Not Found` metadata and guest page. Metadata now retains a neutral title when it cannot read a profile; the player page checks identity before querying and distinguishes sign-in, account-check failure, and an authenticated missing player. |
+| Temporary recovery-session failures removed the retry form | The installed Supabase SDK returned `AuthRetryableFetchError` with status 0 for an unexpired invented token and a synthetic offline fetch. Before the fix, offline, HTTP 429, and HTTP 500 regression cases discarded recovery tokens and hid the password fields. These failures now preserve the tokens and entered passwords for retry; known invalid token/session errors still offer the existing new-email exit. |
+
+The independent reviewer examined the implementation fixes and regression tests
+and reported no outstanding actionable issue in the changed sources.
+
+Verification on Node 24.20.0/npm 11.19.0:
+
+- Trusted `npm run ci:install` passed before application edits; dependency files
+  were unchanged. The install reported one moderate advisory, also recorded in
+  the prior handoff; no dependency modernization was included in this review.
+- The new regressions failed against the reviewed code and passed after repair.
+  Focused profile/metadata/recovery tests passed 16/16.
+- `npm test` and `npm run test:coverage` passed 213/213 across 28 files. Configured
+  calculation coverage remains 99.28% statements and 93.25% branches.
+- Lint, typecheck, `git diff --check`, and the optimized 13-page build passed.
+  The build used local Supabase defaults with `RDD_LOCAL_PREVIEW=1` to disable
+  telemetry. A focused test initially needed Windows child-process permission;
+  rerunning with that permission executed the tests successfully.
+- Six synthetic Chrome production-browser states passed: guest profile in
+  light/dark at 390px and 1440px, plus signed-in existing and missing profiles.
+  The fixture returned empty rows to anonymous reads to model the observed
+  response shape. Neutral metadata, sign-in guidance, member content and true
+  missing-player messaging were checked. The four guest screenshots were
+  inspected; no document overflow, page error or external request occurred.
+  Browser scripts, manifest and images are in `.qa-artifacts/sitewide-review/`.
+  An initial browser script used an incorrect sign-in label/redirect expectation;
+  correcting that script required no application change.
+
+These are source and synthetic local-runtime checks. No hosted Supabase,
+database policy, durable write, recovery mail or deployment was exercised. The
+focused production-runtime check supersedes the earlier inability to start a
+production server for these profile states only; the remaining acceptance gates
+below stay open. The temporary preview servers and test browser were stopped.
+
 ## Gaps and next checks
 
-- Docker Desktop/CLI is absent, WSL reports that the subsystem is not installed, and the isolated checkout has no `.env.local`. The existing local Supabase acceptance script has not run. Bundled Playwright and Edge now support local screenshots, but the synthetic visual server—even in mutable mode—cannot verify durable persistence, RLS, real auth, recovery email, or creator restrictions.
+- The original implementation host (2026-09-28) lacked Docker Desktop/CLI, an installed WSL subsystem and a configured `.env.local`. The Windows review host has a Docker CLI executable, but this review did not start or validate a database stack. The existing local Supabase acceptance script remains unrun for this candidate. Synthetic browsers cannot verify durable persistence, RLS, real auth, recovery email, or creator restrictions.
 - The refreshed clean install has one moderate development-only `undici` advisory via `jsdom`; the production-only audit has zero findings. Dependency changes are outside this migration and require a separate scoped review.
 - Browser light/dark and reduced-motion preferences were exercised through Playwright, including a focused eight-case Summer/transition/reload check. A real OS preference switch, native 200% browser zoom, and all animated surfaces remain unverified. A fresh isolated in-app-browser local-preview tab measured 1102 CSS pixels and DPR 1 before and after Ctrl+plus; headless Edge Ctrl+equals also left its viewport unchanged. A separate headed Edge probe on a local data page measured 1416px inner width, 1440px outer width, DPR 1 and visual scale 1 before and after Ctrl+=, Ctrl+Shift+= and Ctrl+numpad-plus input through Playwright; those shortcuts did not invoke browser zoom either. None of these attempts constitutes a native zoom test. The in-app browser tab was closed without changing the user's hosted session, and the headed probe closed its separate browser. The 720px/DPR-2 proxy narrows layout risk but does not replace native zoom. The new headed-probe script, measurements and scope note are in `.qa-artifacts/native-zoom-probe-2026-09-28/` and a task-output ZIP. The structural and Tab sweeps do not replace manual keyboard, screen-reader, or full contrast review.
 - All 64 normal/guest and 42 alternative-state before/after pairs, plus 12 candidate-only Change Log views, have a saved-image visual review. The candidate-only views have no local baseline equivalent because the detached build lacks a GitHub token. The desktop exact-history artifact was resolved by a clean four-image addendum. Other unexercised states, native-size detail where composites were reduced, and any existing screenshot-spec expectation updates remain open. The earlier in-app-browser `data:` URL attempt produced no image; the successful captures used the repository's local fixture and bundled Playwright directly.
-- Re-run the full required gate and diff review if subsequent application edits change the final code; update this report with the final revision, outcomes and remaining exceptions before marking the goal complete. The optimized build passed after the winner-key fix. Starting a local production server for a separate runtime pass was rejected by the environment's automatic approval policy; only development-server browser behavior was examined.
+- Re-run the full required gate and diff review if subsequent application edits change the final code; update this report with the final revision, outcomes and remaining exceptions before marking the goal complete. The 2026-09-29 review fixes passed the full application gate and a focused synthetic production-runtime profile check. The earlier environment rejected a broader production-browser pass; acceptance for the remaining routes and real services is still open.

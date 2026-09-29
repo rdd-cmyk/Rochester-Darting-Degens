@@ -389,10 +389,20 @@ export default function AdvancedStatsPage() {
         </section>
       ) : errorMessage ? null : eligiblePlayers.length === 0 ? (
         <section className="stats-empty-state">
-          <p className="stats-eyebrow">No eligible players</p>
-          <h2>Lower the minimum-games filter or record another match.</h2>
+          <p className="stats-eyebrow">
+            {leagueStats.matchesAnalyzed === 0 ? 'No matches found' : 'No eligible players'}
+          </p>
+          <h2>
+            {leagueStats.matchesAnalyzed === 0
+              ? 'No matches for these filters yet.'
+              : minimumGames > 1
+                ? 'Lower the minimum-games filter or record another match.'
+                : 'These matches cannot produce ratings yet.'}
+          </h2>
           <p>
-            Ratings require one valid winner and at least two different players in a match.
+            {leagueStats.matchesAnalyzed === 0
+              ? 'Try another game type or board, or record a match.'
+              : 'Ratings require one valid winner and at least two different players in a match.'}
           </p>
         </section>
       ) : (

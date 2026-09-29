@@ -12,8 +12,8 @@ const testingUrl = `https://${testingRef}.supabase.co`;
 const headers = { 'Cache-Control': 'no-store', 'X-Robots-Tag': 'noindex, nofollow' };
 
 function diagnostic(body: Record<string, unknown>, status = 200) {
-  // Plain text lets the protected in-app browser display the diagnostic rather
-  // than treating a top-level application/json response as a download.
+  // Keep the sanitized result machine-readable. The HTML server page wraps
+  // this same check for browser tools that refuse non-HTML navigation.
   return new NextResponse(JSON.stringify(body, null, 2), { status,
     headers: { ...headers, 'Content-Type': 'text/plain; charset=utf-8' } });
 }

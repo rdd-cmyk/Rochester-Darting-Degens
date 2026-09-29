@@ -3,25 +3,31 @@ import { afterEach, beforeEach, expect, it, vi } from 'vitest';
 import ProfilePage from './page';
 import { defaultConfig, type GameConfig } from '@/lib/games/catalog';
 
-const { from } = vi.hoisted(() => ({ from: vi.fn() }));
-vi.mock('@/lib/supabaseClient', () => ({ supabase: { from } }));
-// These match-history tests run as a signed-out profile viewer. Solo summaries
-// have their own authenticated/privacy tests and must not issue extra queries.
-vi.mock('@/lib/league-night/use-current-user',()=>({useCurrentUser:()=>({user:null,loading:false})}));
+const { from, getUser } = vi.hoisted(() => ({ from: vi.fn(), getUser: vi.fn() }));
+vi.mock('@/lib/supabaseClient', () => ({ supabase: { from, auth: { getUser } } }));
 vi.mock('next/navigation', () => ({ useParams: () => ({ id: 'player-1' }) }));
 
-function match(id: number, note: string, gameType = '501', winner = true, status?: GameConfig['status']) {
+// Solo has separate privacy tests; keep it out of this match-history fixture.
+vi.mock('@/lib/league-night/use-current-user',()=>({useCurrentUser:()=>({user:null,loading:false})}));
+function match(id: number, note: string, gameType = '501', winner = true, status?: GameConfig['status'] | null, score: number | null = 60) {
   return { id, notes: note, game_type: gameType, played_at: '2026-09-01T12:00:00Z',
     game_config: status ? {...defaultConfig(), status} : null,
-    all_match_players: [{ id, match_id: id, player_id: 'player-1', score: 60,
+    all_match_players: [{ id, match_id: id, player_id: 'player-1', score,
       points_scored: null, is_winner: winner, profiles: null }] };
 }
 type Result = { data: ReturnType<typeof match>[] | null; error: { message: string } | null; count: number };
 type Request = { filters: [string, unknown][]; range: number[]; resolve: (value: Result) => void };
 let requests: Request[];
+let profileResult: {
+  data: { id: string; display_name: string } | null;
+  error: { message: string } | null;
+};
 
 beforeEach(() => {
+  vi.clearAllMocks();
+  getUser.mockResolvedValue({ data: { user: { id: 'viewer' } }, error: null });
   requests = [];
+  profileResult = { data: { id: 'player-1', display_name: 'Test player' }, error: null };
   vi.spyOn(window, 'scrollTo').mockImplementation(() => {});
   vi.spyOn(window, 'requestAnimationFrame').mockImplementation(callback => { callback(0); return 0; });
   from.mockImplementation((table: string) => {
@@ -31,7 +37,7 @@ beforeEach(() => {
       eq: vi.fn((column: string, value: unknown) => { filters.push([column, value]); return query; }),
       or: vi.fn((expression: string) => { filters.push(['or', expression]); return query; }),
       order: vi.fn().mockReturnThis(),
-      single: () => Promise.resolve({ data: { id: 'player-1', display_name: 'Test player' }, error: null }),
+      maybeSingle: () => Promise.resolve(profileResult),
       limit: () => Promise.resolve({ data: [match(1, 'Recent win'), match(2, 'Recent loss', 'Cricket', false), match(3, 'Unresolved tie', '501', false, 'tied')], error: null }),
       range: (start: number, end: number) => new Promise<Result>(resolve => {
         requests.push({ filters, range: [start, end], resolve });
@@ -46,6 +52,46 @@ beforeEach(() => {
   });
 });
 afterEach(() => vi.restoreAllMocks());
+
+it('asks a signed-out visitor to sign in instead of reporting a hidden profile as missing', async () => {
+  getUser.mockResolvedValue({ data: { user: null }, error: { name: 'AuthSessionMissingError' } });
+  profileResult = { data: null, error: null };
+
+  render(<ProfilePage />);
+
+  expect(await screen.findByText('Sign in to view player profiles.')).toBeInTheDocument();
+  expect(screen.getByRole('link', { name: 'Go to sign in' })).toHaveAttribute('href', '/auth');
+  expect(screen.queryByRole('heading', { name: 'Player not found' })).not.toBeInTheDocument();
+  expect(from).not.toHaveBeenCalled();
+});
+
+it('keeps an account-check failure separate from a missing profile', async () => {
+  getUser.mockRejectedValue(new Error('Network unavailable'));
+  profileResult = { data: null, error: null };
+
+  render(<ProfilePage />);
+
+  expect(await screen.findByRole('alert')).toHaveTextContent('Could not check your account. Please try again later.');
+  expect(screen.queryByRole('heading', { name: 'Player not found' })).not.toBeInTheDocument();
+  expect(from).not.toHaveBeenCalled();
+});
+
+it('shows a distinct missing-player state with a directory link', async () => {
+  profileResult = { data: null, error: null };
+  render(<ProfilePage />);
+  await screen.findByRole('heading', { name: 'Player not found' });
+  expect(screen.getByRole('status')).toHaveTextContent('No player profile exists at this link.');
+  expect(screen.getByRole('link', { name: 'Browse all profiles' })).toHaveAttribute('href', '/profiles');
+  expect(screen.queryByText('Could not load profile.')).not.toBeInTheDocument();
+});
+
+it('keeps a failed profile request separate from a missing player', async () => {
+  vi.spyOn(console, 'error').mockImplementation(() => {});
+  profileResult = { data: null, error: { message: 'synthetic request failure' } };
+  render(<ProfilePage />);
+  expect(await screen.findByRole('alert')).toHaveTextContent('Could not load profile. Please try again later.');
+  expect(screen.queryByRole('heading', { name: 'Player not found' })).not.toBeInTheDocument();
+});
 
 async function openHistory() {
   render(<ProfilePage />);
@@ -125,4 +171,17 @@ it('settles empty results and recovers from a history error on retry', async () 
   expect(screen.getByText('No matches found for this player.')).toBeInTheDocument();
   expect(screen.queryByText('Could not load match history.')).not.toBeInTheDocument();
   expect(screen.queryByRole('button', { name: 'Next' })).not.toBeInTheDocument();
+});
+
+it('shows an unavailable score as a dash while keeping a recorded zero', async () => {
+  await openHistory();
+  await finish(0, [
+    match(50, 'Missing score', '501', true, null, null),
+    match(51, 'Recorded zero', '501', false, null, 0),
+  ]);
+
+  expect(screen.getByText('Notes: Missing score').closest('.player-match-card'))
+    .toHaveTextContent('3DA: —');
+  expect(screen.getByText('Notes: Recorded zero').closest('.player-match-card'))
+    .toHaveTextContent('3DA: 0');
 });

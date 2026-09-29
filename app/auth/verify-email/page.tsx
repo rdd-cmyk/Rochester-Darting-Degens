@@ -9,10 +9,12 @@ function VerifyEmailContent() {
   const email = searchParams.get('email');
 
   return (
-    <main className="page-shell" style={{ maxWidth: '720px' }}>
-      <h1>Check your email to verify your account</h1>
+    <main className="page-shell account-page">
+      <header className="rdd-page-header rdd-page-header--compact"><p className="rdd-eyebrow">One more step</p><h1>Check your email to verify your account</h1></header>
 
-      <p style={{ marginTop: '1rem' }}>
+      <div className="rdd-panel account-message-panel">
+      <h2 className="rdd-section-title">Verify your account</h2>
+      <p>
         {email ? (
           <>
             We just sent a confirmation link to <strong>{email}</strong>. Click
@@ -24,20 +26,21 @@ function VerifyEmailContent() {
         )}
       </p>
 
-      <p style={{ marginTop: '1rem' }}>
+      <p>
         Once your email is confirmed, you can{' '}
-        <Link href="/auth" style={{ color: '#0366d6', textDecoration: 'underline' }}>
+        <Link href="/auth">
           sign in
         </Link>{' '}
         to access matches and more.
       </p>
+      </div>
     </main>
   );
 }
 
 export default function VerifyEmailPage() {
   return (
-    <Suspense fallback={<main className="page-shell" style={{ maxWidth: '720px' }}>Loading...</main>}>
+    <Suspense fallback={<main className="page-shell account-page"><p className="rdd-state" role="status">Loading verification details…</p></main>}>
       <VerifyEmailContent />
     </Suspense>
   );

@@ -18,14 +18,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body
-        className="antialiased"
-        style={{
-          minHeight: "100vh",
-          display: "flex",
-          flexDirection: "column",
-        }}
-      >
+      <body className="antialiased">
         <LayoutShell>{children}</LayoutShell>
         {/* Local synthetic acceptance must not load external telemetry scripts. */}
         {process.env.RDD_LOCAL_PREVIEW !== "1" && (

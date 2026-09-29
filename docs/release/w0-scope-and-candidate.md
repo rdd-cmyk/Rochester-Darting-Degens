@@ -2,6 +2,12 @@
 
 Status: **passed**. Completed 2026-09-28.
 
+Scope addendum, 2026-09-29: the owner authorized integrating PR #75's updated
+interface branch into `release/next`, with release behavior taking precedence
+over its older main-based workflows. [Integration evidence](pr75-ui-integration.md)
+records this later candidate. The identities, counts and SQL hashes below remain
+the historical initial snapshot; W0 does not need to be repeated.
+
 ## Candidate identity
 
 | Item | Verified value |

@@ -1,6 +1,7 @@
 "use client";
 
-import React, { useSyncExternalStore } from "react";
+import React, { Suspense, useEffect, useSyncExternalStore } from "react";
+import { useSearchParams } from "next/navigation";
 import Navbar from "./Navbar";
 import SummerOverlay from "./SummerOverlay";
 
@@ -31,6 +32,19 @@ type LayoutShellProps = {
   children: React.ReactNode;
 };
 
+function LocalVisualTheme() {
+  const searchParams = useSearchParams();
+  const light = searchParams.get("qaTheme") === "light";
+
+  useEffect(() => {
+    if (light) document.documentElement.dataset.qaTheme = "light";
+    else delete document.documentElement.dataset.qaTheme;
+    return () => { delete document.documentElement.dataset.qaTheme; };
+  }, [light]);
+
+  return null;
+}
+
 export default function LayoutShell({ children }: LayoutShellProps) {
   // The server snapshot also supplies the first hydration render. Reading a
   // saved Off preference before hydration caused a server/client text mismatch.
@@ -52,22 +66,18 @@ export default function LayoutShell({ children }: LayoutShellProps) {
 
   return (
     <>
+      {process.env.NEXT_PUBLIC_RDD_VISUAL_FIXTURE === "1" && (
+        <Suspense fallback={null}><LocalVisualTheme /></Suspense>
+      )}
+      <a className="site-skip-link" href="#main-content">Skip to content</a>
       {summerEnabled && <SummerOverlay />}
       <Navbar summerEnabled={summerEnabled} onToggleSummer={toggleSummer} />
 
       {/* Main page content */}
-      <div style={{ flex: 1 }}>{children}</div>
+      <div className="site-content" id="main-content" tabIndex={-1}>{children}</div>
 
       {/* Global footer */}
-      <footer
-        style={{
-          padding: "1rem",
-          textAlign: "center",
-          borderTop: "1px solid #ddd",
-          fontFamily: "sans-serif",
-          color: "#555",
-        }}
-      >
+      <footer className="site-footer">
         Powered by good vibes, man 😎✌️
       </footer>
     </>

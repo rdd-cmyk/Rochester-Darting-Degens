@@ -1,5 +1,11 @@
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
+## Website design
+
+Use the [design standards](docs/design-standards.md) for interface work. The
+[site-wide upgrade plan](docs/sitewide-design-upgrade-plan.md) tracks the
+current migration from the Advanced Statistics visual language to every route.
+
 ## Configuration
 
 The combined next-version branch is `release/next` (formerly `league-night-mode`).

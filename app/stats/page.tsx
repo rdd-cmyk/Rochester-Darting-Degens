@@ -75,8 +75,9 @@ export default function AdvancedStatsPage() {
   const [userId, setUserId] = useState<string | null>(null);
   const [authLoading, setAuthLoading] = useState(true);
   const [authError, setAuthError] = useState(false);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [reloadVersion, setReloadVersion] = useState(0);
 
   useEffect(() => {
     let active = true;
@@ -88,7 +89,7 @@ export default function AdvancedStatsPage() {
         knownUserId = nextUserId;
         setFacts([]);
         setErrorMessage(null);
-        setLoading(true);
+        setLoading(Boolean(nextUserId));
       }
       setUserId(nextUserId);
     }
@@ -97,7 +98,7 @@ export default function AdvancedStatsPage() {
       const revision = authRevision;
       try {
         const { data, error } = await supabase.auth.getUser();
-        if (error) throw error;
+        if (error && error.name !== 'AuthSessionMissingError') throw error;
         if (!active || revision !== authRevision) return;
         updateUser(data.user?.id ?? null);
         setAuthError(false);
@@ -217,7 +218,7 @@ export default function AdvancedStatsPage() {
     return () => {
       active = false;
     };
-  }, [userId]);
+  }, [userId, reloadVersion]);
 
   const playerCounts = useMemo(() => { const counts = new Map<string,number>(); for (const fact of facts) counts.set(fact.matchId,(counts.get(fact.matchId) ?? 0)+1); return counts; }, [facts]);
   const filteredFacts = useMemo(
@@ -323,8 +324,20 @@ export default function AdvancedStatsPage() {
           </select>
         </label>
         <div className="stats-filter-summary" aria-live="polite">
-          <strong>{leagueStats.matchesAnalyzed}</strong>
-          <span>matches analyzed</span>
+          <strong>
+            {authLoading || loading || authError || errorMessage || !userId
+              ? '—'
+              : leagueStats.matchesAnalyzed}
+          </strong>
+          <span>
+            {authError || errorMessage
+              ? 'matches unavailable'
+              : authLoading || loading
+                ? 'matches loading'
+                : userId
+                  ? 'matches analyzed'
+                  : 'sign in to analyze'}
+          </span>
         </div>
       </section>
 
@@ -355,7 +368,21 @@ export default function AdvancedStatsPage() {
         </section>
       ) : null}
 
-      {errorMessage && userId ? <div className="stats-error">{errorMessage}</div> : null}
+      {errorMessage && userId ? (
+        <section className="stats-error" role="alert">
+          <h2 className="rdd-section-title">{errorMessage}</h2>
+          <p>Your filters are still selected. Try loading the league matches again.</p>
+          <div className="rdd-actions">
+            <button
+              type="button"
+              className="rdd-action rdd-action--primary"
+              onClick={() => setReloadVersion((version) => version + 1)}
+            >
+              Retry loading stats
+            </button>
+          </div>
+        </section>
+      ) : null}
 
       {authLoading ? (
         <section className="stats-loading" aria-live="polite">Checking sign-in…</section>
@@ -379,10 +406,20 @@ export default function AdvancedStatsPage() {
         </section>
       ) : errorMessage ? null : eligiblePlayers.length === 0 ? (
         <section className="stats-empty-state">
-          <p className="stats-eyebrow">No eligible players</p>
-          <h2>Lower the minimum-games filter or record another match.</h2>
+          <p className="stats-eyebrow">
+            {leagueStats.matchesAnalyzed === 0 ? 'No matches found' : 'No eligible players'}
+          </p>
+          <h2>
+            {leagueStats.matchesAnalyzed === 0
+              ? 'No matches for these filters yet.'
+              : minimumGames > 1
+                ? 'Lower the minimum-games filter or record another match.'
+                : 'These matches cannot produce ratings yet.'}
+          </h2>
           <p>
-            Ratings require a completed competitive result with one winning player or team and valid participants.
+            {leagueStats.matchesAnalyzed === 0
+              ? 'Try another game type, board, or format, or record a match.'
+              : 'Ratings require a completed competitive result with one winning player or team and valid participants.'}
           </p>
         </section>
       ) : (
@@ -478,7 +515,8 @@ export default function AdvancedStatsPage() {
               </div>
               <p>Opponent-adjusted and chronological</p>
             </div>
-            <div className="stats-table-scroll">
+            <p className="rdd-scroll-hint stats-scroll-hint">Scroll horizontally for all rating columns.</p>
+            <div className="stats-table-scroll" role="region" aria-label="Scrollable power leaderboard" tabIndex={0}>
               <table className="stats-table">
                 <thead>
                   <tr>
@@ -559,7 +597,10 @@ export default function AdvancedStatsPage() {
                           >
                             {player.displayName}
                           </Link>
-                          <strong>{distribution.median.toFixed(2)}</strong>
+                          <span className="stats-consistency-median-value">
+                            <span>Median {leagueStats.scoreLabel}</span>
+                            <strong>{distribution.median.toFixed(2)}</strong>
+                          </span>
                         </div>
                         <div
                           className="stats-consistency-track"
@@ -591,6 +632,9 @@ export default function AdvancedStatsPage() {
                             <dd>{distribution.games}</dd>
                           </div>
                         </dl>
+                        {distribution.games < 3 ? (
+                          <p className="stats-small-sample">Small sample: compare this range cautiously.</p>
+                        ) : null}
                       </article>
                     );
                   })}

@@ -8,6 +8,7 @@ import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import { supabase } from '@/lib/supabaseClient';
 import { formatPlayerName } from '@/lib/playerName';
+import { formatRecordedScore } from '@/lib/matchScore';
 import { LinkedPlayerName } from '@/components/LinkedPlayerName';
 
 type Profile = {
@@ -156,6 +157,8 @@ export default function ProfilePage() {
   const [errorMessage, setErrorMessage] = useState<string | null>(
     id ? null : 'No profile id provided.'
   );
+  const [profileMissing, setProfileMissing] = useState(false);
+  const [signInRequired, setSignInRequired] = useState(false);
   const [allMatchesError, setAllMatchesError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<'recent' | 'all'>('recent');
   const [allMatchesPage, setAllMatchesPage] = useState(1);
@@ -180,6 +183,27 @@ export default function ProfilePage() {
     async function loadProfileAndStatsAndMatches() {
       setLoading(true);
       setErrorMessage(null);
+      setProfileMissing(false);
+      setSignInRequired(false);
+
+      // Anonymous profile reads are hidden by RLS. Check identity before
+      // interpreting an empty result as a missing player.
+      try {
+        const { data, error } = await supabase.auth.getUser();
+        if (error && error.name !== 'AuthSessionMissingError') throw error;
+        if (!data.user) {
+          setSignInRequired(true);
+          setProfile(null);
+          setStats(null);
+          setRecentMatches([]);
+          setLoading(false);
+          return;
+        }
+      } catch {
+        setErrorMessage('Could not check your account. Please try again later.');
+        setLoading(false);
+        return;
+      }
 
       // 1) Load profile
       const { data: profileData, error: profileError } = await supabase
@@ -188,11 +212,15 @@ export default function ProfilePage() {
           'id, first_name, last_name, display_name, sex, include_first_name_in_display'
         )
         .eq('id', id)
-        .single();
+        .maybeSingle();
 
       if (profileError || !profileData) {
-        console.error('Error loading profile:', profileError);
-        setErrorMessage('Could not load profile.');
+        if (profileError) {
+          console.error('Error loading profile:', profileError);
+          setErrorMessage('Could not load profile. Please try again later.');
+        } else {
+          setProfileMissing(true);
+        }
         setProfile(null);
         setStats(null);
         setRecentMatches([]);
@@ -538,37 +566,31 @@ export default function ProfilePage() {
 
   if (loading) {
     return (
-      <main className="page-shell" style={{ maxWidth: '820px' }}>
-        <h1>Player Profile</h1>
-        <p>Loading...</p>
+      <main className="page-shell player-page">
+        <header className="rdd-page-header rdd-page-header--compact"><p className="rdd-eyebrow">Player profile</p><h1>Player Profile</h1></header>
+        <p className="rdd-state" role="status">Loading profile…</p>
       </main>
     );
   }
 
-  if (errorMessage || !profile) {
+  if (signInRequired) {
     return (
-      <main className="page-shell" style={{ maxWidth: '820px' }}>
-        <h1>Player Profile</h1>
-        <p style={{ color: 'red' }}>
-          {errorMessage || 'Profile not found.'}
+      <main className="page-shell player-page">
+        <header className="rdd-page-header rdd-page-header--compact"><p className="rdd-eyebrow">Player profile</p><h1>Player Profile</h1></header>
+        <p className="rdd-state">Sign in to view player profiles.</p>
+        <Link href="/auth" className="rdd-action rdd-action--primary">Go to sign in</Link>
+      </main>
+    );
+  }
+
+  if (errorMessage || profileMissing || !profile) {
+    return (
+      <main className="page-shell player-page">
+        <header className="rdd-page-header rdd-page-header--compact"><p className="rdd-eyebrow">Player profile</p><h1>{profileMissing ? 'Player not found' : 'Player Profile'}</h1></header>
+        <p className={profileMissing ? 'rdd-state' : 'rdd-state rdd-state--error'} role={profileMissing ? 'status' : 'alert'}>
+          {profileMissing ? 'No player profile exists at this link.' : errorMessage || 'Could not load profile.'}
         </p>
-        <p>
-          <Link
-            href="/matches"
-            style={{
-              cursor: 'pointer',
-              padding: '0.3rem 0.7rem',
-              borderRadius: '0.5rem',
-              border: '1px solid #ccc',
-              backgroundColor: '#0366d6',
-              color: 'white',
-              fontWeight: 500,
-              textDecoration: 'none',
-            }}
-          >
-            Back to matches
-          </Link>
-        </p>
+        <div className="rdd-actions"><Link href="/profiles" className="rdd-action rdd-action--primary">Browse all profiles</Link></div>
       </main>
     );
   }
@@ -594,57 +616,34 @@ export default function ProfilePage() {
       : filteredAllMatches;
 
   return (
-    <main
-      className="page-shell"
-      style={{
-        maxWidth: '820px',
-        display: 'flex',
-        flexDirection: 'column',
-        gap: 'var(--section-gap)',
-      }}
-    >
-      <header>
+    <main className="page-shell player-page">
+      <header className="rdd-page-header rdd-page-header--compact">
+        <p className="rdd-eyebrow">Player profile</p>
         <h1>{title}</h1>
-        <p style={{ marginTop: '0.5rem' }}>
-          <Link
-            href="/matches"
-            style={{
-              cursor: 'pointer',
-              padding: '0.3rem 0.7rem',
-              borderRadius: '0.5rem',
-              border: '1px solid #ccc',
-              backgroundColor: '#0366d6',
-              color: 'white',
-              fontWeight: 500,
-              textDecoration: 'none',
-            }}
-          >
-            Back to matches
-          </Link>
-        </p>
+        <div className="rdd-actions"><Link href="/matches" className="rdd-action rdd-action--outline">Back to matches</Link></div>
       </header>
 
       {/* Basic profile details */}
-      <section>
+      <section className="rdd-panel player-details">
         <h2 className="section-heading">Player Details</h2>
-        <ul style={{ listStyle: 'none', padding: 0, marginTop: '0.5rem' }}>
+        <ul className="player-details-list">
           {hasDisplayName && (
-            <li style={{ marginBottom: '0.25rem' }}>
+            <li>
               <strong>Display name:</strong> {profile.display_name}
             </li>
           )}
           {hasFirstName && (
-            <li style={{ marginBottom: '0.25rem' }}>
+            <li>
               <strong>First name:</strong> {profile.first_name}
             </li>
           )}
           {hasLastName && (
-            <li style={{ marginBottom: '0.25rem' }}>
+            <li>
               <strong>Last name:</strong> {profile.last_name}
             </li>
           )}
           {hasSex && (
-            <li style={{ marginBottom: '0.25rem' }}>
+            <li>
               <strong>Sex:</strong> {profile.sex}
             </li>
           )}
@@ -655,7 +654,7 @@ export default function ProfilePage() {
       </section>
 
       {/* Stats summary */}
-      <section>
+      <section className="player-summary">
         <h2 className="section-heading">Stats Summary</h2>
         <ProfileSoloStats key={id} owner={id!} scope={statsScope} onScopeChange={setStatsScope}/>
         <div hidden={statsScope!=='league'}>
@@ -663,9 +662,9 @@ export default function ProfilePage() {
           <p>No matches recorded for this player yet.</p>
         ) : (
           <>
-            <div style={{ marginBottom: '1rem' }}>
+            <div className="rdd-panel player-summary-card">
               <h3 className="subsection-heading">Overall record (all match types)</h3>
-              <ul style={{ listStyle: 'none', padding: 0 }}>
+              <ul>
                 <li>
                   <strong>Games:</strong> {stats.games}
                 </li>
@@ -684,13 +683,13 @@ export default function ProfilePage() {
               </ul>
             </div>
 
-            <div style={{ marginBottom: '1rem' }}>
+            <div className="rdd-panel player-summary-card">
               <h3 className="subsection-heading">3-Dart Average (501 / 301)</h3>
               <p>Legacy individual averages with unspecified rules. <Link href="/stats">See Advanced Statistics for preset and team comparisons.</Link></p>
               {stats.threeGames === 0 ? (
                 <p>No 501 or 301 matches recorded.</p>
               ) : (
-                <ul style={{ listStyle: 'none', padding: 0 }}>
+                <ul>
                   <li>
                     <strong>Average:</strong> {stats.threeAvg.toFixed(2)}
                   </li>
@@ -701,12 +700,12 @@ export default function ProfilePage() {
               )}
             </div>
 
-            <div>
+            <div className="rdd-panel player-summary-card">
               <h3 className="subsection-heading">MPR (Cricket)</h3>
               {stats.mprGames === 0 ? (
                 <p>No Cricket matches recorded.</p>
               ) : (
-                <ul style={{ listStyle: 'none', padding: 0 }}>
+                <ul>
                   <li>
                     <strong>Average MPR:</strong> {stats.mprAvg.toFixed(2)}
                   </li>
@@ -722,20 +721,12 @@ export default function ProfilePage() {
       </section>
 
       {/* Match history tabs */}
-      <section>
+      <section className="rdd-panel player-history">
         <h2 className="section-heading">Match History</h2>
 
-        <div
-          style={{
-            display: 'flex',
-            gap: '0.75rem',
-            flexWrap: 'wrap',
-            alignItems: 'flex-end',
-            marginBottom: '0.85rem',
-          }}
-        >
+        <div className="player-history-controls">
           <label className="match-filter-control" htmlFor="gameTypeFilter">
-            <span style={{ fontWeight: 600 }}>Game Type</span>
+            <span>Game Type</span>
             <select
               id="gameTypeFilter"
               value={gameTypeFilter}
@@ -754,7 +745,7 @@ export default function ProfilePage() {
           </label>
 
           <label className="match-filter-control" htmlFor="resultFilter">
-            <span style={{ fontWeight: 600 }}>Result</span>
+            <span>Result</span>
             <select
               id="resultFilter"
               value={resultFilter}
@@ -774,32 +765,20 @@ export default function ProfilePage() {
           </label>
         </div>
 
-        <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1rem' }}>
+        <div className="rdd-actions player-history-tabs" role="group" aria-label="Match history range">
           <button
             type="button"
             onClick={() => handleTabChange('recent')}
-            style={{
-              padding: '0.4rem 0.8rem',
-              borderRadius: '0.5rem',
-              border: '1px solid #ccc',
-              backgroundColor: activeTab === 'recent' ? '#0366d6' : 'white',
-              color: activeTab === 'recent' ? 'white' : 'black',
-              cursor: 'pointer',
-            }}
+            className="rdd-action"
+            aria-pressed={activeTab === 'recent'}
           >
             Last 5 Matches
           </button>
           <button
             type="button"
             onClick={() => handleTabChange('all')}
-            style={{
-              padding: '0.4rem 0.8rem',
-              borderRadius: '0.5rem',
-              border: '1px solid #ccc',
-              backgroundColor: activeTab === 'all' ? '#0366d6' : 'white',
-              color: activeTab === 'all' ? 'white' : 'black',
-              cursor: 'pointer',
-            }}
+            className="rdd-action"
+            aria-pressed={activeTab === 'all'}
           >
             All Matches
           </button>
@@ -812,9 +791,9 @@ export default function ProfilePage() {
             <MatchList matches={filteredRecentMatches} />
           )
         ) : (
-          <div style={{ position: 'relative' }}>
+          <div className="player-history-results">
             {allMatchesError ? (
-              <p style={{ color: 'red' }}>{allMatchesError}</p>
+              <p className="rdd-state rdd-state--error" role="alert">{allMatchesError}</p>
             ) :
               filteredAllMatches.length === 0 && !allMatchesLoading ? (
               <p>No matches found for this player.</p>
@@ -823,14 +802,7 @@ export default function ProfilePage() {
             )}
 
             {filteredAllMatches.length > 0 && (
-              <div
-                style={{
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  alignItems: 'center',
-                  marginTop: '1rem',
-                }}
-              >
+              <div className="rdd-pagination">
                 <button
                   type="button"
                   disabled={allMatchesPage === 1 || allMatchesLoading}
@@ -839,16 +811,7 @@ export default function ProfilePage() {
                     setAllMatchesLoading(true);
                     setAllMatchesPage((p) => Math.max(1, p - 1));
                   }}
-                  style={{
-                    padding: '0.4rem 0.8rem',
-                    borderRadius: '0.5rem',
-                    border: '1px solid #ccc',
-                    backgroundColor:
-                      allMatchesPage === 1 ? '#8cbce8' : '#0366d6',
-                    color: 'white',
-                    fontWeight: 500,
-                    cursor: allMatchesPage === 1 ? 'not-allowed' : 'pointer',
-                  }}
+                  className="rdd-action rdd-action--secondary"
                 >
                   Previous
                 </button>
@@ -865,19 +828,7 @@ export default function ProfilePage() {
                       p >= allMatchesTotalPages ? allMatchesTotalPages : p + 1
                     );
                   }}
-                  style={{
-                    padding: '0.4rem 0.8rem',
-                    borderRadius: '0.5rem',
-                    border: '1px solid #ccc',
-                    backgroundColor:
-                      allMatchesPage === allMatchesTotalPages ? '#8cbce8' : '#0366d6',
-                    color: 'white',
-                    fontWeight: 500,
-                    cursor:
-                      allMatchesPage === allMatchesTotalPages
-                        ? 'not-allowed'
-                        : 'pointer',
-                  }}
+                  className="rdd-action rdd-action--secondary"
                 >
                   Next
                 </button>
@@ -885,19 +836,8 @@ export default function ProfilePage() {
             )}
 
             {allMatchesLoading && (
-              <div
-                style={{
-                  position: 'absolute',
-                  inset: 0,
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  backgroundColor: 'rgba(255, 255, 255, 0.8)',
-                  borderRadius: '0.5rem',
-                  zIndex: 1,
-                }}
-              >
-                <p style={{ margin: 0 }}>Loading matches...</p>
+              <div className="player-history-loading">
+                <p>Loading matches...</p>
               </div>
             )}
           </div>
@@ -913,36 +853,13 @@ type MatchListProps = {
 
 function MatchList({ matches }: MatchListProps) {
   return (
-    <ul
-      style={{
-        listStyle: 'none',
-        padding: 0,
-        display: 'flex',
-        flexDirection: 'column',
-        gap: '1rem',
-        marginTop: '0.5rem',
-      }}
-    >
+    <ul className="player-match-list">
       {matches.map((m) => {
         const metricLabel = gameUnit(m.game_type);
 
         return (
-          <li
-            key={m.id}
-            style={{
-              border: '1px solid #ccc',
-              padding: '0.75rem',
-              borderRadius: '0.5rem',
-            }}
-          >
-            <div
-              style={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-                gap: '0.5rem',
-              }}
-            >
+          <li key={m.id} className="player-match-card">
+            <div className="player-match-header">
               <div>
                 <strong>
                   {m.game_type || 'Unknown game'} –{' '}
@@ -955,9 +872,9 @@ function MatchList({ matches }: MatchListProps) {
               </div>
             </div>
 
-            <div style={{ marginTop: '0.5rem' }}>
+            <div className="player-match-participants">
               Players:
-              <ul style={{ margin: '0.25rem 0 0 1rem' }}>
+              <ul>
                 {(m.match_players || []).map((mp) => {
                   const prof = mp.profiles;
                   const pointsText =
@@ -980,7 +897,7 @@ function MatchList({ matches }: MatchListProps) {
                         'Unknown player'
                       )}{' '}
                       – {metricLabel}:{' '}
-                      {mp.score != null ? mp.score.toString() : 'not recorded'}
+                      {formatRecordedScore(mp.score)}
                       {pointsText}{' '}
                       {m.game_config?.sides?.[mp.player_id] ? ` · Team ${m.game_config.sides[mp.player_id]}` : ''} {mp.is_winner ? <strong>(winner)</strong> : null}
                     </li>

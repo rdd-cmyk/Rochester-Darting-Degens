@@ -1,0 +1,52 @@
+# Site-wide interface review handoff
+
+Release integration, 2026-09-29: the owner authorized merging the updated
+`sitewide-design-upgrade-review` tip `804b74f` into `release/next`. Use the
+[combined integration record](release/pr75-ui-integration.md) for this checkout's
+scope, conflict decisions and validation. The standalone branch/history and
+acceptance limits below are retained for provenance. This does not authorize
+merging PR #75 to `main` or deploying the combined release.
+
+Status: candidate ready for review; final acceptance **open** (2026-09-28). Branch: `sitewide-design-upgrade`, based on `origin/main` at `690a01b84d96c55b8ec455a6e298c17ec6093b50`. The latest application edit refines the Advanced Statistics zero-match message after a live filter check; the prior behavior checkpoint was `dc2bfe1` (account recovery). Do not treat this handoff as approval to deploy or merge.
+
+[Draft PR #75](https://github.com/rdd-cmyk/Rochester-Darting-Degens/pull/75) is a review snapshot on `sitewide-design-upgrade-review`. It was uploaded through the connected GitHub API because shell Git has no credentials on this host. Its tree hash exactly matched the local branch tree at the last sync, although the local milestone commit IDs referenced below are not in the PR's snapshot ancestry. The PR's Node 24 GitHub Actions runs `36515690194` and `36515988083` passed install, tests, coverage, lint, typecheck and build. After the owner signed into the [protected Vercel preview](https://rochester-darting-degens-git-site-96bb37-tims-projects-b7b7f743.vercel.app/), the candidate was visually reviewed read-only with live league data. The PR remains draft while the open gates below are resolved.
+
+## What changed
+
+Independent review update (2026-09-29): the remote snapshot at `acef179` was
+reviewed against `690a01b` in the separate local checkout
+`F:\RDD\Rochester-Darting-Degens-sitewide-design-review`. Both verified P2
+findings were fixed locally: profile access is distinguished from absence, and
+temporary recovery-session failures retain passwords/tokens for retry. The
+independent reviewer rechecked the fixes with no outstanding actionable issue.
+All 213 tests, coverage, lint, typecheck and optimized build passed, along with
+six synthetic production-browser profile states. The owner authorized committing
+and pushing these fixes to `origin/sitewide-design-upgrade-review` on 2026-09-29,
+updating existing draft PR #75. This review-fix commit contains the repairs,
+regression tests and evidence; final acceptance remains open. See the
+[validation update](sitewide-validation-report.md#independent-code-review-and-fixes-2026-09-29)
+for exact evidence and remaining acceptance limits.
+
+The site now shares the Advanced Statistics visual language across its shell, Home, Matches, directory and player pages, My Profile, account/recovery, Change Log, diagnostic, and fallback states. Home retains the overall leaderboard as its first substantive section. Summer decorations remain optional, restrained and governed by the saved preference and reduced-motion setting. The implementation keeps existing metrics, filters, sorts, match entry/edit flows and route destinations. See [design standards](design-standards.md), the [milestone ledger](sitewide-design-upgrade-plan.md) and [detailed validation](sitewide-validation-report.md) for the exact scope and evidence.
+
+## Verified candidate evidence
+
+| Gate | Current evidence |
+| --- | --- |
+| Source | Latest clean install completed with 571 packages. After the Statistics copy refinement, the local application-source gate passed 206 tests, 206 coverage tests, lint, typecheck and an optimized 13-page build; earlier draft-PR Node 24 CI runs completed the same command sequence successfully. A newer dependency audit reports one moderate development-only `undici` advisory; the production-only audit has zero findings. Dependency modernization is separately scoped. |
+| Behavior | Identical synthetic data produced matching results in all 60 Statistics filter combinations, 60 Home sort activations and five Home selections. Live candidate Statistics filters changed from ten matches overall to three 501 matches and zero 501/Steel Tip matches; the 1+ threshold restored eligible results. The zero-match state now suggests changing game type or board instead of lowering an already-minimal threshold. Controlled local fixtures exercised match/profile writes, failure/retry, ownership UI, account/recovery presentation, linked journeys, and Change Log pagination. Fixture writes are in memory and do not prove durable persistence or RLS. |
+| Visual/responsive | All 106 saved before/after pairs and 12 candidate-only Change Log views were inspected. An additional 128-render breakpoint sweep found no document overflow or sampled clipped control/heading. The paired-review record explains capture limits. |
+| Accessibility sampling | The 80-route plus 14-interactive-state axe sweep found zero tagged WCAG A/AA violations. Exact computed foreground/gradient-endpoint comparisons passed for all 250 indeterminate header targets; separate audits passed 1,392 Home table, 28 Statistics chart and 12 directory-arrow samples. Full-route and interactive-state Tab sweeps covered 924 visible site focus steps without an offscreen target or missing computed focus marker. These checks do not replace a screen-reader, native zoom or physical theme review. |
+| Protected preview | Read-only signed-in browser review found populated Home, Advanced Statistics, Matches, All Profiles, My Profile and Change Log pages. Home kept the overall leaderboard first. Change Log pages 1 and 2 showed distinct merged pull requests with Previous/Next pagination. At 390px, Home's menu opened and populated leaderboard stayed in a deliberate horizontal scroll region; Statistics filters and Match entry remained contained. After the copy refinement deployed, the zero-match panel showed accurate game-type/board guidance. No form or setting was submitted, so this does not verify real writes, permissions, recovery or failure paths. |
+
+The branch diff has no changed dependency manifest/lockfile, deployable SQL migration, environment file, GitHub workflow or Vercel configuration. No hosted database, production deployment or real user match/profile data was changed by this work.
+
+## Checks still required for sign-off
+
+1. **Non-production Supabase:** Start the repository's guarded local stack on a machine with a compatible Docker runtime, or provide a separate test project with equivalent schema and disposable accounts. Follow [the local setup guide](supabase-local-development.md); on a local Docker setup, run `npm run supabase:start`, `npm run supabase:status`, `npm run test:db:local`, `npm run dev:local`, and `scripts/qa/local-acceptance.spec.mjs` through its documented Playwright configuration. Review auth, recovery mail, persisted create/edit/profile changes, creator permissions and denied anonymous/spoofed writes. Never point these write tests at the hosted league. The original implementation host lacked the database prerequisites. The 2026-09-29 Windows review host has a Docker CLI executable, but this review did not start or validate a database stack; this gate remains open.
+2. **Real Change Log failure paths:** The authenticated candidate Vercel preview rendered real merged pull requests on pages 1 and 2, with distinct records and working pagination. In an isolated candidate runtime, induce an empty or unavailable GitHub response and verify safe error rendering. The local fixture covers those states, but a real external failure has not been observed. Do not place tokens in screenshots or tracked files.
+3. **Native browser/OS checks:** In an ordinary interactive browser, review Home, Advanced Statistics, Matches and account/recovery at actual 200% browser zoom, including sticky filters, focus visibility and deliberate inner scrolling. Switch the operating system's light/dark preference and confirm the site follows it without stale colors or content shift; separately enable reduced motion and check the Summer overlay. Automated viewport scaling and browser media emulation are useful existing evidence, but are not substitutes for these physical controls.
+4. **Assistive technology and remaining interaction states:** With a screen reader and keyboard, review the skip link/main landmark, navigation state and focus return, leaderboard sort direction, Statistics filters/chart exact-history alternative, repeated match-player labels and save errors, account/recovery status announcements, and Change Log Markdown/pagination. Record browser, screen reader, viewport, theme, state and any defect. Existing axe and Tab sweeps do not establish announcements or operation of every control.
+5. **Final integration review:** Re-run the full repository application gate if application source changes. Review the final diff, milestone ledger and validation report against every route/state in the plan. Keep [draft PR #75](https://github.com/rdd-cmyk/Rochester-Darting-Degens/pull/75) synchronized with the accepted candidate before review; merge and production deployment are separate release actions.
+
+The first external dependency to resolve is a safe non-production Supabase target. The other checks can be performed independently while that is being arranged. Record results in the validation report; leave the relevant milestone open until its evidence is direct and complete.

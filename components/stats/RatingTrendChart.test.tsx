@@ -78,4 +78,28 @@ describe('RatingTrendChart', () => {
     expect(within(legend).getByText(longName)).toBeInTheDocument();
     expect(within(legend).getByText('1516')).toBeInTheDocument();
   });
+
+  test('separates tied endpoint labels while leaving their plotted ratings tied', () => {
+    const tiedPlayers = ['ace', 'bee', 'cee'].map((id, index) => ({
+      ...player,
+      playerId: id,
+      displayName: id,
+      rank: index + 1,
+      ratingHistory: player.ratingHistory.map((point, appearance) => ({
+        ...point,
+        matchId: `${id}-${appearance}`,
+      })),
+    }));
+    render(<RatingTrendChart players={tiedPlayers} />);
+
+    const chart = screen.getByRole('img');
+    const labels = [...chart.querySelectorAll('.stats-chart-direct-label')];
+    const positions = labels.map((label) => Number(label.getAttribute('y'))).sort((a, b) => a - b);
+    expect(labels).toHaveLength(3);
+    expect(positions[1] - positions[0]).toBeGreaterThan(17.9);
+    expect(positions[2] - positions[1]).toBeGreaterThan(17.9);
+    const finalPoints = [...chart.querySelectorAll('polyline')]
+      .map((line) => line.getAttribute('points')?.split(' ').at(-1));
+    expect(new Set(finalPoints).size).toBe(1);
+  });
 });

@@ -7,6 +7,7 @@ import { formatPlayerName } from '@/lib/playerName';
 import { LinkedPlayerName } from '@/components/LinkedPlayerName';
 import { useCurrentUser } from '@/lib/league-night/use-current-user';
 import { pendingSaveKey, readPendingSaves, readSavedEntries, type PendingMatchSave } from '@/lib/league-night/recovery';
+import { formatRecordedScore } from '@/lib/matchScore';
 import {
   resolvePlayedAtIso,
   toLocalDateTimeInput,
@@ -69,8 +70,8 @@ type MatchesError = { message?: string };
 
 export default function MatchesPage() {
   const { user, loading } = useCurrentUser();
-  if (loading) return <main className="page-shell"><h1>Matches</h1><p>Loading...</p></main>;
-  if (!user) return <main className="page-shell"><h1>Matches</h1><p>You must be signed in to view and add matches.</p><Link href="/auth">Go to sign in / sign up</Link></main>;
+  if (loading) return <main className="page-shell matches-page"><header className="rdd-page-header rdd-page-header--compact"><p className="rdd-eyebrow">League play</p><h1>Matches</h1></header><p className="rdd-state" role="status">Loading matches…</p></main>;
+  if (!user) return <main className="page-shell matches-page"><header className="rdd-page-header rdd-page-header--compact"><p className="rdd-eyebrow">League play</p><h1>Matches</h1></header><p className="rdd-state">You must be signed in to view and add matches.</p><Link href="/auth" className="rdd-action rdd-action--primary">Go to sign in</Link></main>;
   return <MatchesWorkspace key={user.id} user={user} />;
 }
 
@@ -138,43 +139,6 @@ function MatchesWorkspace({ user }: { user: User }) {
   const isCricket = hasCricketPoints(gameType);
   const isOther = gameType === 'Other';
   const isO1 = isX01(gameType);
-
-  const formStyle = {
-    display: 'flex',
-    flexDirection: 'column' as const,
-    gap: '0.75rem',
-    maxWidth: '520px',
-    width: '100%',
-  };
-
-  const fieldRowStyle = {
-    display: 'grid',
-    alignItems: 'center',
-    gap: '0.75rem',
-    gridTemplateColumns: 'var(--form-grid-columns)',
-    width: '100%',
-  } as const;
-
-  const labelTextStyle = {
-    minWidth: '150px',
-    fontWeight: 600,
-  };
-
-  const controlStyle = {
-    width: '100%',
-    maxWidth: 'var(--form-control-max)',
-  } as const;
-
-  const selectStyle = {
-    ...controlStyle,
-    color: 'var(--input-text)',
-    backgroundColor: 'var(--input-bg)',
-  } as const;
-
-  const optionStyle = {
-    color: 'var(--input-text)',
-    backgroundColor: 'var(--input-bg)',
-  } as const;
 
   // Helper to resize playerEntries when numPlayers changes
   function ensurePlayerEntriesSize(targetSize: number) {
@@ -558,28 +522,20 @@ function MatchesWorkspace({ user }: { user: User }) {
 
   if (loading) {
     return (
-      <main className="page-shell" style={{ maxWidth: '820px' }}>
-        <h1>Matches</h1>
-        <p>Loading...</p>
+      <main className="page-shell matches-page">
+        <header className="rdd-page-header rdd-page-header--compact"><p className="rdd-eyebrow">League play</p><h1>Matches</h1></header>
+        <p className="rdd-state" role="status">Loading matches…</p>
       </main>
     );
   }
 
   if (!user) {
     return (
-      <main className="page-shell" style={{ maxWidth: '820px' }}>
-        <h1>Matches</h1>
-        <p>You must be signed in to view and add matches.</p>
+      <main className="page-shell matches-page">
+        <header className="rdd-page-header rdd-page-header--compact"><p className="rdd-eyebrow">League play</p><h1>Matches</h1></header>
+        <p className="rdd-state">You must be signed in to view and add matches.</p>
         <p>
-          <Link
-            href="/auth"
-            style={{
-              cursor: 'pointer',
-              color: '#0366d6',
-              textDecoration: 'underline',
-              fontWeight: 500,
-            }}
-          >
+          <Link href="/auth" className="rdd-action rdd-action--primary">
             Go to sign in
           </Link>
         </p>
@@ -588,49 +544,17 @@ function MatchesWorkspace({ user }: { user: User }) {
   }
 
   return (
-    <main
-      className="page-shell"
-      style={{
-        display: 'flex',
-        flexDirection: 'column',
-        gap: 'var(--section-gap)',
-        maxWidth: '800px',
-      }}
-    >
-      <header>
+    <main className="page-shell matches-page">
+      <header className="rdd-page-header rdd-page-header--compact">
+        <p className="rdd-eyebrow">League play</p>
         <h1>Darts Matches</h1>
-        <p><Link href="/league-night">Open League Night for shared attendance and quick rematches ↗</Link></p>
-        <p
-          style={{
-            display: 'flex',
-            flexWrap: 'wrap',
-            alignItems: 'center',
-            gap: '0.5rem',
-          }}
-        >
-          <span>
-            Logged in as <strong>{user.email}</strong>.
-          </span>
-          <Link
-            href="/"
-            style={{
-              cursor: 'pointer',
-              padding: '0.3rem 0.7rem',
-              borderRadius: '0.5rem',
-              border: '1px solid #ccc',
-              backgroundColor: '#0366d6',
-              color: 'white',
-              fontWeight: 500,
-              textDecoration: 'none',
-            }}
-          >
-            Back to home
-          </Link>
-        </p>
+        <p>Record a result or review recent games.</p>
+        <p className="matches-account-line">Signed in as <strong>{user.email}</strong></p>
+        <p><Link href="/league-night" className="rdd-action rdd-action--outline">Open League Night for shared attendance and quick rematches ↗</Link></p>
       </header>
 
       {errorMessage && (
-        <div style={{ color: 'red' }}>
+        <div className="rdd-state rdd-state--error" role="alert">
           <strong>Error:</strong> {errorMessage}
         </div>
       )}
@@ -661,42 +585,21 @@ function MatchesWorkspace({ user }: { user: User }) {
       </section>}
 
       {/* Add / Edit Match Form */}
-      <section>
-        <h2
-          style={{
-            fontSize: '1.6rem',
-            fontWeight: 800,
-            marginBottom: '0.75rem',
-            paddingBottom: '0.35rem',
-            borderBottom: '2px solid #e2e8f0',
-          }}
-        >
+      <section className="rdd-panel matches-form-panel">
+        <h2 className="rdd-section-title">
           {editingMatchId ? 'Edit Match' : 'Record a New Match'}
         </h2>
         {profiles.length < 2 && (
-          <p style={{ color: 'orange' }}>
-            You currently have fewer than 2 profiles. Ask your friends to sign
-            up on the{' '}
-            <Link
-              href="/auth"
-              style={{
-                cursor: 'pointer',
-                color: '#0366d6',
-                textDecoration: 'underline',
-                fontWeight: 500,
-              }}
-            >
-              auth page
-            </Link>{' '}
-            so they appear here.
+          <p className="rdd-state">
+            You currently have fewer than 2 profiles. <Link href="/invites">Invite a league member</Link> so they can join and appear here.
           </p>
         )}
 
-        <form onSubmit={handleSaveMatch} style={formStyle}>
-          <fieldset disabled={saving || Boolean(pendingSave) || otherRecoveries>0} style={{ ...formStyle, border: 0, padding: 0, margin: 0 }}>
-          <legend style={{ position: 'absolute', width: 1, height: 1, overflow: 'hidden' }}>Match details</legend>
-          <div style={fieldRowStyle}>
-            <label htmlFor="playedAt" style={labelTextStyle}>
+        <form onSubmit={handleSaveMatch} aria-busy={saving}>
+          <fieldset disabled={saving || Boolean(pendingSave) || otherRecoveries > 0} className="matches-details">
+          <legend className="sr-only">Match details</legend>
+          <div className="form-row">
+            <label htmlFor="playedAt" className="form-label">
               Match date and time
             </label>
             <input
@@ -705,23 +608,24 @@ function MatchesWorkspace({ user }: { user: User }) {
               value={playedAt}
               max={toLocalDateTimeInput(new Date())}
               onChange={(event) => setPlayedAt(event.target.value)}
+              disabled={saving}
               required
-              style={controlStyle}
+              className="form-control"
             />
           </div>
 
           {/* Game type */}
-          <div style={fieldRowStyle}>
-            <span style={labelTextStyle}>Game type</span>
+          <div className="form-row">
+            <label htmlFor="match-game-type" className="form-label">Game type</label>
             <select
-              aria-label="Game type"
+              id="match-game-type" aria-label="Game type"
               value={gameType}
               onChange={(e) => {
                 if (playerEntries.some(p => p.stat || p.cricketPoints) && !window.confirm('Changing game clears scores. Original saved values remain in the correction audit. Continue?')) return;
                 setGameType(e.target.value); setGameConfig({ ...(gameConfig ?? defaultConfig()), preset: 'unspecified', teamScores: {}, finish: 'ordinary' });
                 setPlayerEntries(prev => prev.map(p => ({...p, stat: '', cricketPoints: ''}))); setO1StatInputMode('3da');
               }}
-              style={selectStyle}
+              className="form-control"
             >
               {!GAME_TYPES.includes(gameType) && <option value={gameType}>{gameType || 'Unknown recorded format'}</option>}
               {GAME_TYPES.map(g => <option key={g} value={g}>{g}</option>)}
@@ -738,28 +642,29 @@ function MatchesWorkspace({ user }: { user: User }) {
           {editingMatchId && <section aria-label="Correction preview"><p>Changing the game clears incompatible scores and keeps their original values in the audit.</p><button type="button" disabled={previewing} onClick={previewEdit}>{previewing ? 'Calculating…' : 'Preview correction'}</button>{correction && <div role="status"><p>{correction.from} → {correction.to}. Affected overall ratings:</p>{correction.changes.length ? <ul>{correction.changes.map(p => <li key={p.id}>{p.name}: {p.before.toFixed(1)} → {p.after.toFixed(1)}</li>)}</ul> : <p>No overall rating change. Discipline views and score groups will be recalculated.</p>}<p>Save changes applies the correction; the original result remains in the audit.</p></div>}</section>}
           {/* Stat entry mode for 01 games */}
           {isO1 && (
-            <div style={fieldRowStyle}>
-              <span style={labelTextStyle}>Stat entry</span>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
+            <div className="form-row">
+              <label htmlFor="match-stat-entry" className="form-label">Stat entry</label>
+              <div className="matches-stat-mode">
                 <select
-                  aria-label="Stat entry"
+                  id="match-stat-entry" aria-label="Stat entry"
                   value={o1StatInputMode}
                   onChange={(e) => {
                     const nextMode = e.target.value as '3da' | 'ppd';
                     convertO1Stats(o1StatInputMode, nextMode);
                     setO1StatInputMode(nextMode);
                   }}
-                  style={selectStyle}
+                  disabled={saving}
+                  className="form-control"
                 >
-                  <option value="3da" style={optionStyle}>
+                  <option value="3da">
                     3-Dart Average
                   </option>
-                  <option value="ppd" style={optionStyle}>
+                  <option value="ppd">
                     Points Per Dart (PPD)
                   </option>
                 </select>
                 {o1StatInputMode === 'ppd' && (
-                  <span style={{ color: '#555', fontSize: '0.95rem' }}>
+                  <span className="rdd-field-help">
                     PPD values are multiplied by 3 to store a 3-dart average for
                     leaderboards.
                   </span>
@@ -769,30 +674,32 @@ function MatchesWorkspace({ user }: { user: User }) {
           )}
 
           {/* Notes */}
-          <div style={fieldRowStyle}>
-            <span style={labelTextStyle}>Notes</span>
+          <div className="form-row">
+            <label htmlFor="match-notes" className="form-label">Notes</label>
             <input
+              id="match-notes"
               type="text"
               aria-label="Notes"
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
+              disabled={saving}
               placeholder="'Other' game type, e.g."
-              style={controlStyle}
+              className="form-control"
             />
           </div>
 
           {/* Number of players */}
-          <div style={fieldRowStyle}>
-            <span style={labelTextStyle}>Number of players</span>
+          <div className="form-row">
+            <label htmlFor="match-player-count" className="form-label">Number of players</label>
             <select
-              aria-label="Number of players"
-              disabled={teamGame}
+              id="match-player-count" aria-label="Number of players"
+              disabled={saving || teamGame}
               value={numPlayers}
               onChange={(e) => handleNumPlayersChange(e.target.value)}
-              style={selectStyle}
+              className="form-control"
             >
               {Array.from({ length: 9 }, (_, i) => i + 2).map((n) => (
-                <option key={n} value={n} style={optionStyle}>
+                <option key={n} value={n}>
                   {n}
                 </option>
               ))}
@@ -806,31 +713,34 @@ function MatchesWorkspace({ user }: { user: User }) {
             const allowPersonal = !teamGame || ['3DA','MPR'].includes(gameUnit(gameType));
 
             return (
-              <div
+              <fieldset
                 key={index}
-                style={{
-                  border: '1px solid #ddd',
-                  borderRadius: '0.5rem',
-                  padding: '0.5rem',
-                  marginTop: '0.25rem',
-                }}
+                className="matches-player-card"
               >
-                <div style={fieldRowStyle}>
-                  <span style={labelTextStyle}>{playerLabel}</span>
+                <legend id={`match-player-group-${index}`}>{playerLabel}</legend>
+                <div className="form-row">
+                  <label
+                    id={`match-player-label-${index}`}
+                    htmlFor={`match-player-${index}`}
+                    className="form-label"
+                  >
+                    Player
+                  </label>
                   <select
+                    id={`match-player-${index}`}
                     aria-label={playerLabel}
                     value={entry.playerId}
                     onChange={(e) => handlePlayerChange(index, e.target.value)}
-                    style={selectStyle}
+                    disabled={saving}
+                    className="form-control"
                   >
-                    <option value="" style={optionStyle}>
+                    <option value="">
                       -- choose player --
                     </option>
                     {profiles.map((p) => (
                       <option
                         key={p.id}
                         value={p.id}
-                        style={optionStyle}
                       >
                         {formatPlayerName(
                           p.display_name,
@@ -841,9 +751,10 @@ function MatchesWorkspace({ user }: { user: User }) {
                     ))}
                   </select>
                 </div>
-                <div hidden={!allowPersonal} style={{ ...fieldRowStyle, marginTop: '0.25rem' }}>
-                  <span style={labelTextStyle}>{statLabel}</span>
+                <div hidden={!allowPersonal} className="form-row matches-form-row--stat">
+                  <label htmlFor={`match-stat-${index}`} className="form-label">{statLabel}</label>
                   <input
+                    id={`match-stat-${index}`}
                     aria-label={statLabel}
                     type="number"
                     step={gameDefinition(gameType)?.whole ? 1 : 'any'}
@@ -851,6 +762,7 @@ function MatchesWorkspace({ user }: { user: User }) {
                     max={isOther ? 9999 : undefined}
                     value={entry.stat}
                     onChange={(e) => handleStatChange(index, e.target.value)}
+                    disabled={saving}
                     placeholder={
                       isCricket
                         ? 'e.g. 3.25'
@@ -860,15 +772,16 @@ function MatchesWorkspace({ user }: { user: User }) {
                         ? 'e.g. 29.17'
                         : 'e.g. 87.50'
                     }
-                    style={controlStyle}
+                    className="form-control"
                   />
                 </div>
                 {isCricket && (
-                  <div style={{ ...fieldRowStyle, marginTop: '0.35rem' }}>
-                    <span style={labelTextStyle}>
+                  <div className="form-row matches-form-row--points">
+                    <label htmlFor={`match-cricket-points-${index}`} className="form-label">
                       {playerLabel} {gameType === 'Cut-Throat Cricket' ? 'penalty points' : 'points scored'} (optional)
-                    </span>
+                    </label>
                     <input
+                      id={`match-cricket-points-${index}`}
                       aria-label={`${playerLabel} ${gameType === 'Cut-Throat Cricket' ? 'penalty points' : 'points scored'} (optional)`}
                       type="number"
                       step={1}
@@ -878,25 +791,27 @@ function MatchesWorkspace({ user }: { user: User }) {
                       onChange={(e) =>
                         handleCricketPointsChange(index, e.target.value)
                       }
+                      disabled={saving}
                       placeholder="e.g. 120"
-                      style={controlStyle}
+                      className="form-control"
                     />
                   </div>
                 )}
-              </div>
+              </fieldset>
             );
           })}
 
           {/* Winner selection */}
-          <div hidden={teamGame || Boolean(gameConfig && gameConfig.status !== 'completed')} style={fieldRowStyle}>
-            <span style={labelTextStyle}>Winner</span>
+          <div hidden={teamGame || Boolean(gameConfig && gameConfig.status !== 'completed')} className="form-row">
+            <label htmlFor="match-winner" className="form-label">Winner</label>
             <select
-              aria-label="Winner"
+              id="match-winner" aria-label="Winner"
               value={winnerPlayerId}
               onChange={(e) => setWinnerPlayerId(e.target.value)}
-              style={selectStyle}
+              disabled={saving}
+              className="form-control"
             >
-              <option value="" style={optionStyle}>
+              <option value="">
                 -- select winner --
               </option>
               {playerEntries.slice(0, numPlayers).map((entry, index) => {
@@ -913,10 +828,9 @@ function MatchesWorkspace({ user }: { user: User }) {
 
                 return (
                   <option
-                    key={entry.playerId || `winner-${index}`}
+                    key={`winner-${index}`}
                     value={entry.playerId}
                     disabled={!entry.playerId}
-                    style={optionStyle}
                   >
                     {label}
                   </option>
@@ -926,53 +840,48 @@ function MatchesWorkspace({ user }: { user: User }) {
           </div>
 
           {/* Board type */}
-          <div style={fieldRowStyle}>
-            <span style={labelTextStyle}>Board type</span>
+          <div className="form-row">
+            <label htmlFor="match-board-type" className="form-label">Board type</label>
             <select
-              aria-label="Board type"
+              id="match-board-type" aria-label="Board type"
               value={boardType}
               onChange={(e) => setBoardType(e.target.value)}
-              style={selectStyle}
+              disabled={saving}
+              className="form-control"
             >
-              <option value="" style={optionStyle}>
+              <option value="">
                 -- choose --
               </option>
-              <option value="Soft Tip" style={optionStyle}>
+              <option value="Soft Tip">
                 Soft Tip
               </option>
-              <option value="Steel Tip" style={optionStyle}>
+              <option value="Steel Tip">
                 Steel Tip
               </option>
             </select>
           </div>
 
           {/* Venue */}
-          <div style={fieldRowStyle}>
-            <span style={labelTextStyle}>Venue</span>
+          <div className="form-row">
+            <label htmlFor="match-venue" className="form-label">Venue</label>
             <input
+              id="match-venue"
               type="text"
               aria-label="Venue"
               value={venue}
               onChange={(e) => setVenue(e.target.value)}
+              disabled={saving}
               placeholder="Radio Social, e.g."
-              style={controlStyle}
+              className="form-control"
             />
           </div>
 
           </fieldset>
-          <div className="button-row" style={{ marginTop: '0.5rem' }}>
+          <div className="button-row matches-form-actions">
             <button
               type="submit"
-              disabled={saving || duplicateMatch || (otherRecoveries>0 && !pendingSave)}
-              style={{
-                cursor: 'pointer',
-                padding: '0.6rem 1rem',
-                borderRadius: '0.5rem',
-                border: '1px solid #ccc',
-                backgroundColor: '#0366d6',
-                color: 'white',
-                fontWeight: 500,
-              }}
+              disabled={saving || duplicateMatch || (otherRecoveries > 0 && !pendingSave)}
+              className="rdd-action rdd-action--primary"
             >
               {saving ? 'Checking save…' : pendingSave ? 'Check / retry save' : editingMatchId ? 'Save changes' : 'Save match'}
               </button>
@@ -981,15 +890,8 @@ function MatchesWorkspace({ user }: { user: User }) {
               <button
                 type="button"
                 onClick={resetForm}
-                style={{
-                  cursor: 'pointer',
-                  padding: '0.6rem 1rem',
-                  borderRadius: '0.5rem',
-                  border: '1px solid #ccc',
-                  backgroundColor: '#eee',
-                  color: '#333',
-                  fontWeight: 500,
-                }}
+                className="rdd-action"
+                disabled={saving}
               >
                 Cancel edit
               </button>
@@ -999,32 +901,15 @@ function MatchesWorkspace({ user }: { user: User }) {
       </section>
 
       {/* Recent Matches */}
-      <section>
-        <h2
-          style={{
-            fontSize: '1.35rem',
-            fontWeight: 800,
-            borderBottom: '3px solid #0366d6',
-            paddingBottom: '0.35rem',
-            display: 'inline-block',
-            marginBottom: '0.5rem',
-          }}
-        >
+      <section className="matches-history">
+        <h2 className="rdd-section-title">
           Recent Matches
         </h2>
         {matches.length === 0 ? (
           <p>No matches recorded yet.</p>
         ) : (
           <>
-            <ul
-              style={{
-                listStyle: 'none',
-                padding: 0,
-                display: 'flex',
-                flexDirection: 'column',
-                gap: '1rem',
-              }}
-            >
+            <ul className="matches-history-list">
               {matches.map((m) => {
                 const metricLabel = gameUnit(m.game_type);
 
@@ -1033,21 +918,9 @@ function MatchesWorkspace({ user }: { user: User }) {
                 return (
                   <li
                     key={m.id}
-                    style={{
-                      border: '1px solid #ccc',
-                      padding: '0.75rem',
-                      borderRadius: '0.5rem',
-                    }}
+                    className="rdd-panel matches-history-card"
                   >
-                    <div
-                      style={{
-                        display: 'flex',
-                        justifyContent: 'space-between',
-                        alignItems: 'center',
-                        gap: '0.5rem',
-                        flexWrap: 'wrap',
-                      }}
-                    >
+                    <div className="matches-history-card-header">
                       <div>
                         <strong>
                           {m.game_type || 'Unknown game'} –{' '}
@@ -1062,24 +935,16 @@ function MatchesWorkspace({ user }: { user: User }) {
                         <button
                           type="button"
                           onClick={() => handleEditClick(m)}
-                          style={{
-                            cursor: 'pointer',
-                            padding: '0.3rem 0.7rem',
-                            borderRadius: '0.5rem',
-                            border: '1px solid #ccc',
-                            backgroundColor: '#eee',
-                            color: '#000',
-                            fontWeight: 500,
-                          }}
+                          className="rdd-action"
                         >
                           Edit
                         </button>
                       )}
                     </div>
 
-                    <div style={{ marginTop: '0.5rem' }}>
+                    <div className="matches-history-participants">
                       Players:
-                      <ul style={{ margin: '0.25rem 0 0 1rem' }}>
+                      <ul>
                         {(m.match_players || []).map((mp) => {
                           const prof = (Array.isArray(mp.profiles)
                             ? mp.profiles[0]
@@ -1104,7 +969,7 @@ function MatchesWorkspace({ user }: { user: User }) {
                                 'Unknown player'
                               )}{' '}
                               – {metricLabel}:{' '}
-                              {mp.score != null ? mp.score.toString() : 'Not recorded'}
+                              {formatRecordedScore(mp.score)}
                               {(m.game_type === 'Cricket' || m.game_type === 'Cut-Throat Cricket') && mp.points_scored != null
                                 ? ` (${m.game_type === 'Cut-Throat Cricket' ? 'Penalty points' : 'Points'}: ${mp.points_scored})`
                                 : ''}{' '}
@@ -1120,28 +985,12 @@ function MatchesWorkspace({ user }: { user: User }) {
             </ul>
 
             {/* Pagination controls */}
-            <div
-              style={{
-                marginTop: '1rem',
-                display: 'flex',
-                gap: '0.5rem',
-                alignItems: 'center',
-              }}
-            >
+            <div className="rdd-pagination">
               <button
                 type="button"
                 onClick={() => reloadMatches(currentPage - 1)}
                 disabled={currentPage <= 1}
-                style={{
-                  cursor: currentPage <= 1 ? 'not-allowed' : 'pointer',
-                  padding: '0.4rem 0.8rem',
-                  borderRadius: '0.5rem',
-                  border: '1px solid #ccc',
-                  backgroundColor:
-                    currentPage <= 1 ? '#8cbce8' : '#0366d6',
-                  color: 'white',
-                  fontWeight: 500,
-                }}
+                className="rdd-action rdd-action--secondary"
               >
                 Previous
               </button>
@@ -1152,16 +1001,7 @@ function MatchesWorkspace({ user }: { user: User }) {
                 type="button"
                 onClick={() => reloadMatches(currentPage + 1)}
                 disabled={currentPage >= totalPages}
-                style={{
-                  cursor: currentPage >= totalPages ? 'not-allowed' : 'pointer',
-                  padding: '0.4rem 0.8rem',
-                  borderRadius: '0.5rem',
-                  border: '1px solid #ccc',
-                  backgroundColor:
-                    currentPage >= totalPages ? '#8cbce8' : '#0366d6',
-                  color: 'white',
-                  fontWeight: 500,
-                }}
+                className="rdd-action rdd-action--secondary"
               >
                 Next
               </button>

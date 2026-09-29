@@ -2,8 +2,8 @@
 
 import Link from "next/link";
 import { supabase } from "@/lib/supabaseClient";
-import { useEffect, useRef, useState, type CSSProperties } from "react";
-import { useRouter } from "next/navigation";
+import { useEffect, useRef, useState } from "react";
+import { usePathname, useRouter } from "next/navigation";
 import type { User } from "@supabase/supabase-js";
 
 type NavbarProps = {
@@ -17,7 +17,9 @@ export default function Navbar({ summerEnabled, onToggleSummer }: NavbarProps) {
   const [loading, setLoading] = useState(true);
   const [menuOpen, setMenuOpen] = useState(false);
   const attemptedProfiles = useRef<Set<string>>(new Set());
+  const menuButton = useRef<HTMLButtonElement>(null);
   const router = useRouter();
+  const pathname = usePathname();
 
   async function ensureProfileFromMetadata(currentUser: User | null) {
     if (!currentUser) return;
@@ -102,23 +104,24 @@ export default function Navbar({ summerEnabled, onToggleSummer }: NavbarProps) {
     setMenuOpen(false);
   };
 
-  const authControlWidth = 120;
-  const visuallyHidden: CSSProperties = {
-    position: "absolute",
-    width: 1,
-    height: 1,
-    padding: 0,
-    margin: -1,
-    overflow: "hidden",
-    clip: "rect(0, 0, 0, 0)",
-    whiteSpace: "nowrap",
-    border: 0,
-  };
+  useEffect(() => {
+    if (!menuOpen) return;
+    function closeOnEscape(event: KeyboardEvent) {
+      if (event.key === "Escape") {
+        setMenuOpen(false);
+        menuButton.current?.focus();
+      }
+    }
+    window.addEventListener("keydown", closeOnEscape);
+    return () => window.removeEventListener("keydown", closeOnEscape);
+  }, [menuOpen]);
 
   return (
-    <nav className="navbar-shell">
+    <nav className="navbar-shell" aria-label="Primary">
       <div className="navbar-main">
         <button
+          ref={menuButton}
+          type="button"
           className="navbar-toggle"
           aria-expanded={menuOpen}
           aria-controls="navbar-links"
@@ -130,44 +133,44 @@ export default function Navbar({ summerEnabled, onToggleSummer }: NavbarProps) {
           id="navbar-links"
           className={`navbar-links ${menuOpen ? "open" : ""}`.trim()}
         >
-          <Link style={linkStyle} href="/" onClick={handleNavSelection}>
+          <Link href="/" aria-current={pathname === "/" ? "page" : undefined} onClick={handleNavSelection}>
             Home
           </Link>
-          <Link style={linkStyle} href="/stats" onClick={handleNavSelection}>
+          <Link href="/stats" aria-current={pathname === "/stats" ? "page" : undefined} onClick={handleNavSelection}>
             Advanced Stats
           </Link>
-          <Link style={linkStyle} href="/solo" onClick={handleNavSelection}>
+          <Link href="/solo" aria-current={pathname === "/solo" || pathname.startsWith("/solo/") ? "page" : undefined} onClick={handleNavSelection}>
             Solo Play
           </Link>
-          <Link style={linkStyle} href="/matches" onClick={handleNavSelection}>
+          <Link href="/matches" aria-current={pathname === "/matches" ? "page" : undefined} onClick={handleNavSelection}>
             Matches
           </Link>
-          <Link style={linkStyle} href="/league-night" onClick={handleNavSelection}>
+          <Link href="/league-night" aria-current={pathname === "/league-night" || pathname.startsWith("/league-night/") ? "page" : undefined} onClick={handleNavSelection}>
             League Night
           </Link>
-          <Link style={linkStyle} href="/board" onClick={handleNavSelection}>
+          <Link href="/board" aria-current={pathname === "/board" || pathname.startsWith("/board/") ? "page" : undefined} onClick={handleNavSelection}>
             League Board
           </Link>
           <Link
-            style={linkStyle}
             href="/change-log"
+            aria-current={pathname === "/change-log" ? "page" : undefined}
             onClick={handleNavSelection}
           >
             Change Log
           </Link>
-          <Link style={linkStyle} href="/profiles" onClick={handleNavSelection}>
+          <Link href="/profiles" aria-current={pathname === "/profiles" || pathname.startsWith("/profiles/") ? "page" : undefined} onClick={handleNavSelection}>
             All Profiles
           </Link>
           {user && (
             <Link
-              style={linkStyle}
               href="/profile"
+              aria-current={pathname === "/profile" ? "page" : undefined}
               onClick={handleNavSelection}
             >
               My Profile
             </Link>
           )}
-          {user && memberId === user.id && <Link style={linkStyle} href="/invites" onClick={handleNavSelection}>Invites</Link>}
+          {user && memberId === user.id && <Link href="/invites" aria-current={pathname === "/invites" ? "page" : undefined} onClick={handleNavSelection}>Invites</Link>}
         </div>
       </div>
 
@@ -175,77 +178,28 @@ export default function Navbar({ summerEnabled, onToggleSummer }: NavbarProps) {
         <button
           onClick={onToggleSummer}
           aria-pressed={summerEnabled}
-          style={{
-            cursor: "pointer",
-            padding: "0.3rem 0.7rem",
-            borderRadius: "0.5rem",
-            border: "1px solid #5a5a5a",
-            backgroundColor: summerEnabled ? "#f59e0b" : "#374151",
-            color: "white",
-            fontWeight: 600,
-          }}
+          className="navbar-summer-toggle"
         >
           {summerEnabled ? "Summer: On" : "Summer: Off"}
         </button>
-        <div
-          style={{
-            width: authControlWidth,
-            display: "flex",
-            justifyContent: "flex-end",
-          }}
-        >
+        <div className="navbar-auth">
           {loading ? (
-            <div
-              aria-hidden
-              style={{
-                height: "2.2rem",
-                width: "100%",
-                backgroundColor: "#444", 
-                borderRadius: "0.5rem",
-              }}
-            />
+            <div className="navbar-auth-loading" aria-hidden />
           ) : user ? (
             <button
               onClick={handleSignOut}
-              style={{
-                cursor: "pointer",
-                padding: "0.3rem 0.7rem",
-                borderRadius: "0.5rem",
-                border: "1px solid #555",
-                backgroundColor: "#444",
-                color: "white",
-                fontWeight: 500,
-                width: "100%",
-              }}
+              className="navbar-auth-action"
             >
               Sign Out
             </button>
           ) : (
-            <Link
-              style={{
-                ...linkStyle,
-                display: "inline-block",
-                padding: "0.3rem 0.7rem",
-                borderRadius: "0.5rem",
-                border: "1px solid #555",
-                backgroundColor: "#444",
-                width: "100%",
-                textAlign: "center",
-              }}
-              href="/auth"
-            >
+            <Link className="navbar-auth-action" href="/auth">
               Sign In
             </Link>
           )}
-          {loading && <span style={visuallyHidden}>Loading authentication controls</span>}
+          {loading && <span className="sr-only">Loading authentication controls</span>}
         </div>
       </div>
     </nav>
   );
 }
-
-const linkStyle: CSSProperties = {
-  color: "white",
-  textDecoration: "none",
-  fontWeight: 500,
-};

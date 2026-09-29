@@ -1,7 +1,7 @@
 import { hydrateRoot } from "react-dom/client";
 import { renderToString } from "react-dom/server";
 import { act, fireEvent, render, screen, within } from "@testing-library/react";
-import { it, expect, vi } from "vitest";
+import { afterEach, it, expect, vi } from "vitest";
 import LayoutShell from "./LayoutShell";
 vi.mock("./Navbar", () => ({
   default: ({
@@ -70,4 +70,31 @@ it("updates in memory when storage is readable but writes fail", () => {
   expect(localStorage.getItem("summer-overlay-enabled")).toBe("true");
   view.unmount();
   localStorage.removeItem("summer-overlay-enabled");
+});
+const route = vi.hoisted(() => ({ query: 'qaTheme=light' }));
+
+vi.mock('next/navigation', () => ({
+  useSearchParams: () => new URLSearchParams(route.query),
+}));
+
+afterEach(() => {
+  vi.unstubAllEnvs();
+  delete document.documentElement.dataset.qaTheme;
+});
+
+it('clears the local light override when client navigation drops its query parameter', () => {
+  vi.stubEnv('NEXT_PUBLIC_RDD_VISUAL_FIXTURE', '1');
+  route.query = 'qaTheme=light';
+  const { rerender, unmount } = render(<LayoutShell><p>Preview</p></LayoutShell>);
+  expect(document.documentElement.dataset.qaTheme).toBe('light');
+
+  route.query = 'page=2';
+  rerender(<LayoutShell><p>Next page</p></LayoutShell>);
+  expect(document.documentElement.dataset.qaTheme).toBeUndefined();
+
+  route.query = 'qaTheme=light&page=2';
+  rerender(<LayoutShell><p>Light page</p></LayoutShell>);
+  expect(document.documentElement.dataset.qaTheme).toBe('light');
+  unmount();
+  expect(document.documentElement.dataset.qaTheme).toBeUndefined();
 });

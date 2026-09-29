@@ -1,6 +1,6 @@
 # Next release: readiness and rollout plan
 
-Date: 2026-09-28. Status: W0 complete; W1 assessment complete with its Vercel
+Updated: 2026-09-29. Status: W0 complete; W1 assessment complete with its Vercel
 target exit gate open; W2-W8 implementation and release gates open.
 
 ## Candidate and scope
@@ -16,6 +16,15 @@ This candidate includes League Night Mode, planning (PR #70), the Board and its
 recovery fixes (#71/#72), invite-only registration (#73), and Solo Play plus
 game-mode/team-rating prerequisites (#74). Review the complete diff from `main`,
 not just the latest feature PR. Omni imports are outside this release.
+
+Scope addition authorized 2026-09-29: integrate the latest PR #75 interface
+branch (`804b74f`) into `release/next`, preserving the newer release behavior.
+The original W0 snapshot remains the initial candidate record. See the
+[UI integration record](release/pr75-ui-integration.md) for the new source
+parents, conflict decisions, checks and remaining acceptance gates. The merge
+adds no SQL or dependency changes. W1 facts remain useful; its owner checklist
+now includes both visual-fixture flags. W3 must test this combined interface
+and feature set; W4-W8 backup, rehearsal and release gates still apply.
 
 Scope decision confirmed by the owner on 2026-09-28: prepare the deferred
 statistics SQL as useful future infrastructure during this release's DB work.

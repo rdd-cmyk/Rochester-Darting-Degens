@@ -23,11 +23,20 @@ describe("ChangeLogMarkdown", () => {
     expect(screen.getByText("/stats").tagName).toBe("CODE");
     expect(screen.getByRole("checkbox")).toBeChecked();
     expect(screen.getByRole("checkbox")).toBeDisabled();
-    expect(within(screen.getByRole("table")).getByText("Better")).toBeInTheDocument();
+    const tableRegion = screen.getByRole("region", { name: "Scrollable change log table" });
+    expect(tableRegion).toHaveAttribute("tabindex", "0");
+    expect(within(tableRegion).getByRole("table")).toHaveTextContent("Better");
     expect(screen.getByRole("link", { name: "View details" })).toHaveAttribute(
       "href",
       "https://github.com/rdd-cmyk/Rochester-Darting-Degens"
     );
+  });
+
+  test("keeps long code blocks keyboard reachable", () => {
+    render(<ChangeLogMarkdown content={'```text\nsynthetic-long-identifier-for-overflow-review\n```'} />);
+    const codeRegion = screen.getByRole("region", { name: "Scrollable change log code" });
+    expect(codeRegion).toHaveAttribute("tabindex", "0");
+    expect(codeRegion).toHaveTextContent("synthetic-long-identifier-for-overflow-review");
   });
 
   test("does not render raw HTML or unsafe links from a pull-request body", () => {

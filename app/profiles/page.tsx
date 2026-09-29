@@ -28,33 +28,54 @@ export default function AllProfilesPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [user, setUser] = useState<User | null>(null);
   const [authLoading, setAuthLoading] = useState(true);
+  const [authError, setAuthError] = useState(false);
+  const [authRetryVersion, setAuthRetryVersion] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [profilesRetryVersion, setProfilesRetryVersion] = useState(0);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   useEffect(() => {
-    let isMounted = true;
+    let active = true;
+    let authRevision = 0;
 
     async function loadUser() {
-      const { data } = await supabase.auth.getUser();
-      if (!isMounted) return;
-      setUser(data.user ?? null);
-      setAuthLoading(false);
+      const revision = authRevision;
+      setAuthLoading(true);
+      try {
+        const { data, error } = await supabase.auth.getUser();
+        if (error && error.name !== 'AuthSessionMissingError') throw error;
+        if (!active || revision !== authRevision) return;
+        setLoading(Boolean(data.user));
+        setUser(data.user ?? null);
+        setAuthError(false);
+      } catch {
+        if (!active || revision !== authRevision) return;
+        setLoading(false);
+        setUser(null);
+        setAuthError(true);
+      } finally {
+        if (active && revision === authRevision) setAuthLoading(false);
+      }
     }
 
     loadUser();
 
     const { data: subscription } = supabase.auth.onAuthStateChange(
-      (_event, session) => {
-        if (!isMounted) return;
+      (event, session) => {
+        if (!active || event === 'INITIAL_SESSION') return;
+        authRevision += 1;
+        setLoading(Boolean(session?.user));
         setUser(session?.user ?? null);
+        setAuthError(false);
+        setAuthLoading(false);
       }
     );
 
     return () => {
-      isMounted = false;
+      active = false;
       subscription?.subscription.unsubscribe();
     };
-  }, []);
+  }, [authRetryVersion]);
 
   useEffect(() => {
     let isMounted = true;
@@ -69,24 +90,22 @@ export default function AllProfilesPage() {
         return;
       }
 
-      const { data, error } = await supabase
-        .from('profiles')
-        .select(
-          'id, display_name, first_name, last_name, include_first_name_in_display'
-        );
-
-      if (!isMounted) return;
-
-      if (error) {
-        console.error('Error loading profiles list:', error);
-        setErrorMessage('Could not load profiles. Please try again later.');
+      try {
+        const { data, error } = await supabase
+          .from('profiles')
+          .select(
+            'id, display_name, first_name, last_name, include_first_name_in_display'
+          );
+        if (!isMounted) return;
+        if (error) throw error;
+        setProfiles((data as ProfileListItem[]) || []);
+      } catch {
+        if (!isMounted) return;
+        setErrorMessage('Could not load profiles. Please try again.');
         setProfiles([]);
-        setLoading(false);
-        return;
+      } finally {
+        if (isMounted) setLoading(false);
       }
-
-      setProfiles((data as ProfileListItem[]) || []);
-      setLoading(false);
     }
 
     loadProfiles();
@@ -94,7 +113,7 @@ export default function AllProfilesPage() {
     return () => {
       isMounted = false;
     };
-  }, [user]);
+  }, [user, profilesRetryVersion]);
 
   const sortedAndFilteredProfiles = useMemo(() => {
     const sorted = [...profiles].sort((a, b) =>
@@ -121,28 +140,30 @@ export default function AllProfilesPage() {
 
   if (authLoading || loading) {
     return (
-      <main className="page-shell" style={{ maxWidth: '800px' }}>
-        <h1>All Profiles</h1>
-        <p>Loading...</p>
+      <main className="page-shell directory-page">
+        <header className="rdd-page-header rdd-page-header--compact"><p className="rdd-eyebrow">League directory</p><h1>All Profiles</h1></header>
+        <p className="rdd-state" role="status">Loading profiles…</p>
+      </main>
+    );
+  }
+
+  if (authError) {
+    return (
+      <main className="page-shell directory-page">
+        <header className="rdd-page-header rdd-page-header--compact"><p className="rdd-eyebrow">League directory</p><h1>All Profiles</h1></header>
+        <p className="rdd-state rdd-state--error" role="alert">Could not check your account. Please try again.</p>
+        <button type="button" className="rdd-action" onClick={() => setAuthRetryVersion((version) => version + 1)}>Retry</button>
       </main>
     );
   }
 
   if (!user) {
     return (
-      <main className="page-shell" style={{ maxWidth: '800px' }}>
-        <h1>All Profiles</h1>
-        <p>You must be signed in to view profiles.</p>
+      <main className="page-shell directory-page">
+        <header className="rdd-page-header rdd-page-header--compact"><p className="rdd-eyebrow">League directory</p><h1>All Profiles</h1></header>
+        <p className="rdd-state">Sign in to browse player profiles.</p>
         <p>
-          <Link
-            href="/auth"
-            style={{
-              cursor: 'pointer',
-              color: 'var(--link-color)',
-              textDecoration: 'underline',
-              fontWeight: 500,
-            }}
-          >
+          <Link href="/auth" className="rdd-action rdd-action--primary">
             Go to sign in
           </Link>
         </p>
@@ -151,16 +172,9 @@ export default function AllProfilesPage() {
   }
 
   return (
-    <main
-      className="page-shell"
-      style={{
-        maxWidth: '800px',
-        display: 'flex',
-        flexDirection: 'column',
-        gap: 'var(--section-gap)',
-      }}
-    >
-      <header>
+    <main className="page-shell directory-page">
+      <header className="rdd-page-header rdd-page-header--compact">
+        <p className="rdd-eyebrow">League directory</p>
         <h1>All Profiles</h1>
         <p>
           Browse every profile in the league, including players with and
@@ -168,18 +182,8 @@ export default function AllProfilesPage() {
         </p>
       </header>
 
-      <section
-        style={{
-          padding: '1rem',
-          borderRadius: '0.5rem',
-          border: '1px solid var(--panel-border)',
-          backgroundColor: 'var(--panel-bg)',
-          display: 'flex',
-          flexDirection: 'column',
-          gap: '0.5rem',
-        }}
-      >
-        <label htmlFor="profile-search" style={{ fontWeight: 600 }}>
+      <section className="rdd-panel directory-search">
+        <label htmlFor="profile-search">
           Search profiles
         </label>
         <input
@@ -188,37 +192,18 @@ export default function AllProfilesPage() {
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
           placeholder="Start typing a display name or real name"
-          style={{
-            padding: '0.6rem 0.8rem',
-            borderRadius: '0.5rem',
-            border: '1px solid var(--input-border)',
-            backgroundColor: 'var(--input-bg)',
-            color: 'var(--input-text)',
-          }}
         />
       </section>
 
-      {errorMessage && (
-        <div style={{ color: 'red' }}>
-          <strong>Error:</strong> {errorMessage}
+      {errorMessage ? (
+        <div className="directory-load-error">
+          <p className="rdd-state rdd-state--error" role="alert">{errorMessage}</p>
+          <button type="button" className="rdd-action" onClick={() => setProfilesRetryVersion((version) => version + 1)}>Retry</button>
         </div>
-      )}
-
-      {loading ? (
-        <p>Loading profiles...</p>
       ) : sortedAndFilteredProfiles.length === 0 ? (
-        <p>No profiles found.</p>
+        <p className="rdd-state">{searchTerm.trim() ? 'No profiles match that search. Try a shorter name.' : 'No profiles are available yet.'}</p>
       ) : (
-        <ul
-          style={{
-            listStyle: 'none',
-            padding: 0,
-            margin: 0,
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '0.5rem',
-          }}
-        >
+        <ul className="directory-list">
           {sortedAndFilteredProfiles.map((profile) => {
             const primaryName = formatPlayerName(
               profile.display_name,
@@ -234,28 +219,17 @@ export default function AllProfilesPage() {
               <li key={profile.id}>
                 <Link
                   href={`/profiles/${profile.id}`}
-                  style={{
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'center',
-                    padding: '0.9rem 1rem',
-                    borderRadius: '0.5rem',
-                    border: '1px solid var(--panel-border)',
-                    backgroundColor: 'var(--panel-bg)',
-                    color: 'inherit',
-                    textDecoration: 'none',
-                    transition: 'border-color 0.2s ease, box-shadow 0.2s ease',
-                  }}
+                  className="directory-item"
                 >
                   <div>
-                    <div style={{ fontWeight: 700 }}>{primaryName}</div>
+                    <div className="directory-item-name">{primaryName}</div>
                     {hasSecondary && (
-                      <div style={{ color: 'var(--muted-foreground)' }}>
+                      <div className="directory-item-secondary">
                         {secondaryName}
                       </div>
                     )}
                   </div>
-                  <span aria-hidden style={{ color: 'var(--muted-icon)' }}>
+                  <span aria-hidden className="directory-item-arrow">
                     ➜
                   </span>
                 </Link>

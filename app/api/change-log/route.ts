@@ -36,6 +36,48 @@ type PullRequestResponse = {
   hasNextPage: boolean;
 };
 
+function visualFixture(page: number): PullRequestResponse {
+  // Invented, fixed records for the opt-in loopback preview only.
+  if (page === 1) {
+    return {
+      pulls: [
+        {
+          id: 9001,
+          title: "Clearer standings and match entry",
+          merged_at: "2026-08-30T15:00:00Z",
+          summary: "### Highlights\n\n- Compare the **overall standings** before opening the detailed `/stats` view.\n- Record a match with clearly labeled player scores and a visible winner.\n\n| Area | Update |\n| --- | --- |\n| Home | Easier table reading |\n| Matches | Clearer form groups |",
+        },
+        {
+          id: 9002,
+          title: "Player directory and history improvements",
+          merged_at: "2026-08-20T15:00:00Z",
+          summary: null,
+        },
+      ],
+      hasNextPage: true,
+    };
+  }
+  if (page === 2) {
+    return {
+      pulls: [{
+        id: 9003,
+        title: "Long-form league release notes for narrow screens",
+        merged_at: "2026-08-10T15:00:00Z",
+        summary: "A longer paragraph checks how release notes wrap when a change needs more than one short sentence. The wording is invented for the local preview and makes no claim about a real league release.\n\n```text\nsynthetic-change-log-example-with-a-long-unbroken-identifier-for-overflow-review\n```\n\n![Untrusted example](https://example.invalid/tracker.png)",
+      }],
+      hasNextPage: false,
+    };
+  }
+  return { pulls: [], hasNextPage: false };
+}
+
+function isLoopbackVisualPreview(request: NextRequest): boolean {
+  return process.env.RDD_VISUAL_FIXTURE === "1" &&
+    process.env.RDD_LOCAL_PREVIEW === "1" &&
+    ["localhost", "127.0.0.1"].includes(request.nextUrl.hostname) &&
+    ["localhost", "127.0.0.1"].includes(new URL(supabaseUrl).hostname);
+}
+
 function parseHasNextPage(linkHeader: string | null): boolean {
   if (!linkHeader) return false;
 
@@ -140,6 +182,10 @@ export async function GET(request: NextRequest) {
       { message: "Authentication required." },
       { status: 401 }
     );
+  }
+
+  if (isLoopbackVisualPreview(request)) {
+    return NextResponse.json(visualFixture(page), { status: 200 });
   }
 
   try {

@@ -182,7 +182,10 @@ only public DB hostnames/origins and variable presence/scope.
   same intended project as its public URL. Record presence/scope only for
   `SUPABASE_SERVICE_ROLE_KEY`, `RDD_INVITES_ENABLED`, `RDD_INVITE_ORIGIN`,
   `RDD_INVITE_SECRET`, `RESEND_API_KEY` and `RDD_INVITE_FROM`. Confirm
-  `RDD_LOCAL_PREVIEW` is absent/disabled in hosted environments. Do not share keys.
+  `RDD_LOCAL_PREVIEW`, `RDD_VISUAL_FIXTURE` and
+  `NEXT_PUBLIC_RDD_VISUAL_FIXTURE` are absent/disabled in hosted environments.
+  PR #75 adds the latter two local-only fixture controls; this checklist addition
+  does not change the dated hosted observations. Do not share keys.
 - [ ] Share the exact preview for later testing, identify its source SHA and its
   isolated DB ref, and verify the compiled browser and server targets match that
   ref. Do not grant a preview production credentials to make it work.

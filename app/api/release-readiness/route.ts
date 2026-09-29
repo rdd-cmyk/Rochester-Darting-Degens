@@ -11,10 +11,17 @@ const testingRef = 'uepayhdrgzrxhkqbwebo';
 const testingUrl = `https://${testingRef}.supabase.co`;
 const headers = { 'Cache-Control': 'no-store', 'X-Robots-Tag': 'noindex, nofollow' };
 
+function diagnostic(body: Record<string, unknown>, status = 200) {
+  // Plain text lets the protected in-app browser display the diagnostic rather
+  // than treating a top-level application/json response as a download.
+  return new NextResponse(JSON.stringify(body, null, 2), { status,
+    headers: { ...headers, 'Content-Type': 'text/plain; charset=utf-8' } });
+}
+
 export async function GET() {
   if (process.env.VERCEL_ENV !== 'preview' ||
       process.env.VERCEL_GIT_COMMIT_REF !== 'release/next') {
-    return NextResponse.json({ message: 'Not found.' }, { status: 404, headers });
+    return diagnostic({ message: 'Not found.' }, 404);
   }
 
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -25,8 +32,7 @@ export async function GET() {
 
   if (url !== testingUrl || !clientKey || !serverKey || fixtureEnabled ||
       process.env.RDD_INVITES_ENABLED !== '0') {
-    return NextResponse.json({ message: 'Release preview configuration is not ready.' },
-      { status: 409, headers });
+    return diagnostic({ message: 'Release preview configuration is not ready.' }, 409);
   }
 
   try {
@@ -49,17 +55,16 @@ export async function GET() {
     const { data, error } = await server.auth.admin.listUsers({ page: 1, perPage: 1 });
     if (error || !Array.isArray(data?.users)) throw new Error('server_key_check_failed');
 
-    return NextResponse.json({
+    return diagnostic({
       environment: 'preview', branch: 'release/next',
       commit: process.env.VERCEL_GIT_COMMIT_SHA ?? null,
       supabaseProjectRef: testingRef,
       clientCredentialVerified: true, serverCredentialVerified: true,
       invitationsEnabled: false, fixtureFlagsEnabled: false,
       schemaAcceptance: 'not_exercised',
-    }, { headers });
+    });
   } catch {
     // SDK errors may contain URLs or upstream details. Never return/log them.
-    return NextResponse.json({ message: 'Testing-project credential verification failed.' },
-      { status: 503, headers });
+    return diagnostic({ message: 'Testing-project credential verification failed.' }, 503);
   }
 }

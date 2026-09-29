@@ -2,6 +2,8 @@
 
 Status: in progress, 2026-09-28. This report is a checkpoint, not acceptance sign-off.
 
+Draft [PR #75](https://github.com/rdd-cmyk/Rochester-Darting-Degens/pull/75) contains an exact-tree review snapshot of the local implementation branch. Its initial GitHub Actions Node 24 run `36515690194` passed install, tests, coverage, lint, typecheck and build. Vercel reported the preview ready, but opening its URL redirected to Vercel login, so the protected candidate preview has not yet been visually reviewed here. The PR remains draft and all real-service/manual acceptance limits below still apply.
+
 Branch: `sitewide-design-upgrade`, based on remote `main` revision `690a01b84d96c55b8ec455a6e298c17ec6093b50`. The latest behavior-changing application checkpoint is `dc2bfe1` (account recovery states); `0455d97` only restores Home calculation-block formatting and records evidence. This branch has not been pushed or deployed. The separate saved checkout at `C:\dev\RDD\darts-tracker` was left untouched.
 
 ## Environment and evidence

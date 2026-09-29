@@ -120,3 +120,10 @@ Known follow-up work remains assigned to later packages:
 The W0 exit gate is met: an inspectable plan, confirmed scope, complete starting
 source/SQL inventory and initial candidate identity are available for the next
 work package.
+
+W1 publication addendum, 2026-09-29: the accepted combined app at `25317dc`
+includes a temporary read-only diagnostic route/server page and 22 focused tests
+to establish Preview connection isolation. This is release tooling, not a new
+product/statistics feature or SQL scope change. The ten existing SQL inputs are
+unchanged from assessed implementation `51cc3c3`; original W0 snapshots remain
+historical starting manifests. See the [W1 completion record](w1-preview-gate-2026-09-29.md).

@@ -1,4 +1,11 @@
-# W1 refresh: Vercel targets and remaining isolation gate
+# W1: environment assessment and completed isolation gate
+
+**Latest disposition: W1 passed on 2026-09-29.** The combined release's exact
+Preview source, browser target and live client/server key agreement on RDD
+Release Testing are verified in the [isolation completion record](w1-preview-gate-2026-09-29.md).
+GitHub CI and Vercel passed. W0 remains passed; W2-W8 remain open.
+
+## Earlier assessment and configuration snapshots
 
 Later follow-up: the owner has provisioned and configured **RDD Release
 Testing**. Its identity, Vercel scopes and disabled invitation flag were

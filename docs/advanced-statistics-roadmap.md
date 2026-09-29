@@ -13,8 +13,9 @@ W0 scope/candidate preparation is complete; see its
 [expanded manifest](release/w0-candidate-2026-09-29.json). W1's
 [2026-09-29 read-only refresh](release/w1-completion-2026-09-29.md) is complete;
 Vercel access/configuration is verified. Its original isolated-preview gate
-remains blocked because the existing Preview uses production and no isolated
-combined-candidate preview exists. W2-W8 remain open; W2/W3 can proceed locally.
+is now passed: the [exact combined Preview](release/w1-preview-gate-2026-09-29.md)
+has verified browser/server credentials on RDD Release Testing, with passing
+CI/Vercel. W2-W8 remain open; no hosted SQL or production rollout was performed.
 
 Status: advanced-statistics PR #69 merged; League Night Mode implemented and locally verified; hosted database changes deferred
 

@@ -441,9 +441,9 @@ it superseded or retired and point to the replacement.
 - **Statement:** The Supabase organization's Vercel connection and Auth URL
   configuration are independent. Refreshed 2026-09-29: RDD Main Project is linked
   to `rochester-darting-degens`, with Production credential sync on and
-  Preview/Development sync off. Nevertheless, the actual Vercel public URL is
-  scoped All Environments and points to production; its service-role credential
-  is scoped Production and Preview. The inspected old preview's running client
+  Preview/Development sync off. In the earlier snapshot, the Vercel public URL was
+  scoped All Environments and pointed to production; its service-role credential
+  was scoped Production and Preview. The inspected old preview's running client
   contacts production. Auth Site URL is `https://rocdartdegens.com`, with eight
   allowed redirects. GitHub is now connected to this repository, branch `main`,
   Deploy to production on; automatic DB branching is off. A working preview or
@@ -454,9 +454,16 @@ it superseded or retired and point to the replacement.
   `docs/hosted-preview-checks-2026-09-24.md` records the recovery source fix;
   [W1 refresh](release/w1-completion-2026-09-29.md) and
   [facts](release/w1-environment-facts-2026-09-29.json) record the current targets,
-  settings and unmet isolation prerequisite.
+  settings and the earlier unmet isolation prerequisite. The owner subsequently
+  created RDD Release Testing and scoped its client variables to pre-production
+  and server key to Preview only; production credentials are Production-only.
+  The [W1 isolation completion](release/w1-preview-gate-2026-09-29.md) verifies
+  exact source `25317dc`, its browser target and live client/server keys on that
+  project. W1 passed; this does not establish Auth redirects or email acceptance.
 - **Validation:** read-only authenticated Supabase/Vercel settings and old
-  preview runtime target on 2026-09-29. No connection or Auth setting was changed.
+  preview runtime target on 2026-09-29, followed by exact combined Preview
+  isolation/key verification. The owner changed credential scopes; the assistant
+  published the authorized Preview. No Supabase Auth setting or SQL was changed.
 - **Invalidation trigger:** any Supabase Auth URL, organization integration,
   Vercel project environment, or Supabase branching change. Recheck before
   each hosted recovery test or preview database claim.

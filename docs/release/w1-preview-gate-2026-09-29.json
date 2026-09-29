@@ -1,0 +1,89 @@
+{
+  "package": "W1",
+  "status": "passed",
+  "recorded_at_utc": "2026-09-29T15:00:52.583Z",
+  "accepted_app_sha": "25317dcaa675feeff324e108733df70d73101d76",
+  "branch": "release/next",
+  "application_trees": {
+    "app": "9d05358017d8ebb3a28c35c4e9c4c56baada6d25",
+    "lib": "0bf39e51073099bec78de78a0589eadb2759a49a",
+    "components": "2af2a0920eefeb3faa5bb944b0b1477812d2ab40",
+    "scripts": "b4b036ed4211edad6b10a4b28c9814cdd42de647",
+    "package-lock.json": "1f4658895c8ba104f3f0b168d15197b476c77cbb"
+  },
+  "deployment": {
+    "id": "dpl_GcTRGxjgG8eaZoUMZZkh5FmGadX3",
+    "environment": "Preview",
+    "status": "Ready",
+    "url": "https://rochester-darting-degens-nmbghxxqk-tims-projects-b7b7f743.vercel.app/",
+    "detail_url": "https://vercel.com/tims-projects-b7b7f743/rochester-darting-degens/GcTRGxjgG8eaZoUMZZkh5FmGadX3",
+    "stable_branch_url": "https://rochester-darting-degens-git-rele-684da0-tims-projects-b7b7f743.vercel.app/"
+  },
+  "supabase": {
+    "name": "RDD Release Testing",
+    "ref": "uepayhdrgzrxhkqbwebo",
+    "region": "us-west-2",
+    "status": "ACTIVE_HEALTHY",
+    "postgres_major": "17",
+    "platform_version": "17.6.1.171",
+    "github_repository": null,
+    "public_tables_or_views_observed": 0
+  },
+  "runtime_server": {
+    "environment": "preview",
+    "branch": "release/next",
+    "commit": "25317dcaa675feeff324e108733df70d73101d76",
+    "supabaseProjectRef": "uepayhdrgzrxhkqbwebo",
+    "clientCredentialVerified": true,
+    "serverCredentialVerified": true,
+    "invitationsEnabled": false,
+    "fixtureFlagsEnabled": false,
+    "schemaAcceptance": "not_exercised"
+  },
+  "runtime_browser": {
+    "pageUrl": "https://rochester-darting-degens-nmbghxxqk-tims-projects-b7b7f743.vercel.app/",
+    "supabaseRequests": [
+      "https://uepayhdrgzrxhkqbwebo.supabase.co/rest/v1/match_players?select=player_id%2Cis_winner%2Cscore%2Cmatch_id%2Cprofiles%28id%2Cdisplay_name%2Cfirst_name%2Cinclude_first_name_in_display%29%2Cmatches%21inner%28game_type%2Cgame_config%2Cplayed_at%29"
+    ]
+  },
+  "github_ci": {
+    "id": 36585993718,
+    "status": "completed",
+    "conclusion": "success",
+    "url": "https://github.com/rdd-cmyk/Rochester-Darting-Degens/actions/runs/36585993718"
+  },
+  "supabase_preview_check": "skipped",
+  "production": {
+    "sha": "690a01b84d96c55b8ec455a6e298c17ec6093b50",
+    "deployment_id": 6670280076,
+    "created_at": "2026-09-25T21:15:45Z",
+    "changed_by_this_task": false
+  },
+  "local_verification": {
+    "trusted_install": "passed",
+    "tests": 530,
+    "test_files": 68,
+    "diagnostic_tests": 22,
+    "lint": "passed",
+    "typecheck": "passed",
+    "build": "passed",
+    "coverage": {
+      "statements": 96.53,
+      "branches": 90.9,
+      "functions": 97.76,
+      "lines": 97.59
+    },
+    "sql_inputs_hash_verified": 10,
+    "known_development_advisory": "Existing moderate advisory deferred to W3"
+  },
+  "boundaries": {
+    "hosted_sql_applied": false,
+    "hosted_auth_or_app_writes": false,
+    "email_sent": false,
+    "production_export_or_restore": false,
+    "production_release": false,
+    "schema_gameplay_email_acceptance": "not_exercised",
+    "w2_through_w8": "open",
+    "production_legacy_key_retirement": "still required before hosted acceptance"
+  }
+}

@@ -1,5 +1,8 @@
 # W1 follow-up: isolated testing target configured
 
+Latest: [W1's running isolation gate passed](w1-preview-gate-2026-09-29.md).
+The pending items below describe the earlier configuration/publication snapshot.
+
 Observed: 2026-09-29, approximately 14:37 UTC. The owner created the testing
 project and changed Vercel variables. This follow-up verifies those changes
 read-only; it supersedes the earlier missing-project/configuration observations

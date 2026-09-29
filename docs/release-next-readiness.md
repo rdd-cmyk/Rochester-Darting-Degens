@@ -1,7 +1,7 @@
 # Next release: readiness and rollout plan
 
 Updated: 2026-09-29. Status: W0 complete and manifest refreshed; W1 read-only
-assessment complete, Vercel access resolved, isolated-preview gate blocked;
+assessment complete, Vercel access resolved, isolated-preview gate passed;
 W2-W8 implementation and release gates open.
 
 ## Candidate and scope
@@ -79,9 +79,12 @@ credential scopes: new client variables target testing in pre-production,
 the testing server key is a Preview-only Secret, old credentials are
 Production-only, and invitations are disabled. See the
 [verified configuration follow-up](release/w1-testing-target-2026-09-29.md).
-Existing deployments retain their old values. A new running combined-candidate
-Preview and browser/server target agreement remain unverified; preserve the
-original isolation prerequisite before hosted mutations.
+Existing deployments retain their old values. The new combined-candidate
+Preview at `25317dc` passed its original isolation prerequisite: both deployed
+keys and the browser request target are verified on RDD Release Testing. See the
+[W1 completion evidence](release/w1-preview-gate-2026-09-29.md). Its application
+schema remains empty; schema/gameplay/email acceptance and hosted mutation gates
+are still separate packages.
 
 ## Execution sequence and completion records
 
@@ -94,12 +97,12 @@ up independent local preparation while a hosted decision remains outstanding.
 | Package | Work and deliverable | Exit gate | Status |
 | --- | --- | --- | --- |
 | W0: Scope and candidate | This plan, feature/SQL inventory and an initial candidate SHA. Keep subsequent fixes scoped on `release/next`. | Future stats storage included; no new stats UI. | Passed; refreshed 2026-09-29 for UI/Rivalry. [Completion evidence](release/w0-scope-and-candidate.md) and [current source manifest](release/w0-candidate-2026-09-29.json); initial snapshot preserved. |
-| W1: Refresh environment facts | Read-only hosted/schema/Auth/integration assessment and differences from checked-in assumptions; target map and migration-history proposal. See section 1. | Every intended app/DB target is identified; drift, automatic deployment paths and baseline adoption are understood. The original isolated-preview prerequisite must pass before hosted testing. | Read-only work complete 2026-09-29; Vercel access/configuration resolved. **Exit gate blocked:** existing Preview targets production; no isolated combined-candidate preview exists. See [completion/disposition](release/w1-completion-2026-09-29.md) and [fresh facts](release/w1-environment-facts-2026-09-29.json). W2/W3 can proceed locally; close isolation with approved target preparation before W6 tests. |
+| W1: Refresh environment facts | Read-only hosted/schema/Auth/integration assessment and differences from checked-in assumptions; target map and migration-history proposal. See section 1. | Every intended app/DB target is identified; drift, automatic deployment paths and baseline adoption are understood. The original isolated-preview prerequisite must pass before hosted testing. | **Passed 2026-09-29.** Assessment, target selection, scope split and exact combined Preview isolation verified. Browser/server credentials use RDD Release Testing; GitHub CI/Vercel pass. See [completion evidence](release/w1-preview-gate-2026-09-29.md). Hosted schema/gameplay/email and later release gates remain open. |
 | W2: Finish statistics foundation | Update SQL, permissions, view and tests as specified in section 1A; document final defaults and dependency order. | Independent source review resolved; focused local checks pass; no new feature surface. | Planned. |
 | W3: Combined synthetic release | Dedicated isolated stack, repeatable full-chain upgrade, preservation checks, all application/DB/API/browser gates, and verified fixes. See sections 2 and 4. | Final combined candidate passes; legacy/new-client behavior and failure recovery are demonstrated. | Prior feature evidence only; release pass pending. |
 | W4: Backup and restore proof | Concrete export/handling proposal, owner decision, protected backup manifest, isolated restore and integrity/timing report. See section 3. | Complete recoverable backup demonstrated within agreed recovery limits. | Pending. |
 | W5: Production-shaped dress rehearsal | Run the exact release manifest and account-transition process on the protected restored copy; exercise rollback and compare original records. See section 4. | SQL hashes/order, preservation, migration-history adoption, interruption recovery and compatible rollback all pass. | Pending. |
-| W6: Operational and owner acceptance | Verified member/organizer lists, configuration plan, approved isolated email/Auth acceptance, cleanup ownership, phone walkthrough and maintenance procedure. See section 5. | Required real configuration/account decisions are settled; delivery, recovery and owner acceptance have evidence. | Pending; first close W1's isolation prerequisite. Production-connected previews cannot be used. Credential rotation/consumer verification is required before hosted acceptance. |
+| W6: Operational and owner acceptance | Verified member/organizer lists, configuration plan, approved isolated email/Auth acceptance, cleanup ownership, phone walkthrough and maintenance procedure. See section 5. | Required real configuration/account decisions are settled; delivery, recovery and owner acceptance have evidence. | Pending; W1 isolation passed, schema/acceptance preparation remains. Production-connected historical previews cannot be used. Credential rotation/consumer verification is required before hosted acceptance. |
 | W7: Freeze and go/no-go | Release packet with exact app SHA/artifact, SQL hashes, evidence, final dry run, rollback and operator assignments. | Owner authorizes the concrete production release after reviewing the packet. | Pending; no deployment authorization. |
 | W8: Cutover and observation | Fresh backup, ordered production steps, controlled acceptance, activation, monitoring and first-night check. See section 6. | Accepted live behavior, preserved records, working recovery and completed watch period. | Not started. |
 
@@ -375,17 +378,20 @@ operator, protected destination outside Git, retention, access and deletion rule
 
 ## 5. Prepare hosted cutover and operational ownership
 
-- [ ] Close W1's isolated-preview prerequisite before hosted acceptance: approve
-  the actual nonproduction DB/project and app pair, configure only its own public
-  and server credentials, build the intended source, and verify both deployed
-  targets agree. Existing Preview/Development settings point at production;
-  Preview also receives its service-role key. No write/email/signup tests may run
-  there. Keep protected restore data separate from synthetic/email acceptance.
+- [x] Close W1's isolated-preview prerequisite: the owner provisioned RDD Release
+  Testing and split credential scopes; combined source `25317dc` is built and its
+  browser/server target and both keys are verified. See the
+  [W1 evidence](release/w1-preview-gate-2026-09-29.md). Historical deployments
+  retain their old values and must not be used for write/email/signup tests.
+- [ ] Prepare the reviewed testing schema and exact origins/redirects/delivery
+  controls before hosted acceptance. Keep protected restore data separate from
+  synthetic/email acceptance.
 - [ ] Complete owner-approved rotation of the service-role credential disclosed
   in one browser-tool response during W1 and verify its affected consumers.
-  Review removal of production credentials from test Preview scope and Vercel
-  Secret handling/scopes for service-role/GitHub tokens. W1 remasked the value and
-  recorded no credentials in files; it did not rotate keys or change settings.
+  Production credentials have been removed from new Preview scope and the test
+  server key is a Secret. Review production-key/GitHub-token Secret handling and
+  consumer scopes separately. W1 recorded no credentials in files and did not
+  rotate the exposed key; the owner performed the environment scope changes.
 - [ ] Approve the legitimate existing-member UUID list and cutoff. Reconcile
   accounts created between initial inventory and cutover. Backfill active
   `league_members` with null `source_invite_id`; do not auto-admit every Auth user.
@@ -483,10 +489,10 @@ saving. Prefer a reviewed forward repair when it preserves new records safely.
 
 ## Immediate next work
 
-W0's expanded manifest and W1's read-only inspection are finished. Begin W2:
+W0's expanded manifest and W1's assessment/isolation gate are finished. Begin W2:
 modernize the statistics foundation under the confirmed storage-only scope.
-W1's original isolated-preview gate remains blocked; prepare the concrete target
-and configuration changes for owner review before any hosted W6 tests. Build the
+W1's isolated Preview is available; prepare the reviewed schema and controlled
+Auth/email configuration before any hosted W6 tests. Build the
 dedicated combined synthetic harness in W3 and take preservation snapshots before
 any release SQL.
 Prepare the concrete W4 backup/restore proposal while local testing proceeds.

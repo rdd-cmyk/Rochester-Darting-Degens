@@ -913,14 +913,8 @@ export default function Home() {
     <button
       type="button"
       onClick={() => onChange(toggleSort(sort, column, defaultDirection))}
-      style={{
-        background: 'transparent',
-        border: 'none',
-        padding: 0,
-        cursor: 'pointer',
-        color: 'inherit',
-        fontWeight: 600,
-      }}
+      aria-label={`${label}, ${sort.column === column ? `sorted ${sort.direction}` : 'not sorted'}`}
+      className="home-sort-button"
     >
       {label}{' '}
       {sort.column === column ? (sort.direction === 'asc' ? '▲' : '▼') : ''}
@@ -936,20 +930,11 @@ export default function Home() {
         {columns.map((col, colIndex) => (
           <td
             key={`${rowIndex}-${colIndex}`}
-            style={{
-              padding: '0.5rem',
-              borderBottom: '1px solid #eee',
-              textAlign: col.align ?? 'left',
-            }}
+            className={col.align === 'right' ? 'home-table-number' : undefined}
           >
             <div
               aria-hidden
-              style={{
-                height: '1rem',
-                width: col.width ?? '100%',
-                backgroundColor: '#2f2f2f',
-                borderRadius: '0.35rem',
-              }}
+              className="home-skeleton-bar" style={{ width: col.width ?? '100%' }}
             />
           </td>
         ))}
@@ -977,204 +962,71 @@ export default function Home() {
 
   return (
     <main
-      className="page-shell"
-      style={{
-        minHeight: '100vh',
-        gap: 'var(--section-gap)',
-        maxWidth: '1000px',
-      }}
+      className="page-shell home-page"
     >
-      {authErrorMessage && (
-        <p style={{ color: 'red' }}>{authErrorMessage}</p>
-      )}
+      {authErrorMessage && <p className="rdd-state rdd-state--error" role="alert">{authErrorMessage}</p>}
 
       {/* Intro / hero */}
-      <section
-        style={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'flex-start',
-          gap: '1rem',
-          flexWrap: 'wrap',
-        }}
-      >
-        <div
-          style={{
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '0.75rem',
-            flex: '1 1 520px',
-            minWidth: '260px',
-          }}
-        >
-          <h1>Rochester Darting Degens - Darts Night Tracker</h1>
-          <p>
-            Welcome! This will be the home for stats, matches, and leaderboards.
-          </p>
-          <p>
-            Next RDD Dart Night - Saturday, 1/24, 6:00 PM, location TBD.
-          </p>
-
-          <p>
+      <header className="home-header rdd-page-header rdd-page-header--compact">
+        <div className="home-header-copy">
+          <p className="rdd-eyebrow">Rochester Darting Degens</p>
+          <h1>Darts Night Leaderboards</h1>
+          <p>Follow the standings, then explore match history and advanced stats.</p>
+          <div className="rdd-actions">
             {!authLoading && !user && (
-              <Link
-                href="/auth"
-                style={{
-                  cursor: 'pointer',
-                  padding: '0.6rem 1rem',
-                  borderRadius: '0.5rem',
-                  border: '1px solid #ccc',
-                  backgroundColor: '#0366d6',
-                  color: 'white',
-                  fontWeight: 500,
-                  textDecoration: 'none',
-                  display: 'inline-block',
-                  marginRight: '0.5rem',
-                }}
-              >
-                Go to sign in / sign up
-              </Link>
+              <Link href="/auth" className="rdd-action rdd-action--primary">Sign in</Link>
             )}
-
-            <Link
-              href="/matches"
-              style={{
-                cursor: 'pointer',
-                padding: '0.6rem 1rem',
-                borderRadius: '0.5rem',
-                border: '1px solid #ccc',
-                backgroundColor: '#eee',
-                color: '#333',
-                fontWeight: 500,
-                textDecoration: 'none',
-                display: 'inline-block',
-              }}
-            >
-              View recent matches
-            </Link>
-          </p>
+            <Link href="/matches" className="rdd-action rdd-action--primary">{user ? 'Record a match' : 'View matches'}</Link>
+            <Link href="/stats" className="rdd-action rdd-action--outline">Advanced Stats</Link>
+          </div>
         </div>
-
-        <div
-          style={{
-            flex: '0 0 auto',
-            display: 'flex',
-            justifyContent: 'flex-end',
-            alignItems: 'flex-start',
-            marginLeft: 'auto',
-            marginRight: 'auto',
-          }}
-        >
+        <div className="home-header-logo">
           <Image
             src="/rdd-logo.png"
             alt="Rochester Darting Degens logo"
             width={320}
             height={320}
-            style={{
-              width: '100%',
-              maxWidth: 'clamp(120px, 12vw, 160px)',
-              height: 'auto',
-              objectFit: 'contain',
-            }}
+            className="home-logo-image"
             priority
           />
         </div>
-      </section>
+      </header>
 
       {/* Overall W/L Leaderboard */}
-      <section>
-        <h2 className="leaderboard-title">Overall Leaderboard (All Match Types)</h2>
+      <section className="home-leaderboard" aria-labelledby="overall-leaderboard-title">
+        <h2 className="leaderboard-title" id="overall-leaderboard-title">Overall Leaderboard (All Match Types)</h2>
+        <p className="rdd-scroll-hint">Scroll the table horizontally for streak and recent-form columns.</p>
 
         {loading ? (
-          <div style={{ overflowX: 'auto', marginTop: '0.75rem' }}>
-            <table
-              style={{
-                width: '100%',
-                borderCollapse: 'collapse',
-                minHeight: '320px',
-              }}
-            >
+          <div className="home-table-scroll" role="region" aria-label="Scrollable overall leaderboard" tabIndex={0}>
+            <table className="home-table-loading home-table-loading--overall">
               <thead>
                 <tr>
-                  <th
-                    style={{
-                      textAlign: 'left',
-                      borderBottom: '1px solid #ccc',
-                      padding: '0.5rem',
-                    }}
-                  >
+                  <th>
                     #
                   </th>
-                  <th
-                    style={{
-                      textAlign: 'left',
-                      borderBottom: '1px solid #ccc',
-                      padding: '0.5rem',
-                    }}
-                  >
+                  <th>
                     {renderHeaderButton('Player', 'player', wlSort, setWlSort, 'asc')}
                   </th>
-                  <th
-                    style={{
-                      textAlign: 'right',
-                      borderBottom: '1px solid #ccc',
-                      padding: '0.5rem',
-                    }}
-                  >
+                  <th className="home-table-number">
                     {renderHeaderButton('Wins', 'wins', wlSort, setWlSort, 'desc')}
                   </th>
-                  <th
-                    style={{
-                      textAlign: 'right',
-                      borderBottom: '1px solid #ccc',
-                      padding: '0.5rem',
-                    }}
-                  >
+                  <th className="home-table-number">
                     {renderHeaderButton('Losses', 'losses', wlSort, setWlSort, 'asc')}
                   </th>
-                  <th
-                    style={{
-                      textAlign: 'right',
-                      borderBottom: '1px solid #ccc',
-                      padding: '0.5rem',
-                    }}
-                  >
+                  <th className="home-table-number">
                     {renderHeaderButton('Games', 'games', wlSort, setWlSort, 'desc')}
                   </th>
-                  <th
-                    style={{
-                      textAlign: 'right',
-                      borderBottom: '1px solid #ccc',
-                      padding: '0.5rem',
-                    }}
-                  >
+                  <th className="home-table-number">
                     {renderHeaderButton('Win %', 'winPct', wlSort, setWlSort, 'desc')}
                   </th>
-                  <th
-                    style={{
-                      textAlign: 'right',
-                      borderBottom: '1px solid #ccc',
-                      padding: '0.5rem',
-                    }}
-                  >
+                  <th className="home-table-number">
                     {renderHeaderButton('Streak', 'streak', wlSort, setWlSort, 'desc')}
                   </th>
-                  <th
-                    style={{
-                      textAlign: 'right',
-                      borderBottom: '1px solid #ccc',
-                      padding: '0.5rem',
-                    }}
-                  >
+                  <th className="home-table-number">
                     {renderHeaderButton('Last 5', 'last5', wlSort, setWlSort, 'desc')}
                   </th>
-                  <th
-                    style={{
-                      textAlign: 'right',
-                      borderBottom: '1px solid #ccc',
-                      padding: '0.5rem',
-                    }}
-                  >
+                  <th className="home-table-number">
                     {renderHeaderButton('Last 10', 'last10', wlSort, setWlSort, 'desc')}
                   </th>
                 </tr>
@@ -1183,98 +1035,39 @@ export default function Home() {
             </table>
           </div>
         ) : errorMessage ? (
-          <p style={{ color: 'red' }}>{errorMessage}</p>
+          <p className="rdd-state rdd-state--error" role="alert">{errorMessage}</p>
         ) : winLossStats.length === 0 ? (
           <p>No matches recorded yet.</p>
         ) : (
-          <div style={{ overflowX: 'auto', marginTop: '0.75rem' }}>
-            <table
-              style={{
-                width: '100%',
-                borderCollapse: 'collapse',
-              }}
-            >
+          <div className="home-table-scroll" role="region" aria-label="Scrollable overall leaderboard" tabIndex={0}>
+            <table>
               <thead>
                 <tr>
-                  <th
-                    style={{
-                      textAlign: 'left',
-                      borderBottom: '1px solid #ccc',
-                      padding: '0.5rem',
-                    }}
-                  >
+                  <th>
                     #
                   </th>
-                  <th
-                    style={{
-                      textAlign: 'left',
-                      borderBottom: '1px solid #ccc',
-                      padding: '0.5rem',
-                    }}
-                  >
+                  <th>
                     {renderHeaderButton('Player', 'player', wlSort, setWlSort, 'asc')}
                   </th>
-                  <th
-                    style={{
-                      textAlign: 'right',
-                      borderBottom: '1px solid #ccc',
-                      padding: '0.5rem',
-                    }}
-                  >
+                  <th className="home-table-number">
                     {renderHeaderButton('Wins', 'wins', wlSort, setWlSort, 'desc')}
                   </th>
-                  <th
-                    style={{
-                      textAlign: 'right',
-                      borderBottom: '1px solid #ccc',
-                      padding: '0.5rem',
-                    }}
-                  >
+                  <th className="home-table-number">
                     {renderHeaderButton('Losses', 'losses', wlSort, setWlSort, 'asc')}
                   </th>
-                  <th
-                    style={{
-                      textAlign: 'right',
-                      borderBottom: '1px solid #ccc',
-                      padding: '0.5rem',
-                    }}
-                  >
+                  <th className="home-table-number">
                     {renderHeaderButton('Games', 'games', wlSort, setWlSort, 'desc')}
                   </th>
-                  <th
-                    style={{
-                      textAlign: 'right',
-                      borderBottom: '1px solid #ccc',
-                      padding: '0.5rem',
-                    }}
-                  >
+                  <th className="home-table-number">
                     {renderHeaderButton('Win %', 'winPct', wlSort, setWlSort, 'desc')}
                   </th>
-                  <th
-                    style={{
-                      textAlign: 'right',
-                      borderBottom: '1px solid #ccc',
-                      padding: '0.5rem',
-                    }}
-                  >
+                  <th className="home-table-number">
                     {renderHeaderButton('Streak', 'streak', wlSort, setWlSort, 'desc')}
                   </th>
-                  <th
-                    style={{
-                      textAlign: 'right',
-                      borderBottom: '1px solid #ccc',
-                      padding: '0.5rem',
-                    }}
-                  >
+                  <th className="home-table-number">
                     {renderHeaderButton('Last 5', 'last5', wlSort, setWlSort, 'desc')}
                   </th>
-                  <th
-                    style={{
-                      textAlign: 'right',
-                      borderBottom: '1px solid #ccc',
-                      padding: '0.5rem',
-                    }}
-                  >
+                  <th className="home-table-number">
                     {renderHeaderButton('Last 10', 'last10', wlSort, setWlSort, 'desc')}
                   </th>
                 </tr>
@@ -1282,86 +1075,34 @@ export default function Home() {
               <tbody>
                 {sortedWinLossStats.map((s, index) => (
                   <tr key={s.playerId}>
-                    <td
-                      style={{
-                        padding: '0.5rem',
-                        borderBottom: '1px solid #eee',
-                      }}
-                    >
+                    <td>
                       {index + 1}
                     </td>
-                    <td
-                      style={{
-                        padding: '0.5rem',
-                        borderBottom: '1px solid #eee',
-                      }}
-                    >
+                    <td>
                       <LinkedPlayerName
                         playerId={s.playerId}
                         preformattedName={s.displayName}
                       />
                     </td>
-                    <td
-                      style={{
-                        padding: '0.5rem',
-                        borderBottom: '1px solid #eee',
-                        textAlign: 'right',
-                      }}
-                    >
+                    <td className="home-table-number">
                       {s.wins}
                     </td>
-                    <td
-                      style={{
-                        padding: '0.5rem',
-                        borderBottom: '1px solid #eee',
-                        textAlign: 'right',
-                      }}
-                    >
+                    <td className="home-table-number">
                       {s.losses}
                     </td>
-                    <td
-                      style={{
-                        padding: '0.5rem',
-                        borderBottom: '1px solid #eee',
-                        textAlign: 'right',
-                      }}
-                    >
+                    <td className="home-table-number">
                       {s.games}
                     </td>
-                    <td
-                      style={{
-                        padding: '0.5rem',
-                        borderBottom: '1px solid #eee',
-                        textAlign: 'right',
-                      }}
-                    >
+                    <td className="home-table-number">
                       {s.winPct.toFixed(1)}%
                     </td>
-                    <td
-                      style={{
-                        padding: '0.5rem',
-                        borderBottom: '1px solid #eee',
-                        textAlign: 'right',
-                      }}
-                    >
+                    <td className="home-table-number">
                       {s.streak || '—'}
                     </td>
-                    <td
-                      style={{
-                        padding: '0.5rem',
-                        borderBottom: '1px solid #eee',
-                        textAlign: 'right',
-                      }}
-                    >
+                    <td className="home-table-number">
                       {s.last5 || '—'}
                     </td>
-                    <td
-                      style={{
-                        padding: '0.5rem',
-                        borderBottom: '1px solid #eee',
-                        textAlign: 'right',
-                      }}
-                    >
+                    <td className="home-table-number">
                       {s.last10 || '—'}
                     </td>
                   </tr>
@@ -1374,20 +1115,16 @@ export default function Home() {
 
       <section>
         <h2 className="leaderboard-title">Game Type Leaderboard</h2>
+        <p className="rdd-scroll-hint">Scroll the table horizontally for the full record.</p>
 
-        <div style={{ marginTop: '0.75rem', maxWidth: '420px' }}>
-          <label style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
-            <span style={{ fontWeight: 600 }}>Select game type</span>
+        <div className="home-filter">
+          <label className="home-filter-label">
+            <span>Select game type</span>
             <select
               value={effectiveGameType}
               onChange={(e) => setSelectedGameType(e.target.value as GameTypeLabel)}
               disabled={loading || gameTypeOptions.length === 0}
-              style={{
-                padding: '0.5rem',
-                borderRadius: '0.4rem',
-                border: '1px solid #ccc',
-                fontSize: '1rem',
-              }}
+              className="home-filter-control"
             >
               {gameTypeOptions.map((option) => (
                 <option key={option.id} value={option.id}>
@@ -1399,95 +1136,35 @@ export default function Home() {
         </div>
 
         {loading ? (
-          <div style={{ overflowX: 'auto', marginTop: '0.75rem' }}>
-            <table
-              style={{
-                width: '100%',
-                borderCollapse: 'collapse',
-                minHeight: '240px',
-              }}
-            >
+          <div className="home-table-scroll" role="region" aria-label="Scrollable game-type leaderboard" tabIndex={0}>
+            <table className="home-table-loading">
               <thead>
                 <tr>
-                  <th
-                    style={{
-                      textAlign: 'left',
-                      borderBottom: '1px solid #ccc',
-                      padding: '0.5rem',
-                    }}
-                  >
+                  <th>
                     #
                   </th>
-                  <th
-                    style={{
-                      textAlign: 'left',
-                      borderBottom: '1px solid #ccc',
-                      padding: '0.5rem',
-                    }}
-                  >
+                  <th>
                     {renderHeaderButton('Player', 'player', gameTypeSort, setGameTypeSort, 'asc')}
                   </th>
-                  <th
-                    style={{
-                      textAlign: 'right',
-                      borderBottom: '1px solid #ccc',
-                      padding: '0.5rem',
-                    }}
-                  >
+                  <th className="home-table-number">
                     {renderHeaderButton('Wins', 'wins', gameTypeSort, setGameTypeSort, 'desc')}
                   </th>
-                  <th
-                    style={{
-                      textAlign: 'right',
-                      borderBottom: '1px solid #ccc',
-                      padding: '0.5rem',
-                    }}
-                  >
+                  <th className="home-table-number">
                     {renderHeaderButton('Losses', 'losses', gameTypeSort, setGameTypeSort, 'asc')}
                   </th>
-                  <th
-                    style={{
-                      textAlign: 'right',
-                      borderBottom: '1px solid #ccc',
-                      padding: '0.5rem',
-                    }}
-                  >
+                  <th className="home-table-number">
                     {renderHeaderButton('Games', 'games', gameTypeSort, setGameTypeSort, 'desc')}
                   </th>
-                  <th
-                    style={{
-                      textAlign: 'right',
-                      borderBottom: '1px solid #ccc',
-                      padding: '0.5rem',
-                    }}
-                  >
+                  <th className="home-table-number">
                     {renderHeaderButton('Win %', 'winPct', gameTypeSort, setGameTypeSort, 'desc')}
                   </th>
-                  <th
-                    style={{
-                      textAlign: 'right',
-                      borderBottom: '1px solid #ccc',
-                      padding: '0.5rem',
-                    }}
-                  >
+                  <th className="home-table-number">
                     {renderHeaderButton('Streak', 'streak', gameTypeSort, setGameTypeSort, 'desc')}
                   </th>
-                  <th
-                    style={{
-                      textAlign: 'right',
-                      borderBottom: '1px solid #ccc',
-                      padding: '0.5rem',
-                    }}
-                  >
+                  <th className="home-table-number">
                     {renderHeaderButton('Last 5', 'last5', gameTypeSort, setGameTypeSort, 'desc')}
                   </th>
-                  <th
-                    style={{
-                      textAlign: 'right',
-                      borderBottom: '1px solid #ccc',
-                      padding: '0.5rem',
-                    }}
-                  >
+                  <th className="home-table-number">
                     {renderHeaderButton('Last 10', 'last10', gameTypeSort, setGameTypeSort, 'desc')}
                   </th>
                 </tr>
@@ -1496,98 +1173,39 @@ export default function Home() {
             </table>
           </div>
         ) : gameTypeStats.length === 0 ? (
-          <p style={{ marginTop: '0.75rem' }}>
+          <p className="home-empty-note">
             No results to display yet for the selected game type.
           </p>
         ) : (
-          <div style={{ overflowX: 'auto', marginTop: '0.75rem' }}>
-            <table
-              style={{
-                width: '100%',
-                borderCollapse: 'collapse',
-              }}
-            >
+          <div className="home-table-scroll" role="region" aria-label="Scrollable game-type leaderboard" tabIndex={0}>
+            <table>
               <thead>
                 <tr>
-                  <th
-                    style={{
-                      textAlign: 'left',
-                      borderBottom: '1px solid #ccc',
-                      padding: '0.5rem',
-                    }}
-                  >
+                  <th>
                     #
                   </th>
-                  <th
-                    style={{
-                      textAlign: 'left',
-                      borderBottom: '1px solid #ccc',
-                      padding: '0.5rem',
-                    }}
-                  >
+                  <th>
                     {renderHeaderButton('Player', 'player', gameTypeSort, setGameTypeSort, 'asc')}
                   </th>
-                  <th
-                    style={{
-                      textAlign: 'right',
-                      borderBottom: '1px solid #ccc',
-                      padding: '0.5rem',
-                    }}
-                  >
+                  <th className="home-table-number">
                     {renderHeaderButton('Wins', 'wins', gameTypeSort, setGameTypeSort, 'desc')}
                   </th>
-                  <th
-                    style={{
-                      textAlign: 'right',
-                      borderBottom: '1px solid #ccc',
-                      padding: '0.5rem',
-                    }}
-                  >
+                  <th className="home-table-number">
                     {renderHeaderButton('Losses', 'losses', gameTypeSort, setGameTypeSort, 'asc')}
                   </th>
-                  <th
-                    style={{
-                      textAlign: 'right',
-                      borderBottom: '1px solid #ccc',
-                      padding: '0.5rem',
-                    }}
-                  >
+                  <th className="home-table-number">
                     {renderHeaderButton('Games', 'games', gameTypeSort, setGameTypeSort, 'desc')}
                   </th>
-                  <th
-                    style={{
-                      textAlign: 'right',
-                      borderBottom: '1px solid #ccc',
-                      padding: '0.5rem',
-                    }}
-                  >
+                  <th className="home-table-number">
                     {renderHeaderButton('Win %', 'winPct', gameTypeSort, setGameTypeSort, 'desc')}
                   </th>
-                  <th
-                    style={{
-                      textAlign: 'right',
-                      borderBottom: '1px solid #ccc',
-                      padding: '0.5rem',
-                    }}
-                  >
+                  <th className="home-table-number">
                     {renderHeaderButton('Streak', 'streak', gameTypeSort, setGameTypeSort, 'desc')}
                   </th>
-                  <th
-                    style={{
-                      textAlign: 'right',
-                      borderBottom: '1px solid #ccc',
-                      padding: '0.5rem',
-                    }}
-                  >
+                  <th className="home-table-number">
                     {renderHeaderButton('Last 5', 'last5', gameTypeSort, setGameTypeSort, 'desc')}
                   </th>
-                  <th
-                    style={{
-                      textAlign: 'right',
-                      borderBottom: '1px solid #ccc',
-                      padding: '0.5rem',
-                    }}
-                  >
+                  <th className="home-table-number">
                     {renderHeaderButton('Last 10', 'last10', gameTypeSort, setGameTypeSort, 'desc')}
                   </th>
                 </tr>
@@ -1595,86 +1213,34 @@ export default function Home() {
               <tbody>
                 {sortedGameTypeStats.map((s, index) => (
                   <tr key={s.playerId}>
-                    <td
-                      style={{
-                        padding: '0.5rem',
-                        borderBottom: '1px solid #eee',
-                      }}
-                    >
+                    <td>
                       {index + 1}
                     </td>
-                    <td
-                      style={{
-                        padding: '0.5rem',
-                        borderBottom: '1px solid #eee',
-                      }}
-                    >
+                    <td>
                       <LinkedPlayerName
                         playerId={s.playerId}
                         preformattedName={s.displayName}
                       />
                     </td>
-                    <td
-                      style={{
-                        padding: '0.5rem',
-                        borderBottom: '1px solid #eee',
-                        textAlign: 'right',
-                      }}
-                    >
+                    <td className="home-table-number">
                       {s.wins}
                     </td>
-                    <td
-                      style={{
-                        padding: '0.5rem',
-                        borderBottom: '1px solid #eee',
-                        textAlign: 'right',
-                      }}
-                    >
+                    <td className="home-table-number">
                       {s.losses}
                     </td>
-                    <td
-                      style={{
-                        padding: '0.5rem',
-                        borderBottom: '1px solid #eee',
-                        textAlign: 'right',
-                      }}
-                    >
+                    <td className="home-table-number">
                       {s.games}
                     </td>
-                    <td
-                      style={{
-                        padding: '0.5rem',
-                        borderBottom: '1px solid #eee',
-                        textAlign: 'right',
-                      }}
-                    >
+                    <td className="home-table-number">
                       {s.winPct.toFixed(1)}%
                     </td>
-                    <td
-                      style={{
-                        padding: '0.5rem',
-                        borderBottom: '1px solid #eee',
-                        textAlign: 'right',
-                      }}
-                    >
+                    <td className="home-table-number">
                       {s.streak || '—'}
                     </td>
-                    <td
-                      style={{
-                        padding: '0.5rem',
-                        borderBottom: '1px solid #eee',
-                        textAlign: 'right',
-                      }}
-                    >
+                    <td className="home-table-number">
                       {s.last5 || '—'}
                     </td>
-                    <td
-                      style={{
-                        padding: '0.5rem',
-                        borderBottom: '1px solid #eee',
-                        textAlign: 'right',
-                      }}
-                    >
+                    <td className="home-table-number">
                       {s.last10 || '—'}
                     </td>
                   </tr>
@@ -1688,51 +1254,22 @@ export default function Home() {
       {/* 3-Dart Average Leaderboard (501 / 301) */}
       <section>
         <h2 className="leaderboard-title">3-Dart Average Leaderboard (501 / 301)</h2>
+        <p className="rdd-scroll-hint">Scroll the table horizontally to see every column.</p>
         {loading ? (
-          <div style={{ overflowX: 'auto', marginTop: '0.75rem' }}>
-            <table
-              style={{
-                width: '100%',
-                borderCollapse: 'collapse',
-                minHeight: '240px',
-              }}
-            >
+          <div className="home-table-scroll" role="region" aria-label="Scrollable 3-dart average leaderboard" tabIndex={0}>
+            <table className="home-table-loading">
               <thead>
                 <tr>
-                  <th
-                    style={{
-                      textAlign: 'left',
-                      borderBottom: '1px solid #ccc',
-                      padding: '0.5rem',
-                    }}
-                  >
+                  <th>
                     #
                   </th>
-                  <th
-                    style={{
-                      textAlign: 'left',
-                      borderBottom: '1px solid #ccc',
-                      padding: '0.5rem',
-                    }}
-                  >
+                  <th>
                     {renderHeaderButton('Player', 'player', threeSort, setThreeSort, 'asc')}
                   </th>
-                  <th
-                    style={{
-                      textAlign: 'right',
-                      borderBottom: '1px solid #ccc',
-                      padding: '0.5rem',
-                    }}
-                  >
+                  <th className="home-table-number">
                     {renderHeaderButton('3-Dart Avg', 'avg', threeSort, setThreeSort, 'desc')}
                   </th>
-                  <th
-                    style={{
-                      textAlign: 'right',
-                      borderBottom: '1px solid #ccc',
-                      padding: '0.5rem',
-                    }}
-                  >
+                  <th className="home-table-number">
                     {renderHeaderButton('Games', 'games', threeSort, setThreeSort, 'desc')}
                   </th>
                 </tr>
@@ -1743,49 +1280,20 @@ export default function Home() {
         ) : threeDartStats.length === 0 ? (
           <p>No 501 or 301 matches recorded yet.</p>
         ) : (
-          <div style={{ overflowX: 'auto', marginTop: '0.75rem' }}>
-            <table
-              style={{
-                width: '100%',
-                borderCollapse: 'collapse',
-              }}
-            >
+          <div className="home-table-scroll" role="region" aria-label="Scrollable 3-dart average leaderboard" tabIndex={0}>
+            <table>
               <thead>
                 <tr>
-                  <th
-                    style={{
-                      textAlign: 'left',
-                      borderBottom: '1px solid #ccc',
-                      padding: '0.5rem',
-                    }}
-                  >
+                  <th>
                     #
                   </th>
-                  <th
-                    style={{
-                      textAlign: 'left',
-                      borderBottom: '1px solid #ccc',
-                      padding: '0.5rem',
-                    }}
-                  >
+                  <th>
                     {renderHeaderButton('Player', 'player', threeSort, setThreeSort, 'asc')}
                   </th>
-                  <th
-                    style={{
-                      textAlign: 'right',
-                      borderBottom: '1px solid #ccc',
-                      padding: '0.5rem',
-                    }}
-                  >
+                  <th className="home-table-number">
                     {renderHeaderButton('3-Dart Avg', 'avg', threeSort, setThreeSort, 'desc')}
                   </th>
-                  <th
-                    style={{
-                      textAlign: 'right',
-                      borderBottom: '1px solid #ccc',
-                      padding: '0.5rem',
-                    }}
-                  >
+                  <th className="home-table-number">
                     {renderHeaderButton('Games', 'games', threeSort, setThreeSort, 'desc')}
                   </th>
                 </tr>
@@ -1793,41 +1301,19 @@ export default function Home() {
               <tbody>
                 {sortedThreeDartStats.map((s, index) => (
                   <tr key={s.playerId}>
-                    <td
-                      style={{
-                        padding: '0.5rem',
-                        borderBottom: '1px solid #eee',
-                      }}
-                    >
+                    <td>
                       {index + 1}
                     </td>
-                    <td
-                      style={{
-                        padding: '0.5rem',
-                        borderBottom: '1px solid #eee',
-                      }}
-                    >
+                    <td>
                       <LinkedPlayerName
                         playerId={s.playerId}
                         preformattedName={s.displayName}
                       />
                     </td>
-                    <td
-                      style={{
-                        padding: '0.5rem',
-                        borderBottom: '1px solid #eee',
-                        textAlign: 'right',
-                      }}
-                    >
+                    <td className="home-table-number">
                       {s.avg.toFixed(2)}
                     </td>
-                    <td
-                      style={{
-                        padding: '0.5rem',
-                        borderBottom: '1px solid #eee',
-                        textAlign: 'right',
-                      }}
-                    >
+                    <td className="home-table-number">
                       {s.games}
                     </td>
                   </tr>
@@ -1841,51 +1327,22 @@ export default function Home() {
       {/* MPR Leaderboard (Cricket) */}
       <section>
         <h2 className="leaderboard-title">MPR Leaderboard (Cricket)</h2>
+        <p className="rdd-scroll-hint">Scroll the table horizontally to see every column.</p>
         {loading ? (
-          <div style={{ overflowX: 'auto', marginTop: '0.75rem' }}>
-            <table
-              style={{
-                width: '100%',
-                borderCollapse: 'collapse',
-                minHeight: '240px',
-              }}
-            >
+          <div className="home-table-scroll" role="region" aria-label="Scrollable MPR leaderboard" tabIndex={0}>
+            <table className="home-table-loading">
               <thead>
                 <tr>
-                  <th
-                    style={{
-                      textAlign: 'left',
-                      borderBottom: '1px solid #ccc',
-                      padding: '0.5rem',
-                    }}
-                  >
+                  <th>
                     #
                   </th>
-                  <th
-                    style={{
-                      textAlign: 'left',
-                      borderBottom: '1px solid #ccc',
-                      padding: '0.5rem',
-                    }}
-                  >
+                  <th>
                     {renderHeaderButton('Player', 'player', mprSort, setMprSort, 'asc')}
                   </th>
-                  <th
-                    style={{
-                      textAlign: 'right',
-                      borderBottom: '1px solid #ccc',
-                      padding: '0.5rem',
-                    }}
-                  >
+                  <th className="home-table-number">
                     {renderHeaderButton('MPR', 'avg', mprSort, setMprSort, 'desc')}
                   </th>
-                  <th
-                    style={{
-                      textAlign: 'right',
-                      borderBottom: '1px solid #ccc',
-                      padding: '0.5rem',
-                    }}
-                  >
+                  <th className="home-table-number">
                     {renderHeaderButton('Games', 'games', mprSort, setMprSort, 'desc')}
                   </th>
                 </tr>
@@ -1896,49 +1353,20 @@ export default function Home() {
         ) : mprStats.length === 0 ? (
           <p>No Cricket matches recorded yet.</p>
         ) : (
-          <div style={{ overflowX: 'auto', marginTop: '0.75rem' }}>
-            <table
-              style={{
-                width: '100%',
-                borderCollapse: 'collapse',
-              }}
-            >
+          <div className="home-table-scroll" role="region" aria-label="Scrollable MPR leaderboard" tabIndex={0}>
+            <table>
               <thead>
                 <tr>
-                  <th
-                    style={{
-                      textAlign: 'left',
-                      borderBottom: '1px solid #ccc',
-                      padding: '0.5rem',
-                    }}
-                  >
+                  <th>
                     #
                   </th>
-                  <th
-                    style={{
-                      textAlign: 'left',
-                      borderBottom: '1px solid #ccc',
-                      padding: '0.5rem',
-                    }}
-                  >
+                  <th>
                     {renderHeaderButton('Player', 'player', mprSort, setMprSort, 'asc')}
                   </th>
-                  <th
-                    style={{
-                      textAlign: 'right',
-                      borderBottom: '1px solid #ccc',
-                      padding: '0.5rem',
-                    }}
-                  >
+                  <th className="home-table-number">
                     {renderHeaderButton('MPR', 'avg', mprSort, setMprSort, 'desc')}
                   </th>
-                  <th
-                    style={{
-                      textAlign: 'right',
-                      borderBottom: '1px solid #ccc',
-                      padding: '0.5rem',
-                    }}
-                  >
+                  <th className="home-table-number">
                     {renderHeaderButton('Games', 'games', mprSort, setMprSort, 'desc')}
                   </th>
                 </tr>
@@ -1946,41 +1374,19 @@ export default function Home() {
               <tbody>
                 {sortedMprStats.map((s, index) => (
                   <tr key={s.playerId}>
-                    <td
-                      style={{
-                        padding: '0.5rem',
-                        borderBottom: '1px solid #eee',
-                      }}
-                    >
+                    <td>
                       {index + 1}
                     </td>
-                    <td
-                      style={{
-                        padding: '0.5rem',
-                        borderBottom: '1px solid #eee',
-                      }}
-                    >
+                    <td>
                       <LinkedPlayerName
                         playerId={s.playerId}
                         preformattedName={s.displayName}
                       />
                     </td>
-                    <td
-                      style={{
-                        padding: '0.5rem',
-                        borderBottom: '1px solid #eee',
-                        textAlign: 'right',
-                      }}
-                    >
+                    <td className="home-table-number">
                       {s.avg.toFixed(2)}
                     </td>
-                    <td
-                      style={{
-                        padding: '0.5rem',
-                        borderBottom: '1px solid #eee',
-                        textAlign: 'right',
-                      }}
-                    >
+                    <td className="home-table-number">
                       {s.games}
                     </td>
                   </tr>
@@ -1993,20 +1399,16 @@ export default function Home() {
 
       <section>
         <h2 className="leaderboard-title">Head-to-Head Leaderboard</h2>
+        <p className="rdd-scroll-hint">Scroll the table horizontally for streak and recent-form columns.</p>
 
-        <div style={{ marginTop: '0.75rem', maxWidth: '420px' }}>
-          <label style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
-            <span style={{ fontWeight: 600 }}>Select player</span>
+        <div className="home-filter">
+          <label className="home-filter-label">
+            <span>Select player</span>
             <select
               value={effectiveHeadPlayer}
               onChange={(e) => setSelectedHeadPlayer(e.target.value)}
               disabled={loading || headToHeadOptions.length === 0}
-              style={{
-                padding: '0.5rem',
-                borderRadius: '0.4rem',
-                border: '1px solid #ccc',
-                fontSize: '1rem',
-              }}
+              className="home-filter-control"
             >
               {headToHeadOptions.map((option) => (
                 <option key={option.id} value={option.id}>
@@ -2018,95 +1420,35 @@ export default function Home() {
         </div>
 
         {loading ? (
-          <div style={{ overflowX: 'auto', marginTop: '0.75rem' }}>
-            <table
-              style={{
-                width: '100%',
-                borderCollapse: 'collapse',
-                minHeight: '240px',
-              }}
-            >
+          <div className="home-table-scroll" role="region" aria-label="Scrollable head-to-head leaderboard" tabIndex={0}>
+            <table className="home-table-loading">
               <thead>
                 <tr>
-                  <th
-                    style={{
-                      textAlign: 'left',
-                      borderBottom: '1px solid #ccc',
-                      padding: '0.5rem',
-                    }}
-                  >
+                  <th>
                     #
                   </th>
-                  <th
-                    style={{
-                      textAlign: 'left',
-                      borderBottom: '1px solid #ccc',
-                      padding: '0.5rem',
-                    }}
-                  >
+                  <th>
                     {renderHeaderButton('Player', 'player', headSort, setHeadSort, 'asc')}
                   </th>
-                  <th
-                    style={{
-                      textAlign: 'right',
-                      borderBottom: '1px solid #ccc',
-                      padding: '0.5rem',
-                    }}
-                  >
+                  <th className="home-table-number">
                     {renderHeaderButton('Wins', 'wins', headSort, setHeadSort, 'desc')}
                   </th>
-                  <th
-                    style={{
-                      textAlign: 'right',
-                      borderBottom: '1px solid #ccc',
-                      padding: '0.5rem',
-                    }}
-                  >
+                  <th className="home-table-number">
                     {renderHeaderButton('Losses', 'losses', headSort, setHeadSort, 'asc')}
                   </th>
-                  <th
-                    style={{
-                      textAlign: 'right',
-                      borderBottom: '1px solid #ccc',
-                      padding: '0.5rem',
-                    }}
-                  >
+                  <th className="home-table-number">
                     {renderHeaderButton('Games', 'games', headSort, setHeadSort, 'desc')}
                   </th>
-                  <th
-                    style={{
-                      textAlign: 'right',
-                      borderBottom: '1px solid #ccc',
-                      padding: '0.5rem',
-                    }}
-                  >
+                  <th className="home-table-number">
                     {renderHeaderButton('Win %', 'winPct', headSort, setHeadSort, 'desc')}
                   </th>
-                  <th
-                    style={{
-                      textAlign: 'right',
-                      borderBottom: '1px solid #ccc',
-                      padding: '0.5rem',
-                    }}
-                  >
+                  <th className="home-table-number">
                     {renderHeaderButton('Streak', 'streak', headSort, setHeadSort, 'desc')}
                   </th>
-                  <th
-                    style={{
-                      textAlign: 'right',
-                      borderBottom: '1px solid #ccc',
-                      padding: '0.5rem',
-                    }}
-                  >
+                  <th className="home-table-number">
                     {renderHeaderButton('Last 5', 'last5', headSort, setHeadSort, 'desc')}
                   </th>
-                  <th
-                    style={{
-                      textAlign: 'right',
-                      borderBottom: '1px solid #ccc',
-                      padding: '0.5rem',
-                    }}
-                  >
+                  <th className="home-table-number">
                     {renderHeaderButton('Last 10', 'last10', headSort, setHeadSort, 'desc')}
                   </th>
                 </tr>
@@ -2115,100 +1457,41 @@ export default function Home() {
             </table>
           </div>
         ) : headToHeadOptions.length === 0 ? (
-          <p style={{ marginTop: '0.75rem' }}>No head-to-head data available yet.</p>
+          <p className="home-empty-note">No head-to-head data available yet.</p>
         ) : headToHeadStats.length === 0 ? (
-          <p style={{ marginTop: '0.75rem' }}>
+          <p className="home-empty-note">
             No head-to-head matches found for the selected player.
           </p>
         ) : (
-          <div style={{ overflowX: 'auto', marginTop: '0.75rem' }}>
-            <table
-              style={{
-                width: '100%',
-                borderCollapse: 'collapse',
-              }}
-            >
+          <div className="home-table-scroll" role="region" aria-label="Scrollable head-to-head leaderboard" tabIndex={0}>
+            <table>
               <thead>
                 <tr>
-                  <th
-                    style={{
-                      textAlign: 'left',
-                      borderBottom: '1px solid #ccc',
-                      padding: '0.5rem',
-                    }}
-                  >
+                  <th>
                     #
                   </th>
-                  <th
-                    style={{
-                      textAlign: 'left',
-                      borderBottom: '1px solid #ccc',
-                      padding: '0.5rem',
-                    }}
-                  >
+                  <th>
                     {renderHeaderButton('Player', 'player', headSort, setHeadSort, 'asc')}
                   </th>
-                  <th
-                    style={{
-                      textAlign: 'right',
-                      borderBottom: '1px solid #ccc',
-                      padding: '0.5rem',
-                    }}
-                  >
+                  <th className="home-table-number">
                     {renderHeaderButton('Wins', 'wins', headSort, setHeadSort, 'desc')}
                   </th>
-                  <th
-                    style={{
-                      textAlign: 'right',
-                      borderBottom: '1px solid #ccc',
-                      padding: '0.5rem',
-                    }}
-                  >
+                  <th className="home-table-number">
                     {renderHeaderButton('Losses', 'losses', headSort, setHeadSort, 'asc')}
                   </th>
-                  <th
-                    style={{
-                      textAlign: 'right',
-                      borderBottom: '1px solid #ccc',
-                      padding: '0.5rem',
-                    }}
-                  >
+                  <th className="home-table-number">
                     {renderHeaderButton('Games', 'games', headSort, setHeadSort, 'desc')}
                   </th>
-                  <th
-                    style={{
-                      textAlign: 'right',
-                      borderBottom: '1px solid #ccc',
-                      padding: '0.5rem',
-                    }}
-                  >
+                  <th className="home-table-number">
                     {renderHeaderButton('Win %', 'winPct', headSort, setHeadSort, 'desc')}
                   </th>
-                  <th
-                    style={{
-                      textAlign: 'right',
-                      borderBottom: '1px solid #ccc',
-                      padding: '0.5rem',
-                    }}
-                  >
+                  <th className="home-table-number">
                     {renderHeaderButton('Streak', 'streak', headSort, setHeadSort, 'desc')}
                   </th>
-                  <th
-                    style={{
-                      textAlign: 'right',
-                      borderBottom: '1px solid #ccc',
-                      padding: '0.5rem',
-                    }}
-                  >
+                  <th className="home-table-number">
                     {renderHeaderButton('Last 5', 'last5', headSort, setHeadSort, 'desc')}
                   </th>
-                  <th
-                    style={{
-                      textAlign: 'right',
-                      borderBottom: '1px solid #ccc',
-                      padding: '0.5rem',
-                    }}
-                  >
+                  <th className="home-table-number">
                     {renderHeaderButton('Last 10', 'last10', headSort, setHeadSort, 'desc')}
                   </th>
                 </tr>
@@ -2216,86 +1499,34 @@ export default function Home() {
               <tbody>
                 {sortedHeadToHeadStats.map((s, index) => (
                   <tr key={s.playerId}>
-                    <td
-                      style={{
-                        padding: '0.5rem',
-                        borderBottom: '1px solid #eee',
-                      }}
-                    >
+                    <td>
                       {index + 1}
                     </td>
-                    <td
-                      style={{
-                        padding: '0.5rem',
-                        borderBottom: '1px solid #eee',
-                      }}
-                    >
+                    <td>
                       <LinkedPlayerName
                         playerId={s.playerId}
                         preformattedName={s.displayName}
                       />
                     </td>
-                    <td
-                      style={{
-                        padding: '0.5rem',
-                        borderBottom: '1px solid #eee',
-                        textAlign: 'right',
-                      }}
-                    >
+                    <td className="home-table-number">
                       {s.wins}
                     </td>
-                    <td
-                      style={{
-                        padding: '0.5rem',
-                        borderBottom: '1px solid #eee',
-                        textAlign: 'right',
-                      }}
-                    >
+                    <td className="home-table-number">
                       {s.losses}
                     </td>
-                    <td
-                      style={{
-                        padding: '0.5rem',
-                        borderBottom: '1px solid #eee',
-                        textAlign: 'right',
-                      }}
-                    >
+                    <td className="home-table-number">
                       {s.games}
                     </td>
-                    <td
-                      style={{
-                        padding: '0.5rem',
-                        borderBottom: '1px solid #eee',
-                        textAlign: 'right',
-                      }}
-                    >
+                    <td className="home-table-number">
                       {s.winPct.toFixed(1)}%
                     </td>
-                    <td
-                      style={{
-                        padding: '0.5rem',
-                        borderBottom: '1px solid #eee',
-                        textAlign: 'right',
-                      }}
-                    >
+                    <td className="home-table-number">
                       {s.streak || '—'}
                     </td>
-                    <td
-                      style={{
-                        padding: '0.5rem',
-                        borderBottom: '1px solid #eee',
-                        textAlign: 'right',
-                      }}
-                    >
+                    <td className="home-table-number">
                       {s.last5 || '—'}
                     </td>
-                    <td
-                      style={{
-                        padding: '0.5rem',
-                        borderBottom: '1px solid #eee',
-                        textAlign: 'right',
-                      }}
-                    >
+                    <td className="home-table-number">
                       {s.last10 || '—'}
                     </td>
                   </tr>

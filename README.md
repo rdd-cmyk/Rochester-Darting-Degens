@@ -1,5 +1,11 @@
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
+## Website design
+
+Use the [design standards](docs/design-standards.md) for interface work. The
+[site-wide upgrade plan](docs/sitewide-design-upgrade-plan.md) tracks the
+current migration from the Advanced Statistics visual language to every route.
+
 ## Configuration
 
 This project relies on Supabase for authentication and data. Create a `.env.local` file in the project root and add the following environment variables before running the app:

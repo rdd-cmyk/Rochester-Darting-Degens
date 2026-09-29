@@ -10,17 +10,13 @@ export default function ChangeLogPage() {
   return (
     <Suspense
       fallback={
-        <main className="page-shell" aria-labelledby="change-log-heading">
-          <div className="section-stack">
-            <div>
-              <h1 className="leaderboard-title change-log-heading" id="change-log-heading">
-                Change Log
-              </h1>
-              <p style={{ color: "var(--muted-foreground)", marginTop: "0.35rem" }}>
-                Loading change log...
-              </p>
-            </div>
-          </div>
+        <main className="page-shell change-log-page" aria-labelledby="change-log-heading">
+          <header className="rdd-page-header rdd-page-header--compact">
+            <p className="rdd-eyebrow">Site updates</p>
+            <h1 id="change-log-heading">Change Log</h1>
+            <p>Latest merged pull requests. Results refresh periodically to reduce API calls.</p>
+          </header>
+          <div className="rdd-state" role="status">Loading change log...</div>
         </main>
       }
     >

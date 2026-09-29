@@ -18,6 +18,7 @@ export default function AuthPage() {
   const [lastName, setLastName] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [recovering, setRecovering] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [user, setUser] = useState<User | null>(null);
 
@@ -137,6 +138,7 @@ export default function AuthPage() {
       return;
     }
 
+    setRecovering(true);
     try {
       const { error } = await supabase.auth.resetPasswordForEmail(
         email.trim(),
@@ -153,6 +155,7 @@ export default function AuthPage() {
 
       setMessage('Password reset email sent. Check your inbox.');
     } finally {
+      setRecovering(false);
       setLoading(false);
     }
   }
@@ -180,38 +183,11 @@ export default function AuthPage() {
 
   const isSignUp = mode === 'signUp';
 
-  const formStyle = {
-    display: 'flex',
-    flexDirection: 'column' as const,
-    gap: '0.75rem',
-    maxWidth: '520px',
-    width: '100%',
-  };
-
-  const fieldRowStyle = {
-    display: 'grid',
-    gridTemplateColumns: 'var(--form-grid-columns)',
-    alignItems: 'center',
-    columnGap: '0.75rem',
-    rowGap: '0.35rem',
-    width: '100%',
-  } as const;
-
-  const labelTextStyle = {
-    minWidth: '150px',
-    fontWeight: 600,
-  };
-
-  const controlStyle = {
-    width: '100%',
-    maxWidth: 'var(--form-control-max)',
-  } as const;
-
   // Logged-in view (brief because we redirect, but kept as fallback)
   if (user) {
     return (
-      <main className="page-shell" style={{ maxWidth: '700px' }}>
-        <h1>Rochester Darting Degens – Account</h1>
+      <main className="page-shell account-page">
+        <header className="rdd-page-header rdd-page-header--compact"><p className="rdd-eyebrow">League account</p><h1>Rochester Darting Degens – Account</h1></header>
         <p>
           Logged in as <strong>{user.email}</strong>
         </p>
@@ -219,52 +195,33 @@ export default function AuthPage() {
         <button
           onClick={handleSignOut}
           disabled={loading}
-          style={{
-            cursor: loading ? 'not-allowed' : 'pointer',
-            padding: '0.5rem 1rem',
-            borderRadius: '0.5rem',
-            border: '1px solid #ccc',
-            backgroundColor: '#444',
-            color: 'white',
-            fontWeight: 500,
-            opacity: loading ? 0.6 : 1,
-          }}
+          className="rdd-action rdd-action--secondary"
         >
           {loading ? 'Signing out...' : 'Sign out'}
         </button>
 
-        {message && <p style={{ marginTop: '1rem' }}>{message}</p>}
+        {message && <p className="account-signout-message" role="status">{message}</p>}
       </main>
     );
   }
 
   // Logged-out view
   return (
-    <main className="page-shell" style={{ maxWidth: '720px' }}>
-      <h1>
-        {isSignUp
-          ? 'Create your RDD account'
-          : 'Sign in to Rochester Darting Degens'}
-      </h1>
+    <main className="page-shell account-page">
+      <header className="rdd-page-header rdd-page-header--compact">
+        <p className="rdd-eyebrow">League account</p>
+        <h1>{isSignUp ? 'Create your RDD account' : 'Sign in to Rochester Darting Degens'}</h1>
+        <p>{isSignUp ? 'Join the league to record matches and follow player stats.' : 'Access match entry, player profiles, and league statistics.'}</p>
+      </header>
 
-      <div style={{ margin: '1rem 0' }}>
+      <div className="account-mode-tabs" role="group" aria-label="Account mode">
         <button
           onClick={() => {
             setMode('signIn');
             setMessage(null);
           }}
-          disabled={mode === 'signIn'}
-          style={{
-            marginRight: '0.5rem',
-            cursor: mode === 'signIn' ? 'default' : 'pointer',
-            padding: '0.4rem 0.8rem',
-            borderRadius: '0.5rem',
-            border: '1px solid #ccc',
-            backgroundColor: mode === 'signIn' ? '#aaa' : '#0366d6',
-            color: 'white',
-            fontWeight: 500,
-            opacity: mode === 'signIn' ? 0.6 : 1,
-          }}
+          aria-pressed={mode === 'signIn'}
+          className="rdd-action"
         >
           Sign In
         </button>
@@ -274,17 +231,8 @@ export default function AuthPage() {
             setMode('signUp');
             setMessage(null);
           }}
-          disabled={mode === 'signUp'}
-          style={{
-            cursor: mode === 'signUp' ? 'default' : 'pointer',
-            padding: '0.4rem 0.8rem',
-            borderRadius: '0.5rem',
-            border: '1px solid #ccc',
-            backgroundColor: mode === 'signUp' ? '#aaa' : '#0366d6',
-            color: 'white',
-            fontWeight: 500,
-            opacity: mode === 'signUp' ? 0.6 : 1,
-          }}
+          aria-pressed={mode === 'signUp'}
+          className="rdd-action"
         >
           Sign Up
         </button>
@@ -292,6 +240,8 @@ export default function AuthPage() {
 
       {/* Form so Enter key submits */}
       <form
+        className="rdd-panel account-auth-form"
+        aria-busy={loading}
         onSubmit={(e) => {
           e.preventDefault();
           if (isSignUp) {
@@ -300,12 +250,11 @@ export default function AuthPage() {
             handleSignIn();
           }
         }}
-        style={formStyle}
       >
         {isSignUp && (
           <>
-            <div style={fieldRowStyle}>
-              <label htmlFor="firstName" style={labelTextStyle}>
+            <div className="form-row">
+              <label htmlFor="firstName" className="form-label">
                 First name
               </label>
               <input
@@ -314,12 +263,12 @@ export default function AuthPage() {
                 value={firstName}
                 onChange={(e) => setFirstName(e.target.value)}
                 required
-                style={controlStyle}
+                className="form-control"
               />
             </div>
 
-            <div style={fieldRowStyle}>
-              <label htmlFor="lastName" style={labelTextStyle}>
+            <div className="form-row">
+              <label htmlFor="lastName" className="form-label">
                 Last name
               </label>
               <input
@@ -328,12 +277,12 @@ export default function AuthPage() {
                 value={lastName}
                 onChange={(e) => setLastName(e.target.value)}
                 required
-                style={controlStyle}
+                className="form-control"
               />
             </div>
 
-            <div style={fieldRowStyle}>
-              <label htmlFor="displayName" style={labelTextStyle}>
+            <div className="form-row">
+              <label htmlFor="displayName" className="form-label">
                 Display name
               </label>
               <input
@@ -343,14 +292,14 @@ export default function AuthPage() {
                 onChange={(e) => setDisplayName(e.target.value)}
                 placeholder="e.g., Ton-Plus Timbo"
                 required
-                style={controlStyle}
+                className="form-control"
               />
             </div>
           </>
         )}
 
-        <div style={fieldRowStyle}>
-          <label htmlFor="email" style={labelTextStyle}>
+        <div className="form-row">
+          <label htmlFor="email" className="form-label">
             Email
           </label>
           <input
@@ -360,23 +309,15 @@ export default function AuthPage() {
             onChange={(e) => setEmail(e.target.value)}
             autoComplete="email"
             required
-            style={controlStyle}
+            className="form-control"
           />
         </div>
 
-        <div style={fieldRowStyle}>
-          <label htmlFor="password" style={labelTextStyle}>
+        <div className="form-row">
+          <label htmlFor="password" className="form-label">
             Password
           </label>
-          <div
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.5rem',
-              width: '100%',
-              maxWidth: '260px',
-            }}
-          >
+          <div className="password-row">
             <input
               id="password"
               type={showPassword ? 'text' : 'password'}
@@ -384,60 +325,38 @@ export default function AuthPage() {
               onChange={(e) => setPassword(e.target.value)}
               autoComplete={isSignUp ? 'new-password' : 'current-password'}
               required
-              style={{ flex: 1 }}
+              className="form-control"
             />
             <button
               type="button"
               onClick={() => setShowPassword((prev) => !prev)}
-              style={{
-                padding: '0.35rem 0.65rem',
-                borderRadius: '0.4rem',
-                border: '1px solid #ccc',
-                backgroundColor: '#f3f4f6',
-                color: '#0366d6',
-                cursor: 'pointer',
-                whiteSpace: 'nowrap',
-              }}
+              className="rdd-action"
+              aria-label={showPassword ? 'Hide password' : 'Show password'}
             >
               {showPassword ? 'Hide' : 'Show'}
             </button>
           </div>
         </div>
 
-        <div style={{ marginBottom: '0.75rem' }}>
+        <div className="account-recovery-row">
           <button
             type="button"
             onClick={handlePasswordReset}
             disabled={loading}
-            style={{
-              cursor: loading ? 'not-allowed' : 'pointer',
-              border: 'none',
-              background: 'none',
-              padding: 0,
-              color: '#0366d6',
-              textDecoration: 'underline',
-              fontSize: '0.9rem',
-            }}
+            className="account-recovery-link"
           >
-            Forgot your password?
+            {recovering ? 'Sending reset email…' : 'Forgot your password?'}
           </button>
         </div>
 
         <button
           type="submit"
           disabled={loading}
-          style={{
-            cursor: loading ? 'not-allowed' : 'pointer',
-            padding: '0.6rem 1rem',
-            borderRadius: '0.5rem',
-            border: '1px solid #ccc',
-            backgroundColor: '#0366d6',
-            color: 'white',
-            fontWeight: 500,
-            opacity: loading ? 0.6 : 1,
-          }}
+          className="rdd-action rdd-action--primary"
         >
-          {loading
+          {recovering
+            ? 'Sending reset email…'
+            : loading
             ? isSignUp
               ? 'Signing up...'
               : 'Signing in...'
@@ -447,7 +366,7 @@ export default function AuthPage() {
         </button>
       </form>
 
-      {message && <p style={{ marginTop: '1rem' }}>{message}</p>}
+      {message && <p className="rdd-state" role="status">{message}</p>}
     </main>
   );
 }

@@ -1,11 +1,12 @@
 'use client';
 
-import { useEffect, useState, FormEvent } from 'react';
+import { useEffect, useRef, useState, FormEvent } from 'react';
 import Link from 'next/link';
 import { supabase } from '@/lib/supabaseClient';
 import { formatPlayerName } from '@/lib/playerName';
 import { LinkedPlayerName } from '@/components/LinkedPlayerName';
 import { clearMatchesState } from '@/lib/matchState';
+import { formatRecordedScore } from '@/lib/matchScore';
 import {
   resolvePlayedAtIso,
   toLocalDateTimeInput,
@@ -74,6 +75,8 @@ export default function MatchesPage() {
   const [profiles, setProfiles] = useState<Profile[]>([]);
   const [matches, setMatches] = useState<Match[]>([]);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
+  const saveInProgress = useRef(false);
 
   // Form state
   const [playedAt, setPlayedAt] = useState(() =>
@@ -104,43 +107,6 @@ export default function MatchesPage() {
   const isCricket = gameType === 'Cricket';
   const isOther = gameType === 'Other';
   const isO1 = gameType === '501' || gameType === '301';
-
-  const formStyle = {
-    display: 'flex',
-    flexDirection: 'column' as const,
-    gap: '0.75rem',
-    maxWidth: '520px',
-    width: '100%',
-  };
-
-  const fieldRowStyle = {
-    display: 'grid',
-    alignItems: 'center',
-    gap: '0.75rem',
-    gridTemplateColumns: 'var(--form-grid-columns)',
-    width: '100%',
-  } as const;
-
-  const labelTextStyle = {
-    minWidth: '150px',
-    fontWeight: 600,
-  };
-
-  const controlStyle = {
-    width: '100%',
-    maxWidth: 'var(--form-control-max)',
-  } as const;
-
-  const selectStyle = {
-    ...controlStyle,
-    color: 'var(--input-text)',
-    backgroundColor: 'var(--input-bg)',
-  } as const;
-
-  const optionStyle = {
-    color: 'var(--input-text)',
-    backgroundColor: 'var(--input-bg)',
-  } as const;
 
   // Helper to resize playerEntries when numPlayers changes
   function ensurePlayerEntriesSize(targetSize: number) {
@@ -351,6 +317,7 @@ export default function MatchesPage() {
 
   async function handleSaveMatch(e: FormEvent) {
     e.preventDefault();
+    if (saveInProgress.current) return;
     setErrorMessage(null);
 
     if (!user) {
@@ -466,7 +433,7 @@ export default function MatchesPage() {
           // Over absolute cap
           if (statNum > maxStat) {
             setErrorMessage(
-              'Put in the actual score, you lying sack of shit'
+              `That value is above the maximum allowed for ${gameType}. Check the score and try again.`
             );
             return;
           }
@@ -501,6 +468,8 @@ export default function MatchesPage() {
       }
     }
 
+    saveInProgress.current = true;
+    setSaving(true);
     try {
       if (editingMatchId == null) {
         // ➕ CREATE a new match
@@ -607,6 +576,9 @@ export default function MatchesPage() {
 
       console.error('Error saving match:', err);
       setErrorMessage('Error saving match: ' + message);
+    } finally {
+      saveInProgress.current = false;
+      setSaving(false);
     }
   }
 
@@ -666,28 +638,20 @@ export default function MatchesPage() {
 
   if (loading) {
     return (
-      <main className="page-shell" style={{ maxWidth: '820px' }}>
-        <h1>Matches</h1>
-        <p>Loading...</p>
+      <main className="page-shell matches-page">
+        <header className="rdd-page-header rdd-page-header--compact"><p className="rdd-eyebrow">League play</p><h1>Matches</h1></header>
+        <p className="rdd-state" role="status">Loading matches…</p>
       </main>
     );
   }
 
   if (!user) {
     return (
-      <main className="page-shell" style={{ maxWidth: '820px' }}>
-        <h1>Matches</h1>
-        <p>You must be signed in to view and add matches.</p>
+      <main className="page-shell matches-page">
+        <header className="rdd-page-header rdd-page-header--compact"><p className="rdd-eyebrow">League play</p><h1>Matches</h1></header>
+        <p className="rdd-state">You must be signed in to view and add matches.</p>
         <p>
-          <Link
-            href="/auth"
-            style={{
-              cursor: 'pointer',
-              color: '#0366d6',
-              textDecoration: 'underline',
-              fontWeight: 500,
-            }}
-          >
+          <Link href="/auth" className="rdd-action rdd-action--primary">
             Go to sign in / sign up
           </Link>
         </p>
@@ -696,87 +660,39 @@ export default function MatchesPage() {
   }
 
   return (
-    <main
-      className="page-shell"
-      style={{
-        display: 'flex',
-        flexDirection: 'column',
-        gap: 'var(--section-gap)',
-        maxWidth: '800px',
-      }}
-    >
-      <header>
+    <main className="page-shell matches-page">
+      <header className="rdd-page-header rdd-page-header--compact">
+        <p className="rdd-eyebrow">League play</p>
         <h1>Darts Matches</h1>
-        <p
-          style={{
-            display: 'flex',
-            flexWrap: 'wrap',
-            alignItems: 'center',
-            gap: '0.5rem',
-          }}
-        >
-          <span>
-            Logged in as <strong>{user.email}</strong>.
-          </span>
-          <Link
-            href="/"
-            style={{
-              cursor: 'pointer',
-              padding: '0.3rem 0.7rem',
-              borderRadius: '0.5rem',
-              border: '1px solid #ccc',
-              backgroundColor: '#0366d6',
-              color: 'white',
-              fontWeight: 500,
-              textDecoration: 'none',
-            }}
-          >
-            Back to home
-          </Link>
-        </p>
+        <p>Record a result or review recent games.</p>
+        <p className="matches-account-line">Signed in as <strong>{user.email}</strong></p>
       </header>
 
       {errorMessage && (
-        <div style={{ color: 'red' }}>
+        <div className="rdd-state rdd-state--error" role="alert">
           <strong>Error:</strong> {errorMessage}
         </div>
       )}
 
       {/* Add / Edit Match Form */}
-      <section>
-        <h2
-          style={{
-            fontSize: '1.6rem',
-            fontWeight: 800,
-            marginBottom: '0.75rem',
-            paddingBottom: '0.35rem',
-            borderBottom: '2px solid #e2e8f0',
-          }}
-        >
+      <section className="rdd-panel matches-form-panel">
+        <h2 className="rdd-section-title">
           {editingMatchId ? 'Edit Match' : 'Record a New Match'}
         </h2>
         {profiles.length < 2 && (
-          <p style={{ color: 'orange' }}>
+          <p className="rdd-state">
             You currently have fewer than 2 profiles. Ask your friends to sign
             up on the{' '}
-            <Link
-              href="/auth"
-              style={{
-                cursor: 'pointer',
-                color: '#0366d6',
-                textDecoration: 'underline',
-                fontWeight: 500,
-              }}
-            >
+            <Link href="/auth">
               auth page
             </Link>{' '}
             so they appear here.
           </p>
         )}
 
-        <form onSubmit={handleSaveMatch} style={formStyle}>
-          <div style={fieldRowStyle}>
-            <label htmlFor="playedAt" style={labelTextStyle}>
+        <form onSubmit={handleSaveMatch} aria-busy={saving}>
+          <div className="form-row">
+            <label htmlFor="playedAt" className="form-label">
               Match date and time
             </label>
             <input
@@ -785,29 +701,32 @@ export default function MatchesPage() {
               value={playedAt}
               max={toLocalDateTimeInput(new Date())}
               onChange={(event) => setPlayedAt(event.target.value)}
+              disabled={saving}
               required
-              style={controlStyle}
+              className="form-control"
             />
           </div>
 
           {/* Game type */}
-          <div style={fieldRowStyle}>
-            <span style={labelTextStyle}>Game type</span>
+          <div className="form-row">
+            <label htmlFor="match-game-type" className="form-label">Game type</label>
             <select
+              id="match-game-type"
               value={gameType}
               onChange={(e) => setGameType(e.target.value)}
-              style={selectStyle}
+              disabled={saving}
+              className="form-control"
             >
-              <option value="501" style={optionStyle}>
+              <option value="501">
                 501
               </option>
-              <option value="301" style={optionStyle}>
+              <option value="301">
                 301
               </option>
-              <option value="Cricket" style={optionStyle}>
+              <option value="Cricket">
                 Cricket
               </option>
-              <option value="Other" style={optionStyle}>
+              <option value="Other">
                 Other
               </option>
             </select>
@@ -815,27 +734,29 @@ export default function MatchesPage() {
 
           {/* Stat entry mode for 01 games */}
           {isO1 && (
-            <div style={fieldRowStyle}>
-              <span style={labelTextStyle}>Stat entry</span>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
+            <div className="form-row">
+              <label htmlFor="match-stat-entry" className="form-label">Stat entry</label>
+              <div className="matches-stat-mode">
                 <select
+                  id="match-stat-entry"
                   value={o1StatInputMode}
                   onChange={(e) => {
                     const nextMode = e.target.value as '3da' | 'ppd';
                     convertO1Stats(o1StatInputMode, nextMode);
                     setO1StatInputMode(nextMode);
                   }}
-                  style={selectStyle}
+                  disabled={saving}
+                  className="form-control"
                 >
-                  <option value="3da" style={optionStyle}>
+                  <option value="3da">
                     3-Dart Average
                   </option>
-                  <option value="ppd" style={optionStyle}>
+                  <option value="ppd">
                     Points Per Dart (PPD)
                   </option>
                 </select>
                 {o1StatInputMode === 'ppd' && (
-                  <span style={{ color: '#555', fontSize: '0.95rem' }}>
+                  <span className="rdd-field-help">
                     PPD values are multiplied by 3 to store a 3-dart average for
                     leaderboards.
                   </span>
@@ -845,27 +766,31 @@ export default function MatchesPage() {
           )}
 
           {/* Notes */}
-          <div style={fieldRowStyle}>
-            <span style={labelTextStyle}>Notes</span>
+          <div className="form-row">
+            <label htmlFor="match-notes" className="form-label">Notes</label>
             <input
+              id="match-notes"
               type="text"
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
+              disabled={saving}
               placeholder="'Other' game type, e.g."
-              style={controlStyle}
+              className="form-control"
             />
           </div>
 
           {/* Number of players */}
-          <div style={fieldRowStyle}>
-            <span style={labelTextStyle}>Number of players</span>
+          <div className="form-row">
+            <label htmlFor="match-player-count" className="form-label">Number of players</label>
             <select
+              id="match-player-count"
               value={numPlayers}
               onChange={(e) => handleNumPlayersChange(e.target.value)}
-              style={selectStyle}
+              disabled={saving}
+              className="form-control"
             >
               {Array.from({ length: 9 }, (_, i) => i + 2).map((n) => (
-                <option key={n} value={n} style={optionStyle}>
+                <option key={n} value={n}>
                   {n}
                 </option>
               ))}
@@ -884,30 +809,34 @@ export default function MatchesPage() {
               : `${playerLabel} 3-Dart Average`;
 
             return (
-              <div
+              <fieldset
                 key={index}
-                style={{
-                  border: '1px solid #ddd',
-                  borderRadius: '0.5rem',
-                  padding: '0.5rem',
-                  marginTop: '0.25rem',
-                }}
+                className="matches-player-card"
               >
-                <div style={fieldRowStyle}>
-                  <span style={labelTextStyle}>{playerLabel}</span>
+                <legend id={`match-player-group-${index}`}>{playerLabel}</legend>
+                <div className="form-row">
+                  <label
+                    id={`match-player-label-${index}`}
+                    htmlFor={`match-player-${index}`}
+                    className="form-label"
+                  >
+                    Player
+                  </label>
                   <select
+                    id={`match-player-${index}`}
+                    aria-labelledby={`match-player-group-${index} match-player-label-${index}`}
                     value={entry.playerId}
                     onChange={(e) => handlePlayerChange(index, e.target.value)}
-                    style={selectStyle}
+                    disabled={saving}
+                    className="form-control"
                   >
-                    <option value="" style={optionStyle}>
+                    <option value="">
                       -- choose player --
                     </option>
                     {profiles.map((p) => (
                       <option
                         key={p.id}
                         value={p.id}
-                        style={optionStyle}
                       >
                         {formatPlayerName(
                           p.display_name,
@@ -918,15 +847,17 @@ export default function MatchesPage() {
                     ))}
                   </select>
                 </div>
-                <div style={{ ...fieldRowStyle, marginTop: '0.25rem' }}>
-                  <span style={labelTextStyle}>{statLabel}</span>
+                <div className="form-row matches-form-row--stat">
+                  <label htmlFor={`match-stat-${index}`} className="form-label">{statLabel}</label>
                   <input
+                    id={`match-stat-${index}`}
                     type="number"
                     step={isOther ? 1 : 0.01}
                     min={isOther ? 1 : 0}
                     max={isOther ? 9999 : undefined}
                     value={entry.stat}
                     onChange={(e) => handleStatChange(index, e.target.value)}
+                    disabled={saving}
                     placeholder={
                       isCricket
                         ? 'e.g. 3.25'
@@ -936,15 +867,16 @@ export default function MatchesPage() {
                         ? 'e.g. 29.17'
                         : 'e.g. 87.50'
                     }
-                    style={controlStyle}
+                    className="form-control"
                   />
                 </div>
                 {isCricket && (
-                  <div style={{ ...fieldRowStyle, marginTop: '0.35rem' }}>
-                    <span style={labelTextStyle}>
+                  <div className="form-row matches-form-row--points">
+                    <label htmlFor={`match-cricket-points-${index}`} className="form-label">
                       {playerLabel} points scored (optional)
-                    </span>
+                    </label>
                     <input
+                      id={`match-cricket-points-${index}`}
                       type="number"
                       step={1}
                       min={0}
@@ -953,24 +885,27 @@ export default function MatchesPage() {
                       onChange={(e) =>
                         handleCricketPointsChange(index, e.target.value)
                       }
+                      disabled={saving}
                       placeholder="e.g. 120"
-                      style={controlStyle}
+                      className="form-control"
                     />
                   </div>
                 )}
-              </div>
+              </fieldset>
             );
           })}
 
           {/* Winner selection */}
-          <div style={fieldRowStyle}>
-            <span style={labelTextStyle}>Winner</span>
+          <div className="form-row">
+            <label htmlFor="match-winner" className="form-label">Winner</label>
             <select
+              id="match-winner"
               value={winnerPlayerId}
               onChange={(e) => setWinnerPlayerId(e.target.value)}
-              style={selectStyle}
+              disabled={saving}
+              className="form-control"
             >
-              <option value="" style={optionStyle}>
+              <option value="">
                 -- select winner --
               </option>
               {playerEntries.slice(0, numPlayers).map((entry, index) => {
@@ -987,10 +922,9 @@ export default function MatchesPage() {
 
                 return (
                   <option
-                    key={entry.playerId || `winner-${index}`}
+                    key={`winner-${index}`}
                     value={entry.playerId}
                     disabled={!entry.playerId}
-                    style={optionStyle}
                   >
                     {label}
                   </option>
@@ -1000,66 +934,56 @@ export default function MatchesPage() {
           </div>
 
           {/* Board type */}
-          <div style={fieldRowStyle}>
-            <span style={labelTextStyle}>Board type</span>
+          <div className="form-row">
+            <label htmlFor="match-board-type" className="form-label">Board type</label>
             <select
+              id="match-board-type"
               value={boardType}
               onChange={(e) => setBoardType(e.target.value)}
-              style={selectStyle}
+              disabled={saving}
+              className="form-control"
             >
-              <option value="" style={optionStyle}>
+              <option value="">
                 -- choose --
               </option>
-              <option value="Soft Tip" style={optionStyle}>
+              <option value="Soft Tip">
                 Soft Tip
               </option>
-              <option value="Steel Tip" style={optionStyle}>
+              <option value="Steel Tip">
                 Steel Tip
               </option>
             </select>
           </div>
 
           {/* Venue */}
-          <div style={fieldRowStyle}>
-            <span style={labelTextStyle}>Venue</span>
+          <div className="form-row">
+            <label htmlFor="match-venue" className="form-label">Venue</label>
             <input
+              id="match-venue"
               type="text"
               value={venue}
               onChange={(e) => setVenue(e.target.value)}
+              disabled={saving}
               placeholder="Radio Social, e.g."
-              style={controlStyle}
+              className="form-control"
             />
           </div>
 
-          <div className="button-row" style={{ marginTop: '0.5rem' }}>
+          <div className="button-row matches-form-actions">
             <button
               type="submit"
-              style={{
-                cursor: 'pointer',
-                padding: '0.6rem 1rem',
-                borderRadius: '0.5rem',
-                border: '1px solid #ccc',
-                backgroundColor: '#0366d6',
-                color: 'white',
-                fontWeight: 500,
-              }}
+              className="rdd-action rdd-action--primary"
+              disabled={saving}
             >
-              {editingMatchId ? 'Save changes' : 'Save match'}
+              {saving ? 'Saving…' : editingMatchId ? 'Save changes' : 'Save match'}
               </button>
 
             {editingMatchId && (
               <button
                 type="button"
                 onClick={resetForm}
-                style={{
-                  cursor: 'pointer',
-                  padding: '0.6rem 1rem',
-                  borderRadius: '0.5rem',
-                  border: '1px solid #ccc',
-                  backgroundColor: '#eee',
-                  color: '#333',
-                  fontWeight: 500,
-                }}
+                className="rdd-action"
+                disabled={saving}
               >
                 Cancel edit
               </button>
@@ -1069,32 +993,15 @@ export default function MatchesPage() {
       </section>
 
       {/* Recent Matches */}
-      <section>
-        <h2
-          style={{
-            fontSize: '1.35rem',
-            fontWeight: 800,
-            borderBottom: '3px solid #0366d6',
-            paddingBottom: '0.35rem',
-            display: 'inline-block',
-            marginBottom: '0.5rem',
-          }}
-        >
+      <section className="matches-history">
+        <h2 className="rdd-section-title">
           Recent Matches
         </h2>
         {matches.length === 0 ? (
           <p>No matches recorded yet.</p>
         ) : (
           <>
-            <ul
-              style={{
-                listStyle: 'none',
-                padding: 0,
-                display: 'flex',
-                flexDirection: 'column',
-                gap: '1rem',
-              }}
-            >
+            <ul className="matches-history-list">
               {matches.map((m) => {
                 const metricLabel =
                   m.game_type === 'Cricket'
@@ -1108,21 +1015,9 @@ export default function MatchesPage() {
                 return (
                   <li
                     key={m.id}
-                    style={{
-                      border: '1px solid #ccc',
-                      padding: '0.75rem',
-                      borderRadius: '0.5rem',
-                    }}
+                    className="rdd-panel matches-history-card"
                   >
-                    <div
-                      style={{
-                        display: 'flex',
-                        justifyContent: 'space-between',
-                        alignItems: 'center',
-                        gap: '0.5rem',
-                        flexWrap: 'wrap',
-                      }}
-                    >
+                    <div className="matches-history-card-header">
                       <div>
                         <strong>
                           {m.game_type || 'Unknown game'} –{' '}
@@ -1136,24 +1031,16 @@ export default function MatchesPage() {
                         <button
                           type="button"
                           onClick={() => handleEditClick(m)}
-                          style={{
-                            cursor: 'pointer',
-                            padding: '0.3rem 0.7rem',
-                            borderRadius: '0.5rem',
-                            border: '1px solid #ccc',
-                            backgroundColor: '#eee',
-                            color: '#000',
-                            fontWeight: 500,
-                          }}
+                          className="rdd-action"
                         >
                           Edit
                         </button>
                       )}
                     </div>
 
-                    <div style={{ marginTop: '0.5rem' }}>
+                    <div className="matches-history-participants">
                       Players:
-                      <ul style={{ margin: '0.25rem 0 0 1rem' }}>
+                      <ul>
                         {(m.match_players || []).map((mp) => {
                           const prof = (Array.isArray(mp.profiles)
                             ? mp.profiles[0]
@@ -1178,7 +1065,7 @@ export default function MatchesPage() {
                                 'Unknown player'
                               )}{' '}
                               – {metricLabel}:{' '}
-                              {mp.score != null ? mp.score.toString() : '0'}
+                              {formatRecordedScore(mp.score)}
                               {m.game_type === 'Cricket' && mp.points_scored != null
                                 ? ` (Points: ${mp.points_scored})`
                                 : ''}{' '}
@@ -1194,28 +1081,12 @@ export default function MatchesPage() {
             </ul>
 
             {/* Pagination controls */}
-            <div
-              style={{
-                marginTop: '1rem',
-                display: 'flex',
-                gap: '0.5rem',
-                alignItems: 'center',
-              }}
-            >
+            <div className="rdd-pagination">
               <button
                 type="button"
                 onClick={() => reloadMatches(currentPage - 1)}
                 disabled={currentPage <= 1}
-                style={{
-                  cursor: currentPage <= 1 ? 'not-allowed' : 'pointer',
-                  padding: '0.4rem 0.8rem',
-                  borderRadius: '0.5rem',
-                  border: '1px solid #ccc',
-                  backgroundColor:
-                    currentPage <= 1 ? '#8cbce8' : '#0366d6',
-                  color: 'white',
-                  fontWeight: 500,
-                }}
+                className="rdd-action rdd-action--secondary"
               >
                 Previous
               </button>
@@ -1226,16 +1097,7 @@ export default function MatchesPage() {
                 type="button"
                 onClick={() => reloadMatches(currentPage + 1)}
                 disabled={currentPage >= totalPages}
-                style={{
-                  cursor: currentPage >= totalPages ? 'not-allowed' : 'pointer',
-                  padding: '0.4rem 0.8rem',
-                  borderRadius: '0.5rem',
-                  border: '1px solid #ccc',
-                  backgroundColor:
-                    currentPage >= totalPages ? '#8cbce8' : '#0366d6',
-                  color: 'white',
-                  fontWeight: 500,
-                }}
+                className="rdd-action rdd-action--secondary"
               >
                 Next
               </button>

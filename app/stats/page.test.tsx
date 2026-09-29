@@ -65,6 +65,7 @@ function mockOtherMatches() {
   query.select.mockReturnValue(query);
   query.order.mockReturnValue(query);
   supabaseMock.from.mockReturnValue(query);
+  return query;
 }
 
 test('shows a sign-in prompt without querying league rows for a guest', async () => {
@@ -75,6 +76,7 @@ test('shows a sign-in prompt without querying league rows for a guest', async ()
   expect(await screen.findByRole('heading', { name: 'Sign in to see league statistics.' }))
     .toBeInTheDocument();
   expect(screen.getByRole('link', { name: 'Go to sign in' })).toHaveAttribute('href', '/auth');
+  expect(screen.getByText('sign in to analyze').parentElement).toHaveTextContent('—sign in to analyze');
   expect(screen.queryByText('No eligible players')).not.toBeInTheDocument();
   expect(supabaseMock.from).not.toHaveBeenCalled();
 });
@@ -105,5 +107,28 @@ test('makes Other score consistency opt-in and clears league data on sign-out', 
   await act(async () => authChange?.('SIGNED_OUT', null));
   expect(screen.getByRole('heading', { name: 'Sign in to see league statistics.' }))
     .toBeInTheDocument();
+  expect(screen.getByText('sign in to analyze').parentElement).toHaveTextContent('—sign in to analyze');
   expect(screen.queryByText('Ace')).not.toBeInTheDocument();
+});
+
+test('keeps filters and retries after a statistics request fails', async () => {
+  supabaseMock.getUser.mockResolvedValue({ data: { user: { id: 'viewer' } }, error: null });
+  const query = mockOtherMatches();
+  query.range.mockResolvedValueOnce({ data: null, count: null, error: { message: 'Unavailable' } });
+
+  render(<AdvancedStatsPage />);
+
+  expect(await screen.findByRole('alert')).toHaveTextContent('Advanced statistics could not be loaded.');
+  expect(screen.getByText('matches unavailable').parentElement).toHaveTextContent('—matches unavailable');
+  expect(screen.queryByRole('heading', { name: 'No eligible players' })).not.toBeInTheDocument();
+
+  fireEvent.change(screen.getByLabelText('Game type'), { target: { value: 'Other' } });
+  fireEvent.click(screen.getByRole('button', { name: 'Retry loading stats' }));
+
+  await waitFor(() =>
+    expect(screen.getByText('matches analyzed').parentElement).toHaveTextContent('3matches analyzed')
+  );
+  expect(screen.getByLabelText('Game type')).toHaveValue('Other');
+  expect(screen.queryByText('Advanced statistics could not be loaded.')).not.toBeInTheDocument();
+  expect(query.range).toHaveBeenCalledTimes(2);
 });

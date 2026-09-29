@@ -15,14 +15,14 @@ export async function generateMetadata({
   const resolvedParams = await params;
 
   if (!resolvedParams?.id) {
-    return { title: "Profile" };
+    return { title: { absolute: "RDD - Player Profile" } };
   }
 
   const { data, error } = await supabase
     .from("profiles")
     .select("display_name, first_name, include_first_name_in_display")
     .eq("id", resolvedParams.id)
-    .single();
+    .maybeSingle();
 
   if (error) {
     console.error("Error loading profile metadata", error);
@@ -37,7 +37,13 @@ export async function generateMetadata({
     : null;
 
   return {
-    title: displayName || "Profile",
+    title: {
+      absolute: displayName
+        ? `RDD - ${displayName}`
+        : error
+          ? "RDD - Player Profile"
+          : "RDD - Player Not Found",
+    },
   };
 }
 

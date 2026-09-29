@@ -1,6 +1,7 @@
 'use client';
 
-import { useEffect, useState, FormEvent, startTransition } from 'react';
+import { useEffect, useRef, useState, FormEvent, startTransition } from 'react';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabaseClient';
 
@@ -13,12 +14,17 @@ export default function ResetPasswordPage() {
   const [message, setMessage] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [checkingTokens, setCheckingTokens] = useState(true);
+  const [updating, setUpdating] = useState(false);
+  const updateInProgress = useRef(false);
+  const recoveryHashChecked = useRef(false);
   const [recoveryTokens, setRecoveryTokens] = useState<
     | { accessToken: string; refreshToken: string }
     | null
   >(null);
 
   useEffect(() => {
+    if (recoveryHashChecked.current) return;
+    recoveryHashChecked.current = true;
     const hash = window.location.hash;
     if (!hash || hash.length < 2) {
       startTransition(() => {
@@ -63,6 +69,7 @@ export default function ResetPasswordPage() {
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
+    if (updateInProgress.current) return;
     setMessage(null);
     setErrorMessage(null);
 
@@ -90,78 +97,76 @@ export default function ResetPasswordPage() {
       return;
     }
 
-    const { error: sessionError } = await supabase.auth.setSession({
-      access_token: recoveryTokens.accessToken,
-      refresh_token: recoveryTokens.refreshToken,
-    });
+    updateInProgress.current = true;
+    setUpdating(true);
+    try {
+      const { error: sessionError } = await supabase.auth.setSession({
+        access_token: recoveryTokens.accessToken,
+        refresh_token: recoveryTokens.refreshToken,
+      });
 
-    if (sessionError) {
-      setErrorMessage(
-        'Could not start password reset session. Please request a new password reset email.'
-      );
-      return;
+      if (sessionError) {
+        setErrorMessage('Could not start password reset session. Please request a new password reset email.');
+        setRecoveryTokens(null);
+        return;
+      }
+
+      const { error } = await supabase.auth.updateUser({ password: newPassword });
+      if (error) {
+        setErrorMessage('Error updating password: ' + error.message);
+        return;
+      }
+
+      setMessage('Password updated successfully. You can now sign in.');
+      setTimeout(() => router.push('/auth'), 2000);
+    } catch {
+      setErrorMessage('Could not update your password. Please try again.');
+    } finally {
+      updateInProgress.current = false;
+      setUpdating(false);
     }
-
-    // If we get here, we *think* the password meets policy
-    const { error } = await supabase.auth.updateUser({
-      password: newPassword,
-    });
-
-    if (error) {
-      // Fallback: if Supabase still complains, show its message,
-      // but the user can keep adjusting and resubmitting.
-      setErrorMessage('Error updating password: ' + error.message);
-      return;
-    }
-
-    setMessage('Password updated successfully. You can now sign in.');
-    setTimeout(() => {
-      router.push('/auth');
-    }, 2000);
   }
 
   if (checkingTokens) {
     return (
-      <main className="page-shell" style={{ maxWidth: '720px' }}>
-        <h1>Reset Password</h1>
-        <p>Checking reset session…</p>
+      <main className="page-shell account-page">
+        <header className="rdd-page-header rdd-page-header--compact"><p className="rdd-eyebrow">Account recovery</p><h1>Reset Password</h1></header>
+        <p className="rdd-state" role="status">Checking reset session…</p>
       </main>
     );
   }
 
   return (
-    <main className="page-shell" style={{ maxWidth: '720px' }}>
-      <h1>Reset Your Password</h1>
+    <main className="page-shell account-page">
+      <header className="rdd-page-header rdd-page-header--compact"><p className="rdd-eyebrow">Account recovery</p><h1>Reset Your Password</h1></header>
 
-      <p style={{ marginTop: '0.5rem', color: '#555', maxWidth: '480px' }}>
+      <p className="rdd-muted">
         Your new password must be at least 16 characters long.
       </p>
 
       {errorMessage && (
-        <p style={{ color: 'red', marginTop: '1rem' }}>{errorMessage}</p>
+        <p className="rdd-state rdd-state--error" role="alert">{errorMessage}</p>
       )}
       {message && (
-        <p style={{ color: 'green', marginTop: '1rem' }}>{message}</p>
+        <p className="rdd-state rdd-state--success" role="status">{message}</p>
       )}
 
-      {!message && (
+      {!message && !recoveryTokens && (
+        <Link href="/auth" className="rdd-action rdd-action--secondary">Return to sign in</Link>
+      )}
+
+      {!message && recoveryTokens && (
         <form
+          className="rdd-panel account-auth-form account-reset-form"
           onSubmit={handleSubmit}
-          style={{
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '0.75rem',
-            marginTop: '1rem',
-            maxWidth: '520px',
-            width: '100%',
-          }}
         >
           <div className="form-row">
-            <label className="form-label">
+            <label className="form-label" htmlFor="new-password">
               New password:
             </label>
             <div className="password-row">
               <input
+                id="new-password"
                 type={showNewPassword ? 'text' : 'password'}
                 value={newPassword}
                 onChange={(e) => setNewPassword(e.target.value)}
@@ -178,11 +183,12 @@ export default function ResetPasswordPage() {
           </div>
 
           <div className="form-row">
-            <label className="form-label">
+            <label className="form-label" htmlFor="confirm-password">
               Confirm password:
             </label>
             <div className="password-row">
               <input
+                id="confirm-password"
                 type={showConfirm ? 'text' : 'password'}
                 value={confirm}
                 onChange={(e) => setConfirm(e.target.value)}
@@ -199,17 +205,10 @@ export default function ResetPasswordPage() {
           </div>
           <button
             type="submit"
-            style={{
-              cursor: 'pointer',
-              padding: '0.6rem 1rem',
-              borderRadius: '0.5rem',
-              border: '1px solid #ccc',
-              backgroundColor: '#0366d6',
-              color: 'white',
-              fontWeight: 500,
-            }}
+            className="rdd-action rdd-action--primary"
+            disabled={updating}
           >
-            Update Password
+            {updating ? 'Updating…' : 'Update Password'}
           </button>
         </form>
       )}

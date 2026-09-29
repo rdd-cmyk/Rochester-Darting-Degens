@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, FormEvent } from 'react';
+import { useEffect, useRef, useState, FormEvent } from 'react';
 import Link from 'next/link';
 import { supabase } from '@/lib/supabaseClient';
 import { formatPlayerName } from '@/lib/playerName';
@@ -19,7 +19,10 @@ export default function ProfilePage() {
   const [user, setUser] = useState<User | null>(null);
   const [loadingUser, setLoadingUser] = useState(true);
   const [loadingProfile, setLoadingProfile] = useState(true);
+  const [loadAttempt, setLoadAttempt] = useState(0);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+  const saveInProgress = useRef(false);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [message, setMessage] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -35,104 +38,82 @@ export default function ProfilePage() {
   // Edit mode
   const [editMode, setEditMode] = useState(false);
 
-  const formStyle = {
-    display: 'flex',
-    flexDirection: 'column' as const,
-    gap: '0.75rem',
-    maxWidth: '520px',
-    width: '100%',
-  };
-
-  const fieldRowStyle = {
-    display: 'grid',
-    gridTemplateColumns: 'var(--form-grid-columns)',
-    alignItems: 'center',
-    columnGap: '0.75rem',
-    rowGap: '0.35rem',
-    width: '100%',
-  } as const;
-
-  const labelTextStyle = {
-    minWidth: '150px',
-    fontWeight: 600,
-  };
-
-  const controlStyle = {
-    width: '100%',
-    maxWidth: 'var(--form-control-max)',
-  } as const;
-
   useEffect(() => {
+    let active = true;
     async function loadUserAndProfile() {
       setLoadingUser(true);
       setLoadingProfile(true);
+      setLoadError(null);
       setErrorMessage(null);
       setMessage(null);
 
-      // 1) Get logged-in user
-      const { data: userData, error: userError } = await supabase.auth.getUser();
-      if (userError || !userData.user) {
-        setUser(null);
+      try {
+        // 1) Get logged-in user
+        const { data: userData, error: userError } = await supabase.auth.getUser();
+        if (!active) return;
+        if (userError && userError.name !== 'AuthSessionMissingError') throw userError;
+        if (!userData.user) {
+          setUser(null);
+          return;
+        }
+
+        const currentUser = userData.user;
+        setUser(currentUser);
         setLoadingUser(false);
-        setLoadingProfile(false);
-        return;
+
+        // 2) Load profile row (including sex)
+        const { data: profileData, error: profileError } = await supabase
+          .from('profiles')
+          .select(
+            'id, display_name, first_name, last_name, sex, include_first_name_in_display'
+          )
+          .eq('id', currentUser.id)
+          .maybeSingle();
+        if (!active) return;
+        if (profileError) throw profileError;
+
+        if (!profileData) {
+          // No profile row yet – set empty
+          const emptyProfile: Profile = {
+            id: currentUser.id,
+            display_name: null,
+            first_name: null,
+            last_name: null,
+            sex: null,
+            include_first_name_in_display: true,
+          };
+          setProfile(emptyProfile);
+          setFirstName('');
+          setLastName('');
+          setDisplayName('');
+          setIncludeFirstNameInDisplay(true);
+          setSex('');
+        } else {
+          const includeFirstNamePref =
+            profileData.include_first_name_in_display ?? true;
+          setProfile({
+            ...(profileData as Profile),
+            include_first_name_in_display: includeFirstNamePref,
+          });
+          setFirstName(profileData.first_name ?? '');
+          setLastName(profileData.last_name ?? '');
+          setDisplayName(profileData.display_name ?? '');
+          setIncludeFirstNameInDisplay(includeFirstNamePref);
+          setSex(profileData.sex ?? '');
+        }
+      } catch {
+        if (active) setLoadError('Could not load your account or profile. Please try again.');
+      } finally {
+        if (active) {
+          setLoadingUser(false);
+          setLoadingProfile(false);
+        }
       }
-
-      const currentUser = userData.user;
-      setUser(currentUser);
-      setLoadingUser(false);
-
-      // 2) Load profile row (including sex)
-      const { data: profileData, error: profileError } = await supabase
-        .from('profiles')
-        .select(
-          'id, display_name, first_name, last_name, sex, include_first_name_in_display'
-        )
-        .eq('id', currentUser.id)
-        .maybeSingle();
-
-      if (profileError) {
-        setErrorMessage('Error loading profile: ' + profileError.message);
-        setProfile(null);
-        setLoadingProfile(false);
-        return;
-      }
-
-      if (!profileData) {
-        // No profile row yet – set empty
-        const emptyProfile: Profile = {
-          id: currentUser.id,
-          display_name: null,
-          first_name: null,
-          last_name: null,
-          sex: null,
-          include_first_name_in_display: true,
-        };
-        setProfile(emptyProfile);
-        setFirstName('');
-        setLastName('');
-        setDisplayName('');
-        setIncludeFirstNameInDisplay(true);
-        setSex('');
-      } else {
-        const includeFirstNamePref =
-          profileData.include_first_name_in_display ?? true;
-        setProfile({
-          ...(profileData as Profile),
-          include_first_name_in_display: includeFirstNamePref,
-        });
-        setFirstName(profileData.first_name ?? '');
-        setLastName(profileData.last_name ?? '');
-        setDisplayName(profileData.display_name ?? '');
-        setIncludeFirstNameInDisplay(includeFirstNamePref);
-        setSex(profileData.sex ?? '');
-      }
-
-      setLoadingProfile(false);
     }
 
     loadUserAndProfile();
-  }, []);
+    return () => { active = false; };
+  }, [loadAttempt]);
 
   function formattedLeagueName() {
     const formatted = formatPlayerName(
@@ -157,6 +138,7 @@ export default function ProfilePage() {
 
   async function handleSave(e: FormEvent) {
     e.preventDefault();
+    if (saveInProgress.current) return;
     setMessage(null);
     setErrorMessage(null);
 
@@ -172,6 +154,7 @@ export default function ProfilePage() {
       return;
     }
 
+    saveInProgress.current = true;
     setSaving(true);
     try {
       const { error } = await supabase.from('profiles').upsert(
@@ -212,34 +195,37 @@ export default function ProfilePage() {
       console.error('Error saving profile:', err);
       setErrorMessage('Error saving profile: ' + message);
     } finally {
+      saveInProgress.current = false;
       setSaving(false);
     }
   }
 
   if (loadingUser || loadingProfile) {
     return (
-      <main className="page-shell" style={{ maxWidth: '680px' }}>
-        <h1>My Profile</h1>
-        <p>Loading...</p>
+      <main className="page-shell account-profile-page">
+        <header className="rdd-page-header rdd-page-header--compact"><p className="rdd-eyebrow">Account settings</p><h1>My Profile</h1></header>
+        <p className="rdd-state" role="status">Loading your profile…</p>
+      </main>
+    );
+  }
+
+  if (loadError) {
+    return (
+      <main className="page-shell account-profile-page">
+        <header className="rdd-page-header rdd-page-header--compact"><p className="rdd-eyebrow">Account settings</p><h1>My Profile</h1></header>
+        <div className="rdd-state rdd-state--error" role="alert">{loadError}</div>
+        <button type="button" className="rdd-action" onClick={() => setLoadAttempt((attempt) => attempt + 1)}>Retry</button>
       </main>
     );
   }
 
   if (!user) {
     return (
-      <main className="page-shell" style={{ maxWidth: '680px' }}>
-        <h1>My Profile</h1>
-        <p>You must be signed in to view or edit your profile.</p>
+      <main className="page-shell account-profile-page">
+        <header className="rdd-page-header rdd-page-header--compact"><p className="rdd-eyebrow">Account settings</p><h1>My Profile</h1></header>
+        <p className="rdd-state">Sign in to view or edit your profile.</p>
         <p>
-          <Link
-            href="/auth"
-            style={{
-              cursor: 'pointer',
-              color: '#0366d6',
-              textDecoration: 'underline',
-              fontWeight: 500,
-            }}
-          >
+          <Link href="/auth" className="rdd-action rdd-action--primary">
             Go to sign in / sign up
           </Link>
         </p>
@@ -248,16 +234,9 @@ export default function ProfilePage() {
   }
 
   return (
-    <main
-      className="page-shell"
-      style={{
-        maxWidth: '680px',
-        display: 'flex',
-        flexDirection: 'column',
-        gap: 'var(--section-gap)',
-      }}
-    >
-      <header>
+    <main className="page-shell account-profile-page">
+      <header className="rdd-page-header rdd-page-header--compact">
+        <p className="rdd-eyebrow">Account settings</p>
         <h1>My Profile</h1>
         <p>
           Signed in as <strong>{user.email}</strong>
@@ -265,26 +244,12 @@ export default function ProfilePage() {
       </header>
 
       {/* How your name will appear */}
-      <section
-        style={{
-          padding: '1rem',
-          borderRadius: '0.5rem',
-          border: '1px solid #ddd',
-          backgroundColor: '#f9f9f9',
-          color: '#000', // make ALL text in this area black
-        }}
-      >
-        <h2>How your name will appear</h2>
-        <p
-          style={{
-            fontSize: '1.1rem',
-            fontWeight: 600,
-            marginTop: '0.5rem',
-          }}
-        >
+      <section className="rdd-panel account-name-preview">
+        <h2 className="rdd-section-title">How your name will appear</h2>
+        <p className="account-name-preview-value">
           {formattedLeagueName()}
         </p>
-        <p style={{ marginTop: '0.5rem' }}>
+        <p className="account-name-preview-help">
           This is shown on matches, leaderboards, and stats. Use the setting
           below to choose whether your first name is shown with your display
           name.
@@ -292,12 +257,12 @@ export default function ProfilePage() {
       </section>
 
       {errorMessage && (
-        <div style={{ color: 'red' }}>
+        <div className="rdd-state rdd-state--error" role="alert">
           <strong>Error:</strong> {errorMessage}
         </div>
       )}
       {message && (
-        <div style={{ color: 'green' }}>
+        <div className="rdd-state rdd-state--success" role="status">
           <strong>{message}</strong>
         </div>
       )}
@@ -311,39 +276,23 @@ export default function ProfilePage() {
             setMessage(null);
             setErrorMessage(null);
           }}
-          style={{
-            cursor: 'pointer',
-            alignSelf: 'flex-start',
-            padding: '0.6rem 1rem',
-            borderRadius: '0.5rem',
-            border: '1px solid #ccc',
-            backgroundColor: '#0366d6',
-            color: 'white',
-            fontWeight: 500,
-          }}
+          className="rdd-action rdd-action--primary account-edit-action"
         >
           Edit Profile
         </button>
       )}
 
-      <section>
-        <h2
-          style={{
-            fontSize: '1.35rem',
-            fontWeight: 800,
-            marginBottom: '0.25rem',
-            color: 'var(--foreground)',
-          }}
-        >
+      <section className="rdd-panel account-profile-form">
+        <h2 className="rdd-section-title">
           Profile Details
         </h2>
 
         <form
           onSubmit={handleSave}
-          style={formStyle}
+          aria-busy={saving}
         >
-          <div style={fieldRowStyle}>
-            <label htmlFor="firstName" style={labelTextStyle}>
+          <div className="form-row">
+            <label htmlFor="firstName" className="form-label">
               First name
             </label>
             <input
@@ -351,14 +300,14 @@ export default function ProfilePage() {
               type="text"
               value={firstName}
               onChange={(e) => setFirstName(e.target.value)}
-              disabled={!editMode}
+              disabled={!editMode || saving}
               required
-              style={controlStyle}
+              className="form-control"
             />
           </div>
 
-          <div style={fieldRowStyle}>
-            <label htmlFor="lastName" style={labelTextStyle}>
+          <div className="form-row">
+            <label htmlFor="lastName" className="form-label">
               Last name
             </label>
             <input
@@ -366,14 +315,14 @@ export default function ProfilePage() {
               type="text"
               value={lastName}
               onChange={(e) => setLastName(e.target.value)}
-              disabled={!editMode}
+              disabled={!editMode || saving}
               required
-              style={controlStyle}
+              className="form-control"
             />
           </div>
 
-          <div style={fieldRowStyle}>
-            <label htmlFor="displayName" style={labelTextStyle}>
+          <div className="form-row">
+            <label htmlFor="displayName" className="form-label">
               Display name
             </label>
             <input
@@ -382,24 +331,17 @@ export default function ProfilePage() {
               value={displayName}
               onChange={(e) => setDisplayName(e.target.value)}
               placeholder="e.g., Ton-Plus Timbo"
-              disabled={!editMode}
+              disabled={!editMode || saving}
               required
-              style={controlStyle}
+              className="form-control"
             />
           </div>
 
-          <div style={fieldRowStyle}>
-            <label htmlFor="includeFirstName" style={labelTextStyle}>
+          <div className="form-row">
+            <label htmlFor="includeFirstName" className="form-label account-checkbox-label">
               Show first name with display name
             </label>
-            <div
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '0.5rem',
-                color: 'var(--muted-foreground)',
-              }}
-            >
+            <div className="account-checkbox-help">
               <input
                 id="includeFirstName"
                 type="checkbox"
@@ -407,9 +349,8 @@ export default function ProfilePage() {
                 onChange={(e) =>
                   setIncludeFirstNameInDisplay(e.target.checked)
                 }
-                disabled={!editMode}
+                disabled={!editMode || saving}
                 aria-describedby="include-first-name-helptext"
-                style={{ width: '1rem', height: '1rem' }}
               />
               <span id="include-first-name-helptext">
                 Add your first name in parentheses after your display name
@@ -417,16 +358,16 @@ export default function ProfilePage() {
             </div>
           </div>
 
-          <div style={fieldRowStyle}>
-            <label htmlFor="sex" style={labelTextStyle}>
+          <div className="form-row">
+            <label htmlFor="sex" className="form-label">
               Sex
             </label>
             <select
               id="sex"
               value={sex}
               onChange={(e) => setSex(e.target.value)}
-              disabled={!editMode}
-              style={controlStyle}
+              disabled={!editMode || saving}
+              className="form-control"
             >
               <option value="">-- select --</option>
               <option value="Yes">Yes</option>
@@ -435,41 +376,25 @@ export default function ProfilePage() {
           </div>
 
           {editMode && (
-            <div className="button-row" style={{ marginTop: '0.5rem' }}>
+            <div className="button-row account-profile-actions">
               <button
                 type="submit"
                 disabled={saving}
-                style={{
-                  cursor: saving ? 'not-allowed' : 'pointer',
-                  padding: '0.6rem 1rem',
-                  borderRadius: '0.5rem',
-                  border: '1px solid #ccc',
-                  backgroundColor: '#0366d6',
-                  color: 'white',
-                  fontWeight: 500,
-                  opacity: saving ? 0.6 : 1,
-                }}
+                className="rdd-action rdd-action--primary"
               >
                 {saving ? 'Saving…' : 'Save Profile'}
               </button>
 
               <button
                 type="button"
+                disabled={saving}
                 onClick={() => {
                   resetFormFromProfile();
                   setEditMode(false);
                   setMessage(null);
                   setErrorMessage(null);
                 }}
-                style={{
-                  cursor: 'pointer',
-                  padding: '0.6rem 1rem',
-                  borderRadius: '0.5rem',
-                  border: '1px solid #ccc',
-                  backgroundColor: '#eee',
-                  color: '#333',
-                  fontWeight: 500,
-                }}
+                className="rdd-action"
               >
                 Cancel
               </button>

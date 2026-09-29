@@ -48,10 +48,24 @@ export function RatingTrendChart({ players }: RatingTrendChartProps) {
   const yFor = (rating: number) =>
     PADDING.top + ((maxRating - rating) / (maxRating - minRating)) * plotHeight;
   const guideRatings = [minRating, (minRating + maxRating) / 2, maxRating];
+  const directLabels = chartPlayers
+    .map((player) => ({
+      playerId: player.playerId,
+      desiredY: yFor(player.ratingHistory[player.ratingHistory.length - 1].rating),
+    }))
+    .sort((a, b) => a.desiredY - b.desiredY);
+  const labelSpacing = 18;
+  directLabels.forEach((label, index) => {
+    const previous = directLabels[index - 1];
+    label.desiredY = Math.max(label.desiredY, previous ? previous.desiredY + labelSpacing : 16);
+  });
+  const overflow = Math.max(0, directLabels[directLabels.length - 1].desiredY - (HEIGHT - 18));
+  const labelY = new Map(directLabels.map((label) => [label.playerId, label.desiredY - overflow]));
 
   return (
     <>
-      <div className="stats-chart-wrap">
+      <p className="rdd-scroll-hint">Scroll horizontally to see the full chart and endpoint ratings.</p>
+      <div className="stats-chart-wrap" role="region" aria-label="Scrollable power rating chart" tabIndex={0}>
         <svg
           className="stats-rating-chart"
           viewBox={`0 0 ${WIDTH} ${HEIGHT}`}
@@ -117,9 +131,17 @@ export function RatingTrendChart({ players }: RatingTrendChartProps) {
                   strokeWidth="2"
                 />
               ))}
+              <line
+                x1={WIDTH - PADDING.right + 3}
+                x2={WIDTH - PADDING.right + 10}
+                y1={yFor(finalPoint.rating)}
+                y2={labelY.get(player.playerId)}
+                stroke={color}
+                strokeWidth="1.5"
+              />
               <text
                 x={WIDTH - PADDING.right + 10}
-                y={yFor(finalPoint.rating) + 4}
+                y={(labelY.get(player.playerId) ?? yFor(finalPoint.rating)) + 4}
                 fill={color}
                 className="stats-chart-direct-label"
               >

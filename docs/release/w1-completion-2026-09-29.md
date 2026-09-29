@@ -1,5 +1,12 @@
 # W1 refresh: Vercel targets and remaining isolation gate
 
+Later follow-up: the owner has provisioned and configured **RDD Release
+Testing**. Its identity, Vercel scopes and disabled invitation flag were
+[verified read-only](w1-testing-target-2026-09-29.md). The configuration
+observations below describe the earlier snapshot; existing deployments retain
+their old variables. A running isolated combined-candidate Preview is still
+unverified.
+
 Date: 2026-09-29. **All read-only assessment work is complete. W1's original
 isolated-preview prerequisite remains blocked.** Vercel access and the unknown
 configuration questions are resolved; the existing Preview uses production.

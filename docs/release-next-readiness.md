@@ -73,10 +73,15 @@ combined source `51cc3c3`, 40 commits / 375 paths versus main and ten SQL inputs
 Remote release remains `42df060`; the combined source is unpublished. The
 [W1 completion record](release/w1-completion-2026-09-29.md) and
 [fresh facts](release/w1-environment-facts-2026-09-29.json) resolve Vercel access,
-production/build controls and current targets. Existing Preview and configured
-Development use production Supabase; Preview also receives the production
-service-role credential. No isolated hosted test pair is available. Preserve
-the original isolation prerequisite; hosted mutations remain blocked.
+production/build controls and the earlier targets. The owner subsequently
+created **RDD Release Testing** (`uepayhdrgzrxhkqbwebo`) and split Vercel
+credential scopes: new client variables target testing in pre-production,
+the testing server key is a Preview-only Secret, old credentials are
+Production-only, and invitations are disabled. See the
+[verified configuration follow-up](release/w1-testing-target-2026-09-29.md).
+Existing deployments retain their old values. A new running combined-candidate
+Preview and browser/server target agreement remain unverified; preserve the
+original isolation prerequisite before hosted mutations.
 
 ## Execution sequence and completion records
 

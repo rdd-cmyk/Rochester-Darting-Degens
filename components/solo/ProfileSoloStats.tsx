@@ -107,7 +107,7 @@ export function ProfileSoloStats({
                       }))
                     }
                   >
-                    {["501", "301", "701", "Cricket"].map((g) => (
+                    {["301", "501", "701", "Cricket"].map((g) => (
                       <option key={g}>{g}</option>
                     ))}
                   </select>

@@ -24,6 +24,7 @@ type GitHubPullRequest = {
   title: string;
   body: string | null;
   merged_at: string | null;
+  base: { ref: string };
 };
 
 type PullRequestResponse = {
@@ -116,6 +117,7 @@ async function fetchMergedPullRequests(
 
   const params = new URLSearchParams({
     state: "closed",
+    base: "main",
     sort: "created",
     direction: "desc",
     per_page: String(PER_PAGE),
@@ -145,7 +147,7 @@ async function fetchMergedPullRequests(
   }
 
   const raw = (await response.json()) as GitHubPullRequest[];
-  const mergedOnly = raw.filter((pr) => pr.merged_at);
+  const mergedOnly = raw.filter((pr) => pr.merged_at && pr.base?.ref === "main");
   const hasNextPage = parseHasNextPage(response.headers.get("link"));
 
   return {

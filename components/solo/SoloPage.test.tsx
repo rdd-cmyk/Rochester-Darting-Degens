@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { beforeEach, describe, it, expect, vi } from "vitest";
 import SoloPage from "./SoloPage";
 import { draftStorageKey, retainOperation } from "@/lib/solo/recovery";
@@ -46,6 +46,7 @@ describe("Solo Play persistence boundaries", () => {
   it("saves 701 with its own rules and average", async () => {
     render(<SoloPage />);
     fireEvent.click(await screen.findByRole("button", { name: "701" }));
+    expect(within(screen.getByRole("group", { name: "What did you play?" })).getAllByRole("button").map((b) => b.textContent)).toEqual(["301", "501", "701", "Cricket"]);
     fireEvent.change(screen.getByLabelText("Game average"), { target: { value: "60" } });
     fireEvent.click(screen.getByRole("button", { name: "Save game" }));
     await waitFor(() => expect(mocks.write).toHaveBeenCalled());

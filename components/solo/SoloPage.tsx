@@ -212,7 +212,7 @@ function SoloEditor({ owner }: { owner: string }) {
         saved?.version === 1 &&
         saved.owner === owner &&
         Date.now() - saved.savedAt < 86400000 &&
-        ["501", "301", "701", "Cricket"].includes(saved.draft?.game) &&
+        ["301", "501", "701", "Cricket"].includes(saved.draft?.game) &&
         typeof saved.draft.score === "string"
       )
         setDraft({
@@ -538,7 +538,7 @@ function SoloEditor({ owner }: { owner: string }) {
                   role="group"
                   aria-labelledby="solo-game-label"
                 >
-                  {(["501", "301", "701", "Cricket"] as SoloGameType[]).map((game) => (
+                  {(["301", "501", "701", "Cricket"] as SoloGameType[]).map((game) => (
                     <button
                       type="button"
                       key={game}
@@ -962,7 +962,7 @@ function SoloEditor({ owner }: { owner: string }) {
                     }))
                   }
                 >
-                  {["501", "301", "701", "Cricket"].map((g) => (
+                  {["301", "501", "701", "Cricket"].map((g) => (
                     <option key={g}>{g}</option>
                   ))}
                 </select>

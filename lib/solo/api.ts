@@ -63,7 +63,7 @@ export async function soloVisibility() {
     .select("share_summary")
     .maybeSingle();
   if (error) throw error;
-  return data?.share_summary ?? false;
+  return data?.share_summary ?? true;
 }
 export async function setSoloVisibility(shared: boolean) {
   const { error } = await supabase.rpc("rdd_set_solo_visibility", {

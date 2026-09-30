@@ -13,7 +13,7 @@ beforeEach(async () => {
   mocks.rpc.mockResolvedValue({ data: true, error: null });
   mocks.client.mockReturnValue({ auth: { getUser: mocks.getUser }, rpc: mocks.rpc });
   vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response(JSON.stringify([
-    { id: 1, title: 'Fictional note', merged_at: '2026-01-01', body: '## Summary\nFictional summary' },
+    { base: { ref:'main' }, id: 1, title: 'Fictional note', merged_at: '2026-01-01', body: '## Summary\nFictional summary' },
   ]), { status: 200 })));
   ({ GET } = await import('./route'));
 });
@@ -48,4 +48,15 @@ it('fails closed when admission transport rejects', async () => {
 it('denies invalid Auth before checking membership', async () => {
   mocks.getUser.mockResolvedValue({ data: { user: null }, error: { message: 'invalid' } });
   expect((await GET(request())).status).toBe(401); expect(mocks.rpc).not.toHaveBeenCalled();
+});
+
+it('requests only main and excludes merged feature PRs and unmerged closures', async () => {
+  vi.mocked(fetch).mockResolvedValue(new Response(JSON.stringify([
+    { id:1, title:'Released', merged_at:'2026-09-25', body:null, base:{ref:'main'} },
+    { id:2, title:'Integrated only', merged_at:'2026-09-28', body:null, base:{ref:'release/next'} },
+    { id:3, title:'Closed', merged_at:null, body:null, base:{ref:'main'} },
+  ]),{status:200}));
+  const result=await GET(request());
+  expect((await result.json()).pulls.map((p:{id:number})=>p.id)).toEqual([1]);
+  expect(new URL(String(vi.mocked(fetch).mock.calls[0][0])).searchParams.get('base')).toBe('main');
 });

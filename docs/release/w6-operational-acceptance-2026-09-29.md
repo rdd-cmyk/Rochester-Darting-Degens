@@ -429,3 +429,29 @@ planning read contract (including own suggestion withdrawal), then verify that
 it reads/edits existing 701 games without silently changing their game type.
 The previous W5 rollback artifact predates this amendment and is not yet
 accepted for the amended release.
+
+
+## Final owner follow-up - September 30
+
+The owner reports the preceding changes look good. Three final corrections:
+Solo entry/history/profile controls list 301, 501, 701, Cricket; the Change Log
+requests GitHub PRs with base=main and defensively rejects merged PRs with another
+base; and Solo summary sharing defaults on only when no preference was saved.
+Existing explicit false preferences are preserved. Individual game history,
+notes and locations remain private; members see only aggregate profile summaries.
+The last main merge verified through GitHub was PR 69 on September 25.
+
+The default change is an additional deferred SQL patch; its exact source/test
+hashes and evidence are in [summary-default manifest](w6-solo-summary-default-2026-09-30.json).
+Apply after the earlier W6 poll/701 amendment. It changes the preference column
+default and the profile summary RPC's absent-preference behavior, without updating
+any existing preference row or changing grants. Transactional tests cover absent
+preferences, stored opt-out/opt-in, owner access, private individual history,
+summary-only projection, anonymous/provisional denial and new-row default. They
+passed on W3 synthetic, W4 protected-copy and hosted Release Testing, with all
+existing application row fingerprints and function grants preserved. Production
+is unchanged. W7 must include both W6 supplements and test the compatible app's
+visibility control for default-on, explicit-off and read-failure behavior.
+
+All 578 tests, coverage gate, trusted install, lint, typecheck and production
+build passed. Unrelated in-progress style guide files were left untouched.

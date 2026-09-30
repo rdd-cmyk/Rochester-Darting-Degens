@@ -16,7 +16,7 @@ export const AVATAR_CHANGED = "rdd-avatar-changed";
 export function AvatarProvider({ children }: { children: ReactNode }) {
   const { user } = useCurrentUser();
   return (
-    <AvatarStore key={user?.id ?? "signed-out"} user={user?.id}>
+    <AvatarStore user={user?.id}>
       {children}
     </AvatarStore>
   );
@@ -28,7 +28,12 @@ function AvatarStore({
   user?: string;
   children: ReactNode;
 }) {
-  const [choices, setChoices] = useState<Record<string, AvatarChoice>>({});
+  // Keep page state mounted through Auth transitions (including recovery), but
+  // never expose cached choices from a different account while refreshing.
+  const [snapshot, setSnapshot] = useState<{
+    owner?: string;
+    choices: Record<string, AvatarChoice>;
+  }>({ choices: {} });
   useEffect(() => {
     if (!user) return;
     let active = true;
@@ -54,14 +59,14 @@ function AvatarStore({
           rows.push(...data.avatars);
         }
         if (active && current === generation)
-          setChoices(Object.fromEntries(rows.map((a) => [a.user_id, a])));
+          setSnapshot({ owner: user, choices: Object.fromEntries(rows.map((a) => [a.user_id, a])) });
       } catch (cause) {
         if (
           active &&
           current === generation &&
           (cause as { code?: string })?.code === "42501"
         )
-          setChoices({});
+          setSnapshot({ owner: user, choices: {} });
       }
     }
     void refresh();
@@ -73,7 +78,7 @@ function AvatarStore({
       window.removeEventListener(AVATAR_CHANGED, refresh);
     };
   }, [user]);
-  return <Choices.Provider value={choices}>{children}</Choices.Provider>;
+  return <Choices.Provider value={snapshot.owner === user ? snapshot.choices : {}}>{children}</Choices.Provider>;
 }
 export function useAvatarChoice(id: string) {
   return useContext(Choices)[id];

@@ -86,6 +86,20 @@ was changed during W6.
   available and no session is automatically created. Publish the corrected
   release candidate and repeat the owner's recovery check before closing this
   gate; successful email delivery alone is not recovery acceptance.
+  The owner subsequently confirmed that the corrected preview changed the
+  password, but reported a brief missing-session error followed by automatic
+  navigation to Matches. Source inspection traced the error to the avatar
+  provider remounting the entire page when Auth changed. The provider now keeps
+  children mounted and hides cached avatar choices for other accounts. Reset
+  success remains visible with an explicit Continue to Matches action and
+  accurately states that the recovery session is signed in. Regression tests
+  cover page-state preservation across sign-in/account switches and the success
+  screen. Owner retest and explicit login with the new password remain pending.
+- The owner reports later recovery emails arrive in the inbox but Gmail groups
+  and collapses their repeated content as quoted text. Expanding reveals the
+  complete email. Treat this as a recipient display concern, not missing mail;
+  repeated-email template acceptance remains open. No email-template or sender
+  configuration change was made for this observation.
   Public-signup restriction, cleanup scheduling, write pause and production
   credential rotation have not been completed by this checkpoint.
 

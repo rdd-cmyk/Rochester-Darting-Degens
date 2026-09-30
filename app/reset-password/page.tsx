@@ -127,8 +127,7 @@ export default function ResetPasswordPage() {
         return;
       }
 
-      setMessage('Password updated successfully. You can now sign in.');
-      setTimeout(() => router.push('/auth'), 2000);
+      setMessage('Password updated successfully. You are signed in.');
     } catch {
       setErrorMessage('Could not update your password. Please try again.');
     } finally {
@@ -159,6 +158,9 @@ export default function ResetPasswordPage() {
       )}
       {message && (
         <p className="rdd-state rdd-state--success" role="status">{message}</p>
+      )}
+      {message && (
+        <button type="button" className="rdd-action rdd-action--primary" onClick={() => router.push('/matches')}>Continue to Matches</button>
       )}
 
       {!message && !recoveryTokens && (

@@ -14,6 +14,19 @@ afterEach(() => {
   vi.resetAllMocks();
 });
 
+it('keeps successful recovery visible until the user chooses to continue', async () => {
+  auth.setSession.mockResolvedValue({ error: null });
+  auth.updateUser.mockResolvedValue({ error: null });
+  window.history.replaceState(null, '', '/reset-password#type=recovery&access_token=synthetic-access&refresh_token=synthetic-refresh');
+  render(<ResetPasswordPage />);
+  fireEvent.change(await screen.findByLabelText('New password:'), { target: { value: 'Invented-Recovery-2026!' } });
+  fireEvent.change(screen.getByLabelText('Confirm password:'), { target: { value: 'Invented-Recovery-2026!' } });
+  fireEvent.click(screen.getByRole('button', { name: 'Update Password' }));
+  expect(await screen.findByRole('status')).toHaveTextContent('Password updated successfully. You are signed in.');
+  expect(screen.getByRole('button', { name: 'Continue to Matches' })).toBeInTheDocument();
+  expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+});
+
 it('keeps a valid recovery form free of a false missing-session error in Strict Mode', async () => {
   window.history.replaceState(
     null,

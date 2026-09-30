@@ -43,6 +43,14 @@ beforeEach(() => {
   });
 });
 describe("Solo Play persistence boundaries", () => {
+  it("saves 701 with its own rules and average", async () => {
+    render(<SoloPage />);
+    fireEvent.click(await screen.findByRole("button", { name: "701" }));
+    fireEvent.change(screen.getByLabelText("Game average"), { target: { value: "60" } });
+    fireEvent.click(screen.getByRole("button", { name: "Save game" }));
+    await waitFor(() => expect(mocks.write).toHaveBeenCalled());
+    expect(mocks.write.mock.calls[0][0].payload).toMatchObject({ game_type: "701", preset: "unspecified", score: 60 });
+  });
   it("starts a completed game after saving a stopped game and playing again", async () => {
     render(<SoloPage />);
     fireEvent.change(await screen.findByLabelText("Game average"), { target: { value: "55" } });

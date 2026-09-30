@@ -12,6 +12,7 @@ import {
   discoverRivalries,
   scoreCohorts,
 } from "@/lib/rivalries/engine";
+import { repairCandidates } from "@/lib/rivalries/repair";
 import { loadRivalryFeed, rivalryError } from "@/lib/rivalries/api";
 import type { RivalryFeed } from "@/lib/rivalries/types";
 import { useRivalryOperation } from "@/lib/rivalries/use-operation";
@@ -188,6 +189,9 @@ function Room({
   }, []);
   const selectedChallenge =
     data?.feed.challenges.find((c) => c.id === challengeId) ?? null;
+  const candidates = selectedChallenge && data
+    ? repairCandidates(data.matches, selectedChallenge, data.feed.challenges) : [];
+  const incoming = data?.feed.challenges.filter((c) => c.recipient === userId && c.state === "pending") ?? [];
   const left = selectedChallenge?.sender ?? pair?.[0] ?? userId;
   const rivals = data
     ? discoverRivalries(
@@ -290,6 +294,16 @@ function Room({
           </button>
         </div>
       </header>
+      {incoming.length > 0 && (
+        <section className="rr-incoming" aria-label="Incoming challenges">
+          <h2>{incoming.length === 1 ? "A challenge is waiting for you" : `${incoming.length} challenges are waiting for you`}</h2>
+          {incoming.map((c) => (
+            <Link key={c.id} href={`/rivalries/challenges/${c.id}`}>
+              {nameOf(data.profiles.find((p) => p.id === c.sender))} challenged you · {c.game} · Best of {c.best_of} · Review challenge ↗
+            </Link>
+          ))}
+        </section>
+      )}
       <div className="rr-sync" role="status">
         {stale
           ? "Showing the last loaded data. Refresh before taking action."
@@ -527,17 +541,20 @@ function Room({
                       original recorder can edit the underlying results.
                     </p>
                     <label>
-                      Existing eligible match ID
-                      <input
-                        value={repairId}
-                        onChange={(e) => setRepairId(e.target.value)}
-                        inputMode="numeric"
-                      />
+                      Recorded game to link
+                      <select value={repairId} disabled={locked} onChange={(e) => setRepairId(e.target.value)}>
+                        <option value="">Choose an eligible recorded game</option>
+                        {candidates.map((m) => (
+                          <option key={m.id} value={m.id}>
+                            {new Date(m.played_at).toLocaleString()} · {m.game_type} · {nameOf(data.profiles.find((p) => p.id === m.match_players?.find((player) => player.is_winner)?.player_id))} won · #{m.id}
+                          </option>
+                        ))}
+                      </select>
                     </label>
                     <button
-                      disabled={locked || !/^\d+$/.test(repairId)}
+                      disabled={locked || !candidates.some((m) => m.id === Number(repairId))}
                       onClick={() => {
-                        const match = data.matches.find(
+                        const match = candidates.find(
                           (m) => m.id === Number(repairId),
                         );
                         if (!match)
@@ -551,6 +568,7 @@ function Room({
                     >
                       Link recorded game
                     </button>
+                    {!candidates.length && <p>No unlinked games match this challenge’s players, night and rules. Record a game from this challenge or refresh.</p>}
                     {selectedChallenge.abandonment_by ? (
                       <>
                         <p>

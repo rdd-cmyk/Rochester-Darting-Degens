@@ -376,3 +376,11 @@ Keep milestone commits independently understandable. Roll back a failed mileston
 - The user receives a concise review handoff with what changed, validation, known limitations and any separate release actions. Production deployment and hosted database changes are not part of completion.
 
 The original preparation included design/source review and a targeted authenticated visual review after owner sign-in. Review interactions changed transient filters and disclosure state; they did not submit match/profile forms. The implementation checkout and progress ledger now supersede the preparation-only status.
+
+
+September 30 W6 acceptance follow-up: keep optional Summer particles visible
+behind Board/Stats gaps; center the poster image within its already centered
+dialog, size its text composer, clarify tab-local Board drafts, and move incoming
+challenges above the featured rivalry. These changes preserve the seasonal toggle,
+reduced-motion setting and opaque readable cards. See the W6 operational evidence
+for verification and remaining owner acceptance.

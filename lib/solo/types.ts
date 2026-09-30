@@ -1,4 +1,4 @@
-export type SoloGameType = "501" | "301" | "Cricket";
+export type SoloGameType = "501" | "301" | "701" | "Cricket";
 export type SoloGame = {
   id: string;
   owner_id: string;

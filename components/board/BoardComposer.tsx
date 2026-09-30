@@ -59,7 +59,7 @@ export default function BoardComposer({ draftKey, label, submitLabel, initialBod
   }
   return <form className="board-composer" onSubmit={submit}>
     {starters && <>
-      {!expanded && <button type="button" className="board-composer-prompt" onClick={() => start('conversation', '')}>What’s happening, Degens?</button>}
+      {!expanded && <button type="button" className="board-composer-prompt" onClick={() => start('conversation', '')}>{draft.body ? "Resume saved draft" : "What’s happening, Degens?"}</button>}
       <div className="board-actions board-starters">
         <button type="button" disabled={busy} onClick={() => start('sub', 'Anyone available to sub?\nWhen: \nWhere: ')}>Find a sub</button>
         <button type="button" disabled={busy} onClick={() => start('practice', 'Anyone up for a practice game?\nWhen: \nWhere: ')}>Who’s throwing?</button>
@@ -76,7 +76,7 @@ export default function BoardComposer({ draftKey, label, submitLabel, initialBod
       <div id={`${fieldId}-length`} className="board-muted board-small">{draft.body.length.toLocaleString()} / 2,000 · Visible to approved league members</div>
       <div className="board-actions"><button className="board-primary" type="submit" disabled={busy || !draft.body.trim()}>{busy ? 'Saving…' : submitLabel}</button>
         {onCancel && <button type="button" disabled={busy} onClick={onCancel}>Cancel</button>}
-        {starters && <button type="button" disabled={busy} onClick={() => setExpanded(false)}>Keep draft for later</button>}
+        {starters && <button type="button" disabled={busy} onClick={() => { setExpanded(false); setMessage('Draft kept in this browser tab. Choose Resume saved draft here to reopen it. Closing the tab can remove it.'); }}>Keep draft for later</button>}
       </div>
     </>}
     {storageWarning && <p className="board-small">This browser cannot save drafts. Keep this page open until you post.</p>}

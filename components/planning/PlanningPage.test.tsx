@@ -91,6 +91,30 @@ describe("planning page", () => {
     mocks.write.mockReset().mockResolvedValue({ replayed: false });
   });
   afterEach(cleanup);
+  it.each([false, true])("hides open poll results and authors from members (organizer=%s)", async (organizer) => {
+    const data = fixture(); data.organizer = organizer;
+    Object.assign(data.polls[0].options[0], { votes: 42, suggested_by: "other", suggestion: true,
+      author: { display_name: "Secret suggester", first_name: null, include_first_name_in_display: false } });
+    mocks.read.mockResolvedValue(data);
+    render(<PlanningPage userId="member" />);
+    await screen.findByText("Choose a plan");
+    expect(!!screen.queryByText(/42 votes/)).toBe(organizer);
+    expect(!!screen.queryByText(/Suggested by Secret suggester/)).toBe(organizer);
+  });
+  it("reveals closed results and lets members withdraw their own masked suggestion while open", async () => {
+    const data = fixture();
+    Object.assign(data.polls[0].options[0], { votes: null, suggested_by: null, suggestion: true, is_mine: true });
+    mocks.read.mockResolvedValue(data);
+    const view = render(<PlanningPage userId="member" />);
+    await screen.findByRole("button", { name: /^Withdraw / });
+    view.unmount();
+    data.polls[0].status = "closed";
+    Object.assign(data.polls[0].options[0], { votes: 42, suggested_by: "other",
+      author: { display_name: "Revealed suggester", first_name: null, include_first_name_in_display: false } });
+    render(<PlanningPage userId="member" />);
+    await screen.findByText(/42 votes/);
+    expect(screen.getByText(/Suggested by Revealed suggester/)).toBeInTheDocument();
+  });
   it.each(["venue", "time"] as const)(
     "requires a future cutoff for a %s change after RSVPs close",
     async (kind) => {

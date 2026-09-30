@@ -265,11 +265,11 @@ export function ScheduleForm({
   const dates =
     poll?.options
       .filter((o) => o.kind === "date" && !o.withdrawn)
-      .sort((a, b) => b.votes - a.votes) ?? [];
+      .sort((a, b) => (b.votes ?? 0) - (a.votes ?? 0)) ?? [];
   const venues =
     poll?.options
       .filter((o) => o.kind === "venue" && !o.withdrawn)
-      .sort((a, b) => b.votes - a.votes) ?? [];
+      .sort((a, b) => (b.votes ?? 0) - (a.votes ?? 0)) ?? [];
   const [dateId, setDateId] = useState(dates[0]?.id ?? "");
   const [venueId, setVenueId] = useState(venues[0]?.id ?? "");
   const [title, setTitle] = useState(
@@ -401,7 +401,7 @@ export function ScheduleForm({
         </div>
         {poll?.scope === "both" && (
           <p className="plan-notice">
-            {overlap} profiles voted for both of these options. Everyone will
+            {overlap} people voted for both of these options. Everyone will
             RSVP separately.
           </p>
         )}

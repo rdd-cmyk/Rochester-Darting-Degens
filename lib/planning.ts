@@ -10,7 +10,9 @@ export type PlanningOption = {
   detail: string;
   suggested_by: string | null;
   withdrawn: boolean;
-  votes: number;
+  votes: number | null;
+  is_mine?: boolean;
+  suggestion?: boolean;
   author: Omit<PlayerProfile, "id"> | null;
 };
 export type Poll = {

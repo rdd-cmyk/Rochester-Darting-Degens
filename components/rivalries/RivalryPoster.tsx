@@ -124,8 +124,8 @@ export function RivalryPoster({
   return (
     <div className="rr-poster">
       <p>
-        Review the poster before downloading. Sharing to the Board starts a
-        separate editable draft.
+        Review the poster before downloading. The Board post includes text and a rivalry link. The downloaded poster image
+        is not attached.
       </p>
       <div className="rr-actions">
         <label>
@@ -164,7 +164,7 @@ export function RivalryPoster({
             Download this poster
           </a>
         )}
-        <button onClick={() => void openBoard()}>Draft a Board post</button>
+        <button onClick={() => void openBoard()}>Draft a text post for the Board</button>
       </div>
       {url && (
         <Image
@@ -173,7 +173,7 @@ export function RivalryPoster({
           width={1200}
           height={1500}
           unoptimized
-          style={{ width: "100%", maxWidth: 400, height: "auto" }}
+          style={{ width: "100%", maxWidth: 400, height: "auto", display: "block", margin: "16px auto" }}
         />
       )}
       {board && (

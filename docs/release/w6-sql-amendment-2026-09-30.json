@@ -1,0 +1,49 @@
+{
+  "package": "W6 acceptance amendment",
+  "recorded_at_utc": "2026-09-30",
+  "requires": "All 11 W5 SQL steps, following the existing baseline",
+  "original_w5_inputs": "unchanged",
+  "production_status": "deferred; W7 must stage and rehearse this additional step",
+  "files": [
+    {
+      "path": "supabase\\tests\\fixtures\\w6_poll_privacy_solo_701.sql",
+      "sha256_lf": "5a25ccd33d6732b08cae1cc48e9acbb2653400a592aad7ec901761fe7bf74fd9"
+    },
+    {
+      "path": "supabase\\tests\\fixtures\\w6_poll_privacy_solo_701.test.sql",
+      "sha256_lf": "f7231ab87671de50e3fd869d48b5805d76760bb37cb7e405361b19dc9bca28d2"
+    }
+  ],
+  "targets": [
+    {
+      "observedAtUtc": "2026-09-30T19:05:10.696Z",
+      "target": "synthetic",
+      "patchPath": "supabase/tests/fixtures/w6_poll_privacy_solo_701.sql",
+      "sha256": "5a25ccd33d6732b08cae1cc48e9acbb2653400a592aad7ec901761fe7bf74fd9",
+      "tests": "passed",
+      "existingRows": "unchanged",
+      "functionGrants": "unchanged",
+      "productionChanged": false
+    },
+    {
+      "observedAtUtc": "2026-09-30T19:05:12.813Z",
+      "target": "protected",
+      "patchPath": "supabase/tests/fixtures/w6_poll_privacy_solo_701.sql",
+      "sha256": "5a25ccd33d6732b08cae1cc48e9acbb2653400a592aad7ec901761fe7bf74fd9",
+      "tests": "passed",
+      "existingRows": "unchanged",
+      "functionGrants": "unchanged",
+      "productionChanged": false
+    },
+    {
+      "observedAtUtc": "2026-09-30T19:04:46.121Z",
+      "target": "hosted-testing",
+      "patchPath": "supabase/tests/fixtures/w6_poll_privacy_solo_701.sql",
+      "sha256": "5a25ccd33d6732b08cae1cc48e9acbb2653400a592aad7ec901761fe7bf74fd9",
+      "tests": "passed",
+      "existingRows": "unchanged",
+      "functionGrants": "unchanged",
+      "productionChanged": false
+    }
+  ]
+}

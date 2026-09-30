@@ -19,3 +19,8 @@ it("handles names with unicode and empty defaults", () => {
   expect(initials("🐻 Player")).toBe("🐻P");
   expect(initials("")).toBe("?");
 });
+
+it("ignores parenthesized first names in avatar initials", () => {
+  expect(initials("Captain (Alex)")).toBe("C");
+  expect(initials("Dart Captain (Alex)")).toBe("DC");
+});

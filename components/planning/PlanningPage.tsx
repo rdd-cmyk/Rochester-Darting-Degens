@@ -662,7 +662,7 @@ function PollCard({
           {poll.closes_at
             ? `${closed ? "Deadline" : "Closes"} ${rochesterTime(poll.closes_at)}`
             : "Manual close only"}{" "}
-          · {poll.voters} profiles voted
+          · {poll.voters} people voted
         </span>
       </div>
       <h3>{poll.title}</h3>
@@ -697,6 +697,8 @@ function PollCard({
                         <small>
                           {o.withdrawn
                             ? "Withdrawn"
+                            : !organizer && !closed
+                              ? (o.suggestion ? "Member suggestion" : "Organizer option")
                             : o.suggested_by
                               ? `Suggested by ${o.suggested_by === userId ? "you" : formatPlayerName(o.author?.display_name, o.author?.first_name, o.author?.include_first_name_in_display)}`
                               : "Organizer option"}
@@ -704,10 +706,10 @@ function PollCard({
                         </small>
                       </span>
                       <span className="plan-option-actions">
-                        {o.votes} votes
+                        {organizer || closed ? (o.votes === null ? "Refresh to see results" : `${o.votes} votes`) : "Results after voting closes"}
                       </span>
                     </label>
-                    {!closed && !o.withdrawn && o.suggested_by === userId && (
+                    {!closed && !o.withdrawn && (o.is_mine ?? o.suggested_by === userId) && (
                       <button
                         onClick={() =>
                           void change("withdraw", {

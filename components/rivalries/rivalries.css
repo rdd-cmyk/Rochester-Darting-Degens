@@ -731,3 +731,7 @@ a.rr-primary,
     scroll-behavior: auto !important;
   }
 }
+
+.rr-dialog .board-composer textarea { width: 100%; min-height: 180px; padding: 12px; resize: vertical; background: var(--stats-panel); color: var(--stats-ink); border: 1px solid var(--stats-border); border-radius: 8px; }
+.rr-incoming { border: 2px solid var(--stats-orange); border-radius: 14px; padding: 18px; background: var(--stats-panel); margin-block: 16px; }
+.rr-incoming a { display: block; padding-block: 10px; font-weight: 700; }

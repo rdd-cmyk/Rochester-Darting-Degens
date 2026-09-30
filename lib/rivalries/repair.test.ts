@@ -1,0 +1,31 @@
+import { expect, it } from "vitest";
+import { repairCandidates } from "./repair";
+import { defaultConfig } from "@/lib/games/catalog";
+import type { NightMatch } from "@/lib/league-night/types";
+import type { Challenge } from "./types";
+const challenge = { sender: "a", recipient: "b", night_id: "night", game: "501", board: "Steel Tip", preset: "501-double-v1", accepted_at: "2026-09-28T12:00:00Z", games: [] } as unknown as Challenge;
+const match = (): NightMatch => ({ id: 1, revision: 2, night_id: "night", game_type: "501", board_type: "Steel Tip", played_at: "2026-09-28T13:00:00Z", venue: null, notes: null, created_by: "a", game_config: { ...defaultConfig(), preset: "501-double-v1" }, match_players: ["a", "b"].map((player_id, i) => ({ id:i, player_id, score:null, points_scored:null, is_winner:i===0 })) });
+it("offers only unlinked games with this challenge's participants, night, time and rules", () => {
+  const good = match();
+  expect(repairCandidates([good], challenge, [challenge])).toEqual([good]);
+  expect(repairCandidates([good], challenge, [{ ...challenge, games: [{ id:1 } as Challenge['games'][number]] }])).toEqual([]);
+  expect(repairCandidates([good], { ...challenge, accepted_at:null }, [])).toEqual([]);
+});
+it.each(["night", "preset", "game", "board", "before acceptance", "practice", "handicap", "team", "unfinished", "other player", "duplicate player", "unknown winner", "two winners", "invalid time"])("excludes %s from repair", (reason) => {
+  const m = match();
+  if(reason === "night") m.night_id = "other";
+  if(reason === "game") m.game_type = "301";
+  if(reason === "board") m.board_type = "Soft Tip";
+  if(reason === "preset") m.game_config!.preset = "501-straight-v1";
+  if(reason === "before acceptance") m.played_at = "2026-09-27T12:00:00Z";
+  if(reason === "practice") m.game_config!.context = "practice";
+  if(reason === "handicap") m.game_config!.handicap = true;
+  if(reason === "team") m.game_config!.format = "2v2";
+  if(reason === "unfinished") m.game_config!.status = "abandoned";
+  if(reason === "other player") m.match_players![1].player_id = "c";
+  if(reason === "duplicate player") m.match_players![1].player_id = "a";
+  if(reason === "unknown winner") m.match_players![1].is_winner = null;
+  if(reason === "two winners") m.match_players![1].is_winner = true;
+  if(reason === "invalid time") m.played_at = "invalid";
+  expect(repairCandidates([m],challenge,[])).toEqual([]);
+});

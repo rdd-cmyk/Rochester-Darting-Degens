@@ -36,6 +36,7 @@ export function initials(name: string) {
   return (
     Array.from(
       name
+        .replace(/\([^)]*\)/g, " ")
         .trim()
         .split(/\s+/)
         .slice(0, 2)

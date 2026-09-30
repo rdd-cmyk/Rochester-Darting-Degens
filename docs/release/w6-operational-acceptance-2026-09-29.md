@@ -356,3 +356,58 @@ Screenshots are ignored `phone-fixes-origin-guidance-2026-09-30.png` and
 `phone-fixes-poster-centered-2026-09-30.png`. Test-only phone setup rerun passed
 idempotently. Owner retest of changed behavior and remaining blocked flows is
 still required. No production changes were made.
+
+
+## Follow-up owner acceptance - September 30
+
+The owner reports the previously blocked follow-up checklist and fixes now pass,
+with the findings below. This is owner-reported acceptance, distinct from automated
+checks. W6 remains open for retest of these new changes and remaining operational
+release gates.
+
+- Avatar initials exclude parenthesized first names. Planning says people voted.
+- Open poll option counts and suggestion author identifiers/profile details are
+  masked by the authenticated read RPC for ordinary members. Organizers retain
+  them; members receive them after manual or automatic closure. Participation
+  counts and own choices remain available, and an own-suggestion boolean permits
+  withdrawal without disclosing another person's identity. Raw private tables
+  and private RPC implementation remain inaccessible.
+- Solo supports 701 in entry, history/progress/profile filters, rule presets,
+  persistence and replay. It remains separate from competitive statistics.
+- Board and Stats page backgrounds no longer cover the optional Summer layer;
+  cards stay opaque and reduced-motion behavior is preserved.
+- Incoming pending challenges appear prominently above the featured rivalry.
+  Repair uses a dropdown of eligible, unlinked recorded games, identified by
+  date, game and winner. Server eligibility/revision checks remain authoritative.
+- Poster preview image is centered inside its dialog. Its Board composer is wider
+  and taller. The action explicitly creates a text post and rivalry link; there
+  is no image attachment support in the existing Board schema.
+- Keeping a Board draft shows its storage location and a Resume saved draft
+  button. Drafts use sessionStorage scoped to the account and composer in that
+  browser tab. Returning to the same composer restores the text automatically;
+  closing the tab may remove it. This is not a server draft or cross-device save.
+
+### Supplemental SQL gate
+
+The original eleven W5 input files are unchanged. The new deferred fixture and
+LF-normalized hashes are recorded in [W6 amendment manifest](w6-sql-amendment-2026-09-30.json).
+Apply it after the complete W5 chain. It replaces the private planning read
+implementation and existing Solo write function, preserving admission wrappers,
+function grants and search paths, and widens the Solo game check to allow 701.
+The constraint alteration takes a table lock and validates existing rows; W7
+must stage this as an additional production step and refresh its exact migration
+and compatible-app rehearsal before approval. No down-migration should remove
+701 once recorded games use it.
+
+The patch and transactional acceptance tests passed on loopback W3 synthetic,
+loopback W4 protected production-shaped, and hosted RDD Release Testing. Tests
+cover member masking/organizer visibility, manual/automatic closure, own withdrawal
+marker, provisional/anonymous denial, private table/function grants, private 701
+history, explicit and unspecified 701 presets and exact retry. Full application
+row fingerprints and function grant snapshots were nonempty and identical across
+reapplication/testing. Local first-application checks also preserved all existing
+application rows. No production project or backup was modified.
+
+Trusted install, all 573 tests with coverage, lint, typecheck and production build
+passed. Dependency audit findings remain the separate patch gate noted above.
+Hosted visual verification and publication results will be recorded after deployment.

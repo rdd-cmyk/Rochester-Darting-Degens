@@ -106,3 +106,18 @@ it('clears a confirmed unchanged draft even if its composer was unmounted', asyn
   await act(async () => { finishSave(); });
   expect(sessionStorage.getItem('member:post')).toBeNull();
 });
+
+it('keeps and resumes a draft in the same browser tab without posting', () => {
+  const submit = vi.fn();
+  const view = render(<BoardComposer draftKey="member:post" label="Your post" submitLabel="Post" starters onSubmit={submit} />);
+  fireEvent.click(screen.getByRole('button', { name: 'What’s happening, Degens?' }));
+  fireEvent.change(screen.getByLabelText('Your post'), { target: { value:'My draft for later' } });
+  fireEvent.click(screen.getByRole('button', { name:'Keep draft for later' }));
+  expect(screen.getByText(/Draft kept in this browser tab/)).toBeInTheDocument();
+  expect(submit).not.toHaveBeenCalled();
+  fireEvent.click(screen.getByRole('button', { name:'Resume saved draft' }));
+  expect(screen.getByLabelText('Your post')).toHaveValue('My draft for later');
+  view.unmount();
+  render(<BoardComposer draftKey="member:post" label="Your post" submitLabel="Post" starters onSubmit={submit} />);
+  expect(screen.getByLabelText('Your post')).toHaveValue('My draft for later');
+});

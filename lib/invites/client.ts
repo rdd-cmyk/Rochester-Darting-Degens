@@ -1,7 +1,7 @@
 import { supabase } from '@/lib/supabaseClient';
 
 export class InviteRequestError extends Error {
-  constructor(public code: string, message: string) { super(message); }
+  constructor(public code: string, message: string, public siteOrigin?: string) { super(message); }
 }
 
 export async function inviteRequest<T>(body: Record<string, unknown>): Promise<T> {
@@ -12,6 +12,6 @@ export async function inviteRequest<T>(body: Record<string, unknown>): Promise<T
     body: JSON.stringify(body), cache: 'no-store',
   });
   const value = await result.json();
-  if (!result.ok) throw new InviteRequestError(value.error || 'service_error', value.message || 'We could not confirm the result. Please retry with the same details.');
+  if (!result.ok) throw new InviteRequestError(value.error || 'service_error', value.message || 'We could not confirm the result. Please retry with the same details.', value.siteOrigin);
   return value as T;
 }

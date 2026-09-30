@@ -148,7 +148,7 @@ export function NightRecapPanel({
       );
     }
   }
-  if (loading)
+  if (loading && history.length === 0)
     return (
       <section className="night-panel" aria-live="polite">
         Loading the full recorded history for tonight’s highlights…
@@ -163,7 +163,7 @@ export function NightRecapPanel({
       </section>
     );
   return (
-    <section className="night-recap">
+    <section className="night-recap" aria-busy={loading}>
       <div className="night-recap-banner">
         <p className="night-eyebrow">The night so far</p>
         <h2>
@@ -203,45 +203,13 @@ export function NightRecapPanel({
           </p>
         </div>
         {recap.matches.length > 0 && (
-          <button onClick={() => setShareOpen((open) => !open)}>
-            Preview share card
+          <button aria-expanded={shareOpen} aria-controls="night-share-card" onClick={() => setShareOpen((open) => !open)}>
+            {shareOpen ? "Close share card" : "Preview share card"}
           </button>
         )}
       </div>
-      {recap.awards.length === 0 ? (
-        <div className="night-panel">
-          <h3>
-            {recap.matches.length
-              ? "The night is still young."
-              : "Your story starts with the first game."}
-          </h3>
-          <p>
-            {recap.matches.length
-              ? "No awards qualify yet. Personal milestones and streaks will appear when the recorded results support them."
-              : "Record a match to start tonight’s results and highlights."}
-          </p>
-        </div>
-      ) : (
-        <>
-          <div className="night-award-grid">
-            {recap.awards.slice(0, 3).map((a) => (
-              <AwardCard key={a.id} award={a} />
-            ))}
-          </div>
-          {recap.awards.length > 3 && (
-            <details className="night-panel">
-              <summary>All awards ({recap.awards.length})</summary>
-              <div className="night-award-grid">
-                {recap.awards.slice(3).map((a) => (
-                  <AwardCard key={a.id} award={a} />
-                ))}
-              </div>
-            </details>
-          )}
-        </>
-      )}
       {shareOpen && (
-        <section className="night-panel night-share">
+        <section id="night-share-card" className="night-panel night-share">
           <h3>Choose up to three awards to share</h3>
           <p className="night-small">
             Includes display names and results. Venue and private notes are
@@ -298,6 +266,38 @@ export function NightRecapPanel({
           </div>
           <p role="status">{shareNotice}</p>
         </section>
+      )}
+      {recap.awards.length === 0 ? (
+        <div className="night-panel">
+          <h3>
+            {recap.matches.length
+              ? "The night is still young."
+              : "Your story starts with the first game."}
+          </h3>
+          <p>
+            {recap.matches.length
+              ? "No awards qualify yet. Personal milestones and streaks will appear when the recorded results support them."
+              : "Record a match to start tonight’s results and highlights."}
+          </p>
+        </div>
+      ) : (
+        <>
+          <div className="night-award-grid">
+            {recap.awards.slice(0, 3).map((a) => (
+              <AwardCard key={a.id} award={a} />
+            ))}
+          </div>
+          {recap.awards.length > 3 && (
+            <details className="night-panel">
+              <summary>All awards ({recap.awards.length})</summary>
+              <div className="night-award-grid">
+                {recap.awards.slice(3).map((a) => (
+                  <AwardCard key={a.id} award={a} />
+                ))}
+              </div>
+            </details>
+          )}
+        </>
       )}
       <div className="night-recap-columns">
         <section className="night-panel">

@@ -1,7 +1,7 @@
 'use client';
 import Link from 'next/link';
 import { useCallback, useEffect, useRef, useState, type FormEvent } from 'react';
-import { inviteRequest } from '@/lib/invites/client';
+import { InviteRequestError, inviteRequest } from '@/lib/invites/client';
 import type { InviteList, InviteStatus } from '@/lib/invites/shared';
 import { supabase } from '@/lib/supabaseClient';
 
@@ -16,6 +16,8 @@ export default function InvitesPage() {
   const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState('');
   const [loadError, setLoadError] = useState('');
+  const [signedIn, setSignedIn] = useState(false);
+  const [siteOrigin, setSiteOrigin] = useState<string | null>(null);
   const [confirmRevoke, setConfirmRevoke] = useState<string | null>(null);
   // Ambiguous retries retain the exact payload, even if a draft changes.
   const pending = useRef<Record<string, unknown> | null>(null);
@@ -25,11 +27,11 @@ export default function InvitesPage() {
   const principalId = useRef<string | null | undefined>(undefined);
   const refresh = useCallback(async () => {
     const current = ++generation.current;
-    setLoading(true); setLoadError('');
+    setLoading(true); setLoadError(''); setSiteOrigin(null);
     try {
       const next = await inviteRequest<InviteList>({ action: 'list', filter, page });
       if (generation.current === current) setData(next);
-    } catch (error) { if (generation.current === current) { setData(null); setLoadError(error instanceof Error ? error.message : 'Could not load invitations.'); } }
+    } catch (error) { if (generation.current === current) { setData(null); setSiteOrigin(error instanceof InviteRequestError && error.code === 'wrong_origin' && error.siteOrigin?.startsWith('https://') ? error.siteOrigin : null); setLoadError(error instanceof Error ? error.message : 'Could not load invitations.'); } }
     finally { if (generation.current === current) setLoading(false); }
   }, [filter, page]);
   useEffect(() => {
@@ -39,6 +41,7 @@ export default function InvitesPage() {
       const nextPrincipal = session?.user.id ?? null;
       const changed = principalId.current !== nextPrincipal;
       principalId.current = nextPrincipal;
+      setSignedIn(Boolean(nextPrincipal));
       // SIGNED_IN also fires on tab focus for the same user. Only an actual
       // principal change may discard a mutation's original payload/retry ID.
       if (changed) {
@@ -46,7 +49,7 @@ export default function InvitesPage() {
         ++principalGeneration.current;
         pending.current = null;
         setData(null); setEmail(''); setBusy(false); setRetrying(false); setMessage(''); setConfirmRevoke(null);
-        setLoading(!!nextPrincipal); setLoadError(nextPrincipal ? '' : 'Sign in to view invitations.');
+        setSiteOrigin(null); setLoading(!!nextPrincipal); setLoadError(nextPrincipal ? '' : 'Sign in to view invitations.');
       }
       if (!changed && event !== 'INITIAL_SESSION') return;
       if (reload) clearTimeout(reload);
@@ -78,7 +81,7 @@ export default function InvitesPage() {
       <button className="invite-primary" disabled={busy || retrying || !data}>{busy ? 'Please wait…' : 'Send invitation'}</button><p>Each invitation is for one email address and lasts 7 days. They’ll verify their inbox before joining.</p>
     </form>
     {message && <div className="invite-panel" role="status"><p>{message}</p>{retrying && <div className="invite-actions"><button disabled={busy} onClick={() => void mutate({})}>Retry same request</button><button disabled={busy} onClick={() => { pending.current = null; setRetrying(false); void refresh(); }}>Check history and start a new request</button></div>}</div>}
-    {loadError && <div role="alert" className="invite-panel"><p>{loadError}</p><Link href="/auth">Sign in</Link></div>}
+    {loadError && <div role="alert" className="invite-panel"><p>{loadError}</p>{siteOrigin ? <a href={`${siteOrigin}/invites`}>Open invitations on the main site</a> : !signedIn ? <Link href="/auth">Sign in</Link> : <button disabled={loading || busy} onClick={() => void refresh()}>Retry loading invitations</button>}</div>}
     {data && <>
       <div className="invite-counts"><div><strong>{data.pending}</strong><span>Pending</span></div><div><strong>{data.accepted}</strong><span>Accepted</span></div></div>
       <section className="invite-panel" aria-label="Your invitations">

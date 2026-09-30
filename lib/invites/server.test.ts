@@ -107,3 +107,9 @@ it('does not unlock rejected input when SQL cannot safely release its reservatio
   expect(result.status).toBe(503);
   expect(await result.json()).toEqual(expect.objectContaining({ error: 'service_error' }));
 });
+
+it('provides the configured origin when a different preview URL is used', async () => {
+  const result = await handleInvite(request({action:'list'}, {origin:'https://deployment.example.test'}));
+  expect(result.status).toBe(403);
+  expect(await result.json()).toEqual(expect.objectContaining({error:'wrong_origin', siteOrigin:'http://127.0.0.1:3102'}));
+});

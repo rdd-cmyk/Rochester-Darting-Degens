@@ -333,7 +333,8 @@
   box-shadow: inset 0 3px var(--stats-orange);
   background: color-mix(in srgb, var(--stats-orange) 11%, var(--stats-panel));
 }
-.night-winner button[aria-pressed="true"] {
+.night-shell .night-winner button[aria-pressed="true"],
+.night-shell .night-winner button[aria-pressed="true"]:hover:not(:disabled) {
   background: var(--stats-orange);
   border-color: var(--stats-orange);
   color: #101827;

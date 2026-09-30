@@ -723,7 +723,8 @@ export default function ProfilePage() {
 
       {/* Match history tabs */}
       <section className="rdd-panel player-history">
-        <h2 className="section-heading">Match History</h2>
+        <h2 className="section-heading">League Match History</h2>
+        {statsScope !== 'league' && <p className="rdd-muted">The history below shows league matches. Private Solo Play history is not shown on profiles.</p>}
 
         <div className="player-history-controls">
           <label className="match-filter-control" htmlFor="gameTypeFilter">

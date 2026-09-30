@@ -611,7 +611,7 @@ function SoloEditor({ owner }: { owner: string }) {
                   />
                   <span>{draft.unit}</span>
                 </div>
-                <small>No score? You can still log the game.</small>
+                <small>No average? You can still log the game.</small>
               </label>
               {draft.game !== "Cricket" && (
                 <label className="solo-inline">
@@ -643,7 +643,7 @@ function SoloEditor({ owner }: { owner: string }) {
                       setDraft((d) => ({
                         ...d,
                         night: e.target.value,
-                        share: false,
+                        share: Boolean(e.target.value),
                       }))
                     }
                   >

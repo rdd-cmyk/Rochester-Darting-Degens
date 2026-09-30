@@ -72,7 +72,7 @@ async function sendMail(config: Settings, id: string, to: string, subject: strin
 export async function handleInvite(request: NextRequest) {
   try {
     const config = settings();
-    if (request.headers.get('origin') !== config.origin) return response({ error: 'invalid_request', message: inviteMessages.invalid_request }, 403);
+    if (request.headers.get('origin') !== config.origin) return response({ error: 'wrong_origin', message: inviteMessages.wrong_origin, siteOrigin: config.origin }, 403);
     const body = await readBody(request);
     const action = required(body.action, /^(list|create|resend|revoke|preview|challenge|complete)$/);
     const admin = createClient(config.url, config.key, { auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false } });

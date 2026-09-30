@@ -213,3 +213,17 @@ describe("Solo Play persistence boundaries", () => {
     expect(screen.queryByText("Private first account")).not.toBeInTheDocument();
   });
 });
+
+it('defaults an explicitly selected night to shared activity, while allowing opt-out', async () => {
+  mocks.nights.mockResolvedValue([{id:'night',title:'Test',night_date:'2026-09-30',venue:null,created_by:'a',created_at:'2026-09-30T00:00:00Z'}]);
+  render(<SoloPage />);
+  const night = await screen.findByLabelText('League night (optional)');
+  await screen.findByRole('option', {name:/Test/});
+  fireEvent.change(night,{target:{value:'night'}});
+  const share = screen.getByRole('checkbox',{name:/Show in this night/});
+  expect(share).toBeChecked();
+  fireEvent.click(share);
+  expect(share).not.toBeChecked();
+  fireEvent.change(night,{target:{value:''}});
+  expect(screen.queryByRole('checkbox',{name:/Show in this night/})).not.toBeInTheDocument();
+});

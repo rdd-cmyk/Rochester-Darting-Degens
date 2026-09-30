@@ -1,10 +1,11 @@
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { beforeEach, expect, it, vi } from 'vitest';
+import { InviteRequestError } from '@/lib/invites/client';
 import InvitesPage from './page';
 const request = vi.hoisted(() => vi.fn());
 type Session = { user: { id: string } } | null;
 const auth = vi.hoisted(() => ({ change: undefined as undefined | ((event: string, session: Session) => void) }));
-vi.mock('@/lib/invites/client', () => ({ inviteRequest: request }));
+vi.mock('@/lib/invites/client', async (original) => ({ ...(await original<typeof import('@/lib/invites/client')>()), inviteRequest: request }));
 vi.mock('@/lib/supabaseClient', () => ({ supabase: { auth: { onAuthStateChange: (change: (event: string, session: Session) => void) => {
   auth.change = change;
   queueMicrotask(() => { if (auth.change === change) change('INITIAL_SESSION', { user: { id: 'sender' } }); });
@@ -96,4 +97,12 @@ it('retains an in-flight result on same-user focus and discards it after an actu
   act(() => { auth.change?.('SIGNED_IN', { user: { id: 'another-sender' } }); });
   await act(async () => { finish?.({ message: 'Previous user sent an invitation.' }); });
   expect(screen.queryByText('Previous user sent an invitation.')).not.toBeInTheDocument();
+});
+
+it('explains the required site origin without asking an already signed-in user to sign in', async () => {
+  request.mockRejectedValueOnce(new InviteRequestError('wrong_origin', 'Use the main site address.', 'https://release.example.test'));
+  render(<InvitesPage />);
+  expect(await screen.findByRole('link', {name: 'Open invitations on the main site'})).toHaveAttribute('href', 'https://release.example.test/invites');
+  expect(screen.queryByRole('link', {name:'Sign in'})).not.toBeInTheDocument();
+  expect(screen.getByRole('button', {name:'Send invitation'})).toBeDisabled();
 });

@@ -417,6 +417,8 @@ a.rr-primary,
   font-size: 13px;
 }
 .rr-dialog {
+  margin: auto;
+  inset: 0;
   background: var(--background);
   color: var(--foreground);
   border: 1px solid #ed692f;

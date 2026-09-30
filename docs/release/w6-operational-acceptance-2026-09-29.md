@@ -291,3 +291,56 @@ production Supabase keys. External-consumer inventory is accepted by owner
 report; existing deployment bundles/open tabs and compatible rollback still
 need the reviewed key migration controls. Normal [monitor rerun 36734946817](https://github.com/rdd-cmyk/Rochester-Darting-Degens/actions/runs/36734946817)
 succeeded after the intentional alert. The broader phone walkthrough is pending.
+
+
+## Owner phone walkthrough and fixes - September 30
+
+Owner-reported passes: navigation/all pages/history filters/refresh; night creation
+and attendance; individual match, rematch, validation, editing and game-entry
+fields; Board access request; Solo logging/edit/refresh/delete/undo and no
+competitive effects; avatar persistence and challenge submission; sign-out,
+keyboard/portrait/landscape/dialog usability; desktop poster/TV view; offline
+save retry produced exactly one game; password recovery passed again.
+
+Blocked by setup: planning organizer controls, Board-approved access/moderation,
+team saves, second-account Solo privacy/sharing, challenge acceptance/correction,
+and Board poster draft. These remain open acceptance, not failures or passes.
+The existing controlled Gmail test account now has test-only planning and Board
+organizer roles. Three additional fictional admitted players C/D/E make six
+players including the owner. Existing fictional A/B logins are provided only in
+ignored local `phone-test-logins.txt`; A is organizer, B ordinary. Test setup
+verified that B receives null for A's private Solo profile summary. No production
+role or account was changed.
+
+Confirmed fixes prepared from this feedback:
+- Deployment-specific invitation URLs failed the exact origin restriction with
+  generic invalid-request text and a misleading Sign in link. Keep the restriction,
+  return a distinct wrong-origin response and link to the configured main address.
+- Recap history refreshes after the 20-second results poll and focus events hid
+  the share canvas while loading. Keep already-loaded recap/canvas mounted through
+  background loading, expose expanded state, and place the preview directly below
+  its button before awards. Initial loading/error handling remains explicit.
+- Winner hover used a dark-panel background with dark selected text; retain the
+  selected orange background/text pairing on hover. Center rivalry dialogs with
+  explicit inset/margins so Tailwind reset does not place them at the top-left.
+- Selecting a league night defaults Solo night activity sharing on, per owner's
+  request; the checkbox, disclosure and opt-out remain. Existing saved sharing
+  choices are preserved when editing. Change optional score wording to average.
+- Profile Solo scope changes scoring summary, not the league history query below.
+  Label that history League Match History and explain the distinction. Profile
+  summaries and explicitly shared night activity are independent; private Solo
+  individual history is never queried from the profile route.
+
+Verification: trusted install, all 552 tests, coverage gate, lint, typecheck and
+production build passed. Focused tests reproduce alternate-origin handling,
+share-card stability during loading, and night-sharing default/opt-out. Hosted
+browser verification of the published fixes and owner affected-flow retest remain
+required. Broader cosmetic feedback is reserved for the owner's later discussion.
+
+The required install audit reported two dependency entries: critical Next
+16.3.4 ImageResponse advisory GHSA-vcvr-r3jv-pc5j and high development-tool
+brace-expansion advisories. Source search found no next/og or ImageResponse use;
+share cards/posters use client canvas, so the documented Next exploit condition
+is not present in the reviewed source. Record these for a separate scoped patch
+package before release; no dependency version/lockfile was changed here.
+See [Next advisory](https://github.com/advisories/GHSA-vcvr-r3jv-pc5j).

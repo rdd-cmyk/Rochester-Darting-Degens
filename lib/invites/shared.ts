@@ -12,6 +12,7 @@ export const inviteMessages: Record<string, string> = {
   invalid_code: 'That verification code is incorrect. Please check the latest email.',
   code_locked: 'Too many incorrect codes. Request a new verification code.',
   retry_conflict: 'This attempt was already saved with different details. Refresh the page before starting a new attempt.',
+  wrong_origin: 'Open invitations from the main site address. This preview address cannot send or load invitations.',
   invalid_request: 'Please check the information and try again.',
   invalid_password: 'Use a password with at least 16 characters and no more than 72 bytes. Accented letters and emoji can use more than one byte each.',
   password_rejected: 'That password does not meet the account policy. Choose a longer, stronger password and try again.',

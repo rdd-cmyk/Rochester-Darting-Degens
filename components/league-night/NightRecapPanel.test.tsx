@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
 import { expect, it, vi } from 'vitest';
 import { defaultConfig } from '@/lib/games/catalog';
 import type { LeagueNight, NightMatch } from '@/lib/league-night/types';
@@ -33,4 +33,21 @@ it.each(['tied', 'abandoned'] as const)('shows an unrated %s result without inve
   expect(screen.getByText(`Unrated · Result ${status}`)).toBeInTheDocument();
   expect(view.container.querySelector('.night-warning')).toBeNull();
   expect(view.container.querySelector('.night-result')?.textContent).not.toContain('won');
+});
+
+it('keeps an open share card visible throughout a background history refresh', () => {
+  vi.spyOn(HTMLCanvasElement.prototype, 'getContext').mockReturnValue(null);
+  const night: LeagueNight = {id:'night',title:'Test',night_date:'2026-01-01',venue:null,created_by:'a',created_at:'2026-01-01T00:00:00Z'};
+  const history: NightMatch[] = [{id:1,revision:1,night_id:'night',created_by:'a',played_at:'2026-01-01T20:00:00Z',game_type:'501',board_type:'Steel Tip',venue:null,notes:null,match_players:['a','b'].map((player_id,i)=>({id:i+1,player_id,is_winner:i===0,score:null,points_scored:null,profiles:{display_name:player_id,first_name:null,include_first_name_in_display:false}}))}];
+  const view = render(<NightRecapPanel night={night} history={history} loading={false} error="" onRefresh={()=>{}} />);
+  fireEvent.click(screen.getByRole('button',{name:'Preview share card'}));
+  const canvas = screen.getByRole('img');
+  view.rerender(<NightRecapPanel night={night} history={history} loading={true} error="" onRefresh={()=>{}} />);
+  expect(screen.getByRole('img')).toBe(canvas);
+  expect(screen.getByRole('button',{name:'Close share card'})).toHaveAttribute('aria-expanded','true');
+  view.rerender(<NightRecapPanel night={night} history={[...history]} loading={false} error="" onRefresh={()=>{}} />);
+  expect(screen.getByRole('img')).toBe(canvas);
+  fireEvent.click(screen.getByRole('button',{name:'Close share card'}));
+  fireEvent.click(screen.getByRole('button',{name:'Preview share card'}));
+  expect(screen.getByRole('img')).toBeInTheDocument();
 });

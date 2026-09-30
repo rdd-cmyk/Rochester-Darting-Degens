@@ -344,3 +344,15 @@ share cards/posters use client canvas, so the documented Next exploit condition
 is not present in the reviewed source. Record these for a separate scoped patch
 package before release; no dependency version/lockfile was changed here.
 See [Next advisory](https://github.com/advisories/GHSA-vcvr-r3jv-pc5j).
+
+
+Published fix revision `4d50c17` passed GitHub CI run `36753908212` and Vercel
+Preview deployment `2C6ZE9AUKzjr3n2ho8Ff1UiYnNdt`. Hosted browser verified:
+stable-origin invitation list/Send enabled; deployment-specific origin renders
+the configured-origin link with no misleading Sign in link; poster dialog
+centered on desktop and 390px phone viewport; open recap canvas persisted across
+more than 50 seconds of automatic polls and reopened with one click after closing.
+Screenshots are ignored `phone-fixes-origin-guidance-2026-09-30.png` and
+`phone-fixes-poster-centered-2026-09-30.png`. Test-only phone setup rerun passed
+idempotently. Owner retest of changed behavior and remaining blocked flows is
+still required. No production changes were made.

@@ -281,4 +281,6 @@ No production credential change or deployment was performed.
 Intentional [alert rehearsal run 36734728823](https://github.com/rdd-cmyk/Rochester-Darting-Degens/actions/runs/36734728823)
 failed at the monitor step as designed on September 30. The simulation exits
 before any database request; it neither stops cleanup nor changes test data.
-The owner's actual failure-email receipt is pending confirmation.
+The owner confirmed receiving the failure email on September 30; alert delivery
+is passed by owner report. The daily GitHub schedule still awaits the approved
+default-branch merge, while the test database cleanup schedule is active.

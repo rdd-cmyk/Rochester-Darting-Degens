@@ -1,8 +1,11 @@
 # W6 operational and owner acceptance record — 2026-09-29
 
 **Status: in progress.** Hosted schema, synthetic data/RLS/RPC acceptance, the
-owner's account decisions, and the first preview inspection are complete. Email,
-Auth configuration, the write-pause exercise, credential rotation, operational
+owner's account decisions, and the first preview inspection are complete. Test
+email configuration and invitation submission were verified on September 30;
+owner-reported inbox receipt, verification, join and subsequent login passed on
+Pixel Chrome. Password recovery remains open. The write-pause exercise,
+credential rotation, operational
 ownership, and the owner's phone walkthrough are still open. This record is not
 approval to deploy to production. No production data, Auth, SQL, or configuration
 was changed during W6.
@@ -49,16 +52,53 @@ was changed during W6.
 
 ## Configuration to finish on the isolated test project
 
+### September 30 configuration and invitation checkpoint
+
+- Saved test Auth Site URL and exact `/reset-password` redirect now match the
+  stable preview origin above. Custom SMTP is enabled with sender name
+  `RDD Release Testing`, host `smtp.resend.com`, port 465, and stored credentials.
+  This replaces the earlier unsuccessful URL edit noted below.
+- Preview invitation sender and origin were inspected and match the testing
+  domain and stable release preview. The invitation secret and Resend API key
+  are present as secret Preview variables; their values were not inspected.
+- `RDD_INVITES_ENABLED=1` is scoped to Preview branch `release/next`. The correct
+  branch deployment was redeployed as `2Lz6A4HgiK786NPMWvJ6byqEc3Wh`, source
+  `9c582fa35cb03f644c0a8eb22e2a5cc59922b00f`, and reached Ready with the stable
+  alias assigned. Production configuration was not changed.
+- The signed-in fictional member sent one invitation to the owner-controlled
+  Gmail test inbox. The preview reported `Invitation sent` and one pending
+  invitation with a sent date and seven-day expiry. This proves submission,
+  not inbox delivery. Screenshot evidence is kept in ignored
+  `.local/release-w6-testing/preview-invite-sent-2026-09-30.png`.
+- The owner confirmed receipt of both invitation and verification-code emails,
+  successful signup using the code, and successful subsequent login, all in
+  Chrome on Pixel 11 Pro XL. Both emails initially landed in Spam and were
+  marked as not spam. Functional delivery/join/login acceptance passed by owner
+  report on September 30; inbox placement remains a deliverability concern for
+  release monitoring. This does not establish password recovery acceptance or
+  acceptance of the remaining phone feature walkthrough.
+- Password recovery remains pending.
+  Owner testing confirmed the recovery email arrives, but the deployed W1 app
+  consumed the recovery fragment during SDK initialization, signed the user in,
+  and showed a false missing-reset-session error. The W3 client fix disabling
+  automatic URL detection was present locally but absent from the W1 preview.
+  A real-SDK initialization regression now verifies that the fragment remains
+  available and no session is automatically created. Publish the corrected
+  release candidate and repeat the owner's recovery check before closing this
+  gate; successful email delivery alone is not recovery acceptance.
+  Public-signup restriction, cleanup scheduling, write pause and production
+  credential rotation have not been completed by this checkpoint.
+
 1. Set Supabase Auth Site URL to the exact stable preview origin above, and add
    its exact `/reset-password` URL to the redirect allowlist. Keep email login
-   enabled. The observed test-project Site URL is still `http://localhost:3000`;
-   an attempted dashboard edit did not persist, so neither setting is verified.
+   enabled. URL configuration is now verified by the September 30 checkpoint.
    Audit other enabled providers and disable public signup only after a controlled
    invite account path is ready. Test an existing login and a real recovery link.
 2. Establish a verified sender/domain and Supabase Auth SMTP for the test
    project. The owner controls `linford585@yahoo.com` and
-   `linford585test@gmail.com` for delivery tests but has not configured an email
-   or SMS sender. Default Supabase email is not evidence of normal recipient
+   `linford585test@gmail.com` for delivery tests. Test SMTP is now configured;
+   real invitation and verification delivery passed by owner report; recovery
+   remains to be accepted. Default Supabase email is not evidence of normal recipient
    delivery. Use a dedicated Resend API key and verified `RDD_INVITE_FROM` for
    invitation mail, and configure Auth SMTP separately for verification and
    recovery. Keep all keys server-only and out of chat/repository files.

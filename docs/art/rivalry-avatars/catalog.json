@@ -1,7 +1,7 @@
 [
   {
     "id": "raccoon",
-    "label": "The Bandit",
+    "label": "Bandit",
     "version": 1,
     "review_status": "locally inspected; owner final acceptance pending",
     "tool": "Built-in image_gen",
@@ -29,7 +29,7 @@
   },
   {
     "id": "fox",
-    "label": "The Fox",
+    "label": "Hustler",
     "version": 1,
     "review_status": "locally inspected; owner final acceptance pending",
     "tool": "Built-in image_gen",
@@ -57,7 +57,7 @@
   },
   {
     "id": "bull",
-    "label": "The Bull",
+    "label": "Bullseye",
     "version": 1,
     "review_status": "locally inspected; owner final acceptance pending",
     "tool": "Built-in image_gen",
@@ -85,7 +85,7 @@
   },
   {
     "id": "owl",
-    "label": "The Night Owl",
+    "label": "Night Shift",
     "version": 1,
     "review_status": "locally inspected; owner final acceptance pending",
     "tool": "Built-in image_gen",
@@ -113,7 +113,7 @@
   },
   {
     "id": "robot",
-    "label": "The Machine",
+    "label": "Machine",
     "version": 1,
     "review_status": "locally inspected; owner final acceptance pending",
     "tool": "Built-in image_gen",
@@ -169,7 +169,7 @@
   },
   {
     "id": "badger",
-    "label": "The Badger",
+    "label": "Scrapper",
     "version": 1,
     "review_status": "locally inspected; owner final acceptance pending",
     "tool": "Built-in image_gen",
@@ -197,7 +197,7 @@
   },
   {
     "id": "panther",
-    "label": "The Panther",
+    "label": "Closer",
     "version": 1,
     "review_status": "locally inspected; owner final acceptance pending",
     "tool": "Built-in image_gen",
@@ -225,7 +225,7 @@
   },
   {
     "id": "bear",
-    "label": "The Bear",
+    "label": "Heavy Hitter",
     "version": 1,
     "review_status": "locally inspected; owner final acceptance pending",
     "tool": "Built-in image_gen",
@@ -253,7 +253,7 @@
   },
   {
     "id": "crocodile",
-    "label": "The Croc",
+    "label": "Snap",
     "version": 1,
     "review_status": "locally inspected; owner final acceptance pending",
     "tool": "Built-in image_gen",
@@ -309,7 +309,7 @@
   },
   {
     "id": "rabbit",
-    "label": "The Rabbit",
+    "label": "Quickdraw",
     "version": 1,
     "review_status": "locally inspected; owner final acceptance pending",
     "tool": "Built-in image_gen",
@@ -337,11 +337,11 @@
   },
   {
     "id": "wolf",
-    "label": "The Wolf",
-    "version": 1,
+    "label": "Fang",
+    "version": 2,
     "review_status": "locally inspected; owner final acceptance pending",
     "tool": "Built-in image_gen",
-    "generation_date": "2026-09-28",
+    "generation_date": "2026-09-30",
     "dimensions": {
       "hero": [
         512,
@@ -356,8 +356,8 @@
         96
       ]
     },
-    "source": "pack-c.png",
-    "cell": 0,
+    "source": "wolf-v2.png",
+    "cell": null,
     "image": "/avatars/wolf.webp",
     "thumbnail": "/avatars/wolf-96.webp",
     "medium": "/avatars/wolf-256.webp",
@@ -365,7 +365,7 @@
   },
   {
     "id": "red-panda",
-    "label": "The Red Panda",
+    "label": "Wildcard",
     "version": 1,
     "review_status": "locally inspected; owner final acceptance pending",
     "tool": "Built-in image_gen",
@@ -393,7 +393,7 @@
   },
   {
     "id": "eagle",
-    "label": "The Eagle",
+    "label": "High Flyer",
     "version": 1,
     "review_status": "locally inspected; owner final acceptance pending",
     "tool": "Built-in image_gen",
@@ -421,7 +421,7 @@
   },
   {
     "id": "pig",
-    "label": "The Wildcard",
+    "label": "Road Hog",
     "version": 1,
     "review_status": "locally inspected; owner final acceptance pending",
     "tool": "Built-in image_gen",
@@ -449,7 +449,7 @@
   },
   {
     "id": "alien",
-    "label": "Out of This World",
+    "label": "Anomaly",
     "version": 1,
     "review_status": "locally inspected; owner final acceptance pending",
     "tool": "Built-in image_gen",
@@ -477,7 +477,7 @@
   },
   {
     "id": "shark",
-    "label": "The Shark",
+    "label": "Finisher",
     "version": 1,
     "review_status": "locally inspected; owner final acceptance pending",
     "tool": "Built-in image_gen",
@@ -505,7 +505,7 @@
   },
   {
     "id": "tiger",
-    "label": "The Tiger",
+    "label": "Triple Threat",
     "version": 1,
     "review_status": "locally inspected; owner final acceptance pending",
     "tool": "Built-in image_gen",
@@ -533,7 +533,7 @@
   },
   {
     "id": "bulldog",
-    "label": "The Bulldog",
+    "label": "Brawler",
     "version": 1,
     "review_status": "locally inspected; owner final acceptance pending",
     "tool": "Built-in image_gen",
@@ -589,7 +589,7 @@
   },
   {
     "id": "lion",
-    "label": "The Lion",
+    "label": "Crown",
     "version": 1,
     "review_status": "locally inspected; owner final acceptance pending",
     "tool": "Built-in image_gen",

@@ -40,7 +40,9 @@ for (const sheet of sheets) {
   for (let i = 0; i < 6; i++) {
     const name = sheet.names[i];
     const top = i < 3 ? 0 : 512;
-    const cell = sharp(source).extract({
+    // Individual replacements take precedence over the original sheet cell.
+    const replacement = name === "wolf" ? "wolf-v2.png" : null;
+    const cell = replacement ? sharp(path.join(sources, replacement)) : sharp(source).extract({
       left: (i % 3) * 512,
       top,
       width: 512,
@@ -64,13 +66,13 @@ for (const sheet of sheets) {
     manifest.push({
       id: name,
       label: labels.get(name),
-      version: 1,
+      version: replacement ? 2 : 1,
       review_status: "locally inspected; owner final acceptance pending",
       tool: "Built-in image_gen",
-      generation_date: "2026-09-28",
+      generation_date: replacement ? "2026-09-30" : "2026-09-28",
       dimensions: { hero: [512, 512], medium: [256, 256], thumbnail: [96, 96] },
-      source: `${sheet.id}.png`,
-      cell: i,
+      source: replacement ?? `${sheet.id}.png`,
+      cell: replacement ? null : i,
       image: `/avatars/${name}.webp`,
       thumbnail: `/avatars/${name}-96.webp`,
       medium: `/avatars/${name}-256.webp`,

@@ -186,7 +186,7 @@ const ok = (v, label) => {
     "Saved avatar is used on rivalry poster",
   );
   await page.goto("http://127.0.0.1:3040/profile");
-  await page.getByRole("button", { name: "The Bandit", exact: true }).click();
+  await page.getByRole("button", { name: "Bandit", exact: true }).click();
   await page.getByRole("button", { name: "Save avatar", exact: true }).click();
   await page
     .getByText("Your player avatar is saved.", { exact: true })

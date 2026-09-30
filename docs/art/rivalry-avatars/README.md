@@ -9,7 +9,13 @@ The owner accepted the six-character visual direction by requesting implementati
 - pack-c.png: original exec-0082837d-e7d6-4730-9ebc-5ce81c4c59dc.png.
 - pack-d.png: original exec-c6afd974-5e01-47b8-9a59-4d0a2451378b.png.
 
-All originals remain in the generation tool's output folder. No subsequent creative edit was applied to these production masters. The alternative background-removal pilot remains in the mockup folder and is not selected for production.
+All originals remain in the generation tool's output folder. The alternative background-removal pilot remains in the mockup folder and is not selected for production. The original sheets are preserved; the individual wolf replacement below takes precedence over its original pack-c cell.
+
+## Wolf correction — 2026-09-30
+
+The original wolf portrait looked like a raccoon. `wolf-v2.png` replaces it using the built-in image_gen tool, referenced against the previous `public/avatars/wolf.webp`. Original output: `exec-7c37ec81-7da0-4b06-a946-a782afcca04c.png`. The exporter uses this standalone transparent master for all three wolf sizes, preserves the stable `wolf` ID, and records version 2 in the catalog. Locally inspected; owner final visual acceptance pending.
+
+Prompt: Edit target: the provided avatar. Replace the raccoon-like animal with an unmistakable grey WOLF sports mascot. Long pronounced canine muzzle, strong angular jaw, grey fur with cream muzzle and throat, pointed upright ears, amber eyes, NO raccoon eye mask or striped facial markings. Preserve the original hand-inked cartoon style, bold charcoal outlines, painterly cel shading, friendly confident smirk, three-quarter head pose, chest-up composition, orange/navy/cream jersey, and uniform details. Single centered square avatar, ears fully inside frame with safe transparent margin, torso cropped at bottom. True transparent background. No lettering, props, frames or watermark. Match the existing roster's scale and illustration quality.
 
 [Catalog](catalog.json) records stable IDs, labels, source/cell, availability, version, provenance and dimensions. [Exporter](../../../scripts/export-rivalry-avatars.mjs) rebuilds 512 px hero, 256 px profile and 96 px list variants. The shared renderer falls back to initials for unknown IDs or failed image loads. Multiple members may select the same avatar. Retirement should mark server selectability false and preserve the ID and files for existing selections.
 

@@ -2,9 +2,15 @@ This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-
 
 ## Website design
 
-Use the [design standards](docs/design-standards.md) for interface work. The
-[site-wide upgrade plan](docs/sitewide-design-upgrade-plan.md) tracks the
-current migration from the Advanced Statistics visual language to every route.
+Use the [style and design standards](docs/design-standards.md) before planning,
+implementing or reviewing interface work: palette and semantic tokens,
+consistent buttons, page-title headers and WCAG 2.2 AA accessibility targets.
+The [release source audit](docs/style-guide-release-next-audit.md) records
+current drift; the [interactive comparison](docs/mockups/style-guide-preview.html)
+preserves the explored header options. The owner selected Plain heading with
+an orange terminal period; other Version 2 additions remain proposals.
+The [site-wide upgrade plan](docs/sitewide-design-upgrade-plan.md)
+tracks implementation separately; preparing the guide does not start it.
 
 ## Configuration
 

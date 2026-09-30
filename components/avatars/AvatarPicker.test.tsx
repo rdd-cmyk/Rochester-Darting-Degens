@@ -37,11 +37,11 @@ it("shows the current avatar and explains a confirmed but superseded save", asyn
   await screen.findByText(
     "Your earlier save is confirmed. Showing your latest avatar from a later save.",
   );
-  expect(screen.getByRole("button", { name: "The Night Owl" })).toHaveAttribute(
+  expect(screen.getByRole("button", { name: "Night Shift" })).toHaveAttribute(
     "aria-pressed",
     "true",
   );
-  expect(screen.getByRole("button", { name: "The Fox" })).toHaveAttribute(
+  expect(screen.getByRole("button", { name: "Hustler" })).toHaveAttribute(
     "aria-pressed",
     "false",
   );

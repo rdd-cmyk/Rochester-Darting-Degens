@@ -10,10 +10,16 @@ Before planning or changing this repository:
    silently.
 4. Apply `docs/skill-governance.md` before proposing or creating a project
    skill.
-5. Before website interface work, read `docs/design-standards.md`. For the
-   site-wide upgrade, follow `docs/sitewide-design-upgrade-plan.md` and keep
-   its progress ledger current. Home remains leaderboard-first; Summer
-   decorations remain optional and restrained.
+5. Before planning, implementing or reviewing website interface work, read
+   `docs/design-standards.md`, including its token, action, accessibility and
+   page-title-header contracts. Reuse shared variants instead of route-local
+   colors or dimensions. Follow the owner-selected Plain heading with orange
+   terminal period (2026-09-30); other draft values remain proposals.
+   Documentation does not authorize a site
+   migration. For the site-wide upgrade, follow
+   `docs/sitewide-design-upgrade-plan.md` and keep its progress ledger current.
+   Home remains leaderboard-first; Summer decorations remain optional and
+   restrained. Design-only requests stay documentation/mockup-only.
 
 Use npm with the checked-in `package-lock.json`. Preserve useful point-of-use
 comments and avoid duplicating them in the registry. Never place credentials,

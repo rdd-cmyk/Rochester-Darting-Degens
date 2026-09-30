@@ -1,6 +1,8 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
+import { PlayerAvatar } from "@/components/avatars/PlayerAvatar";
 import { supabase } from "@/lib/supabaseClient";
 import { useEffect, useRef, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
@@ -10,6 +12,11 @@ type NavbarProps = {
   summerEnabled: boolean;
   onToggleSummer: () => void;
 };
+
+const pageGroups = [
+  { title: "Play & Results", pages: [["/", "Home"], ["/league-night", "League Night"], ["/matches", "Matches"], ["/stats", "Stats"]] },
+  { title: "Around the League", pages: [["/rivalries", "Rivalry Room"], ["/profiles", "Players"], ["/board", "League Board"], ["/solo", "Solo"]] },
+];
 
 export default function Navbar({ summerEnabled, onToggleSummer }: NavbarProps) {
   const [user, setUser] = useState<User | null>(null);
@@ -119,6 +126,9 @@ export default function Navbar({ summerEnabled, onToggleSummer }: NavbarProps) {
   return (
     <nav className="navbar-shell" aria-label="Primary">
       <div className="navbar-main">
+        <Link href="/" className="navbar-brand" aria-label="RDD Home" onClick={handleNavSelection}>
+          <Image src="/rdd-navbar-logo.png" alt="" width={64} height={32} priority />
+        </Link>
         <button
           ref={menuButton}
           type="button"
@@ -133,72 +143,63 @@ export default function Navbar({ summerEnabled, onToggleSummer }: NavbarProps) {
           id="navbar-links"
           className={`navbar-links ${menuOpen ? "open" : ""}`.trim()}
         >
-          <Link href="/" aria-current={pathname === "/" ? "page" : undefined} onClick={handleNavSelection}>
-            Home
-          </Link>
-          <Link href="/stats" aria-current={pathname === "/stats" ? "page" : undefined} onClick={handleNavSelection}>
-            Advanced Stats
-          </Link>
-          <Link href="/solo" aria-current={pathname === "/solo" || pathname.startsWith("/solo/") ? "page" : undefined} onClick={handleNavSelection}>
-            Solo Play
-          </Link>
-          <Link href="/matches" aria-current={pathname === "/matches" ? "page" : undefined} onClick={handleNavSelection}>
-            Matches
-          </Link>
-          <Link href="/league-night" aria-current={pathname === "/league-night" || pathname.startsWith("/league-night/") ? "page" : undefined} onClick={handleNavSelection}>
-            League Night
-          </Link>
-          <Link href="/rivalries" aria-current={pathname === "/rivalries" || pathname.startsWith("/rivalries/") ? "page" : undefined} onClick={handleNavSelection}>Rivalry Room</Link>
-          <Link href="/board" aria-current={pathname === "/board" || pathname.startsWith("/board/") ? "page" : undefined} onClick={handleNavSelection}>
-            League Board
-          </Link>
-          <Link
-            href="/change-log"
-            aria-current={pathname === "/change-log" ? "page" : undefined}
-            onClick={handleNavSelection}
-          >
-            Change Log
-          </Link>
-          <Link href="/profiles" aria-current={pathname === "/profiles" || pathname.startsWith("/profiles/") ? "page" : undefined} onClick={handleNavSelection}>
-            All Profiles
-          </Link>
-          {user && (
+          {pageGroups.map((group) => (
+            <div className="navbar-page-group" key={group.title}>
+              <p className="navbar-group-title">{group.title}</p>
+              <div className="navbar-page-grid">
+                {group.pages.map(([href, label]) => (
+                  <Link key={href} href={href}
+                    aria-current={pathname === href || (href !== "/" && pathname.startsWith(`${href}/`)) ? "page" : undefined}
+                    onClick={handleNavSelection}>{label}</Link>
+                ))}
+              </div>
+            </div>
+          ))}
+          <div className="navbar-utilities">
+            {user && <Link className="navbar-mobile-profile" href="/profile" aria-current={pathname === "/profile" ? "page" : undefined} onClick={handleNavSelection}>My Profile</Link>}
+            {user && memberId === user.id && <Link href="/invites" aria-current={pathname === "/invites" ? "page" : undefined} onClick={handleNavSelection}>Invites</Link>}
             <Link
-              href="/profile"
-              aria-current={pathname === "/profile" ? "page" : undefined}
+              href="/change-log"
+              aria-current={pathname === "/change-log" ? "page" : undefined}
               onClick={handleNavSelection}
             >
-              My Profile
+              Change Log
+            </Link>
+            <div className="navbar-actions">
+              <button
+                type="button"
+                onClick={onToggleSummer}
+                aria-pressed={summerEnabled}
+                className="navbar-summer-toggle"
+              >
+                {summerEnabled ? "Summer: On" : "Summer: Off"}
+              </button>
+              <div className="navbar-auth">
+                {loading ? (
+                  <div className="navbar-auth-loading" aria-hidden />
+                ) : user ? (
+                  <button
+                    type="button"
+                    onClick={() => { handleNavSelection(); void handleSignOut(); }}
+                    className="navbar-auth-action"
+                  >
+                    Sign Out
+                  </button>
+                ) : (
+                  <Link className="navbar-auth-action" href="/auth" onClick={handleNavSelection}>
+                    Sign In
+                  </Link>
+                )}
+                {loading && <span className="sr-only">Loading authentication controls</span>}
+              </div>
+            </div>
+          </div>
+          {user && (
+            <Link href="/profile" className="navbar-profile-avatar" aria-label="My Profile" title="My Profile"
+              aria-current={pathname === "/profile" ? "page" : undefined} onClick={handleNavSelection}>
+              <PlayerAvatar playerId={user.id} name={user.user_metadata?.display_name || user.user_metadata?.first_name || "Player"} size={32} />
             </Link>
           )}
-          {user && memberId === user.id && <Link href="/invites" aria-current={pathname === "/invites" ? "page" : undefined} onClick={handleNavSelection}>Invites</Link>}
-        </div>
-      </div>
-
-      <div className="navbar-actions">
-        <button
-          onClick={onToggleSummer}
-          aria-pressed={summerEnabled}
-          className="navbar-summer-toggle"
-        >
-          {summerEnabled ? "Summer: On" : "Summer: Off"}
-        </button>
-        <div className="navbar-auth">
-          {loading ? (
-            <div className="navbar-auth-loading" aria-hidden />
-          ) : user ? (
-            <button
-              onClick={handleSignOut}
-              className="navbar-auth-action"
-            >
-              Sign Out
-            </button>
-          ) : (
-            <Link className="navbar-auth-action" href="/auth">
-              Sign In
-            </Link>
-          )}
-          {loading && <span className="sr-only">Loading authentication controls</span>}
         </div>
       </div>
     </nav>

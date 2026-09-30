@@ -1,10 +1,14 @@
 # RDD website design standards
 
-Version: 1.5 • Reference visually reviewed: 2026-09-26 • Updated: 2026-09-28 • Reference: Advanced Statistics (`/stats`)
+Version: 2.0 draft • Updated: 2026-09-30 • Source baseline: `release/next` at `5061360221bf9d80c90aa7b1315ce029cde807e0`
 
 Repository location: `docs/design-standards.md`.
 
 This is the design contract for website interface work. The owner has selected Advanced Statistics as the quality and style reference. The companion [site-wide upgrade plan](sitewide-design-upgrade-plan.md) tracks its active application to the remaining routes.
+
+This revision develops that reference into a concrete style guide for the combined release. The user requested documentation and pointers only on 2026-09-30. No application styling or behavior is changed by this revision. Existing owner decisions remain in force. The owner subsequently selected **D — Plain heading, with an orange terminal period**, on 2026-09-30; section 14 records that approved appearance. New token values, button specifications and header dimensions remain proposals for review, not claims of owner approval or site compliance.
+
+Start with [the release source audit](style-guide-release-next-audit.md) and [the interactive comparison](mockups/style-guide-preview.html). Sections 12–15 give the proposed enforceable contracts; when a proposal is adopted, those contracts take precedence over an observed historical value above. The previous visual review remains dated evidence, not a review of this release.
 
 ## 1. Authority, evidence, and adoption
 
@@ -228,3 +232,154 @@ A changed page or shared component is complete only when the applicable checks p
 - [ ] Remaining defects and unverified conditions are explicit; none are silently counted as passes.
 
 Maintain this document in the same change as an intentional system-wide design decision. An exception must identify the affected route/component, reason, evidence, and review condition. Avoid turning temporary migration debt into permanent design policy.
+
+## 12. Accessibility standard and semantic tokens
+
+Target **WCAG 2.2 Level AA** for future interface work. The requirements below cover common design decisions; they do not replace the full standard or establish conformance. Primary sources checked 2026-09-30:
+
+| Requirement | Acceptance rule | Source |
+| --- | --- | --- |
+| Text contrast | Ordinary text, labels, placeholders, links and button labels: at least 4.5:1. Large text: at least 3:1; large means at least 24 CSS px regular or 18.67 CSS px bold. Compare unrounded ratios. Prefer 4.5:1 even for headings. | [1.4.3](https://www.w3.org/WAI/WCAG22/Understanding/contrast-minimum.html) |
+| Non-text contrast | Information needed to identify controls/states and meaningful graphics: at least 3:1 against adjacent colors. Decorative card separators are distinct from essential field/control boundaries. | [1.4.11](https://www.w3.org/WAI/WCAG22/Understanding/non-text-contrast.html) |
+| Keyboard focus | Visible focus with sufficient adjacent contrast; focused controls must not be entirely obscured. Project preference: fully visible focus, including below sticky navigation. | [2.4.7](https://www.w3.org/WAI/WCAG22/Understanding/focus-visible.html), [2.4.11](https://www.w3.org/WAI/WCAG22/Understanding/focus-not-obscured-minimum.html) |
+| Touch targets | AA minimum is 24×24 CSS px or a permitted exception, including adequate spacing. Project standard: at least 44×44 CSS px for standalone controls, even compact/icon controls. Inline prose links can use the applicable exception. | [2.5.8](https://www.w3.org/WAI/WCAG22/Understanding/target-size-minimum.html) |
+| Zoom and reflow | Text works at 200% resize; ordinary content reflows at 320 CSS px, including the equivalent 400% zoom at a 1280px viewport. Wide data tables may use a bounded, discoverable scroll region. | [1.4.4](https://www.w3.org/WAI/WCAG22/Understanding/resize-text.html), [1.4.10](https://www.w3.org/WAI/WCAG22/Understanding/reflow.html) |
+| Meaning beyond color | Selected, error, winning and provisional states use text, icons, borders or markers as well as color. | [1.4.1](https://www.w3.org/WAI/WCAG22/Understanding/use-of-color.html) |
+
+The project proposes a 3px solid focus outline with 3px offset. This is a local design rule; the area/change-of-contrast specification in [2.4.13 Focus Appearance](https://www.w3.org/WAI/WCAG22/Understanding/focus-appearance.html) is AAA, not AA. Inactive controls have WCAG contrast exceptions, but readable disabled labels remain a project preference. Pending explanations and validation text are active content and must meet text contrast.
+
+### Token ownership
+
+Use three layers: **palette → semantic role → component variant**. A palette color says what it is; a semantic role says where it is safe; a variant combines roles with geometry and interaction. Pages choose a variant, never a new shade or local button radius. Variables alone cannot stop drift if each route assembles its own button.
+
+- Keep the existing `--rdd-*` palette and `--stats-*` compatibility aliases during a later migration. Do not rename every token at once. Existing contrast tests parse some explicit `--stats-*` literals; alias changes need corresponding test updates.
+- Introduce the following proposed roles centrally in `app/globals.css`, only in a separately authorized implementation. The names below **do not exist yet**. A single shared action component and page-header component should own their markup/variants; route CSS owns domain layout, not their colors or dimensions.
+- Put literals in token definitions, not TSX, Tailwind arbitrary colors, route styles, or inline presentation styles. Dynamic chart coordinates and per-player avatar geometry remain legitimate dynamic values.
+- A token change is a system change: review every consuming variant in both themes and on both panel and hero surfaces. Hover, active, selected and focus combinations need their own checks. Composite alpha layers over their actual background; never test only the uncomposited hex.
+
+Proposed semantic color roles (reuse the established palette):
+
+| Proposed role | Light | Dark | Intended use |
+| --- | --- | --- | --- |
+| `--rdd-surface-page` / `--rdd-surface-panel` | Existing `--rdd-page` / `--rdd-panel` | Same aliases | Canvas / cards |
+| `--rdd-text` / `--rdd-text-muted` | Existing `--rdd-ink` / `--rdd-muted` | Same aliases | Ordinary surface text |
+| `--rdd-border-subtle` | Existing `--rdd-border` | Same alias | Decorative dividers only |
+| `--rdd-border-control` | Existing `--input-border` | Same alias | Essential control boundaries |
+| `--rdd-action-primary-bg` | `#f47c20` | `#ff9344` | Main action |
+| `--rdd-action-primary-text` | `#08264d` | `#08264d` | Dark text on orange in both themes |
+| `--rdd-action-primary-hover-bg` | `#ffc28f` | `#ffc28f` | Shared hover, replacing route-specific mixes/filters |
+| `--rdd-action-primary-active-bg` | `#ffac6d` | `#ffac6d` | Shared pressed background |
+| `--rdd-action-secondary-bg` / `-text` | `--rdd-panel` / `--rdd-ink` | Same aliases | Neutral secondary action |
+| `--rdd-action-secondary-hover-bg` | `--rdd-page` | Same alias | Secondary hover |
+| `--rdd-action-secondary-active-bg` | `#e6e9ee` | `#24364e` | Secondary pressed background |
+| `--rdd-on-hero-text` / `-muted` | `#fffaf0` / `#dbe7f4` | Same values | Heading / copy on navy |
+| `--rdd-on-hero-link` / `-border` | `#fffaf0` / `#b8c2d2` | Same values | Inverse link / outlined action |
+| `--rdd-on-hero-hover-bg` / `-active-bg` | `#123d73` / `#164b80` | Same values | Inverse secondary hover / active |
+| `--rdd-focus-on-panel` | `#0366d6` | `#60a5fa` | Focus on ordinary surfaces |
+| `--rdd-focus-on-hero` | `#fffaf0` | `#fffaf0` | Focus on navy surfaces |
+| `--rdd-danger` | `#b42318` | `#ffb4ab` | Destructive text/border on ordinary surfaces |
+| `--rdd-danger-hover-bg` / `-active-bg` | `#fff0ee` / `#ffe0dc` | `#352125` / `#45292d` | Destructive interaction on ordinary surfaces |
+
+Primary orange against a white panel is only 2.71:1. Its dark label passes text contrast, but use `--rdd-border-control` on light surfaces when the silhouette is needed to identify the control. Orange is an accent, not a body-text/link role on white. White text on this orange is also 2.71:1 and fails ordinary text contrast. A focus role safe on white may fail on navy: use the surface-specific role.
+
+Proposed geometry tokens:
+
+| Token | Value | Rule |
+| --- | --- | --- |
+| `--rdd-space-1` through `--rdd-space-8` | `.25, .5, .75, 1, 1.25, 1.5, 2, 3rem` | Shared spacing steps; retain intentional fluid shell/header padding |
+| `--rdd-radius-control` / `-panel` / `-header` | `.55rem` / `1rem` / `1rem` | Controls / ordinary panels / default page headers |
+| `--rdd-control-min-height` / `-min-width` | `2.75rem` / `2.75rem` | 44px at the default 16px root; also enforce a 44px floor |
+| `--rdd-action-font-size` / `-weight` / `-line-height` | `1rem` / `700` / `1.25` | Default action labels |
+| `--rdd-action-pad-y` / `-pad-x` / `-gap` | `.625rem` / `1rem` / `.5rem` | Shared geometry; height grows when labels wrap |
+| `--rdd-action-compact-pad-y` / `-pad-x` / `-font-size` | `.5rem` / `.75rem` / `.875rem` | Dense rows; retain 44px target |
+| `--rdd-content-wide` / `-form` / `-account` | `1240px` / `880px` / `740px` | Shell width variants, always capped at available width |
+| `--rdd-panel-padding` / `--rdd-panel-shadow` | `clamp(1rem, 2vw, 1.5rem)` / `0 10px 26px rgba(8,38,77,.05)` | Shared panel treatment |
+
+For example, a future button consumes `background: var(--rdd-action-primary-bg)` and `border-radius: var(--rdd-radius-control)` in one shared variant. Changing that role updates all consumers. This example is documentation, not a CSS addition.
+
+## 13. Button and control contract
+
+**Proposed default:** orange primary with dark navy text; neutral outlined secondary; underlined quiet action; clearly labeled destructive action. The current `.rdd-action--secondary` is navy and `.rdd-action--outline` is inverse white; migrate their callers deliberately rather than silently changing meanings. There is no generic blue primary variant.
+
+| Variant | When to use | Appearance and states |
+| --- | --- | --- |
+| Primary | Main next action in a task group: Save result, Start a night, Send invitation, Create challenge | Primary tokens; same radius, label weight and padding everywhere. Hover/active use their central roles; focus uses the containing surface's role. |
+| Secondary | Related action: Cancel, Refresh, View history | Panel/text roles and control border on ordinary surfaces; inverse text/border and hero hover/active roles on navy. Equal geometry to primary. |
+| Quiet | Lower-priority navigation or optional detail | Underlined text with ordinary link role or inverse role; no filled box. Standalone actions retain 44px hit area. Hover/active strengthen underline without changing label meaning. |
+| Destructive | Delete, revoke, remove or another destructive task | Danger text and border on panel; shared hover/active roles. Explicit label and existing confirmation/recovery behavior. On hero, place the action on a normal panel rather than inventing a red-on-navy combination. |
+| Selected toggle/tab | Existing choice, filter or mode | Separate selection primitive, not another primary CTA. Expose `aria-pressed` or the appropriate native/tab state and a non-color marker. |
+
+Default and compact are the only proposed action sizes. Compact changes padding/type, not the minimum hit area. Icon-only actions get an accessible name and a 44px square target. Buttons grow to fit translated/long labels; do not use route-specific fixed widths. Full width is a layout option, not a different skin. Preserve natural width unless the task/mobile layout calls for full width.
+
+Shared states:
+
+- **Hover:** only on enabled controls; use the defined hover role, no per-page brightness filter or arbitrary blue.
+- **Active:** use the defined pressed role while activated. Avoid motion that shifts surrounding layout.
+- **Focus:** visible solid outline; do not suppress native focus without an equally visible replacement. Check on canvas, panel and navy.
+- **Disabled:** native `disabled` for unavailable buttons; proposed muted label and subtle background with control border, no blanket opacity that makes unrelated pending copy unreadable. Disabled links need intentional semantics and navigation prevention rather than a button-only attribute.
+- **Pending:** keep geometry stable, prevent duplicate activation, mark the relevant region/action busy, and use a task-specific label such as “Saving result…”. Announce completion/failure. Pending is separate from selected.
+
+Use `<a>`/Next Link for navigation and `<button>` for actions; use `type="button"` except intentional form submission. Different behavior does not justify different padding. Do not alter admission, privacy, save-recovery, game rules, poll limits or binary RSVP states during adoption.
+
+Forms use the same control radius and 44px floor, 1rem input text, visible labels, help/error spacing and strong control borders. Chips, badges, tabs and chart markers have their own role; do not use button variants to imply they can be clicked. Keep success, warning and validation roles separate from positive/negative statistics; define and contrast-check those role pairs before introducing new notification skins.
+
+## 14. Page-title header contract — Plain heading with orange period
+
+This is the title area immediately below the site navigation. The global navbar is a different component.
+
+**Structure to standardize:** optional back link/breadcrumb above the header; optional short eyebrow; one `h1`; brief description; optional context/status; optional primary and secondary actions. Context is not another hero or an arbitrary metric grid. Use the same component in populated, loading, empty, signed-out and error states so identity and spacing do not jump.
+
+**Owner-selected appearance (2026-09-30): D — Plain heading**, based on The Rivalry Room. Include its contrasting **orange period at the end of the page title**, coordinated with the orange eyebrow above it. This is the default family for page-title areas below the navbar, including future compact, standard and feature sizes. Selecting this appearance does not authorize implementation or approve the other proposed dimensions.
+
+The selected treatment has an unboxed heading on the ordinary page canvas, a prominent title in the theme's primary text color, an orange eyebrow when present, and the orange terminal period. Use natural title/name casing. The default title area has no navy/gradient hero background, surrounding card border/shadow, or decorative ring. Feature-specific posters, illustrations and showcase panels can remain separate content below the header.
+
+**Period and accent contract:** append one decorative orange period directly after the display title, with no preceding space. For example, `The Rivalry Room` followed by an orange `.`. Keep the period attached to the final word when wrapping; do not leave it stranded on its own line or create a duplicate period. Do not alter stored names or route labels to add punctuation. Hide the decorative period from assistive technology when it adds no meaning; the title text remains the accessible heading.
+
+Centralize the eyebrow/period accent in a shared semantic role, such as proposed `--rdd-page-heading-accent`, rather than copying `.rr-period` or a hex into every page. Orange is the approved appearance, not an instruction to copy an inaccessible existing shade: the small eyebrow needs 4.5:1 contrast against its actual canvas in each theme. Use a contrast-tested orange text role; its exact light/dark values remain part of the token proposal. The title itself retains its normal text role.
+
+The [comparison preview](mockups/style-guide-preview.html) remains the original exploratory artifact: it compares source-based reconstructions, not screenshots or exact production rendering. Its open-choice labels predate this owner decision; section 14 is the authoritative selection record. The separate proposed controls below it illustrate a consistent button family.
+
+| Reviewed option | Current example | Tradeoff |
+| --- | --- | --- |
+| A — Compact gradient | Home, Matches, Profiles, account pages | Strong identity with restrained height; practical default for repeat tasks |
+| B — Statistics hero | Advanced Statistics | Bold uppercase title and cropped ring; strong introduction, consumes more vertical space |
+| C — Solo hero | Solo Play | Large title, ring and contextual tags; expressive but its own spacing/type system |
+| **D — Plain heading (selected)** | Rivalry Room / League Board; related approach in Planning | Content arrives sooner. Include Rivalry Room's orange terminal period; its showcase remains a separate domain panel below it. |
+
+Proposed implementation structure: one header component with **compact, standard and feature** sizes, all sharing the selected plain-heading family and orange period. A route's size may differ for a concrete task reason; its accent role and action styling should not drift. Size variants do not reintroduce the unselected hero backgrounds or rings.
+
+Proposed dimensions after selection:
+
+| Size | Title / line-height / tracking | Padding | Intended use |
+| --- | --- | --- | --- |
+| Compact | `clamp(1.75rem, 3vw, 2.5rem)` / `1.14` / `-.025em` | `clamp(1rem, 2.5vw, 1.5rem)` | Home, Matches, account tasks; no minimum height |
+| Standard | Same title scale | `clamp(1.25rem, 3vw, 2rem)` | Directories, Planning and Board; no minimum height |
+| Feature | `clamp(2.4rem, 6vw, 4rem)` / `1.05` / `-.045em` | `clamp(1.5rem, 4vw, 3rem)` | Statistics, Solo or League Night landing when a feature introduction helps |
+
+These normalize current geometry; they are not today's CSS and remain proposed. The padding above describes header spacing, not a filled container. Proposed header title weight is 800. Eyebrow: `.75rem`, weight 800, tracking `.15em`; normal description: 1rem, line-height 1.6, max 68ch. Use the selected plain canvas, natural title casing and orange terminal period. Keep long names in their original case.
+
+Proposed shared spacing: `.5rem` text-stack gap, 1rem action-area gap and 1.5rem space before the next content section. Plain headings have no enclosing rounded panel; the panel-radius token remains for actual content panels. At 640px and below, actions move below copy and wrap/stack; titles and the terminal period never clip. Feature headers have no mobile minimum height. Use wrapping/min-width rules instead of truncating names. Preserve back destinations and signed-out access explanations.
+
+Proposed route mapping, subject to owner review:
+
+| Route group | Proposed size | Domain content to retain |
+| --- | --- | --- |
+| `/` | Compact | Leaderboards remain first substantive content |
+| `/matches`, `/auth`, `/auth/verify-email`, `/reset-password`, `/join`, `/invites`, `/profile` | Compact | Account/task state and supported actions |
+| `/profiles`, `/profiles/[id]`, `/change-log` | Standard, compact for narrow account-like detail | Avatar may occupy a named identity slot; preserve long names |
+| `/board`, `/board/[id]`, `/league-night/plan` | Standard | Access label/back link/status; retain binary RSVPs and suggestion cap |
+| `/stats`, `/solo`, `/league-night` landing | Feature | Their own explanatory/context content; active night can use compact |
+| `/rivalries`, pair/challenge pages | Standard | Fight/series showcase remains domain content below the page header |
+| Diagnostics and error routes | Compact where a page header is appropriate | Clear status and safe recovery |
+
+**Decision record — 2026-09-30:** the owner selected D, Plain heading, and requested the orange period used by The Rivalry Room, visually coordinated with its orange eyebrow. This supersedes the earlier open appearance decision. Remaining proposals include final size/spacing values, route size assignments and exact semantic accent values. This decision changes the guide only; site adoption remains separately authorized work.
+
+## 15. Keeping the guide in use
+
+`AGENTS.md` is the automatic project entry point; `README.md` is the human entry point. Both route interface work here. Keep this as the single source of design decisions. A separate skill would currently duplicate a document-reading rule; reconsider one if a repeated audit/migration procedure develops under [skill governance](skill-governance.md).
+
+For later approved UI work: identify the relevant contract, reuse a shared variant, and list any deliberate exception with its component/route, reason, contrast evidence and review condition. Implement the shared primitives first, then migrate a representative data page, a task page and a feature page before expanding. This is a future adoption approach, not authorization to start the migration.
+
+Review against a component gallery containing every variant, size and state on panel and hero backgrounds in both themes. Include 320/390px, tablet and desktop, long labels/names, keyboard use, 200% text zoom and 400% reflow. Use actual rendered foreground/background colors for alpha/gradient states. Existing `lib/stats/contrast.test.ts` covers a subset of palette text pairs; `scripts/qa/review-contrast.spec.mjs` covers Statistics axis/story labels. Neither covers all release controls or establishes WCAG conformance. Expand meaningful coverage only as implementation is authorized.
+
+Documentation-only revisions need local-link checks, consistency review, source/provenance checks and `git diff --check`. Application install/test/build, hosted access and database rehearsal are not required for this documentation change. Changes to application CSS/components later follow the repository's applicable implementation checks and visual acceptance requirements.

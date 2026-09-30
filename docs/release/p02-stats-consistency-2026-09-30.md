@@ -1,7 +1,9 @@
 # P02 Advanced Stats consistency and copy
 
-Status: awaiting owner review. Baseline `f757ed0` on `release/next`.
-P01 was accepted with its shorter introduction; P03 is not started.
+Status: owner accepted 2026-09-30 at app `21f3e53`; baseline `f757ed0`.
+CI run `36787014969` and Vercel passed; the hosted history/ratings matched the
+before-change capture. The owner authorized P03 after acceptance. Earlier
+pending review wording below is implementation evidence, superseded here.
 
 ## Scope and token adoption
 

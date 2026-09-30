@@ -2,6 +2,9 @@
 
 import { useCallback, useEffect, useRef, useState, FormEvent } from 'react';
 import Link from 'next/link';
+import { PageHeader } from '@/components/ui/PageHeader';
+import { ActionLink } from '@/components/ui/ActionLink';
+import { ActionButton } from '@/components/ui/ActionButton';
 import { supabase } from '@/lib/supabaseClient';
 import { formatPlayerName } from '@/lib/playerName';
 import { LinkedPlayerName } from '@/components/LinkedPlayerName';
@@ -68,10 +71,25 @@ type PlayerEntry = {
 
 type MatchesError = { message?: string };
 
+function MatchesHeader({ user }: { user?: User }) {
+  return <PageHeader
+    eyebrow="League play"
+    title="Darts Matches"
+    description={<>
+      <span>Log the result. Follow the league’s latest games.</span>
+      {user && <span className="matches-account-line">Signed in as <strong>{user.email}</strong></span>}
+    </>}
+    actions={user && <>
+      <ActionLink href="/league-night">Open League Night</ActionLink>
+      <span className="rdd-field-help">Shared attendance and quick rematches.</span>
+    </>}
+  />;
+}
+
 export default function MatchesPage() {
   const { user, loading } = useCurrentUser();
-  if (loading) return <main className="page-shell matches-page"><header className="rdd-page-header rdd-page-header--compact"><p className="rdd-eyebrow">League play</p><h1>Matches</h1></header><p className="rdd-state" role="status">Loading matches…</p></main>;
-  if (!user) return <main className="page-shell matches-page"><header className="rdd-page-header rdd-page-header--compact"><p className="rdd-eyebrow">League play</p><h1>Matches</h1></header><p className="rdd-state">You must be signed in to view and add matches.</p><Link href="/auth" className="rdd-action rdd-action--primary">Go to sign in</Link></main>;
+  if (loading) return <main className="page-shell matches-page"><MatchesHeader /><p className="rdd-state" role="status">Loading matches…</p></main>;
+  if (!user) return <main className="page-shell matches-page"><MatchesHeader /><p className="rdd-state">You must be signed in to view and add matches.</p><ActionLink href="/auth" variant="primary">Go to sign in</ActionLink></main>;
   return <MatchesWorkspace key={user.id} user={user} />;
 }
 
@@ -527,7 +545,7 @@ function MatchesWorkspace({ user }: { user: User }) {
   if (loading) {
     return (
       <main className="page-shell matches-page">
-        <header className="rdd-page-header rdd-page-header--compact"><p className="rdd-eyebrow">League play</p><h1>Matches</h1></header>
+        <MatchesHeader />
         <p className="rdd-state" role="status">Loading matches…</p>
       </main>
     );
@@ -536,12 +554,10 @@ function MatchesWorkspace({ user }: { user: User }) {
   if (!user) {
     return (
       <main className="page-shell matches-page">
-        <header className="rdd-page-header rdd-page-header--compact"><p className="rdd-eyebrow">League play</p><h1>Matches</h1></header>
+        <MatchesHeader />
         <p className="rdd-state">You must be signed in to view and add matches.</p>
         <p>
-          <Link href="/auth" className="rdd-action rdd-action--primary">
-            Go to sign in
-          </Link>
+          <ActionLink href="/auth" variant="primary">Go to sign in</ActionLink>
         </p>
       </main>
     );
@@ -549,13 +565,7 @@ function MatchesWorkspace({ user }: { user: User }) {
 
   return (
     <main className="page-shell matches-page">
-      <header className="rdd-page-header rdd-page-header--compact">
-        <p className="rdd-eyebrow">League play</p>
-        <h1>Darts Matches</h1>
-        <p>Record a result or review recent games.</p>
-        <p className="matches-account-line">Signed in as <strong>{user.email}</strong></p>
-        <p><Link href="/league-night" className="rdd-action rdd-action--outline">Open League Night for shared attendance and quick rematches ↗</Link></p>
-      </header>
+      <MatchesHeader user={user} />
 
       {errorMessage && (
         <div className="rdd-state rdd-state--error" role="alert">
@@ -563,33 +573,33 @@ function MatchesWorkspace({ user }: { user: User }) {
         </div>
       )}
       {saveReceipt && <p role="status">✓ {saveReceipt}</p>}
-      {otherRecoveries>0 && <p>{otherRecoveries} other save{otherRecoveries===1?'':'s'} still need checking on this device. <button type="button" disabled={saving || Boolean(pendingSave)} onClick={()=>{
+      {otherRecoveries>0 && <p>{otherRecoveries} other save{otherRecoveries===1?'':'s'} still need checking on this device. <ActionButton type="button" disabled={saving || Boolean(pendingSave)} onClick={()=>{
         const waiting=readPendingSaves(localStorage,matchRecoveryKey(user.id));
         setOtherRecoveries(Math.max(0,waiting.length-1));
         if(waiting[0]) restoreSave(waiting[0]);
-      }}>Review next pending save</button></p>}
+      }}>Review next pending save</ActionButton></p>}
       {savedEntries.length>0 && <section><h2>Saved unsent entries</h2><p>Rejected or released entries stay on this device for 24 hours. Restoring replaces the visible form only after confirmation.</p>{savedEntries.map(entry=><p key={entry.operationId}>
         {entry.payload.game_type || 'Unknown format'} · {new Date(entry.payload.played_at).toLocaleString()} · {entry.payload.players.length} players{' '}
-        <button type="button" disabled={saving || Boolean(pendingSave) || otherRecoveries>0 || recoveredEntryId===entry.operationId} onClick={()=>{if(window.confirm('Replace the visible form with this saved entry?')) restoreSave(entry);}}>Restore saved entry</button>{' '}
-        <button type="button" disabled={saving || Boolean(pendingSave)} onClick={()=>{if(window.confirm('Discard this saved unsent entry? This does not delete any match.')){localStorage.removeItem(pendingSaveKey(matchRecoveryKey(user.id),entry.operationId));setSavedEntries(readSavedEntries(localStorage,matchRecoveryKey(user.id)));if(recoveredEntryId===entry.operationId)setRecoveredEntryId(null);}}}>Discard saved entry</button>
+        <ActionButton type="button" disabled={saving || Boolean(pendingSave) || otherRecoveries>0 || recoveredEntryId===entry.operationId} onClick={()=>{if(window.confirm('Replace the visible form with this saved entry?')) restoreSave(entry);}}>Restore saved entry</ActionButton>{' '}
+        <ActionButton type="button" disabled={saving || Boolean(pendingSave)} onClick={()=>{if(window.confirm('Discard this saved unsent entry? This does not delete any match.')){localStorage.removeItem(pendingSaveKey(matchRecoveryKey(user.id),entry.operationId));setSavedEntries(readSavedEntries(localStorage,matchRecoveryKey(user.id)));if(recoveredEntryId===entry.operationId)setRecoveredEntryId(null);}}}>Discard saved entry</ActionButton>
       </p>)}</section>}
-      {pendingSave && <section style={{ border: '1px solid var(--input-border)', padding: '1rem', borderRadius: '0.75rem' }}>
+      {pendingSave && <section className="rdd-content-panel matches-pending-panel">
         <p>{duplicateMatch ? 'Review the matching result before recording another game.' : 'A submitted match is awaiting confirmation. Its details are kept for a safe retry.'}</p>
-        <button type="button" disabled={saving} onClick={() => {
+        <ActionButton type="button" disabled={saving} onClick={() => {
           if (duplicateMatch) setPendingSave(current => current ? { ...current, payload: { ...current.payload, allow_duplicate: true } } : null);
           setDuplicateMatch(false);
-        }}>{duplicateMatch ? 'This is another game — enable save' : 'Keep this submission for retry'}</button>
-        {duplicateMatch && <button type="button" disabled={saving} onClick={() => {
+        }}>{duplicateMatch ? 'This is another game — enable save' : 'Keep this submission for retry'}</ActionButton>
+        {duplicateMatch && <ActionButton type="button" disabled={saving} onClick={() => {
           // A duplicate response is a confirmed no-write outcome, so it is safe
           // to release this operation while keeping the entered scorecard.
           setPendingSave(null); setDuplicateMatch(false); setErrorMessage(null);
           releaseSave(pendingSave);
           setSaveReceipt('Existing result kept. Your unsaved entry is still here.');
-        }}>Keep existing result / return to draft</button>}
+        }}>Keep existing result / return to draft</ActionButton>}
       </section>}
 
       {/* Add / Edit Match Form */}
-      <section className="rdd-panel matches-form-panel">
+      <section className="rdd-content-panel matches-form-panel">
         <h2 className="rdd-section-title">
           {editingMatchId ? 'Edit Match' : 'Record a New Match'}
         </h2>
@@ -600,7 +610,7 @@ function MatchesWorkspace({ user }: { user: User }) {
         )}
 
         <form onSubmit={handleSaveMatch} aria-busy={saving}>
-          <fieldset disabled={saving || Boolean(pendingSave) || otherRecoveries > 0} className="matches-details">
+          <fieldset disabled={saving || Boolean(pendingSave) || otherRecoveries > 0} className="matches-details rdd-form-fields">
           <legend className="sr-only">Match details</legend>
           <div className="form-row">
             <label htmlFor="playedAt" className="form-label">
@@ -643,7 +653,7 @@ function MatchesWorkspace({ user }: { user: User }) {
             }
             setGameConfig(config);
           }} players={playerEntries.slice(0,numPlayers).map((p,i) => ({id:p.playerId, name:profiles.find(q => q.id === p.playerId)?.display_name ?? `Player ${i+1}`}))} winner={winnerPlayerId} onWinner={setWinnerPlayerId} />
-          {editingMatchId && <section aria-label="Correction preview"><p>Changing the game clears incompatible scores and keeps their original values in the audit.</p><button type="button" disabled={previewing} onClick={previewEdit}>{previewing ? 'Calculating…' : 'Preview correction'}</button>{correction && <div role="status"><p>{correction.from} → {correction.to}. Affected overall ratings:</p>{correction.changes.length ? <ul>{correction.changes.map(p => <li key={p.id}>{p.name}: {p.before.toFixed(1)} → {p.after.toFixed(1)}</li>)}</ul> : <p>No overall rating change. Discipline views and score groups will be recalculated.</p>}<p>Save changes applies the correction; the original result remains in the audit.</p></div>}</section>}
+          {editingMatchId && <section aria-label="Correction preview"><p>Changing the game clears incompatible scores and keeps their original values in the audit.</p><ActionButton type="button" disabled={previewing} onClick={previewEdit}>{previewing ? 'Calculating…' : 'Preview correction'}</ActionButton>{correction && <div role="status"><p>{correction.from} → {correction.to}. Affected overall ratings:</p>{correction.changes.length ? <ul>{correction.changes.map(p => <li key={p.id}>{p.name}: {p.before.toFixed(1)} → {p.after.toFixed(1)}</li>)}</ul> : <p>No overall rating change. Discipline views and score groups will be recalculated.</p>}<p>Save changes applies the correction; the original result remains in the audit.</p></div>}</section>}
           {/* Stat entry mode for 01 games */}
           {isO1 && (
             <div className="form-row">
@@ -687,7 +697,7 @@ function MatchesWorkspace({ user }: { user: User }) {
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
               disabled={saving}
-              placeholder="'Other' game type, e.g."
+              placeholder="Anything worth noting about this game"
               className="form-control"
             />
           </div>
@@ -875,30 +885,30 @@ function MatchesWorkspace({ user }: { user: User }) {
               value={venue}
               onChange={(e) => setVenue(e.target.value)}
               disabled={saving}
-              placeholder="Radio Social, e.g."
+              placeholder="e.g. Radio Social"
               className="form-control"
             />
           </div>
 
           </fieldset>
           <div className="button-row matches-form-actions">
-            <button
+            <ActionButton
               type="submit"
               disabled={saving || duplicateMatch || (otherRecoveries > 0 && !pendingSave)}
-              className="rdd-action rdd-action--primary"
+              variant="primary"
             >
               {saving ? 'Checking save…' : pendingSave ? 'Check / retry save' : editingMatchId ? 'Save changes' : 'Save match'}
-              </button>
+              </ActionButton>
 
             {editingMatchId && !pendingSave && (
-              <button
+              <ActionButton
                 type="button"
                 onClick={resetForm}
-                className="rdd-action"
+                variant="secondary"
                 disabled={saving}
               >
                 Cancel edit
-              </button>
+              </ActionButton>
             )}
           </div>
         </form>
@@ -922,7 +932,7 @@ function MatchesWorkspace({ user }: { user: User }) {
                 return (
                   <li
                     key={m.id}
-                    className="rdd-panel matches-history-card"
+                    className="rdd-content-panel matches-history-card"
                   >
                     <div className="matches-history-card-header">
                       <div>
@@ -936,13 +946,13 @@ function MatchesWorkspace({ user }: { user: User }) {
                         {m.venue && <div>Venue: {m.venue}</div>}
                       </div>
                       {canEdit && (
-                        <button
+                        <ActionButton
                           type="button"
                           onClick={() => handleEditClick(m)}
-                          className="rdd-action"
+                          variant="secondary"
                         >
                           Edit
-                        </button>
+                        </ActionButton>
                       )}
                     </div>
 
@@ -990,25 +1000,25 @@ function MatchesWorkspace({ user }: { user: User }) {
 
             {/* Pagination controls */}
             <div className="rdd-pagination">
-              <button
+              <ActionButton
                 type="button"
                 onClick={() => reloadMatches(currentPage - 1)}
                 disabled={currentPage <= 1}
-                className="rdd-action rdd-action--secondary"
+                variant="secondary"
               >
                 Previous
-              </button>
+              </ActionButton>
               <span>
                 Page {currentPage} of {totalPages}
               </span>
-              <button
+              <ActionButton
                 type="button"
                 onClick={() => reloadMatches(currentPage + 1)}
                 disabled={currentPage >= totalPages}
-                className="rdd-action rdd-action--secondary"
+                variant="secondary"
               >
                 Next
-              </button>
+              </ActionButton>
             </div>
           </>
         )}

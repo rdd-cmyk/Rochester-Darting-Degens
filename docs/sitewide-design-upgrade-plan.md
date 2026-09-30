@@ -5,7 +5,7 @@ Prepared: 2026-09-26 • Status: active; implementation underway
 September 30 continuation: the combined release now starts a separate
 [page consistency and wording plan](page-consistency-and-copy-plan.md), with one
 page per work package and an owner review stop after each page. Its current
-status is P01 owner-accepted and P02 awaiting owner review. Use that plan for this
+status is P01-P02 owner-accepted and P03 awaiting owner review. Use that plan for this
 pass's order and ledger. The M0-M8 material below remains historical context;
 do not execute its whole-site goal as authority to bypass the new review stops.
 The [release checkpoint](release/pre-consistency-checkpoint-2026-09-30.md)

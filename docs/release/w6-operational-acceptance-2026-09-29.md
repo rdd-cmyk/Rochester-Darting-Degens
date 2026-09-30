@@ -276,3 +276,9 @@ and needs an emergency decision. Prefer rollback using new-key artifacts.
 JWT signing-key rotation/revocation and session effects are a separate change.
 See [Supabase migration guidance](https://supabase.com/docs/guides/getting-started/migrating-to-new-api-keys).
 No production credential change or deployment was performed.
+
+
+Intentional [alert rehearsal run 36734728823](https://github.com/rdd-cmyk/Rochester-Darting-Degens/actions/runs/36734728823)
+failed at the monitor step as designed on September 30. The simulation exits
+before any database request; it neither stops cleanup nor changes test data.
+The owner's actual failure-email receipt is pending confirmation.

@@ -1,7 +1,9 @@
 # P01 Home consistency and copy
 
-Status: implementation prepared; owner acceptance pending. Baseline `351a4b0`.
-Only Home adopts the new primitives. P02 is not started.
+Status: owner accepted on 2026-09-30, with the shorter introduction requested below. Baseline `351a4b0`; original app `2d81b61`, evidence `f757ed0`.
+The owner authorized P02 after this acceptance; shared consumers now include Stats.
+
+Accepted copy: “Check the standings, follow the rivalries, and see who holds the bragging rights.” This removes the implication of newly announced results. P01 CI run `36783024402` completed successfully; P02 rechecked Home at 390/1440px in both themes after applying the requested line. Earlier pending-acceptance wording below is dated implementation evidence, superseded by this decision.
 
 ## Visual and source scope
 

@@ -2,6 +2,8 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
+import { PageHeader } from '@/components/ui/PageHeader';
+import { ActionLink } from '@/components/ui/ActionLink';
 
 import { RatingTrendChart } from '@/components/stats/RatingTrendChart';
 import { StatsStoryCard } from '@/components/stats/StatsStoryCard';
@@ -260,26 +262,18 @@ export default function AdvancedStatsPage() {
 
   return (
     <main className="stats-page-shell">
-      <section className="stats-hero">
-        <div>
-          <p className="stats-kicker">RDD League Lab</p>
-          <h1>Advanced Statistics</h1>
-          <p className="stats-hero-copy">
-            Opponent-adjusted power ratings, current form, schedule difficulty, and
-            performance consistency—built from recorded league matches.
-          </p>
-        </div>
-        <div className="stats-hero-actions">
-          <Link href="/matches" className="stats-primary-action">
-            Record a match
-          </Link>
-          <a href="#methodology" className="stats-secondary-action">
-            How ratings work
-          </a>
-        </div>
-      </section>
+      <PageHeader
+        size="feature"
+        eyebrow="RDD League Lab"
+        title="Advanced Statistics"
+        description="Go beyond the win column. Compare power ratings, current form, strength of schedule and consistency—all built from recorded league matches."
+        actions={<>
+          <ActionLink href="/matches" variant="primary">Record a match</ActionLink>
+          <ActionLink href="#methodology">How ratings work</ActionLink>
+        </>}
+      />
 
-      <section className="stats-filter-panel" aria-label="Advanced statistics filters">
+      <section className="stats-filter-panel rdd-filter-group" aria-label="Advanced statistics filters">
         <label>
           <span>Game type</span>
           <select
@@ -341,7 +335,7 @@ export default function AdvancedStatsPage() {
         </div>
       </section>
 
-      <div className="stats-filters">
+      <div className="stats-filters rdd-filter-group">
         <label>Competition format<select aria-label="Competition format" value={formatFilter} onChange={e => {setFormatFilter(e.target.value);setScoreCohort('All');}}>{['All','Singles','Free-for-all','2v2','3v3'].map(f => <option key={f}>{f}</option>)}</select></label>
         <label>Comparable score group<select aria-label="Comparable score group" value={scoreCohort} onChange={e => setScoreCohort(e.target.value)}><option value="All">All rules — combined results</option>{Array.from(new Map(facts.filter(f => gameType === 'All' || f.gameType === gameType).map(f => [comparisonKey(f.gameType,f.boardType,f.gameConfig),f])).entries()).map(([key,f]) => <option value={key} key={key}>{f.gameType} · {f.boardType ?? 'Unknown board'} · {formatLabel(f.gameConfig?.format)} · {presetLabel(f.gameType,f.gameConfig)}</option>)}</select></label>
       </div>
@@ -375,7 +369,7 @@ export default function AdvancedStatsPage() {
           <div className="rdd-actions">
             <button
               type="button"
-              className="rdd-action rdd-action--primary"
+              className="rdd-page-action rdd-page-action--primary"
               onClick={() => setReloadVersion((version) => version + 1)}
             >
               Retry loading stats
@@ -391,14 +385,14 @@ export default function AdvancedStatsPage() {
           <p className="stats-eyebrow">Sign-in check unavailable</p>
           <h2>We could not verify your account.</h2>
           <p>Refresh the page or try signing in again.</p>
-          <Link href="/auth" className="stats-sign-in-link">Go to sign in</Link>
+          <ActionLink href="/auth" variant="primary">Go to sign in</ActionLink>
         </section>
       ) : !userId ? (
         <section className="stats-empty-state">
           <p className="stats-eyebrow">Members only</p>
           <h2>Sign in to see league statistics.</h2>
           <p>Your league data becomes available after you sign in.</p>
-          <Link href="/auth" className="stats-sign-in-link">Go to sign in</Link>
+          <ActionLink href="/auth" variant="primary">Go to sign in</ActionLink>
         </section>
       ) : loading ? (
         <section className="stats-loading" aria-live="polite">
@@ -428,7 +422,7 @@ export default function AdvancedStatsPage() {
             <div className="stats-section-heading">
               <div>
                 <p className="stats-eyebrow">League pulse</p>
-                <h2 id="league-stories-title">What is happening right now</h2>
+                <h2 id="league-stories-title">The league picture</h2>
               </div>
               <p>{eligiblePlayers.length} players meet the current sample threshold.</p>
             </div>

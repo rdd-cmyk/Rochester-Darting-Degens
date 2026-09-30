@@ -376,12 +376,9 @@ Proposed route mapping, subject to owner review:
 
 ## 15. Keeping the guide in use
 
-P01 implementation candidate, 2026-09-30: Home is the first opt-in consumer of
-`components/ui/PageHeader.tsx` and `ActionLink.tsx`, with central spacing,
-geometry, accent/focus and action roles in `app/globals.css`. Other pages retain
-their existing variants. See the [P01 record](release/p01-home-consistency-2026-09-30.md)
-and [page ledger](page-consistency-and-copy-plan.md). These adopted source values
-are pending owner visual acceptance, not blanket approval of every draft token.
+P01 accepted, 2026-09-30: Home uses the opt-in `PageHeader` and `ActionLink` family and central geometry/action roles. The owner accepted the appearance and requested a shorter introduction, now applied.
+
+P02 candidate: Stats reuses those components and adopts the shared `.rdd-filter-group` surface/control roles. Home and Stats are the header/action consumers; Stats alone adopts the filter surface. The selected feature size, existing 2rem section-gap role and matching filter panels await P02 review. Other pages retain their existing variants. See the [P01 record](release/p01-home-consistency-2026-09-30.md), [P02 record](release/p02-stats-consistency-2026-09-30.md) and [page ledger](page-consistency-and-copy-plan.md). This is no blanket approval of every draft token.
 
 `AGENTS.md` is the automatic project entry point; `README.md` is the human entry point. Both route interface work here. Keep this as the single source of design decisions. A separate skill would currently duplicate a document-reading rule; reconsider one if a repeated audit/migration procedure develops under [skill governance](skill-governance.md).
 

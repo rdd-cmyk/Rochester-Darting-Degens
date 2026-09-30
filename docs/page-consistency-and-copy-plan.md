@@ -1,6 +1,6 @@
 # Page consistency and league voice plan
 
-Prepared: 2026-09-30. Status: **P01 awaiting owner review; all other pages unstarted**.
+Prepared: 2026-09-30. Status: **P01 accepted; P02 awaiting owner review; P03-P24 unstarted**.
 Baseline: `release/next` at `351a4b0253f2c7f05d7a70708597d1c847977c65`.
 
 Before this plan was written, the release position was saved in the
@@ -105,8 +105,8 @@ early, then competition/community pages, then account and utility pages.
 
 | Package | One page / primary source | Small consistency and wording focus | Behaviors and states to protect | Status |
 | --- | --- | --- | --- | --- |
-| P01 | Home `/` — `app/page.tsx` | Compact plain title, standings copy, shared table/section/control spacing; establish minimum reusable roles. | Overall leaderboard first; all other existing tables, sorting, selection, player links, sample/record meanings, loading/empty/access/failure states. | Awaiting owner review |
-| P02 | Advanced Stats `/stats` — `app/stats/page.tsx` | Align title/actions/filters with P01 while retaining analytical content; review broadcast introductions and precise methodology. | Filters, eligibility versus match counts, chart geometry/series, exact history, provisional badges, scored-game counts, numerical outputs and bounded overflow. | Not started |
+| P01 | Home `/` — `app/page.tsx` | Compact plain title, standings copy, shared table/section/control spacing; establish minimum reusable roles. | Overall leaderboard first; all other existing tables, sorting, selection, player links, sample/record meanings, loading/empty/access/failure states. | Accepted |
+| P02 | Advanced Stats `/stats` — `app/stats/page.tsx` | Align title/actions/filters with P01 while retaining analytical content; review broadcast introductions and precise methodology. | Filters, eligibility versus match counts, chart geometry/series, exact history, provisional badges, scored-game counts, numerical outputs and bounded overflow. | Awaiting owner review |
 | P03 | Matches `/matches` — `app/matches/page.tsx` | Common task header, participant fields, actions, validation and history cards; concise result-entry instructions. | Existing game/team modes, winner, units, date/board/venue/notes, create/edit/cancel, permissions, pending saves, exact retry and history pagination. | Not started |
 | P04 | League Night `/league-night` — `app/league-night/page.tsx` | Consistent night setup, attendance, score-entry sections, recap, TV/share controls and modal presentation; announcer-style recap copy. | Creation/resume, attendance, individual/team saves, rematch, recovery, practice classification, awards, refresh stability, poster preview and export. | Not started |
 | P05 | Night Planning `/league-night/plan` — `app/league-night/plan/page.tsx` | Align poll/suggestion/RSVP controls and status wording; keep the next-night energy. | Organizer/member differences, hidden open-poll tallies/authors, own withdrawal, two-suggestion cap, poll close/schedule and binary RSVP states. | Not started |
@@ -180,7 +180,8 @@ accepted pages. Keep the package table current and add a ledger row per package:
 | Package | Source SHA / preview identity | Visual and copy delta / shared dependencies | Checks and evidence | Owner acceptance / limits | Next action |
 | --- | --- | --- | --- | --- | --- |
 | Plan | Baseline `351a4b0`; documentation only | Release checkpoint saved; 24 page packages inventoried. | Source/route/link/whitespace review only; no implementation verification claimed. | All packages unstarted. | Owner chooses to start P01, or requests a different first page. |
-| P01 | App `2d81b61`; stable release/next preview | Plain Home heading, shared action/spacing tokens, broadcast intro; Home is the only adopter. | 578 tests, coverage, lint, types, build passed; eight local theme/width checks; hosted signed-in records and 701 filter verified. See Home review record. | Awaiting owner visual/copy acceptance; phone/zoom review remains human. | Review P01; do not begin P02 yet. |
+| P01 | App `2d81b61`, evidence `f757ed0`; shorter copy in P02 commit | Shared heading/actions/spacing retained. | Original checks and CI passed; Home rechecked in P02. | Owner accepted 2026-09-30 with shorter intro. | Accepted; preserve this appearance. |
+| P02 | Baseline `f757ed0`; publication identity in QA packet | Stats reuses heading/actions and new shared filter roles; Home copy acceptance applied. | Full local checks passed; eight Stats theme/width checks, filters/states/focus/contrast and Home/Matches smoke. See P02 record. | Awaiting owner visual/copy acceptance; phone/zoom review remains human. | Review P02; do not start P03. |
 
 Keep screenshots and private synthetic fixture details in the existing ignored
 QA locations; store a concise sanitized summary in `docs/`. Do not put credentials,
@@ -206,4 +207,4 @@ and execute W7's exact artifact/SQL packet and owner go/no-go. W8 still needs th
 fresh protected backup, drained write pause, approved production cutover and
 observation. A UI pass cannot count as production or DB rehearsal evidence.
 
-P01 implementation and verification: [Home review record](release/p01-home-consistency-2026-09-30.md). User authorized P01 after the planning checkpoint; owner acceptance remains pending. P02 has not started.
+P01 accepted by the owner on 2026-09-30 with the shorter introduction: “Check the standings, follow the rivalries, and see who holds the bragging rights.” The owner authorized P02 in the same message. [P02 review record](release/p02-stats-consistency-2026-09-30.md) records the token adoption and checks. Do not start P03 before P02 acceptance and authorization.

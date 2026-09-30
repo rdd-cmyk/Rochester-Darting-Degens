@@ -973,7 +973,7 @@ export default function Home() {
       <PageHeader
         eyebrow="Rochester Darting Degens"
         title="Darts Night Leaderboards"
-        description="The standings are in. Check the records, follow the rivalries, and see who has the bragging rights."
+        description="Check the standings, follow the rivalries, and see who holds the bragging rights."
         actions={<>
             {!authLoading && !user && (
               <ActionLink href="/auth" variant="primary">Sign in</ActionLink>

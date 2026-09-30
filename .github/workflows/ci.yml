@@ -3,16 +3,31 @@ name: CI
 on:
   push:
   pull_request:
+  workflow_dispatch:
+    inputs:
+      cleanup_monitor:
+        description: Run the isolated testing cleanup monitor
+        type: boolean
+        default: false
+      simulate_cleanup_failure:
+        description: Rehearse a cleanup failure notification (intentional failed run)
+        type: boolean
+        default: false
+  # GitHub runs schedules from the default branch only. This schedule becomes
+  # active only after the separately approved release merges this workflow.
+  schedule:
+    - cron: '30 7 * * *'
 
 permissions:
   contents: read
 
 concurrency:
-  group: ci-${{ github.workflow }}-${{ github.ref }}
+  group: ci-${{ github.workflow }}-${{ github.ref }}-${{ github.event_name }}-${{ inputs.cleanup_monitor }}
   cancel-in-progress: true
 
 jobs:
   verify:
+    if: github.event_name != 'schedule' && !(github.event_name == 'workflow_dispatch' && inputs.cleanup_monitor)
     name: Node 24 verification
     runs-on: ubuntu-latest
     timeout-minutes: 20
@@ -49,3 +64,19 @@ jobs:
 
       - name: Build production application
         run: npm run build
+
+  testing-cleanup-monitor:
+    if: github.event_name == 'schedule' || (github.event_name == 'workflow_dispatch' && inputs.cleanup_monitor)
+    name: RDD Release Testing cleanup health
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version-file: .nvmrc
+      - name: Verify isolated cleanup health
+        env:
+          RDD_TESTING_MONITOR_KEY: ${{ secrets.RDD_TESTING_MONITOR_KEY }}
+          RDD_TESTING_MONITOR_SIMULATE_FAILURE: ${{ inputs.simulate_cleanup_failure }}
+        run: node scripts/qa/w6-cleanup-monitor.mjs

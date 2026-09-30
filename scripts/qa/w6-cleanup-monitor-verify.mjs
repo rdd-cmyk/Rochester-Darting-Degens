@@ -1,0 +1,20 @@
+import assert from 'node:assert/strict';
+import { execFileSync } from 'node:child_process';
+import path from 'node:path';
+import { admin,client,fixture,sql } from './w6-test-client.mjs';
+import { root } from '../local-environment.mjs';
+assert.equal((await admin.rpc('rdd_test_cleanup_health')).data?.healthy,true);
+const member = client();
+assert.equal((await member.auth.signInWithPassword({email:fixture.people[0].email,password:fixture.password})).error,null);
+assert((await member.rpc('rdd_test_cleanup_health')).error);
+assert((await client().rpc('rdd_test_cleanup_health')).error);
+sql(`begin; select cron.alter_job((select jobid from cron.job where jobname='rdd-test-invite-cleanup'),active:=false);
+ do $$ begin if (public.rdd_test_cleanup_health()->>'healthy')::boolean then raise exception 'Inactive cleanup falsely healthy'; end if; end $$; rollback;`);
+assert.equal((await admin.rpc('rdd_test_cleanup_health')).data?.healthy,true);
+const script=path.join(root,'scripts','qa','w6-cleanup-monitor.mjs');
+const env={...process.env,RDD_TESTING_MONITOR_KEY:admin.supabaseKey};
+execFileSync(process.execPath,[script],{env,stdio:['ignore','pipe','pipe'],windowsHide:true,timeout:60000});
+let failed=false;
+try{execFileSync(process.execPath,[script],{env:{...env,RDD_TESTING_MONITOR_SIMULATE_FAILURE:'true'},stdio:['ignore','pipe','pipe'],windowsHide:true});}catch{failed=true;}
+assert(failed);
+console.log('PASS: service-only health API; members/anonymous denied; inactive scheduler detected; CLI success and intentional failure verified. GitHub alert delivery still pending.');

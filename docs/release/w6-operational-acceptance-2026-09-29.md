@@ -4,7 +4,8 @@
 owner's account decisions, and the first preview inspection are complete. Test
 email configuration and invitation submission were verified on September 30;
 owner-reported inbox receipt, verification, join and subsequent login passed on
-Pixel Chrome. Password recovery remains open. The write-pause exercise,
+Pixel Chrome. The owner confirmed password recovery acceptance on the corrected
+September 30 preview. The write-pause exercise,
 credential rotation, operational
 ownership, and the owner's phone walkthrough are still open. This record is not
 approval to deploy to production. No production data, Auth, SQL, or configuration
@@ -77,7 +78,8 @@ was changed during W6.
   report on September 30; inbox placement remains a deliverability concern for
   release monitoring. This does not establish password recovery acceptance or
   acceptance of the remaining phone feature walkthrough.
-- Password recovery remains pending.
+- Password recovery initially failed; the corrected preview now passes owner
+  acceptance as recorded at the end of this item.
   Owner testing confirmed the recovery email arrives, but the deployed W1 app
   consumed the recovery fragment during SDK initialization, signed the user in,
   and showed a false missing-reset-session error. The W3 client fix disabling
@@ -94,7 +96,14 @@ was changed during W6.
   success remains visible with an explicit Continue to Matches action and
   accurately states that the recovery session is signed in. Regression tests
   cover page-state preservation across sign-in/account switches and the success
-  screen. Owner retest and explicit login with the new password remain pending.
+  screen. The owner confirmed the requested recovery retest successful on the
+  new preview (`02c3cd61a08f2987d96656bee939cc10c9657e62`) on September 30,
+  following the instructions to complete a fresh reset and sign out/login with
+  the new password. Password recovery acceptance is passed by owner report.
+  Vercel deployment `BorGPtpi8wGW23BaeZJ76HKwjPVc` was verified Ready. Local
+  full-suite coverage run passed 547 tests, plus the added avatar-cache isolation
+  test passed in its focused four-test file; lint, typecheck and build passed.
+  The repeated-email Gmail display concern below remains separate.
 - The owner reports later recovery emails arrive in the inbox but Gmail groups
   and collapses their repeated content as quoted text. Expanding reveals the
   complete email. Treat this as a recipient display concern, not missing mail;
@@ -111,8 +120,8 @@ was changed during W6.
 2. Establish a verified sender/domain and Supabase Auth SMTP for the test
    project. The owner controls `linford585@yahoo.com` and
    `linford585test@gmail.com` for delivery tests. Test SMTP is now configured;
-   real invitation and verification delivery passed by owner report; recovery
-   remains to be accepted. Default Supabase email is not evidence of normal recipient
+   real invitation, verification and password recovery passed by owner report.
+   Default Supabase email is not evidence of normal recipient
    delivery. Use a dedicated Resend API key and verified `RDD_INVITE_FROM` for
    invitation mail, and configure Auth SMTP separately for verification and
    recovery. Keep all keys server-only and out of chat/repository files.
@@ -179,3 +188,57 @@ W6 can close only after the open configuration, delivery/recovery, cleanup,
 write-pause, credential and owner walkthrough evidence is attached. W7 remains
 the separate production go/no-go decision; W8 is the separately authorized
 cutover.
+
+
+## September 30 operational rehearsal checkpoint
+
+The owner approved retaining invitation and recipient history for this release,
+and owns cleanup-failure response. The owner also explicitly approved copying
+only RDD Release Testing's default secret API key into repository secret
+`RDD_TESTING_MONITOR_KEY`. It was transferred through process memory/stdin;
+no credential was printed or saved in tracked files.
+
+- Test Auth public signup is disabled; email login/confirmation remain enabled.
+  Direct uninvited signup returned `signup_disabled` without changing Auth count.
+  Existing fictional-member login and service-admin account provisioning passed.
+  The real owner invite/join acceptance preceded this switch; a complete delivered
+  invitation join after the switch is still useful final regression evidence.
+- Test-only pg_cron cleanup `rdd-test-invite-cleanup` is active daily at 07:15 UTC,
+  with command `select public.invite_cleanup()`. A real scheduler run succeeded.
+  Invitation history was preserved and ordinary-member invocation was denied.
+- Test write pause disabled the Data API and preview invitations. A JWT acquired
+  before the pause could neither invoke the save RPC nor insert directly. Public
+  signup remained denied; original match/participant fingerprints and Auth count
+  were unchanged; operator SQL access remained available. Signed-in preview UI
+  showed invitations unavailable and its Send button disabled. An unauthenticated
+  terminal request returned Vercel protection's 401, which is not app-denial proof.
+- The Data API and branch-scoped preview invitation flag were restored. Existing
+  login, one fictional atomic save, and exact operation replay passed. Original
+  records remained identical. Preview deployment `BuWf9pFPqwEAXRWMcARWdp87LZSM`
+  was Ready for application revision `02c3cd6`; browser Send was enabled again.
+- The test-only health RPC returns only a boolean and is service-only. Anonymous
+  and ordinary-member access were denied; an inactive job was detected inside a
+  rolled-back transaction. The monitor CLI passed live health and intentional
+  failure tests. Its fixture is excluded from the production SQL manifest.
+
+The CI workflow supports manual testing-monitor runs on `release/next` and a
+07:30 UTC daily schedule. Scheduled Actions only activate on the default branch;
+this schedule remains pending the separately approved merge into `main`. Do not
+merge solely to activate monitoring. GitHub execution and actual owner failure
+notification receipt must be recorded separately from local monitor proof.
+
+On an alert, inspect the test project's Cron job and run history, confirm its
+active flag/schedule/command, resolve the cause, invoke `public.invite_cleanup()`
+as an operator if a retry is needed, and rerun the GitHub monitor. Preserve
+invitation history. A manual cleanup alone does not repair a failing schedule.
+The next scheduled successful run must clear health; unexplained data changes
+or member access require stopping and investigation.
+
+Evidence is in ignored `.local/release-w6-testing/`: `cleanup-schedule.json`,
+`write-pause-result.json`, and dated signup/pause/restoration screenshots.
+Private fixture credentials and the pre-pause JWT remain ignored and must never
+be attached to GitHub or copied into release documents. Production was untouched.
+Earlier open-item prose above describes the earlier checkpoint; this checkpoint
+supersedes its test signup, scheduling and write-pause status. Broader owner
+walkthrough, monitor receipt/activation and production credential controls remain
+open; W7 go/no-go and W8 production cutover still require separate approval.

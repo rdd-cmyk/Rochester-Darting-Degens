@@ -23,8 +23,8 @@ passed with owner-accepted recovery limits: downtime of 48 hours or more is
 acceptable, but committed records must not be lost. W5's
 [protected production-shaped rehearsal](release/w5-production-shaped-2026-09-29.md)
 also passed locally, including exact original-row preservation and compatible
-app rollback. W6-W8 remain open. No
-hosted SQL or production rollout was performed.
+app rollback. W6-W8 remain open. The isolated test project now has the reviewed SQL for W6 acceptance. No
+production hosted SQL or production rollout was performed.
 
 Status: advanced-statistics PR #69 merged; League Night Mode implemented and locally verified; hosted database changes deferred
 

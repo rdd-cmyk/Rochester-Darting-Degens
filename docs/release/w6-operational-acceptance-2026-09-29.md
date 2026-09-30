@@ -1,6 +1,12 @@
 # W6 operational and owner acceptance record — 2026-09-29
 
-**Status: in progress.** Hosted schema, synthetic data/RLS/RPC acceptance, the
+**Current resume status, 2026-09-30:** substantial acceptance passed; final W6
+closeout remains open for the changed app candidate. The owner's requested
+page-by-page UI/copy pass precedes W7. See the [release checkpoint](pre-consistency-checkpoint-2026-09-30.md)
+for completed alert/phone checks, both SQL amendments and remaining gates.
+The older status paragraph below is historical; later dated entries supersede it.
+
+**Initial status: in progress.** Hosted schema, synthetic data/RLS/RPC acceptance, the
 owner's account decisions, and the first preview inspection are complete. Test
 email configuration and invitation submission were verified on September 30;
 owner-reported inbox receipt, verification, join and subsequent login passed on

@@ -376,6 +376,13 @@ Proposed route mapping, subject to owner review:
 
 ## 15. Keeping the guide in use
 
+P01 implementation candidate, 2026-09-30: Home is the first opt-in consumer of
+`components/ui/PageHeader.tsx` and `ActionLink.tsx`, with central spacing,
+geometry, accent/focus and action roles in `app/globals.css`. Other pages retain
+their existing variants. See the [P01 record](release/p01-home-consistency-2026-09-30.md)
+and [page ledger](page-consistency-and-copy-plan.md). These adopted source values
+are pending owner visual acceptance, not blanket approval of every draft token.
+
 `AGENTS.md` is the automatic project entry point; `README.md` is the human entry point. Both route interface work here. Keep this as the single source of design decisions. A separate skill would currently duplicate a document-reading rule; reconsider one if a repeated audit/migration procedure develops under [skill governance](skill-governance.md).
 
 For later approved UI work: identify the relevant contract, reuse a shared variant, and list any deliberate exception with its component/route, reason, contrast evidence and review condition. Implement the shared primitives first, then migrate a representative data page, a task page and a feature page before expanding. This is a future adoption approach, not authorization to start the migration.

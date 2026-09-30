@@ -9,6 +9,8 @@ import { supabase } from '@/lib/supabaseClient';
 import { formatPlayerName } from '@/lib/playerName';
 import { LinkedPlayerName } from '@/components/LinkedPlayerName';
 import BoardPreview from '@/components/board/BoardPreview';
+import { PageHeader } from '@/components/ui/PageHeader';
+import { ActionLink } from '@/components/ui/ActionLink';
 import type { User } from '@supabase/supabase-js';
 
 type Profile = {
@@ -968,21 +970,18 @@ export default function Home() {
     >
       {authErrorMessage && <p className="rdd-state rdd-state--error" role="alert">{authErrorMessage}</p>}
 
-      {/* Intro / hero */}
-      <header className="home-header rdd-page-header rdd-page-header--compact">
-        <div className="home-header-copy">
-          <p className="rdd-eyebrow">Rochester Darting Degens</p>
-          <h1>Darts Night Leaderboards</h1>
-          <p>Follow the standings, then explore match history and advanced stats.</p>
-          <div className="rdd-actions">
+      <PageHeader
+        eyebrow="Rochester Darting Degens"
+        title="Darts Night Leaderboards"
+        description="The standings are in. Check the records, follow the rivalries, and see who has the bragging rights."
+        actions={<>
             {!authLoading && !user && (
-              <Link href="/auth" className="rdd-action rdd-action--primary">Sign in</Link>
+              <ActionLink href="/auth" variant="primary">Sign in</ActionLink>
             )}
-            <Link href="/matches" className="rdd-action rdd-action--primary">{user ? 'Record a match' : 'View matches'}</Link>
-            <Link href="/stats" className="rdd-action rdd-action--outline">Advanced Stats</Link>
-          </div>
-        </div>
-        <div className="home-header-logo">
+            <ActionLink href="/matches" variant={user ? 'primary' : 'secondary'}>{user ? 'Record a match' : 'View matches'}</ActionLink>
+            <ActionLink href="/stats">Advanced Stats</ActionLink>
+        </>}
+        identity={
           <Image
             src="/rdd-logo.png"
             alt="Rochester Darting Degens logo"
@@ -991,8 +990,8 @@ export default function Home() {
             className="home-logo-image"
             priority
           />
-        </div>
-      </header>
+        }
+      />
 
       {/* Overall W/L Leaderboard */}
       <section className="home-leaderboard" aria-labelledby="overall-leaderboard-title">

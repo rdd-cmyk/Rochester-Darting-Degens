@@ -2,6 +2,15 @@
 
 Prepared: 2026-09-26 • Status: active; implementation underway
 
+September 30 continuation: the combined release now starts a separate
+[page consistency and wording plan](page-consistency-and-copy-plan.md), with one
+page per work package and an owner review stop after each page. Its current
+status is planning only; no new UI work has started. Use that plan for this
+pass's order and ledger. The M0-M8 material below remains historical context;
+do not execute its whole-site goal as authority to bypass the new review stops.
+The [release checkpoint](release/pre-consistency-checkpoint-2026-09-30.md)
+preserves the W6/W7 return point.
+
 Release integration checkpoint, 2026-09-29: the owner authorized merging the
 updated PR #75 branch at `804b74f` into `release/next`. The
 [integration record](release/pr75-ui-integration.md) supersedes standalone UI

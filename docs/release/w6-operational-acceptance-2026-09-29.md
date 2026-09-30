@@ -284,3 +284,10 @@ before any database request; it neither stops cleanup nor changes test data.
 The owner confirmed receiving the failure email on September 30; alert delivery
 is passed by owner report. The daily GitHub schedule still awaits the approved
 default-branch merge, while the test database cleanup schedule is active.
+
+
+The owner attested on September 30 that only this Vercel website consumes the
+production Supabase keys. External-consumer inventory is accepted by owner
+report; existing deployment bundles/open tabs and compatible rollback still
+need the reviewed key migration controls. Normal [monitor rerun 36734946817](https://github.com/rdd-cmyk/Rochester-Darting-Degens/actions/runs/36734946817)
+succeeded after the intentional alert. The broader phone walkthrough is pending.

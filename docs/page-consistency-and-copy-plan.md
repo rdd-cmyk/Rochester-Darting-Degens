@@ -180,6 +180,7 @@ accepted pages. Keep the package table current and add a ledger row per package:
 | Package | Source SHA / preview identity | Visual and copy delta / shared dependencies | Checks and evidence | Owner acceptance / limits | Next action |
 | --- | --- | --- | --- | --- | --- |
 | Plan | Baseline `351a4b0`; documentation only | Release checkpoint saved; 24 page packages inventoried. | Source/route/link/whitespace review only; no implementation verification claimed. | All packages unstarted. | Owner chooses to start P01, or requests a different first page. |
+| P01 | App `2d81b61`; stable release/next preview | Plain Home heading, shared action/spacing tokens, broadcast intro; Home is the only adopter. | 578 tests, coverage, lint, types, build passed; eight local theme/width checks; hosted signed-in records and 701 filter verified. See Home review record. | Awaiting owner visual/copy acceptance; phone/zoom review remains human. | Review P01; do not begin P02 yet. |
 
 Keep screenshots and private synthetic fixture details in the existing ignored
 QA locations; store a concise sanitized summary in `docs/`. Do not put credentials,
@@ -206,4 +207,3 @@ fresh protected backup, drained write pause, approved production cutover and
 observation. A UI pass cannot count as production or DB rehearsal evidence.
 
 P01 implementation and verification: [Home review record](release/p01-home-consistency-2026-09-30.md). User authorized P01 after the planning checkpoint; owner acceptance remains pending. P02 has not started.
-

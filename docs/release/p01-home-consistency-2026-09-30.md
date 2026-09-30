@@ -53,3 +53,6 @@ do not begin P02 before the owner accepts P01.
 
 Local browser checks: populated Home at 320, 390, 768 and 1440 CSS pixels in both light and dark themes; no page-level horizontal overflow. Long names wrap and wide tables retain bounded horizontal scrolling. Player sorting, Cricket selection, keyboard action focus, signed-out actions and settled empty/read-error states passed. Stats and Matches retain their existing headers in adjacent-page smoke checks. Physical phone and browser zoom acceptance remain owner review items. Hosted signed-in confirmation follows publication to the stable preview. No hosted data writes were used.
 
+
+Published app: 2d81b61915911865207afd011191b22500e12423. Vercel reported success for this commit; stable release/next preview shows the new header and signed-in Record a match action. Hosted test records loaded and selecting the available 701 filter changed its table as expected. Desktop and 390px phone captures are in the ignored QA directory. Rendered navigation action heights were 44px. Remote branch equality was verified. No production deployment, configuration, SQL or data changes occurred.
+

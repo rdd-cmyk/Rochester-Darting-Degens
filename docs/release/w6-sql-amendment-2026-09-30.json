@@ -6,11 +6,11 @@
   "production_status": "deferred; W7 must stage and rehearse this additional step",
   "files": [
     {
-      "path": "supabase\\tests\\fixtures\\w6_poll_privacy_solo_701.sql",
+      "path": "supabase/tests/fixtures/w6_poll_privacy_solo_701.sql",
       "sha256_lf": "5a25ccd33d6732b08cae1cc48e9acbb2653400a592aad7ec901761fe7bf74fd9"
     },
     {
-      "path": "supabase\\tests\\fixtures\\w6_poll_privacy_solo_701.test.sql",
+      "path": "supabase/tests/fixtures/w6_poll_privacy_solo_701.test.sql",
       "sha256_lf": "f7231ab87671de50e3fd869d48b5805d76760bb37cb7e405361b19dc9bca28d2"
     }
   ],

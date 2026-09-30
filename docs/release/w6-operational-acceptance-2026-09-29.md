@@ -410,4 +410,22 @@ application rows. No production project or backup was modified.
 
 Trusted install, all 573 tests with coverage, lint, typecheck and production build
 passed. Dependency audit findings remain the separate patch gate noted above.
-Hosted visual verification and publication results will be recorded after deployment.
+Published app revision `b24cba16562e6a20469a2e7743b549cddcbbf291` passed
+[GitHub CI 36763821294](https://github.com/rdd-cmyk/Rochester-Darting-Degens/actions/runs/36763821294)
+and Preview deployment record `6767920220`, with exact URL
+https://rochester-darting-degens-fh1to9lgz-tims-projects-b7b7f743.vercel.app .
+Browser verification on the stable alias confirmed centered poster image on
+desktop and 390px phone viewport, 180px-tall full-width poster Board textarea,
+visible Summer particles behind Stats/Board gaps, Keep/Resume draft behavior,
+phone 701 selection and the challenge repair dropdown/empty state. No Board
+post or match was submitted during these browser checks. A temporary fictional
+browser draft was cleared. Screenshots are ignored under the W6 test directory.
+Real authenticated Data API reads by the existing fictional organizer and member
+also verified open-poll count/author masking. Incoming challenge rendering is source-reviewed; populated repair eligibility
+is unit-tested. Owner retest remains.
+
+W7 must rebuild the compatible rollback artifact with 701 support and the masked
+planning read contract (including own suggestion withdrawal), then verify that
+it reads/edits existing 701 games without silently changing their game type.
+The previous W5 rollback artifact predates this amendment and is not yet
+accepted for the amended release.

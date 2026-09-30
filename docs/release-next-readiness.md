@@ -526,3 +526,17 @@ No production-release decision has been requested or granted.
   checked 2026-09-28: inspect automatic production migration/config deployment.
 - [GitHub branch rename](https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/managing-branches-in-your-repository/renaming-a-branch),
   checked 2026-09-28: branch rename and local tracking behavior.
+
+
+### September 30 W6 acceptance amendment
+
+Owner follow-up testing passed the earlier checklist; additional requested fixes
+are recorded in [W6 operational acceptance](release/w6-operational-acceptance-2026-09-29.md).
+The poll privacy / Solo 701 supplement is separate from the immutable original
+W5 chain: [amendment manifest](release/w6-sql-amendment-2026-09-30.json).
+It passed local synthetic, protected-copy and hosted isolated test acceptance.
+W7 must append its exact hash/order to the release packet and staged migration
+history, rehearse that final chain, and rebuild/retest the compatible rollback
+app for the new 701 and masked-poll contracts. The original W5 result remains
+dated evidence for its original inputs; it does not settle this amended final
+release packet. New owner affected-flow retest remains W6. Production is unchanged.

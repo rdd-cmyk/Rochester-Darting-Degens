@@ -1,7 +1,8 @@
 # P05 Night Planning consistency and copy
 
-Status: awaiting owner review. Baseline release/next at acc01a0.
-P04 was accepted and P05 authorized on 2026-09-30. P06 remains unstarted.
+Status: owner-accepted on 2026-10-01 at 8a73094. CI 36803569793 and Vercel passed.
+Baseline release/next at acc01a0. P04 was accepted and P05 authorized on 2026-09-30.
+The owner authorized P06 in the acceptance message.
 
 ## Presentation and copy
 

@@ -392,7 +392,7 @@ P03 accepted, 2026-09-30: Matches adopts `PageHeader`, `ActionLink` and native `
 
 P04 accepted, 2026-09-30: League Night uses the same `PageHeader`, `ActionLink` and `ActionButton` family. Its opt-in `.rdd-form-controls` adopts existing controls without imposing fieldset layout. Wide/form width and pill-radius roles are central; night panels use existing padding/radius roles. The old `night.css` is retained for Planning, and `night-consistency.css` scopes every rule to `.night-shell--consistent` until P05 adopts its own presentation. This temporary layout duplication preserves unreviewed Planning; central action/form skins are not duplicated. See [P04 evidence](release/p04-league-night-consistency-2026-09-30.md).
 
-P05 candidate: Planning adopts PageHeader (standard), ActionButton, ActionLink,
+P05 accepted, 2026-10-01: Planning adopts PageHeader (standard), ActionButton, ActionLink,
 .rdd-form-controls and .rdd-content-panel. It no longer imports legacy night.css.
 Planning layout rules are scoped to .planning-page; League Night retains its
 accepted isolated rules. --rdd-shell-padding centralizes the existing fluid shell
@@ -400,3 +400,12 @@ padding without changing other consumers. Selected RSVP choices use shared
 primary background/text roles; native pressed/checkbox semantics remain intact.
 No new theme/action variant or access behavior is introduced. See the
 [P05 review record](release/p05-planning-consistency-2026-09-30.md).
+
+P06 candidate: Players adopts standard PageHeader, ActionButton/ActionLink for
+retry/sign-in, and shared form/panel roles for search and linked roster rows.
+Directory geometry uses the existing --rdd-content-form and --rdd-shell-padding;
+row spacing, radius, borders and focus use central roles. All .directory-* rules
+are consumed only by /profiles; no central role value or shared avatar component
+changes. Adjacent avatar initials are decorative for the link's accessible name.
+Existing alphabetical sorting, real-name search and name disclosure are retained.
+See the [P06 review record](release/p06-players-consistency-2026-10-01.md).

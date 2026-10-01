@@ -6,6 +6,9 @@ import type { User } from '@supabase/supabase-js';
 import { supabase } from '@/lib/supabaseClient';
 import { formatPlayerName } from '@/lib/playerName';
 import { PlayerAvatar } from '@/components/avatars/PlayerAvatar';
+import { PageHeader } from '@/components/ui/PageHeader';
+import { ActionButton } from '@/components/ui/ActionButton';
+import { ActionLink } from '@/components/ui/ActionLink';
 
 type ProfileListItem = {
   id: string;
@@ -102,7 +105,7 @@ export default function AllProfilesPage() {
         setProfiles((data as ProfileListItem[]) || []);
       } catch {
         if (!isMounted) return;
-        setErrorMessage('Could not load profiles. Please try again.');
+        setErrorMessage('Could not load the lineup. Please try again.');
         setProfiles([]);
       } finally {
         if (isMounted) setLoading(false);
@@ -139,11 +142,20 @@ export default function AllProfilesPage() {
     });
   }, [profiles, searchTerm]);
 
+  const header = (
+    <PageHeader
+      size="standard"
+      eyebrow="Players"
+      title="The league lineup"
+      description="Meet the players, scout your next rival, and put a face to the name."
+    />
+  );
+
   if (authLoading || loading) {
     return (
       <main className="page-shell directory-page">
-        <header className="rdd-page-header rdd-page-header--compact"><p className="rdd-eyebrow">League directory</p><h1>All Profiles</h1></header>
-        <p className="rdd-state" role="status">Loading profiles…</p>
+        {header}
+        <p className="rdd-state" role="status">Loading the lineup…</p>
       </main>
     );
   }
@@ -151,9 +163,9 @@ export default function AllProfilesPage() {
   if (authError) {
     return (
       <main className="page-shell directory-page">
-        <header className="rdd-page-header rdd-page-header--compact"><p className="rdd-eyebrow">League directory</p><h1>All Profiles</h1></header>
+        {header}
         <p className="rdd-state rdd-state--error" role="alert">Could not check your account. Please try again.</p>
-        <button type="button" className="rdd-action" onClick={() => setAuthRetryVersion((version) => version + 1)}>Retry</button>
+        <ActionButton onClick={() => setAuthRetryVersion((version) => version + 1)}>Retry</ActionButton>
       </main>
     );
   }
@@ -161,12 +173,12 @@ export default function AllProfilesPage() {
   if (!user) {
     return (
       <main className="page-shell directory-page">
-        <header className="rdd-page-header rdd-page-header--compact"><p className="rdd-eyebrow">League directory</p><h1>All Profiles</h1></header>
+        {header}
         <p className="rdd-state">Sign in to browse player profiles.</p>
         <p>
-          <Link href="/auth" className="rdd-action rdd-action--primary">
-            Go to sign in
-          </Link>
+          <ActionLink href="/auth" variant="primary">
+            Sign in
+          </ActionLink>
         </p>
       </main>
     );
@@ -174,35 +186,32 @@ export default function AllProfilesPage() {
 
   return (
     <main className="page-shell directory-page">
-      <header className="rdd-page-header rdd-page-header--compact">
-        <p className="rdd-eyebrow">League directory</p>
-        <h1>All Profiles</h1>
-        <p>
-          Browse every profile in the league, including players with and
-          without recorded matches.
-        </p>
-      </header>
+      {header}
 
-      <section className="rdd-panel directory-search">
+      <section className="rdd-content-panel rdd-form-controls directory-search">
         <label htmlFor="profile-search">
-          Search profiles
+          Search players
         </label>
         <input
           id="profile-search"
           type="search"
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
-          placeholder="Start typing a display name or real name"
+          placeholder="Nickname, first name, or last name"
+          aria-describedby="directory-search-help"
         />
+        <p id="directory-search-help" className="directory-search-help">
+          Every player is listed, with or without a recorded match.
+        </p>
       </section>
 
       {errorMessage ? (
         <div className="directory-load-error">
           <p className="rdd-state rdd-state--error" role="alert">{errorMessage}</p>
-          <button type="button" className="rdd-action" onClick={() => setProfilesRetryVersion((version) => version + 1)}>Retry</button>
+          <ActionButton onClick={() => setProfilesRetryVersion((version) => version + 1)}>Retry</ActionButton>
         </div>
       ) : sortedAndFilteredProfiles.length === 0 ? (
-        <p className="rdd-state">{searchTerm.trim() ? 'No profiles match that search. Try a shorter name.' : 'No profiles are available yet.'}</p>
+        <p className="rdd-state">{searchTerm.trim() ? 'No players match that search. Try a shorter name.' : 'No player profiles are available yet.'}</p>
       ) : (
         <ul className="directory-list">
           {sortedAndFilteredProfiles.map((profile) => {
@@ -220,9 +229,11 @@ export default function AllProfilesPage() {
               <li key={profile.id}>
                 <Link
                   href={`/profiles/${profile.id}`}
-                  className="directory-item"
+                  className="rdd-content-panel directory-item"
                 >
-                  <PlayerAvatar playerId={profile.id} name={primaryName}/>
+                  <span className="directory-avatar" aria-hidden="true">
+                    <PlayerAvatar playerId={profile.id} name={primaryName} />
+                  </span>
                   <div className="directory-item-copy">
                     <div className="directory-item-name">{primaryName}</div>
                     {hasSecondary && (

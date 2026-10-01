@@ -61,13 +61,13 @@ it.each(['response error', 'rejected request'])('retains the search and retries 
 
   render(<AllProfilesPage />);
 
-  expect(await screen.findByRole('alert')).toHaveTextContent('Could not load profiles.');
-  expect(screen.queryByText('No profiles match that search.')).not.toBeInTheDocument();
-  fireEvent.change(screen.getByRole('searchbox', { name: 'Search profiles' }), { target: { value: 'capt' } });
+  expect(await screen.findByRole('alert')).toHaveTextContent('Could not load the lineup.');
+  expect(screen.queryByText('No players match that search.')).not.toBeInTheDocument();
+  fireEvent.change(screen.getByRole('searchbox', { name: 'Search players' }), { target: { value: 'capt' } });
   fireEvent.click(screen.getByRole('button', { name: 'Retry' }));
 
   expect(await screen.findByRole('link', { name: /Demo captain/ })).toBeInTheDocument();
-  expect(screen.getByRole('searchbox', { name: 'Search profiles' })).toHaveValue('capt');
+  expect(screen.getByRole('searchbox', { name: 'Search players' })).toHaveValue('capt');
   await waitFor(() => expect(supabaseMock.select).toHaveBeenCalledTimes(2));
 });
 
@@ -80,11 +80,11 @@ it('distinguishes an empty directory from a search with no matches', async () =>
   render(<AllProfilesPage />);
 
   await waitFor(() => expect(supabaseMock.select).toHaveBeenCalledOnce());
-  expect(screen.getByRole('status')).toHaveTextContent('Loading profiles…');
-  expect(screen.queryByText('No profiles are available yet.')).not.toBeInTheDocument();
+  expect(screen.getByRole('status')).toHaveTextContent('Loading the lineup…');
+  expect(screen.queryByText('No player profiles are available yet.')).not.toBeInTheDocument();
 
   resolveProfiles({ data: [], error: null });
-  expect(await screen.findByText('No profiles are available yet.')).toBeInTheDocument();
-  fireEvent.change(screen.getByRole('searchbox', { name: 'Search profiles' }), { target: { value: 'capt' } });
-  expect(screen.getByText('No profiles match that search. Try a shorter name.')).toBeInTheDocument();
+  expect(await screen.findByText('No player profiles are available yet.')).toBeInTheDocument();
+  fireEvent.change(screen.getByRole('searchbox', { name: 'Search players' }), { target: { value: 'capt' } });
+  expect(screen.getByText('No players match that search. Try a shorter name.')).toBeInTheDocument();
 });

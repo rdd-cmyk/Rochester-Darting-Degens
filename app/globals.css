@@ -1367,7 +1367,6 @@ textarea:disabled {
 /* Shared game settings fit both the Matches form and League Night cards. */
 .player-page-heading { display: flex; align-items: center; gap: 1rem; min-width: 0; }
 .player-page-heading h1 { min-width: 0; overflow-wrap: anywhere; }
-.directory-item-copy { flex: 1; min-width: 0; }
 .matches-details { border: 0; padding: 0; margin: 0; min-width: 0; }
 .game-options { border: 1px solid var(--input-border, #bbb); border-radius: .6rem; padding: .8rem; }
 .game-options label { display: grid; gap: .35rem; min-width: 0; font-weight: 600; }
@@ -1597,7 +1596,7 @@ textarea:disabled {
 .home-page table :is(th, td) { white-space: nowrap; }
 .home-page table :is(th, td):nth-child(2) { min-width: 170px; white-space: normal; }
 .matches-page { max-width: 900px; }
-.directory-page { max-width: 900px; }
+.directory-page { max-width: var(--rdd-content-form); padding: var(--rdd-shell-padding); gap: var(--rdd-space-6); }
 .account-profile-page { max-width: 760px; }
 .account-page { max-width: 740px; }
 .account-mode-tabs { display: flex; gap: 0.55rem; }
@@ -1636,16 +1635,20 @@ textarea:disabled {
 .account-checkbox-help input { width: 1rem; height: 1rem; flex: 0 0 auto; }
 .account-profile-actions { margin-top: 0.5rem; }
 .account-edit-action { align-self: flex-start; }
-.directory-search { display: grid; gap: 0.6rem; }
+.directory-search { display: grid; gap: var(--rdd-space-2); }
 .directory-search label { font-weight: 600; }
-.directory-search input { min-height: 44px; width: 100%; }
-.directory-load-error { display: grid; justify-items: start; gap: 0.75rem; }
-.directory-list { list-style: none; padding: 0; margin: 0; display: grid; gap: 0.7rem; }
-.directory-item { display: flex; justify-content: space-between; align-items: center; gap: 1rem; min-height: 70px; padding: 1rem 1.2rem; border-radius: 0.8rem; border: 1px solid var(--rdd-border); background: var(--rdd-panel); color: var(--rdd-ink); text-decoration: none; transition: border-color 0.15s ease, box-shadow 0.15s ease; }
-.directory-item:hover { border-color: var(--rdd-positive); box-shadow: 0 8px 24px rgba(8,38,77,0.08); }
-.directory-item > div { min-width: 0; overflow-wrap: anywhere; }
+.directory-search-help { margin: 0; color: var(--rdd-text-muted); line-height: 1.5; }
+.directory-load-error { display: grid; justify-items: start; gap: var(--rdd-space-3); }
+.directory-list { list-style: none; padding: 0; margin: 0; display: grid; gap: var(--rdd-space-3); }
+.directory-item { display: flex; align-items: center; gap: var(--rdd-space-4); min-height: var(--rdd-control-min-height); color: var(--rdd-text); text-decoration: none; }
+.directory-item:hover { border-color: var(--rdd-border-control); background: var(--rdd-action-secondary-hover-bg); }
+.site-content .directory-item:focus-visible { outline: 3px solid var(--rdd-focus-on-panel); outline-offset: 3px; }
+.directory-avatar { display: inline-flex; flex-shrink: 0; }
+.directory-item-copy { flex: 1; min-width: 0; display: grid; gap: var(--rdd-space-1); overflow-wrap: anywhere; }
 .directory-item-name { font-weight: 700; }
-.directory-item-secondary, .directory-item-arrow { color: var(--rdd-muted); }
+.directory-item-secondary, .directory-item-arrow { color: var(--rdd-text-muted); }
+.directory-item-arrow { flex-shrink: 0; }
+.directory-page .rdd-state { margin: 0; padding: var(--rdd-panel-padding); border-radius: var(--rdd-radius-panel); }
 .matches-account-line { display: block; margin-top: var(--rdd-space-2); font-size: 0.9rem; overflow-wrap: anywhere; }
 .matches-form-panel { display: grid; gap: var(--rdd-space-4); }
 .matches-form-panel form { display: grid; gap: var(--rdd-space-3); }

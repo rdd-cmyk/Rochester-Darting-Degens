@@ -8,7 +8,8 @@ P04 was accepted and P05 authorized on 2026-09-30. P06 remains unstarted.
 Planning uses the standard shared PageHeader, including loading and signed-out
 states, with the approved orange terminal period. The heading stays “Make the
 next night happen”; its introduction is “Pick a night. Find a spot. Get the lineup
-ready.” Poll instructions say “Each person” rather than “Each profile”. An initial
+ready.” Poll instructions say “Each person” rather than “Each profile”; totals use
+“1 vote” and “1 person” where appropriate. An initial
 read failure now says “Couldn’t load planning. Refresh to try again.”; uncertain
 write recovery retains the existing saved-request instructions.
 
@@ -54,7 +55,11 @@ The fixture is in-memory UI evidence; it does not prove hosted RLS, scheduling,
 receipt persistence or SQL behavior. Full phone walkthrough, OS dark preference,
 200% browser zoom and assistive-technology review remain owner/final-sweep checks.
 
-Preview publication must have exact CI/Vercel identity recorded in the ignored QA
-packet and a hosted read-only smoke check. No production deployment, hosted SQL,
+The initial hosted read-only smoke loaded the existing W6 synthetic night/poll
+and the new heading/actions. Exact final CI/Vercel identity and smoke evidence
+are recorded in the ignored QA packet. The old W1 /release-readiness diagnostic
+requires RDD_INVITES_ENABLED=0, so it reports configuration not ready after W6
+enabled invitations; it is not used as fresh server-credential evidence here.
+No environment settings were changed. No production deployment, hosted SQL,
 credentials, environment configuration, or live-data writes are included. W6/W7
 resume gates remain as documented in the pre-consistency checkpoint.

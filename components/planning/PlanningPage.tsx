@@ -646,7 +646,7 @@ function PollCard({
           {poll.closes_at
             ? `${closed ? "Deadline" : "Closes"} ${rochesterTime(poll.closes_at)}`
             : "Manual close only"}{" "}
-          · {poll.voters} people voted
+          · {poll.voters} {poll.voters === 1 ? "person" : "people"} voted
         </span>
       </div>
       <h3>{poll.title}</h3>
@@ -690,7 +690,7 @@ function PollCard({
                         </small>
                       </span>
                       <span className="plan-option-actions">
-                        {organizer || closed ? (o.votes === null ? "Refresh to see results" : `${o.votes} votes`) : "Results after voting closes"}
+                        {organizer || closed ? (o.votes === null ? "Refresh to see results" : `${o.votes} ${o.votes === 1 ? "vote" : "votes"}`) : "Results after voting closes"}
                       </span>
                     </label>
                     {!closed && !o.withdrawn && (o.is_mine ?? o.suggested_by === userId) && (

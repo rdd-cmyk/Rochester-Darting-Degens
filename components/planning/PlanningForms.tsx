@@ -355,7 +355,7 @@ export function ScheduleForm({
                 <option value="">Choose a date</option>
                 {dates.map((o) => (
                   <option key={o.id} value={o.id}>
-                    {optionLabel(o)} · {o.votes} votes
+                    {optionLabel(o)} · {o.votes} {o.votes === 1 ? "vote" : "votes"}
                   </option>
                 ))}
               </select>
@@ -383,7 +383,7 @@ export function ScheduleForm({
                 <option value="">Choose a venue</option>
                 {venues.map((o) => (
                   <option key={o.id} value={o.id}>
-                    {o.venue} · {o.votes} votes
+                    {o.venue} · {o.votes} {o.votes === 1 ? "vote" : "votes"}
                   </option>
                 ))}
               </select>

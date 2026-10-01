@@ -19,6 +19,7 @@ import type { User } from '@supabase/supabase-js';
 import { isDefiniteSaveRejection, parseCricketPoints, parseScore, saveErrorMessage, saveMatch, validateMatchWrite } from '@/lib/league-night/match-write';
 import type { MatchWrite } from '@/lib/league-night/types';
 
+import { loadMatchArchive, loadArchiveNights, EMPTY_ARCHIVE_FILTERS, ARCHIVE_PAGE_SIZE, type ArchiveFilters, type ArchiveNight } from '@/lib/matches/archive';
 import { loadMatches } from '@/lib/league-night/api';
 import { previewCorrection } from '@/lib/games/correction';
 import { GameOptions, GameResultDetails } from '@/components/GameOptions';
@@ -60,6 +61,7 @@ type Match = {
   created_by: string | null;
   revision: number;
   night_id: string | null;
+  league_nights?: { title: string; night_date: string } | { title: string; night_date: string }[] | null;
   match_players: MatchPlayer[] | null;
 };
 
@@ -74,15 +76,12 @@ type MatchesError = { message?: string };
 function MatchesHeader({ user }: { user?: User }) {
   return <PageHeader
     eyebrow="League play"
-    title="Darts Matches"
+    title="Matches"
     description={<>
-      <span>Log the result. Follow the league’s latest games.</span>
+      <span>Every result has a story. Find the game, check the details, or correct the record.</span>
       {user && <span className="rdd-title-context">Signed in as <strong>{user.email}</strong></span>}
     </>}
-    actions={user && <>
-      <ActionLink href="/league-night">Open League Night</ActionLink>
-      <span className="rdd-field-help">Shared attendance and quick rematches.</span>
-    </>}
+
   />;
 }
 
@@ -152,7 +151,24 @@ function MatchesWorkspace({ user }: { user: User }) {
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
-  const PAGE_SIZE = 10;
+  const [archiveFilters, setArchiveFilters] = useState<ArchiveFilters>(EMPTY_ARCHIVE_FILTERS);
+  const archiveFiltersRef = useRef<ArchiveFilters>(EMPTY_ARCHIVE_FILTERS);
+  const [archiveLoading, setArchiveLoading] = useState(false);
+  const [archiveError, setArchiveError] = useState('');
+  const [nightOptions, setNightOptions] = useState<ArchiveNight[]>([]);
+  const [nightOptionsError, setNightOptionsError] = useState(false);
+  const [nightOptionsReload, setNightOptionsReload] = useState(0);
+  const [editorOpen, setEditorOpen] = useState(false);
+  const [chooseRecording, setChooseRecording] = useState(false);
+  const PAGE_SIZE = ARCHIVE_PAGE_SIZE;
+  useEffect(() => {
+    let active = true;
+    loadArchiveNights().then(data => { if (active) { setNightOptions(data); setNightOptionsError(false); } }).catch(() => { if (active) setNightOptionsError(true); });
+    return () => { active = false; };
+  }, [nightOptionsReload]);
+  useEffect(() => {
+    if (editorOpen) document.getElementById('match-editor-title')?.focus();
+  }, [editorOpen]);
 
   const isCricket = hasCricketPoints(gameType);
   const isOther = gameType === 'Other';
@@ -250,59 +266,31 @@ function MatchesWorkspace({ user }: { user: User }) {
   }
 
   // Helper to load matches list with pagination
-  async function reloadMatches(page = 1) {
+  const reloadMatches = useCallback(async (page = 1, filters = archiveFiltersRef.current) => {
     const request = ++listRequest.current;
-    const from = (page - 1) * PAGE_SIZE;
-    const to = from + PAGE_SIZE - 1;
-
-    const { data: matchesData, error: matchesError, count } = await supabase
-      .from('matches')
-      .select(
-        `
-        id,
-        played_at,
-        game_type, game_config,
-        notes,
-        board_type,
-        venue,
-        created_by,
-        revision,
-        night_id,
-        match_players (
-          id,
-          match_id,
-          player_id,
-          score,
-          points_scored,
-          is_winner,
-          profiles (
-            display_name,
-            first_name,
-            include_first_name_in_display
-          )
-        )
-      `,
-        { count: 'exact' }
-      )
-      .order('played_at', { ascending: false })
-      .range(from, to);
-
-    if (!mounted.current || request !== listRequest.current) return;
-    if (matchesError) {
-      throw matchesError;
-    }
-
-    setMatches((matchesData ?? []) as Match[]);
-
-    if (typeof count === 'number') {
-      const pages = Math.max(1, Math.ceil(count / PAGE_SIZE));
-      setTotalPages(pages);
-    }
-
-    setCurrentPage(page);
+    setArchiveLoading(true); setArchiveError('');
+    try {
+      const result = await loadMatchArchive<Match>(page, filters);
+      if (!mounted.current || request !== listRequest.current) return;
+      setMatches(result.matches);
+      setTotalPages(Math.max(1, Math.ceil(result.count / PAGE_SIZE)));
+      setCurrentPage(page);
+    } catch (cause) {
+      if (mounted.current && request === listRequest.current) {
+        setArchiveError('The match archive could not be loaded. Try again.');
+        setMatches([]);
+      }
+      throw cause;
+    } finally { if (mounted.current && request === listRequest.current) setArchiveLoading(false); }
+  }, [PAGE_SIZE]);
+  function applyFilters(filters: ArchiveFilters) {
+    archiveFiltersRef.current = filters;
+    setArchiveFilters(filters);
+    void reloadMatches(1, filters).catch(() => {});
   }
 
   const restoreSave = useCallback((stored: PendingMatchSave) => {
+    setEditorOpen(true);
     const payload = validateMatchWrite(stored.payload as MatchWrite);
     setPendingSave(stored.released ? null : { operationId: stored.operationId, payload, dispatched: stored.dispatched });
     // Keep the actual entry visible/editable after a definite rejection.
@@ -383,7 +371,7 @@ function MatchesWorkspace({ user }: { user: User }) {
 
     load();
     return () => { active = false; mounted.current = false; };
-  }, [user.id, restoreSave]);
+  }, [user.id, restoreSave, reloadMatches]);
 
   function resetForm() {
     setPlayedAt(toLocalDateTimeInput(new Date()));
@@ -525,6 +513,7 @@ function MatchesWorkspace({ user }: { user: User }) {
     const winnerMp = players.find((mp) => mp.is_winner);
     setWinnerPlayerId(winnerMp ? winnerMp.player_id : '');
 
+    setEditorOpen(true);
     setEditingMatchId(match.id);
     setEditSnapshot({ revision: match.revision, night_id: match.night_id, played_at: match.played_at, created_by: match.created_by });
     setPlayedAt(toLocalDateTimeInput(match.played_at));
@@ -566,6 +555,18 @@ function MatchesWorkspace({ user }: { user: User }) {
   return (
     <main className="rdd-page-shell page-shell matches-page">
       <MatchesHeader user={user} />
+      <div className="landing-actions matches-archive-actions">
+        <ActionLink href="/" variant="primary">Record through League Night</ActionLink>
+        <ActionButton variant="quiet" onClick={() => setChooseRecording(value => !value)}>Record a standalone match</ActionButton>
+        <ActionLink href="/solo" variant="quiet">Solo practice →</ActionLink>
+      </div>
+      {chooseRecording && <section className="rdd-content-panel recording-choice" aria-labelledby="recording-choice-title">
+        <h2 className="rdd-section-title" id="recording-choice-title">Where did this game happen?</h2>
+        <div className="landing-grid">
+          <div><h3>Part of a league night?</h3><p>Record there to keep attendance, results and the recap together.</p><ActionLink href="/" variant="primary">Choose a league night</ActionLink></div>
+          <div><h3>A competitive game outside a night</h3><p>Use standalone recording for a separate game or an older result.</p><ActionButton onClick={() => { setEditorOpen(true); setChooseRecording(false); }}>Continue with standalone</ActionButton></div>
+        </div>
+      </section>}
 
       {errorMessage && (
         <div className="rdd-state rdd-state--error" role="alert">
@@ -599,9 +600,9 @@ function MatchesWorkspace({ user }: { user: User }) {
       </section>}
 
       {/* Add / Edit Match Form */}
-      <section className="rdd-content-panel matches-form-panel">
-        <h2 className="rdd-section-title">
-          {editingMatchId ? 'Edit Match' : 'Record a New Match'}
+      {(editorOpen || pendingSave || editingMatchId) && <section id="match-editor" className="rdd-content-panel matches-form-panel">
+        <h2 className="rdd-section-title" id="match-editor-title" tabIndex={-1}>
+          {editingMatchId ? 'Edit Match' : 'Record a standalone match'}
         </h2>
         {profiles.length < 2 && (
           <p className="rdd-state">
@@ -892,6 +893,7 @@ function MatchesWorkspace({ user }: { user: User }) {
 
           </fieldset>
           <div className="button-row matches-form-actions">
+            {!pendingSave && <ActionButton type="button" disabled={saving} onClick={() => { setEditorOpen(false); if (editingMatchId) resetForm(); }}>Back to archive</ActionButton>}
             <ActionButton
               type="submit"
               disabled={saving || duplicateMatch || (otherRecoveries > 0 && !pendingSave)}
@@ -914,114 +916,44 @@ function MatchesWorkspace({ user }: { user: User }) {
         </form>
       </section>
 
-      {/* Recent Matches */}
-      <section className="matches-history">
-        <h2 className="rdd-section-title">
-          Recent Matches
-        </h2>
-        {matches.length === 0 ? (
-          <p>No matches recorded yet.</p>
-        ) : (
-          <>
-            <ul className="matches-history-list">
-              {matches.map((m) => {
-                const metricLabel = gameUnit(m.game_type);
-
-                const canEdit = m.created_by === user.id;
-
-                return (
-                  <li
-                    key={m.id}
-                    className="rdd-content-panel matches-history-card"
-                  >
-                    <div className="matches-history-card-header">
-                      <div>
-                        <strong>
-                          {m.game_type || 'Unknown game'} –{' '}
-                          {new Date(m.played_at).toLocaleString()}
-                        </strong>
-                        <GameResultDetails game={m.game_type} config={m.game_config} />
-                        {m.notes && <div>Notes: {m.notes}</div>}
-                        {m.board_type && <div>Board: {m.board_type}</div>}
-                        {m.venue && <div>Venue: {m.venue}</div>}
-                      </div>
-                      {canEdit && (
-                        <ActionButton
-                          type="button"
-                          onClick={() => handleEditClick(m)}
-                          variant="secondary"
-                        >
-                          Edit
-                        </ActionButton>
-                      )}
-                    </div>
-
-                    <div className="matches-history-participants">
-                      Players:
-                      <ul>
-                        {(m.match_players || []).map((mp) => {
-                          const prof = (Array.isArray(mp.profiles)
-                            ? mp.profiles[0]
-                            : mp.profiles) as {
-                            display_name: string | null;
-                            first_name: string | null;
-                            include_first_name_in_display?: boolean | null;
-                          } | null;
-
-                          return (
-                            <li key={mp.id}>
-                              {prof ? (
-                                <LinkedPlayerName
-                                  playerId={mp.player_id}
-                                  display_name={prof.display_name}
-                                  first_name={prof.first_name}
-                                  includeFirstNameInDisplay={
-                                    prof.include_first_name_in_display
-                                  }
-                                />
-                              ) : (
-                                'Unknown player'
-                              )}{' '}
-                              – {metricLabel}:{' '}
-                              {formatRecordedScore(mp.score)}
-                              {(m.game_type === 'Cricket' || m.game_type === 'Cut-Throat Cricket') && mp.points_scored != null
-                                ? ` (${m.game_type === 'Cut-Throat Cricket' ? 'Penalty points' : 'Points'}: ${mp.points_scored})`
-                                : ''}{' '}
-                              {m.game_config?.sides[mp.player_id] ? ` · Team ${m.game_config.sides[mp.player_id]}` : ''} {mp.is_winner ? <strong>(winner)</strong> : null}
-                            </li>
-                          );
-                        })}
-                      </ul>
-                    </div>
-                  </li>
-                );
-              })}
-            </ul>
-
-            {/* Pagination controls */}
-            <div className="rdd-pagination">
-              <ActionButton
-                type="button"
-                onClick={() => reloadMatches(currentPage - 1)}
-                disabled={currentPage <= 1}
-                variant="secondary"
-              >
-                Previous
-              </ActionButton>
-              <span>
-                Page {currentPage} of {totalPages}
-              </span>
-              <ActionButton
-                type="button"
-                onClick={() => reloadMatches(currentPage + 1)}
-                disabled={currentPage >= totalPages}
-                variant="secondary"
-              >
-                Next
-              </ActionButton>
+      }
+      {/* Match archive */}
+      <section className="rdd-content-panel archive-filters rdd-form-controls" aria-label="Match archive filters">
+        <label>Player<select aria-label="Archive player" value={archiveFilters.player} onChange={e => applyFilters({ ...archiveFilters, player: e.target.value })}><option value="">All players</option>{profiles.map(p => <option key={p.id} value={p.id}>{formatPlayerName(p.display_name, p.first_name, p.include_first_name_in_display)}</option>)}</select></label>
+        <label>Game<select aria-label="Archive game" value={archiveFilters.game} onChange={e => applyFilters({ ...archiveFilters, game: e.target.value })}><option value="">All games</option>{GAME_TYPES.map(game => <option key={game}>{game}</option>)}</select></label>
+        <label>League night<select aria-label="Archive league night" value={archiveFilters.night} onChange={e => applyFilters({ ...archiveFilters, night: e.target.value })}><option value="">All nights</option><option value="standalone">Standalone matches</option>{nightOptions.map(n => <option value={n.id} key={n.id}>{n.title} · {n.night_date}</option>)}</select></label>
+        <label>From<input type="date" aria-label="Archive from date" value={archiveFilters.from} onChange={e => applyFilters({ ...archiveFilters, from: e.target.value })} /></label>
+        <label>Through<input type="date" aria-label="Archive through date" min={archiveFilters.from || undefined} value={archiveFilters.to} onChange={e => applyFilters({ ...archiveFilters, to: e.target.value })} /></label>
+        <ActionButton disabled={archiveLoading} onClick={() => applyFilters(EMPTY_ARCHIVE_FILTERS)}>Clear filters</ActionButton>
+        {nightOptionsError && <p className="rdd-field-help">Night choices could not be loaded. Refresh to retry; the archive remains available.</p>}
+      </section>
+      <section className="rdd-content-panel matches-archive" aria-labelledby="archive-title" aria-busy={archiveLoading}>
+        <div className="landing-section-heading"><h2 className="rdd-section-title" id="archive-title">Match archive</h2><ActionButton disabled={archiveLoading} onClick={() => { setNightOptionsReload(n => n + 1); void reloadMatches(currentPage).catch(() => {}); }}>Refresh</ActionButton></div>
+        {archiveLoading ? <p role="status">Loading matches…</p> : archiveError ? <p role="alert">{archiveError}</p> : !matches.length ? <p>No matches in this selection. Try another player, game or date.</p> : matches.map(m => {
+          const players = m.match_players ?? [];
+          const winners = players.filter(p => p.is_winner === true), others = players.filter(p => p.is_winner !== true);
+          const name = (p: MatchPlayer) => { const profile = Array.isArray(p.profiles) ? p.profiles[0] : p.profiles; return profile ? formatPlayerName(profile.display_name, profile.first_name, profile.include_first_name_in_display) : 'Unknown player'; };
+          const relation = Array.isArray(m.league_nights) ? m.league_nights[0] : m.league_nights;
+          return <details className="archive-match" key={m.id}>
+            <summary><div><strong>{winners.length && others.length ? winners.map(name).join(' + ') + ' defeated ' + others.map(name).join(' + ') : players.map(name).join(' · ')}</strong>
+              <p className="rdd-field-help">{m.game_type || 'Unknown game'} · {m.game_config?.format ?? 'Individual'} · {new Date(m.played_at).toLocaleString()}</p>
+              <p className="rdd-field-help">{relation?.title ?? (m.night_id ? 'Linked league night' : 'Standalone match')}</p></div><span className="archive-expand">Details</span></summary>
+            <div className="archive-match-details">
+              <GameResultDetails game={m.game_type} config={m.game_config} />
+              {m.notes && <p>Notes: {m.notes}</p>}{m.board_type && <p>Board: {m.board_type}</p>}{m.venue && <p>Venue: {m.venue}</p>}
+              <p className="rdd-field-help">Match #{m.id} · revision {m.revision}</p>
+              <ul>{players.map(mp => { const prof = Array.isArray(mp.profiles) ? mp.profiles[0] : mp.profiles; return <li key={mp.id}>
+                {prof ? <LinkedPlayerName playerId={mp.player_id} display_name={prof.display_name} first_name={prof.first_name} includeFirstNameInDisplay={prof.include_first_name_in_display} /> : 'Unknown player'}
+                {' · '}{gameUnit(m.game_type)}: {formatRecordedScore(mp.score)}
+                {hasCricketPoints(m.game_type) && mp.points_scored != null ? ` · ${m.game_type === 'Cut-Throat Cricket' ? 'Penalty points' : 'Points'}: ${mp.points_scored}` : ''}
+                {m.game_config?.sides[mp.player_id] ? ` · Team ${m.game_config.sides[mp.player_id]}` : ''}{mp.is_winner ? ' · winner' : ''}
+              </li>; })}</ul>
+              <div className="landing-actions">{m.created_by === user.id && <ActionButton disabled={saving || Boolean(pendingSave)} onClick={() => handleEditClick(m)}>Edit result</ActionButton>}
+              {m.night_id && <ActionLink href={`/league-night?night=${encodeURIComponent(m.night_id)}`}>Open league night</ActionLink>}</div>
             </div>
-          </>
-        )}
+          </details>;
+        })}
+        <div className="rdd-pagination"><ActionButton disabled={archiveLoading || currentPage <= 1} onClick={() => void reloadMatches(currentPage - 1).catch(() => {})}>Previous</ActionButton><span>Page {currentPage} of {totalPages}</span><ActionButton disabled={archiveLoading || currentPage >= totalPages} onClick={() => void reloadMatches(currentPage + 1).catch(() => {})}>Next</ActionButton></div>
       </section>
     </main>
   );

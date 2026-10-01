@@ -29,7 +29,7 @@ it('keeps every page-header consumer on the common outer frame in all render sta
     }
     visit(tree);
   }
-  expect(consumers.length).toBeGreaterThanOrEqual(23);
+  expect(consumers).toEqual(expect.arrayContaining([join('app', 'stats', 'layout.tsx'), join('app', 'league-night', 'page.tsx')]));
   expect(violations).toEqual([]);
 });
 

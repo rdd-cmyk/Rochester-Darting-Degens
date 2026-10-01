@@ -5,6 +5,15 @@ assessment complete, Vercel access resolved, isolated-preview gate passed;
 W2 statistics foundation and W3 combined synthetic rehearsal passed locally;
 W5's production-shaped local rehearsal has passed; W6-W8 release gates remain open.
 
+October 1 statistics scope amendment: the owner authorized implementation of
+[provisional opponent replacement](provisional-schedule-proposal.md) for the
+existing Schedule metric. This supersedes the calculation-preservation scope
+only for Schedule: power-rating updates and other metrics retain their existing
+rules. The change is application-only, with no SQL or stored-record changes.
+See the [implementation evidence](release/provisional-schedule-2026-10-01.md).
+Original W0-W5 evidence remains dated to its inputs; affected application checks,
+W6 Preview/owner acceptance, and W7 exact-candidate/rollback updates apply.
+
 Current resume point: all P01-P24 page packages are owner-accepted at app
 `8b1ed75`. The [final combined review](release/final-consistency-review-2026-10-01.md)
 has been performed; the poster-dialog focus-return correction and combined
@@ -576,3 +585,25 @@ history, rehearse that final chain, and rebuild/retest the compatible rollback
 app for the new 701 and masked-poll contracts. The original W5 result remains
 dated evidence for its original inputs; it does not settle this amended final
 release packet. New owner affected-flow retest remains W6. Production is unchanged.
+
+
+### October 1 League front door local checkpoint
+
+League Night now owns the root/logo landing page; old Home record tables live
+under Stats alongside Power & Performance and Head to Head. Matches is archive
+first with deliberate standalone entry. Existing local provisional-schedule work
+was preserved. [Implementation and evidence](release/league-front-door-implementation-2026-10-01.md)
+records 609 passing tests, coverage/lint/typecheck/build, local browser checks,
+capability preservation and the new dependency-audit gate. Owner local visual
+acceptance and authorization to publish remain open; no push/deploy/hosted SQL.
+W6 needs affected-flow acceptance on the real isolated test project. W7/W8 have
+not begun; older backup/rehearsal evidence retains its dated scope. Critical
+Next.js and high development-tool advisories must be resolved before hosted
+publication through the dependency gate.
+
+
+October 1 independent local front-door review follow-up: three findings were
+verified, repaired and reviewed again, with 614 passing tests plus all local
+application checks. See [review evidence](release/league-front-door-review-2026-10-01.md).
+This does not close owner visual acceptance, hosted W6 affected-flow checks or
+the existing dependency-audit gate. No push, deployment or hosted SQL occurred.

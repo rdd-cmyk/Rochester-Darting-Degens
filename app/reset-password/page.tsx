@@ -163,7 +163,7 @@ export default function ResetPasswordPage() {
         <p className="rdd-state rdd-state--success" role="status">{message}</p>
       )}
       {message && (
-        <ActionButton type="button" variant="primary" onClick={() => router.push('/matches')}>Continue to Matches</ActionButton>
+        <ActionButton type="button" variant="primary" onClick={() => router.push('/')}>Continue to League Night</ActionButton>
       )}
 
       {!message && !recoveryTokens && (

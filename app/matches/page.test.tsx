@@ -2,8 +2,8 @@ import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { afterEach, beforeEach, expect, it, vi } from 'vitest';
 import MatchesPage from './page';
 
-const { from, rpc, identity } = vi.hoisted(() => ({
-  from: vi.fn(), rpc: vi.fn(),
+const { from, rpc, identity, nightRead } = vi.hoisted(() => ({
+  from: vi.fn(), rpc: vi.fn(), nightRead: vi.fn(),
   identity: { user: { id: '11111111-1111-4111-8111-111111111111', email: 'member@example.test' } as { id: string; email: string } | null },
 }));
 vi.mock('@/lib/supabaseClient', () => ({ supabase: { from, rpc } }));
@@ -18,11 +18,12 @@ beforeEach(() => {
   vi.clearAllMocks();
   localStorage.clear();
   identity.user = { id: players[0].id, email: 'member@example.test' };
+  nightRead.mockResolvedValue({ data: [], error: null, count: 0 });
   from.mockImplementation((table: string) => ({
     select: vi.fn().mockReturnThis(),
-    order: vi.fn(() => table === 'profiles' ? Promise.resolve({ data: players, error: null }) : {
-      range: () => Promise.resolve({ data: [], error: null, count: 0 }),
-    }),
+    order: vi.fn(function(this: unknown) { return table === 'profiles' ? Promise.resolve({ data: players, error: null }) : this; }),
+    range: vi.fn(() => table === 'league_nights' ? nightRead() : Promise.resolve({ data: [], error: null, count: 0 })),
+    limit: vi.fn(() => nightRead()),
   }));
   rpc.mockResolvedValue({ data: { status: 'saved', match_id: 42, replayed: false }, error: null });
 });
@@ -30,9 +31,25 @@ afterEach(() => localStorage.clear());
 
 async function open() {
   const view = render(<MatchesPage />);
-  await screen.findByRole('heading', { name: 'Record a New Match' });
+  await screen.findByRole('heading', { name: 'Match archive' });
+  fireEvent.click(screen.getByRole('button', { name: 'Record a standalone match' }));
+  fireEvent.click(screen.getByRole('button', { name: 'Continue with standalone' }));
+  await screen.findByRole('heading', { name: 'Record a standalone match' });
   return view;
 }
+
+it('opens the archive first and makes standalone recording an explicit choice', async () => {
+  render(<MatchesPage />);
+  await screen.findByRole('heading', { name: 'Match archive' });
+  expect(screen.queryByRole('button', { name: 'Save match' })).not.toBeInTheDocument();
+  expect(screen.getByRole('link', { name: 'Record through League Night' })).toHaveAttribute('href', '/');
+  fireEvent.click(screen.getByRole('button', { name: 'Record a standalone match' }));
+  expect(screen.getByRole('link', { name: 'Choose a league night' })).toHaveAttribute('href', '/');
+  expect(screen.queryByRole('button', { name: 'Save match' })).not.toBeInTheDocument();
+  fireEvent.click(screen.getByRole('button', { name: 'Continue with standalone' }));
+  expect(screen.getByRole('button', { name: 'Save match' })).toBeInTheDocument();
+  expect(rpc).not.toHaveBeenCalled();
+});
 function selectPlayer(index: number) {
   fireEvent.change(screen.getByLabelText(`Player ${index + 1}`, { exact: true }), { target: { value: players[index].id } });
 }
@@ -116,4 +133,16 @@ it.each(['42501', 'PGRST202'])('retains a dispatched ordinary save after reload 
   expect(rpc.mock.calls[1][1]).toEqual(original);
   expect(rpc.mock.calls[2][1]).toEqual(original);
   expect(localStorage.length).toBe(0);
+});
+
+
+it('retries failed night choices when the archive is refreshed', async () => {
+  nightRead.mockResolvedValueOnce({ data: null, error: { message: 'Offline' }, count: null });
+  nightRead.mockResolvedValueOnce({ data: [{ id: 'older-night', title: 'Older night', night_date: '2026-01-01' }], error: null, count: 1 });
+  render(<MatchesPage />);
+  await screen.findByText(/Night choices could not be loaded/);
+  fireEvent.click(screen.getByRole('button', { name: /^Refresh$/ }));
+  await waitFor(() => expect(nightRead).toHaveBeenCalledTimes(2));
+  expect(await screen.findByRole('option', { name: 'Older night · 2026-01-01' })).toBeInTheDocument();
+  expect(screen.queryByText(/Night choices could not be loaded/)).not.toBeInTheDocument();
 });

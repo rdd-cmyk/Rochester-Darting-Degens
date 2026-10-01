@@ -48,12 +48,12 @@ The site should feel like an approachable league dashboard: bold Rochester navy 
 
 1. Establish context before detail: title, brief explanation, primary action, relevant controls, then results.
 2. Give each section one clear purpose. Use headings and spacing to separate tasks; avoid a continuous wall of unrelated tables or form fields.
-3. On Advanced Statistics, lead with useful summaries, then provide exact lookup and explanations. Home remains leaderboard-first: its overall leaderboard is the first substantive content after a compact page header, followed by the other existing leaderboard sections. Keep links to match recording and Advanced Stats easy to find without placing a league-overview dashboard or story-card grid ahead of the rankings. Do not invent summary metrics merely to fill cards.
+3. Stats leads with Power & Performance summaries, with Records and Head to Head as linked views. Preserve all existing analyses and former Home leaderboards. League Night is the root and logo destination, organized around the next night, recording, recent recap, power and Board activity. Matches is archive-first; standalone recording requires an explicit choice. Do not invent summary metrics merely to fill cards.
 4. Keep task pages efficient. A sign-in form or match editor should inherit the visual language without requiring a dashboard-sized hero.
 5. Make trust visible: metric labels, sample sizes, missing-data treatment, pending states, and recovery paths are part of the design.
 6. Let orange identify a primary action or a restrained highlight. It must not compete with every heading, border, and button.
 
-Owner-confirmed preferences (2026-09-26): Home remains leaderboard-first; Summer decorations remain optional and restrained. These decisions govern the migration and future design work.
+Owner-confirmed preferences (2026-10-01): the accepted League front door replaces leaderboard-first Home and the separate Home navigation item. Summer decorations remain optional and restrained. Shared tokens and consistent page-header geometry continue to govern all views.
 
 ## 3. Color system
 

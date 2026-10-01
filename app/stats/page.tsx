@@ -2,52 +2,21 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
-import { PageHeader } from '@/components/ui/PageHeader';
 import { ActionLink } from '@/components/ui/ActionLink';
 
 import { RatingTrendChart } from '@/components/stats/RatingTrendChart';
 import { StatsStoryCard } from '@/components/stats/StatsStoryCard';
-import { formatPlayerName } from '@/lib/playerName';
 import { buildLeagueAdvancedStats } from '@/lib/stats/engine';
-import { collectAllStatisticsRows } from '@/lib/stats/pagination';
+import { loadStatisticsFacts } from '@/lib/stats/load-facts';
 import { pickEligibleUpset, pickPositiveLeader } from '@/lib/stats/stories';
 import type { MatchFact, PlayerAdvancedStats } from '@/lib/stats/types';
 import { supabase } from '@/lib/supabaseClient';
 
-import { GAME_TYPES as CATALOG_GAMES, comparisonKey, formatLabel, presetLabel, type GameConfig } from '@/lib/games/catalog';
-
-type ProfileRelation = {
-  id: string;
-  display_name: string | null;
-  first_name: string | null;
-  include_first_name_in_display: boolean | null;
-};
-
-type MatchRelation = {
-  game_config?: GameConfig | null;
-  played_at: string;
-  game_type: string | null;
-  board_type: string | null;
-  venue: string | null;
-};
-
-type RawFact = {
-  id: string | number;
-  match_id: string | number;
-  player_id: string;
-  is_winner: boolean | null;
-  score: number | null;
-  profiles: ProfileRelation | ProfileRelation[] | null;
-  matches: MatchRelation | MatchRelation[] | null;
-};
+import { GAME_TYPES as CATALOG_GAMES, comparisonKey, formatLabel, presetLabel } from '@/lib/games/catalog';
 
 const GAME_TYPES = ['All', ...CATALOG_GAMES];
 const BOARD_TYPES = ['All', 'Soft Tip', 'Steel Tip'] as const;
 const MINIMUM_GAMES = [1, 3, 5, 10] as const;
-
-function firstRelation<T>(value: T | T[] | null): T | null {
-  return Array.isArray(value) ? value[0] ?? null : value;
-}
 
 function signed(value: number, digits = 0): string {
   const rounded = value.toFixed(digits);
@@ -139,71 +108,8 @@ export default function AdvancedStatsPage() {
       setFacts([]);
 
       try {
-        const data = await collectAllStatisticsRows<RawFact>(async (from, to) => {
-          const { data: pageData, error, count } = await supabase
-            .from('match_players')
-            .select(
-              `
-                id,
-                match_id,
-                player_id,
-                is_winner,
-                score,
-                profiles (
-                  id,
-                  display_name,
-                  first_name,
-                  include_first_name_in_display
-                ),
-                matches!inner (
-                  played_at,
-                  game_type, game_config,
-                  board_type,
-                  venue
-                )
-              `,
-              { count: 'exact' }
-            )
-            .order('match_id', { ascending: true })
-            .order('id', { ascending: true })
-            .range(from, to);
-
-          if (error) throw error;
-
-          return {
-            rows: (pageData ?? []) as RawFact[],
-            totalCount: count,
-          };
-        });
-
+        const normalized = await loadStatisticsFacts();
         if (!active) return;
-
-        const normalized = data.flatMap((row): MatchFact[] => {
-          const profile = firstRelation(row.profiles);
-          const match = firstRelation(row.matches);
-          if (!match || !row.match_id || !row.player_id) return [];
-
-          return [
-            {
-              matchId: String(row.match_id),
-              playerId: row.player_id,
-              displayName: profile
-                ? formatPlayerName(
-                    profile.display_name,
-                    profile.first_name,
-                    profile.include_first_name_in_display
-                  )
-                : 'Unknown player',
-              playedAt: match.played_at,
-              gameType: match.game_type,
-              gameConfig: match.game_config,
-              boardType: match.board_type,
-              venue: match.venue,
-              isWinner: row.is_winner === true,
-              score: row.score,
-            },
-          ];
-        });
 
         setFacts(normalized);
         setLoading(false);
@@ -261,17 +167,8 @@ export default function AdvancedStatsPage() {
   );
 
   return (
-    <main className="rdd-page-shell stats-page-shell">
-      <PageHeader
-        eyebrow="RDD League Lab"
-        title="Advanced Statistics"
-        description="Go beyond the win column. Compare power ratings, current form, strength of schedule and consistency—all built from recorded league matches."
-        actions={<>
-          <ActionLink href="/matches" variant="primary">Record a match</ActionLink>
-          <ActionLink href="#methodology">How ratings work</ActionLink>
-        </>}
-      />
-
+    <div className="stats-view">
+      <nav className="landing-actions" aria-label="Power and performance actions"><ActionLink href="/" variant="primary">Record via League Night</ActionLink><ActionLink href="#methodology" variant="quiet">How ratings work</ActionLink></nav>
       <section className="stats-filter-panel rdd-filter-group rdd-filter-group--compact" aria-label="Advanced statistics filters">
         <label>
           <span>Game type</span>
@@ -657,6 +554,15 @@ export default function AdvancedStatsPage() {
             </p>
           </div>
           <div>
+            <h3>Schedule strength</h3>
+            <p>
+              Schedule averages your opponents’ ratings before each match. For opponents
+              who were provisional, we use their rating immediately after they first reach
+              ten evidence games. Until then, their original pre-match rating is used.
+              This is calculated within your selected filters and does not change power-rating updates.
+            </p>
+          </div>
+          <div>
             <h3>Sample guardrails</h3>
             <p>
               Ratings are provisional before ten evidence games: singles/free-for-all count as one, doubles as one-half, triples as one-third. Use the minimum-games filter
@@ -671,6 +577,6 @@ export default function AdvancedStatsPage() {
           </p>
         ) : null}
       </section>
-    </main>
+    </div>
   );
 }

@@ -4,6 +4,9 @@ import { GameOptions, GameResultDetails } from '@/components/GameOptions';
 import { defaultConfig, gameUnit, isX01, hasCricketPoints } from '@/lib/games/catalog';
 
 import Link from "next/link";
+import { usePathname } from "next/navigation";
+import Image from "next/image";
+import { NightLobbyOverview } from "@/components/league-night/NightLobbyOverview";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { ActionButton } from "@/components/ui/ActionButton";
 import { ActionLink } from "@/components/ui/ActionLink";
@@ -56,25 +59,28 @@ import {
   nightDate,
 } from "@/components/league-night/NightRecapPanel";
 import "./night-consistency.css";
-import { NextPlannedNight } from "@/components/planning/NextPlannedNight";
 import { loadChallenge } from '@/lib/rivalries/api';
 import type { Challenge } from '@/lib/rivalries/types';
 import { PlayerAvatar } from '@/components/avatars/PlayerAvatar';
 import { presetLabel } from '@/lib/games/catalog';
+
+function NightLandingHeader() {
+  return <PageHeader title="League Night" eyebrow="Rochester Darting Degens" description="The next night, the latest results, and your way to the board." identity={<Image src="/rdd-logo.png" alt="Rochester Darting Degens logo" width={320} height={320} className="home-logo-image" priority />} />;
+}
 
 export default function LeagueNightPage() {
   const { user, loading } = useCurrentUser();
   if (loading)
     return (
       <main className="rdd-page-shell night-shell--consistent rdd-form-controls">
-        <PageHeader title="League Night" eyebrow="League play" description="Good darts. Better company." />
+        <NightLandingHeader />
         <p role="status">Opening League Night…</p>
       </main>
     );
   if (!user)
     return (
       <main className="rdd-page-shell night-shell--consistent rdd-form-controls">
-        <PageHeader title="League Night" eyebrow="League play" description="Good darts. Better company." />
+        <NightLandingHeader />
         <div className="night-panel">
           <p>Sign in to join tonight, enter matches and see the recap.</p>
           <ActionLink href="/auth" variant="primary">Sign in</ActionLink>
@@ -85,6 +91,7 @@ export default function LeagueNightPage() {
 }
 
 function NightLobby({ user }: { user: User }) {
+  const pathname = usePathname();
   const [profiles, setProfiles] = useState<PlayerProfile[]>([]);
   const [nights, setNights] = useState<LeagueNight[]>([]);
   const [night, setNight] = useState<LeagueNight | null>(null);
@@ -105,27 +112,33 @@ function NightLobby({ user }: { user: User }) {
     date: string;
   } | null>(null);
   const mounted = useRef(true);
+  const refreshRequest = useRef(0);
   const refresh = useCallback(async () => {
+    const request = ++refreshRequest.current;
+    const search = new URLSearchParams(window.location.search);
+    const id = search.get("night");
+    const challengeId = search.get("challenge");
+    // Leave a selected night immediately, even when the lobby read is offline.
+    if (!id) { setNight(null); setChallenge(null); }
     try {
       const [players, list] = await Promise.all([loadProfiles(), loadNights()]);
-      const id = new URLSearchParams(window.location.search).get("night");
       const selected = id
         ? (list.find((n) => n.id === id) ?? (await loadNight(id)))
         : null;
-      const challengeId = new URLSearchParams(window.location.search).get('challenge');
       const selectedChallenge = challengeId ? await loadChallenge(challengeId) : null;
       if (selectedChallenge && (selectedChallenge.night_id !== selected?.id || ![selectedChallenge.sender,selectedChallenge.recipient].includes(user.id)))
         throw new Error('Open this challenge from its series page before recording.');
-      if (mounted.current) {
+      if (mounted.current && request === refreshRequest.current) {
         setProfiles(players);
         setNights(list);
         setNight(selected);
         setChallenge(selectedChallenge);
+        setError("");
       }
     } catch (cause) {
-      if (mounted.current) setError(saveErrorMessage(cause));
+      if (mounted.current && request === refreshRequest.current) setError(saveErrorMessage(cause));
     } finally {
-      if (mounted.current) setLoading(false);
+      if (mounted.current && request === refreshRequest.current) setLoading(false);
     }
   }, [user.id]);
   useEffect(() => {
@@ -136,10 +149,13 @@ function NightLobby({ user }: { user: User }) {
     window.addEventListener("popstate", pop);
     return () => {
       mounted.current = false;
+      refreshRequest.current = refreshRequest.current + 1;
       window.removeEventListener("popstate", pop);
     };
-  }, [refresh]);
+  }, [refresh, pathname]);
   function open(n: LeagueNight | null) {
+    // An older lobby response cannot replace an explicit selection.
+    refreshRequest.current++;
     window.history.pushState(
       {},
       "",
@@ -197,30 +213,26 @@ function NightLobby({ user }: { user: User }) {
     );
   return (
     <main className="rdd-page-shell night-shell--consistent rdd-form-controls">
-      <PageHeader title="League Night" eyebrow="League play" description="Good darts. Better company. Open a night and bring your game." />
-      <NextPlannedNight />
+      <NightLandingHeader />
+      <nav className="landing-actions" aria-label="League Night actions"><ActionButton variant="primary" onClick={() => setShowCreate(v => !v)}>Start a night</ActionButton><ActionLink href="/league-night/plan">Plan the next night</ActionLink></nav>
       {error && (
         <div className="night-warning" role="alert">
           {error} <ActionButton onClick={() => void refresh()}>Try again</ActionButton>
         </div>
       )}
+      <NightLobbyOverview nights={nights} loading={loading} unavailable={Boolean(error)} open={open} />
       <div className="night-section-heading">
         <div>
-          <h2 className="rdd-section-title">Find your night</h2>
+          <h2 className="rdd-section-title">Previous nights & all nights</h2>
           <p className="night-small">
             Anyone signed in can start a night or record results.
           </p>
         </div>
-        <ActionButton
-          variant="primary"
-          onClick={() => setShowCreate((value) => !value)}
-        >
-          Start a night
-        </ActionButton>
+
       </div>
       {showCreate && (
         <form
-          className="night-panel night-create"
+          className="night-panel night-create" id="start-night-form"
           onSubmit={(e) => {
             e.preventDefault();
             void create();
@@ -230,6 +242,7 @@ function NightLobby({ user }: { user: User }) {
           <label>
             Night name
             <input
+              autoFocus
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               required

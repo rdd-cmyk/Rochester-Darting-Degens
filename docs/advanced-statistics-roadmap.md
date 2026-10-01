@@ -182,7 +182,16 @@ matches and remains zero-sum for every match.
 
 ### Strength of schedule
 
-- For each appearance, calculate the mean pre-match rating of every opponent.
+- For each appearance, calculate the mean rating of opposing players only.
+- Established opponents contribute their pre-match rating. Opponents provisional
+  before that match contribute their rating immediately after the first match
+  reaching ten evidence games, once available in the selected history. This
+  includes the graduation match itself. Until graduation, retain the original
+  pre-match rating. Later results do not overwrite the graduation rating.
+- Graduation follows the existing evidence weights: singles/free-for-all count
+  as one, doubles as one-half, triples as one-third. Filters recompute this
+  history; corrections can change the graduation point. Power updates remain
+  based on actual pre-match ratings.
 - A player's strength of schedule is the mean of those match-level values.
 
 ### Form

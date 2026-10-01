@@ -1,13 +1,14 @@
 import type { Metadata } from "next";
 import Observability from "./components/Observability";
 import "./globals.css";
+import "./front-door.css";
 import LayoutShell from "./components/LayoutShell";
 import { AvatarProvider } from '@/components/avatars/PlayerAvatar';
 import '@/components/rivalries/rivalries.css';
 
 export const metadata: Metadata = {
   title: {
-    default: "RDD - Home",
+    default: "RDD - League Night",
     template: "RDD - %s",
   },
   description: "Rochester Darting Degens stats and match tracking",

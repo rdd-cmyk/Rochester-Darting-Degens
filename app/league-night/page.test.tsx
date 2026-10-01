@@ -1,11 +1,15 @@
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
 import LeagueNightPage from "./page";
 import { draftKey, freshDraft, nightEntryKey, nightOperationKey, readNightSavedEntries, type StoredDraft } from "@/lib/league-night/draft";
 import type { LeagueNight, MatchWrite, NightMatch } from "@/lib/league-night/types";
 import { defaultConfig } from "@/lib/games/catalog";
 
-const mocks = vi.hoisted(() => ({ save: vi.fn(), matches: vi.fn() }));
+vi.mock("@/components/league-night/NightLobbyOverview", () => ({ NightLobbyOverview: () => null }));
+
+vi.mock("next/navigation", () => ({ usePathname: () => mocks.pathname }));
+
+const mocks = vi.hoisted(() => ({ save: vi.fn(), matches: vi.fn(), nights: vi.fn(), night: vi.fn(), pathname: "/league-night" }));
 vi.mock("@/lib/supabaseClient", () => ({ supabase: { rpc: vi.fn() } }));
 vi.mock("@/lib/league-night/use-current-user", () => ({
   useCurrentUser: () => ({ user: { id: "recorder" }, loading: false }),
@@ -15,8 +19,8 @@ vi.mock("@/lib/league-night/match-write", async (importOriginal) => ({
   saveMatch: mocks.save,
 }));
 vi.mock("@/lib/league-night/api", () => ({
-  loadNights: async () => [night],
-  loadNight: async () => night,
+  loadNights: mocks.nights,
+  loadNight: mocks.night,
   loadProfiles: async () => ["ace", "bee"].map((id) => ({
     id, display_name: id, first_name: null, include_first_name_in_display: false,
   })),
@@ -63,12 +67,15 @@ async function openRecovery() {
 const scoreInput = () => screen.getAllByRole("textbox", { name: "3DA optional" })[0];
 
 beforeEach(() => {
+  mocks.pathname = "/league-night";
   delete night.planning_status;
   vi.resetAllMocks();
   localStorage.clear();
   vi.stubEnv("NEXT_PUBLIC_SUPABASE_URL", "http://127.0.0.1:55421");
   window.history.replaceState({}, "", "/league-night?night=night");
   mocks.matches.mockResolvedValue([]);
+  mocks.nights.mockResolvedValue([night]);
+  mocks.night.mockResolvedValue(night);
   vi.spyOn(window, "confirm").mockReturnValue(true);
 });
 afterEach(() => { vi.restoreAllMocks(); vi.unstubAllEnvs(); });
@@ -215,4 +222,43 @@ it("discards only the confirmed unsent entry and never a different user's record
   await screen.findByRole("heading", { name: night.title });
   expect(screen.queryByRole("button", { name: "Restore draft" })).not.toBeInTheDocument();
   expect(screen.queryByRole("region", { name: "Saved unsent entries" })).not.toBeInTheDocument();
+});
+
+
+it("returns to the lobby when the logo changes the route to root", async () => {
+  const view = render(<LeagueNightPage />);
+  await screen.findByRole("heading", { name: /Recovery test night/ });
+  window.history.replaceState({}, "", "/");
+  mocks.pathname = "/";
+  view.rerender(<LeagueNightPage />);
+  await screen.findByRole("heading", { name: "Previous nights & all nights" });
+  expect(screen.queryByRole("heading", { name: /Recovery test night/ })).not.toBeInTheDocument();
+});
+
+
+it("ignores an older night response after navigating back to the root lobby", async () => {
+  let finish!: (value: LeagueNight) => void;
+  mocks.nights.mockResolvedValueOnce([]);
+  mocks.night.mockImplementationOnce(() => new Promise(resolve => { finish = resolve; }));
+  const view = render(<LeagueNightPage />);
+  await waitFor(() => expect(mocks.night).toHaveBeenCalledWith("night"));
+  window.history.replaceState({}, "", "/");
+  mocks.pathname = "/";
+  view.rerender(<LeagueNightPage />);
+  await screen.findByRole("heading", { name: "Previous nights & all nights" });
+  await act(async () => finish(night));
+  expect(screen.queryByRole("heading", { name: /Recovery test night/ })).not.toBeInTheDocument();
+});
+
+
+it("leaves the selected night even if the root lobby refresh fails", async () => {
+  const view = render(<LeagueNightPage />);
+  await screen.findByRole("heading", { name: /Recovery test night/ });
+  mocks.nights.mockRejectedValueOnce(new Error("Offline lobby"));
+  window.history.replaceState({}, "", "/");
+  mocks.pathname = "/";
+  view.rerender(<LeagueNightPage />);
+  await screen.findByText("Offline lobby");
+  expect(screen.getByRole("heading", { name: "Previous nights & all nights" })).toBeInTheDocument();
+  expect(screen.queryByRole("heading", { name: /Recovery test night/ })).not.toBeInTheDocument();
 });

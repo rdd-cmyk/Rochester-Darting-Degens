@@ -18,7 +18,8 @@ Before planning or changing this repository:
    Documentation does not authorize a site
    migration. For the site-wide upgrade, follow
    `docs/sitewide-design-upgrade-plan.md` and keep its progress ledger current.
-   Home remains leaderboard-first; Summer decorations remain optional and
+   League Night is the root/logo landing page; Stats contains Power, Records
+   and Head to Head (owner accepted 2026-10-01). Summer decorations remain optional and
    restrained. Design-only requests stay documentation/mockup-only.
 
 Use npm with the checked-in `package-lock.json`. Preserve useful point-of-use

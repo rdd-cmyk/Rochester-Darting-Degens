@@ -23,7 +23,7 @@ it('keeps successful recovery visible until the user chooses to continue', async
   fireEvent.change(screen.getByLabelText('Confirm password:'), { target: { value: 'Invented-Recovery-2026!' } });
   fireEvent.click(screen.getByRole('button', { name: 'Update Password' }));
   expect(await screen.findByRole('status')).toHaveTextContent('Password updated successfully. You are signed in.');
-  expect(screen.getByRole('button', { name: 'Continue to Matches' })).toBeInTheDocument();
+  expect(screen.getByRole('button', { name: 'Continue to League Night' })).toBeInTheDocument();
   expect(screen.queryByRole('alert')).not.toBeInTheDocument();
 });
 

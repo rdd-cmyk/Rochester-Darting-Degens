@@ -14,7 +14,7 @@ type NavbarProps = {
 };
 
 const pageGroups = [
-  { title: "Play & Results", pages: [["/", "Home"], ["/league-night", "League Night"], ["/matches", "Matches"], ["/stats", "Stats"]] },
+  { title: "Play & Results", pages: [["/", "League Night"], ["/matches", "Matches"], ["/stats", "Stats"]] },
   { title: "Around the League", pages: [["/rivalries", "Rivalry Room"], ["/profiles", "Players"], ["/board", "League Board"], ["/solo", "Solo"]] },
 ];
 
@@ -126,7 +126,7 @@ export default function Navbar({ summerEnabled, onToggleSummer }: NavbarProps) {
   return (
     <nav className="navbar-shell" aria-label="Primary">
       <div className="navbar-main">
-        <Link href="/" className="navbar-brand" aria-label="RDD Home" onClick={handleNavSelection}>
+        <Link href="/" className="navbar-brand" aria-label="RDD League Night" onClick={handleNavSelection}>
           <Image src="/rdd-navbar-logo.png" alt="" width={64} height={32} priority />
         </Link>
         <button
@@ -149,7 +149,7 @@ export default function Navbar({ summerEnabled, onToggleSummer }: NavbarProps) {
               <div className="navbar-page-grid">
                 {group.pages.map(([href, label]) => (
                   <Link key={href} href={href}
-                    aria-current={pathname === href || (href !== "/" && pathname.startsWith(`${href}/`)) ? "page" : undefined}
+                    aria-current={(href === "/" && (pathname === "/league-night" || pathname.startsWith("/league-night/"))) || pathname === href || (href !== "/" && pathname.startsWith(`${href}/`)) ? "page" : undefined}
                     onClick={handleNavSelection}>{label}</Link>
                 ))}
               </div>

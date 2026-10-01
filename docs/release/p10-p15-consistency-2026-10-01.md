@@ -1,6 +1,6 @@
 # P10-P15 consistency and copy
 
-Status: awaiting owner review. Baseline
+Status: owner-accepted at `f4613de` on 2026-10-01. Baseline
 `release/next` at `6e4683b`. The owner authorized all six packages as one batch
 on 2026-10-01. P16-P24 remain unstarted; release W6/W7/W8 remain paused at the
 saved checkpoint.
@@ -93,4 +93,4 @@ review/final-sweep work. Screenshots and exact publication identities are kept
 in the ignored `.local/page-consistency` evidence directory.
 
 No production deployment, main merge, hosted SQL/configuration change or release
-gate closure occurred. All six packages require owner acceptance before P16.
+gate closure occurred. All six were accepted; the owner authorized P16-P20 as the next batch.

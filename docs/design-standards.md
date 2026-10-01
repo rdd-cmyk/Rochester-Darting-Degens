@@ -455,7 +455,7 @@ See the [P09 record](release/p09-solo-consistency-2026-10-01.md).
 
 P09 accepted 2026-10-01 at `6e4683b`.
 
-P10-P15 candidate: Rivalry Room, pair and challenge detail adopt PageHeader,
+P10-P15 accepted at `f4613de` on 2026-10-01: Rivalry Room, pair and challenge detail adopt PageHeader,
 ActionButton/ActionLink and shared fields, ordinary panel geometry and spacing.
 The fight artwork, canvas poster palette/export geometry, avatar geometry and TV
 layout remain intentional domain exceptions. Inverse secondary actions use
@@ -470,3 +470,5 @@ existing styles. Invites opts into shared headers/actions/fields/panels and
 responsive form layout; Join stays on its legacy selectors until P17.
 No query, permission, retention, retry identifier, statistics or SQL change.
 See the [batch review record](release/p10-p15-consistency-2026-10-01.md).
+
+P16-P20 candidate: account tasks adopt compact PageHeader, shared actions/panels/fields and the existing account-width role. Change Log adopts the standard heading, wide shell, panel and section-title roles. Layout rules are scoped to opting-in consumers; no token values, API or recovery/admission handlers change. Verify Email copy distinguishes confirmation links from invitation codes. See the [batch record](release/p16-p20-consistency-2026-10-01.md).

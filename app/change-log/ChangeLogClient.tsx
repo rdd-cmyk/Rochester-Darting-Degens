@@ -1,6 +1,7 @@
 "use client";
+import { PageHeader } from '@/components/ui/PageHeader';
 
-import Link from "next/link";
+import { ActionLink } from '@/components/ui/ActionLink';
 import { useEffect, useMemo, useState } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabaseClient";
@@ -121,21 +122,12 @@ export default function ChangeLogClient() {
   const showPagination = hasPreviousPage || hasNextPage;
 
   const heading = (
-    <header className="rdd-page-header rdd-page-header--compact">
-        <p className="rdd-eyebrow">Site updates</p>
-        <h1 id="change-log-heading">
-          Change Log
-        </h1>
-        <p>
-          Latest merged pull requests. Results refresh periodically to reduce
-          API calls.
-        </p>
-    </header>
+    <PageHeader title="Change Log" size="standard" eyebrow="Site updates" description="The latest updates merged into main. See what’s new around the league." />
   );
 
   if (loading) {
     return (
-      <main className="page-shell change-log-page" aria-labelledby="change-log-heading">
+      <main className="page-shell change-log-page change-log-consistent" aria-label="Change log">
         {heading}
         <div className="rdd-state" role="status">
           {LOADING_MESSAGE}
@@ -146,13 +138,13 @@ export default function ChangeLogClient() {
 
   if (authRequired) {
     return (
-      <main className="page-shell change-log-page" aria-labelledby="change-log-heading">
+      <main className="page-shell change-log-page change-log-consistent" aria-label="Change log">
         {heading}
         <div className="rdd-state">
           Please sign in to view the change log.{" "}
-          <Link href="/auth">
+          <ActionLink href="/auth">
             Go to sign in
-          </Link>
+          </ActionLink>
           .
         </div>
       </main>
@@ -161,7 +153,7 @@ export default function ChangeLogClient() {
 
   if (errorMessage) {
     return (
-      <main className="page-shell change-log-page" aria-labelledby="change-log-heading">
+      <main className="page-shell change-log-page change-log-consistent" aria-label="Change log">
         {heading}
         <div className="rdd-state rdd-state--error" role="alert">
           {errorMessage.startsWith('Missing GitHub configuration')
@@ -182,7 +174,7 @@ export default function ChangeLogClient() {
         {pulls.map((pr) => (
           <li key={pr.id} className="change-log-card">
             <div className="change-log-card-header">
-              <h2 className="change-log-card-title">
+              <h2 className="change-log-card-title rdd-section-title">
                 {pr.title}
               </h2>
               <time className="change-log-card-date" dateTime={pr.merged_at}>
@@ -204,23 +196,22 @@ export default function ChangeLogClient() {
     );
 
   return (
-    <main className="page-shell change-log-page" aria-labelledby="change-log-heading">
+    <main className="page-shell change-log-page change-log-consistent" aria-label="Change log">
       {heading}
       {content}
 
       {showPagination && (
         <nav className="change-log-pagination" aria-label="Pagination controls">
           {hasPreviousPage ? (
-            <Link
+            <ActionLink
               href={`/change-log?page=${page - 1}`}
-              className="rdd-action"
               onClick={(event) => {
                 event.preventDefault();
                 router.push(`/change-log?page=${page - 1}`);
               }}
             >
               Previous
-            </Link>
+            </ActionLink>
           ) : (
             <span className="change-log-pagination-unavailable">Previous</span>
           )}
@@ -228,16 +219,15 @@ export default function ChangeLogClient() {
             Page {page}
           </span>
           {hasNextPage ? (
-            <Link
+            <ActionLink
               href={`/change-log?page=${page + 1}`}
-              className="rdd-action"
               onClick={(event) => {
                 event.preventDefault();
                 router.push(`/change-log?page=${page + 1}`);
               }}
             >
               Next
-            </Link>
+            </ActionLink>
           ) : (
             <span className="change-log-pagination-unavailable">Next</span>
           )}

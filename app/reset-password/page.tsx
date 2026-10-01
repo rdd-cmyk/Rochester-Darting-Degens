@@ -1,7 +1,10 @@
 'use client';
 
 import { useEffect, useRef, useState, FormEvent, startTransition } from 'react';
-import Link from 'next/link';
+import { PageHeader } from '@/components/ui/PageHeader';
+import { ActionButton } from '@/components/ui/ActionButton';
+import { ActionLink } from '@/components/ui/ActionLink';
+
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabaseClient';
 
@@ -138,16 +141,16 @@ export default function ResetPasswordPage() {
 
   if (checkingTokens) {
     return (
-      <main className="page-shell account-page">
-        <header className="rdd-page-header rdd-page-header--compact"><p className="rdd-eyebrow">Account recovery</p><h1>Reset Password</h1></header>
+      <main className="page-shell account-page account-consistent rdd-form-controls">
+        <PageHeader title="Reset your password" eyebrow="Account recovery" />
         <p className="rdd-state" role="status">Checking reset session…</p>
       </main>
     );
   }
 
   return (
-    <main className="page-shell account-page">
-      <header className="rdd-page-header rdd-page-header--compact"><p className="rdd-eyebrow">Account recovery</p><h1>Reset Your Password</h1></header>
+    <main className="page-shell account-page account-consistent rdd-form-controls">
+      <PageHeader title="Reset your password" eyebrow="Account recovery" />
 
       <p className="rdd-muted">
         Your new password must be at least 16 characters long.
@@ -160,16 +163,16 @@ export default function ResetPasswordPage() {
         <p className="rdd-state rdd-state--success" role="status">{message}</p>
       )}
       {message && (
-        <button type="button" className="rdd-action rdd-action--primary" onClick={() => router.push('/matches')}>Continue to Matches</button>
+        <ActionButton type="button" variant="primary" onClick={() => router.push('/matches')}>Continue to Matches</ActionButton>
       )}
 
       {!message && !recoveryTokens && (
-        <Link href="/auth" className="rdd-action rdd-action--secondary">Return to sign in</Link>
+        <ActionLink href="/auth">Return to sign in</ActionLink>
       )}
 
       {!message && recoveryTokens && (
         <form
-          className="rdd-panel account-auth-form account-reset-form"
+          className="rdd-content-panel account-auth-form account-reset-form"
           onSubmit={handleSubmit}
         >
           <div className="form-row">
@@ -184,13 +187,12 @@ export default function ResetPasswordPage() {
                 onChange={(e) => setNewPassword(e.target.value)}
                 className="form-control"
               />
-              <button
+              <ActionButton
                 type="button"
                 onClick={() => setShowNewPassword((prev) => !prev)}
-                className="password-toggle"
               >
                 {showNewPassword ? 'Hide' : 'Show'}
-              </button>
+              </ActionButton>
             </div>
           </div>
 
@@ -206,22 +208,21 @@ export default function ResetPasswordPage() {
                 onChange={(e) => setConfirm(e.target.value)}
                 className="form-control"
               />
-              <button
+              <ActionButton
                 type="button"
                 onClick={() => setShowConfirm((prev) => !prev)}
-                className="password-toggle"
               >
                 {showConfirm ? 'Hide' : 'Show'}
-              </button>
+              </ActionButton>
             </div>
           </div>
-          <button
+          <ActionButton
             type="submit"
-            className="rdd-action rdd-action--primary"
+            variant="primary"
             disabled={updating}
           >
             {updating ? 'Updating…' : 'Update Password'}
-          </button>
+          </ActionButton>
         </form>
       )}
     </main>

@@ -1,4 +1,6 @@
 'use client';
+import { PageHeader } from '@/components/ui/PageHeader';
+import { ActionButton } from '@/components/ui/ActionButton';
 import { useEffect, useState, type FormEvent } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabaseClient';
@@ -40,13 +42,9 @@ export default function AuthPage() {
     finally { setBusy(false); }
   }
   return (
-    <main className="page-shell account-page">
-      <header className="rdd-page-header rdd-page-header--compact">
-        <p className="rdd-eyebrow">League account</p>
-        <h1>Welcome back</h1>
-        <p>Sign in to your league account.</p>
-      </header>
-      <form className="rdd-panel account-auth-form" onSubmit={signIn} aria-busy={busy}>
+    <main className="page-shell account-page account-consistent rdd-form-controls">
+      <PageHeader title="Welcome back" eyebrow="League account" description="Sign in to your league account." />
+      <form className="rdd-content-panel account-auth-form" onSubmit={signIn} aria-busy={busy}>
         <div className="form-row">
           <label htmlFor="email" className="form-label">Email</label>
           <input id="email" type="email" autoComplete="email" className="form-control" value={email} onChange={e => setEmail(e.target.value)} required />
@@ -55,16 +53,16 @@ export default function AuthPage() {
           <label htmlFor="password" className="form-label">Password</label>
           <div className="password-row">
             <input id="password" type={showPassword ? 'text' : 'password'} autoComplete="current-password" className="form-control" value={password} onChange={e => setPassword(e.target.value)} required />
-            <button type="button" className="rdd-action" onClick={() => setShowPassword(v => !v)} aria-label={showPassword ? 'Hide password' : 'Show password'}>{showPassword ? 'Hide' : 'Show'}</button>
+            <ActionButton type="button" onClick={() => setShowPassword(v => !v)} aria-label={showPassword ? 'Hide password' : 'Show password'}>{showPassword ? 'Hide' : 'Show'}</ActionButton>
           </div>
         </div>
         <div className="account-recovery-row">
-          <button type="button" className="account-recovery-link" onClick={recover} disabled={busy}>Forgot your password?</button>
+          <ActionButton type="button" variant="quiet" onClick={recover} disabled={busy}>Forgot your password?</ActionButton>
         </div>
-        <button type="submit" className="rdd-action rdd-action--primary" disabled={busy}>{busy ? 'Please wait…' : 'Sign in'}</button>
+        <ActionButton type="submit" variant="primary" disabled={busy}>{busy ? 'Please wait…' : 'Sign in'}</ActionButton>
       </form>
       {message && <p className="rdd-state" role="status">{message}</p>}
-      <aside className="rdd-panel"><h2>New to the league?</h2><p>Joining is by invitation. Ask a league member to invite you, then open the link in your email.</p></aside>
+      <aside className="rdd-content-panel"><h2 className="rdd-section-title">New to the league?</h2><p>Joining is by invitation. Ask a league member to invite you, then open the link in your email.</p></aside>
     </main>
   );
 }

@@ -66,14 +66,14 @@
   .board-shell select { display: block; margin: .4rem 0 0; }
   .board-tools summary { min-height: 44px; }
 }
-.invite-shell:not(.invite-consistent) h1 { font-size: clamp(1.8rem, 5vw, 2.6rem); line-height: 1.15; font-weight: 800; margin: .35rem 0 .75rem; }
-.invite-shell:not(.invite-consistent) h2 { font-size: 1.2rem; font-weight: 700; margin-bottom: .6rem; }
+.invite-shell:not(.invite-consistent):not(.join-consistent) h1 { font-size: clamp(1.8rem, 5vw, 2.6rem); line-height: 1.15; font-weight: 800; margin: .35rem 0 .75rem; }
+.invite-shell:not(.invite-consistent):not(.join-consistent) h2 { font-size: 1.2rem; font-weight: 700; margin-bottom: .6rem; }
 .invite-shell p { line-height: 1.6; }
 .invite-eyebrow { color: var(--stats-series-1); font-size: .75rem; letter-spacing: .12em; font-weight: 800; }
 .invite-panel { background: var(--panel-bg); border: 1px solid var(--panel-border); border-radius: 1rem; padding: clamp(1rem, 3vw, 1.5rem); }
-.invite-shell:not(.invite-consistent) button, .invite-primary { border: 1px solid var(--input-border); border-radius: .55rem; padding: .65rem 1rem; cursor: pointer; font-weight: 600; min-height: 44px; }
-.invite-shell:not(.invite-consistent) button:disabled { opacity: .55; cursor: not-allowed; }
-.invite-shell:not(.invite-consistent) button:focus-visible, .invite-shell a:focus-visible { outline: 3px solid var(--focus-ring); outline-offset: 3px; }
+.invite-shell:not(.invite-consistent):not(.join-consistent) button, .invite-primary { border: 1px solid var(--input-border); border-radius: .55rem; padding: .65rem 1rem; cursor: pointer; font-weight: 600; min-height: 44px; }
+.invite-shell:not(.invite-consistent):not(.join-consistent) button:disabled { opacity: .55; cursor: not-allowed; }
+.invite-shell:not(.invite-consistent):not(.join-consistent) button:focus-visible, .invite-shell a:focus-visible { outline: 3px solid var(--focus-ring); outline-offset: 3px; }
 .invite-shell .invite-primary { background: #08264d; color: white; border-color: #08264d; text-align: center; text-decoration: none; }
 .invite-shell a:not(.invite-primary):not(.rdd-page-action) { color: var(--link-color); text-decoration: underline; }
 .invite-heading, .invite-row-main { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem; }
@@ -1611,7 +1611,7 @@ textarea:disabled {
 .account-recovery-link { display: inline-flex; align-items: center; min-height: 44px; border: 0; padding: 0.25rem 0; background: none; color: var(--rdd-positive); text-decoration: underline; cursor: pointer; font-weight: 700; }
 .account-page p { overflow-wrap: anywhere; }
 .account-message-panel { display: grid; gap: 0.9rem; line-height: 1.6; }
-.account-message-panel a { color: var(--rdd-positive); font-weight: 700; }
+.account-message-panel a:not(.rdd-page-action) { color: var(--rdd-positive); font-weight: 700; }
 .change-log-page { max-width: 1000px; }
 .diagnostic-page { max-width: 740px; }
 .change-log-card { background: var(--rdd-panel); border-color: var(--rdd-border); }
@@ -1882,3 +1882,33 @@ html[data-qa-theme="light"] {
 .invite-consistent .invite-send > div { min-width: 0; }
 .invite-consistent .invite-counts strong { font-size: var(--rdd-metric-value-size, 2rem); }
 @media (max-width: 600px) { .invite-consistent .invite-send { grid-template-columns: minmax(0, 1fr); } .invite-consistent .invite-send > button { justify-self: start; } }
+
+/* P16-P20: account tasks and release notes consume shared roles. */
+.account-consistent { max-width: var(--rdd-content-account); padding: var(--rdd-shell-padding); gap: var(--rdd-space-6); }
+.account-consistent :is(.rdd-state, .invite-panel) { margin: 0; padding: var(--rdd-panel-padding); border-radius: var(--rdd-radius-panel); }
+.account-consistent .account-auth-form { gap: var(--rdd-space-4); }
+.account-consistent .form-row { display: grid; gap: var(--rdd-space-2); align-items: start; }
+.account-consistent .form-label { min-width: 0; }
+.account-consistent :is(.password-row, .invite-password) { display: flex; gap: var(--rdd-space-2); align-items: center; min-width: 0; }
+.account-consistent :is(.password-row, .invite-password) input { flex: 1; min-width: 0; }
+.account-consistent :is(.password-row, .invite-password) button { flex-shrink: 0; }
+.account-consistent > .rdd-page-action { justify-self: start; }
+.account-consistent .account-recovery-row { margin: 0; }
+.account-consistent .account-auth-form > button { justify-self: start; }
+.account-consistent .account-message-panel { gap: var(--rdd-space-4); }
+.account-consistent .account-message-panel .rdd-page-action { justify-self: start; }
+.join-consistent .invite-panel { background: var(--panel-bg); border: 1px solid var(--panel-border); }
+.join-consistent .invite-form { gap: var(--rdd-space-3); }
+.join-consistent .invite-form > button { align-self: flex-start; }
+.join-consistent :is(h2, p) { overflow-wrap: anywhere; }
+.change-log-consistent { max-width: var(--rdd-content-wide); padding: var(--rdd-shell-padding); gap: var(--rdd-space-6); }
+.change-log-consistent .change-log-list { gap: var(--rdd-space-6); }
+.change-log-consistent .change-log-card { padding: var(--rdd-panel-padding); border-radius: var(--rdd-radius-panel); }
+.change-log-consistent .change-log-card-header { gap: var(--rdd-space-3); padding-bottom: var(--rdd-space-4); }
+.change-log-consistent .change-log-card-title { font-size: var(--rdd-section-title-size); line-height: 1.2; letter-spacing: var(--rdd-title-tracking); }
+.change-log-consistent .change-log-pagination { gap: var(--rdd-space-3); }
+.change-log-consistent .rdd-state .rdd-page-action { color: var(--rdd-action-secondary-text); }
+
+.account-consistent > aside p { margin-top: var(--rdd-space-3); }
+.join-consistent .invite-panel > h2 { margin: 0 0 var(--rdd-space-3); }
+.join-consistent .invite-panel > p { margin: var(--rdd-space-3) 0; }

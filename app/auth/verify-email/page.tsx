@@ -1,6 +1,8 @@
 'use client';
 
-import Link from 'next/link';
+import { PageHeader } from '@/components/ui/PageHeader';
+import { ActionLink } from '@/components/ui/ActionLink';
+
 import { useSearchParams } from 'next/navigation';
 import { Suspense } from 'react';
 
@@ -9,30 +11,25 @@ function VerifyEmailContent() {
   const email = searchParams.get('email');
 
   return (
-    <main className="page-shell account-page">
-      <header className="rdd-page-header rdd-page-header--compact"><p className="rdd-eyebrow">One more step</p><h1>Check your email to verify your account</h1></header>
+    <main className="page-shell account-page account-consistent">
+      <PageHeader title="Check your email" eyebrow="Account confirmation" description="Follow the confirmation link to finish verifying your account." />
 
-      <div className="rdd-panel account-message-panel">
+      <div className="rdd-content-panel account-message-panel">
       <h2 className="rdd-section-title">Verify your account</h2>
       <p>
         {email ? (
           <>
-            We just sent a confirmation link to <strong>{email}</strong>. Click
-            the link in that email to verify your account and start using
-            Rochester Darting Degens.
+            If you received an account confirmation email at <strong>{email}</strong>, open
+            its link to verify your email address.
           </>
         ) : (
-          'We just sent a confirmation email. Click the link inside to verify your account and start using Rochester Darting Degens.'
+          'If you received an account confirmation email, open its link to verify your email address.'
         )}
       </p>
 
-      <p>
-        Once your email is confirmed, you can{' '}
-        <Link href="/auth">
-          sign in
-        </Link>{' '}
-        to access matches and more.
-      </p>
+      <p>Once confirmed, sign in to your league account. League membership still requires an invitation.</p>
+      <p>Joining from an invitation? Return to your invitation email and use its link. The verification code belongs on that registration page.</p>
+      <ActionLink href="/auth">Go to sign in</ActionLink>
       </div>
     </main>
   );
@@ -40,7 +37,7 @@ function VerifyEmailContent() {
 
 export default function VerifyEmailPage() {
   return (
-    <Suspense fallback={<main className="page-shell account-page"><p className="rdd-state" role="status">Loading verification details…</p></main>}>
+    <Suspense fallback={<main className="page-shell account-page account-consistent"><PageHeader title="Check your email" eyebrow="Account confirmation" /><p className="rdd-state" role="status">Loading verification details…</p></main>}>
       <VerifyEmailContent />
     </Suspense>
   );

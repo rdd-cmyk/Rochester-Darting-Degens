@@ -1,5 +1,9 @@
 'use client';
 import Link from 'next/link';
+import { PageHeader } from '@/components/ui/PageHeader';
+import { ActionButton } from '@/components/ui/ActionButton';
+import { ActionLink } from '@/components/ui/ActionLink';
+
 import { startTransition, useEffect, useRef, useState, type FormEvent } from 'react';
 import { InviteRequestError, inviteRequest } from '@/lib/invites/client';
 import { inviteMessages, isValidInvitePassword } from '@/lib/invites/shared';
@@ -59,23 +63,23 @@ export default function JoinPage() {
       else setUncertain(true);
     } finally { setBusy(false); }
   }
-  return <main className="page-shell invite-shell" style={{ maxWidth: 720 }}>
-    <div><p className="invite-eyebrow">ROCHESTER DARTING DEGENS</p><h1>{accepted ? 'You’re in. See you at the oche.' : 'You’re invited to the league'}</h1></div>
+  return <main className="page-shell invite-shell account-consistent join-consistent rdd-form-controls">
+    <PageHeader title={accepted ? "You’re in. See you at the oche" : "You’re invited to the league"} eyebrow="Rochester Darting Degens" />
     {checking && <p role="status">Checking your invitation…</p>}
     {message && <p role="status" className="invite-panel">{message}</p>}
-    {accepted ? <Link className="invite-primary" href="/auth">Sign in to your account</Link> : preview && <>
-      <div className="invite-panel"><h2>{preview.inviter} invited you</h2><p>This invitation is for <strong>{preview.email_hint}</strong>.</p><p>We’ll send a fresh code to that inbox to confirm it’s you.</p>
-        <button className="invite-primary" disabled={busy} onClick={() => void requestCode()}>{challenge ? 'Send a new verification code' : 'Send verification code'}</button>
+    {accepted ? <ActionLink variant="primary" href="/auth">Sign in to your account</ActionLink> : preview && <>
+      <div className="invite-panel"><h2 className="rdd-section-title">{preview.inviter} invited you</h2><p>This invitation is for <strong>{preview.email_hint}</strong>.</p><p>We’ll send a fresh code to that inbox to confirm it’s you.</p>
+        <ActionButton variant="primary" disabled={busy} onClick={() => void requestCode()}>{challenge ? 'Send a new verification code' : 'Send verification code'}</ActionButton>
         {challenge && <p className="invite-detail">Allow 60 seconds before requesting another code. A new code replaces the previous one.</p>}
       </div>
       {challenge && <form className="invite-panel invite-form" onSubmit={complete}>
-        <h2>Make yourself at home</h2>
+        <h2 className="rdd-section-title">Make yourself at home</h2>
         <label htmlFor="join-code">Verification code</label><input id="join-code" inputMode="numeric" autoComplete="one-time-code" pattern="[0-9]{8}" maxLength={8} value={code} onChange={e => setCode(e.target.value)} required disabled={busy || uncertain} />
         <label htmlFor="join-first">First name</label><input id="join-first" autoComplete="given-name" maxLength={29} value={firstName} onChange={e => setFirstName(e.target.value)} required disabled={busy || uncertain} />
         <label htmlFor="join-last">Last name</label><input id="join-last" autoComplete="family-name" maxLength={29} value={lastName} onChange={e => setLastName(e.target.value)} required disabled={busy || uncertain} />
         <label htmlFor="join-display">Display name</label><input id="join-display" maxLength={34} value={displayName} onChange={e => setDisplayName(e.target.value)} required disabled={busy || uncertain} />
-        <label htmlFor="join-password">Password</label><div className="invite-password"><input id="join-password" type={show ? 'text' : 'password'} minLength={16} maxLength={72} autoComplete="new-password" value={password} onChange={e => setPassword(e.target.value)} required disabled={busy || uncertain} /><button type="button" onClick={() => setShow(v => !v)}>{show ? 'Hide' : 'Show'}</button></div>
-        <p className="invite-detail">Use at least 16 characters, up to 72 bytes. Accented letters and emoji can use more than one byte each.</p><button className="invite-primary" disabled={busy}>{busy ? 'Joining…' : uncertain ? 'Retry same registration' : 'Join the league'}</button>
+        <label htmlFor="join-password">Password</label><div className="invite-password"><input id="join-password" type={show ? 'text' : 'password'} minLength={16} maxLength={72} autoComplete="new-password" value={password} onChange={e => setPassword(e.target.value)} required disabled={busy || uncertain} /><ActionButton type="button" onClick={() => setShow(v => !v)}>{show ? 'Hide' : 'Show'}</ActionButton></div>
+        <p className="invite-detail">Use at least 16 characters, up to 72 bytes. Accented letters and emoji can use more than one byte each.</p><ActionButton type="submit" variant="primary" disabled={busy}>{busy ? 'Joining…' : uncertain ? 'Retry same registration' : 'Join the league'}</ActionButton>
       </form>}
     </>}
     {!accepted && <p>Already have an account? <Link href="/auth" target="_blank" rel="noopener noreferrer">Sign in in a new tab</Link>, then return here. Your existing password stays the same.</p>}

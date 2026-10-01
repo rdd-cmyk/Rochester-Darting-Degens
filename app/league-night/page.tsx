@@ -66,14 +66,14 @@ export default function LeagueNightPage() {
   const { user, loading } = useCurrentUser();
   if (loading)
     return (
-      <main className="night-shell night-shell--consistent rdd-form-controls">
+      <main className="night-shell--consistent rdd-form-controls">
         <PageHeader title="League Night" eyebrow="League play" description="Good darts. Better company." size="feature" />
         <p role="status">Opening League Night…</p>
       </main>
     );
   if (!user)
     return (
-      <main className="night-shell night-shell--consistent rdd-form-controls">
+      <main className="night-shell--consistent rdd-form-controls">
         <PageHeader title="League Night" eyebrow="League play" description="Good darts. Better company." size="feature" />
         <div className="night-panel">
           <p>Sign in to join tonight, enter matches and see the recap.</p>
@@ -196,7 +196,7 @@ function NightLobby({ user }: { user: User }) {
       />
     );
   return (
-    <main className="night-shell night-shell--consistent rdd-form-controls">
+    <main className="night-shell--consistent rdd-form-controls">
       <PageHeader title="League Night" eyebrow="League play" description="Good darts. Better company. Open a night and bring your game." size="feature" />
       <NextPlannedNight />
       {error && (
@@ -825,7 +825,7 @@ function NightSession({
   const teamGame = Boolean(draft.gameConfig && draft.gameConfig.format !== 'individual');
   const needsWinner = !draft.gameConfig || draft.gameConfig.status === 'completed';
   return (
-    <main className="night-shell night-shell--consistent rdd-form-controls">
+    <main className="night-shell--consistent rdd-form-controls">
       <div className="night-session-heading">
         <PageHeader title={night.title} eyebrow="League night" description={<>{nightDate(night.night_date)}{night.venue ? ` · ${night.venue}` : ""}</>} actions={
           <ActionButton

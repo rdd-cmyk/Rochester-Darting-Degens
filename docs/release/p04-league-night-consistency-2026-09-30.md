@@ -20,7 +20,8 @@ Large score input text and share-card canvas geometry remain deliberate exceptio
 
 Planning also imports the old night.css. It is unchanged. Every new route rule in
 night-consistency.css is scoped to .night-shell--consistent, preserving Planning
-until P05. Temporary domain-layout duplication avoids silently migrating another
+until P05. League Night omits the legacy night-shell class so cached Planning
+styles cannot override its shared heading after client navigation. Temporary domain-layout duplication avoids silently migrating another
 page; action/form skins remain central. Consolidate legacy layout during subsequent
 page adoption where compatible. No query, effect, timing, calculation, admission,
 write-recovery, data precision, or export implementation was changed.

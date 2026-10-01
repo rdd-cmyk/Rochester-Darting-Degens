@@ -5,7 +5,7 @@ assessment complete, Vercel access resolved, isolated-preview gate passed;
 W2 statistics foundation and W3 combined synthetic rehearsal passed locally;
 W5's production-shaped local rehearsal has passed; W6-W8 release gates remain open.
 
-Current resume point: P01-P06 are owner-accepted and P07 is awaiting owner review in the
+Current resume point: P01-P07 are owner-accepted and P08 is awaiting owner review in the
 page-by-page consistency and wording pass before returning to W7 (and affected
 W6 closeout). The [September 30 checkpoint](release/pre-consistency-checkpoint-2026-09-30.md)
 records accepted results, candidate `351a4b0`, remaining dependency/credential

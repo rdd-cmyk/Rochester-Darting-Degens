@@ -1508,6 +1508,7 @@ textarea:disabled {
   --rdd-content-wide: 1240px;
   --rdd-shell-padding: clamp(1rem, 3vw, 2.5rem);
   --rdd-content-form: 880px;
+  --rdd-content-account: 740px;
   --rdd-radius-panel: 1rem;
   --rdd-panel-padding: clamp(1rem, 2vw, 1.5rem);
   --rdd-panel-inset-bg: color-mix(in srgb, var(--rdd-panel) 85%, var(--rdd-page));
@@ -1595,7 +1596,7 @@ textarea:disabled {
 .home-page table :is(th, td):nth-child(2) { min-width: 170px; white-space: normal; }
 .matches-page { max-width: 900px; }
 .directory-page { max-width: var(--rdd-content-form); padding: var(--rdd-shell-padding); gap: var(--rdd-space-6); }
-.account-profile-page { max-width: 760px; }
+.account-profile-page { max-width: var(--rdd-content-account); padding: var(--rdd-shell-padding); display: grid; gap: var(--rdd-space-6); }
 .account-page { max-width: 740px; }
 .account-mode-tabs { display: flex; gap: 0.55rem; }
 .account-mode-tabs .rdd-action[aria-pressed="true"] { background: var(--rdd-navy); border-color: var(--rdd-navy); color: #fff; }
@@ -1620,19 +1621,25 @@ textarea:disabled {
 .change-log-pagination { display: flex; flex-wrap: wrap; justify-content: flex-end; align-items: center; gap: 0.55rem; }
 .change-log-pagination-unavailable { color: var(--rdd-muted); }
 .change-log-pagination-page { color: var(--rdd-muted); font-size: 0.95rem; }
-.account-profile-page header p { overflow-wrap: anywhere; }
-.account-name-preview { display: grid; gap: 0.4rem; }
-.account-name-preview-value { margin-top: 0.5rem; font-size: 1.25rem; font-weight: 700; color: var(--rdd-positive); }
-.account-name-preview-help { margin-top: 0.5rem; }
-.account-profile-form { display: grid; gap: 1rem; }
-.account-profile-form form { display: grid; gap: 1rem; }
-.account-profile-form .form-control { max-width: none; }
-.account-profile-form :is(input:not([type="checkbox"]), select) { min-height: 44px; }
-.account-checkbox-label { display: flex; align-items: center; min-height: 44px; }
-.account-checkbox-help { display: flex; align-items: center; gap: 0.5rem; min-height: 44px; color: var(--rdd-muted); }
-.account-checkbox-help input { width: 1rem; height: 1rem; flex: 0 0 auto; }
-.account-profile-actions { margin-top: 0.5rem; }
-.account-edit-action { align-self: flex-start; }
+/* My Profile layouts consume shared panel/action/form roles. */
+.account-profile-page :is(p, .rdd-section-title) { margin: 0; overflow-wrap: anywhere; }
+.account-profile-page .rdd-state { margin: 0; padding: var(--rdd-panel-padding); border-radius: var(--rdd-radius-panel); }
+.account-profile-page .account-signed-in { color: var(--rdd-text-muted); }
+.account-profile-page :is(.account-name-preview, .account-profile-form, .account-profile-form form, .account-avatar-picker) { display: grid; gap: var(--rdd-space-4); }
+.account-profile-page .account-name-preview-value { font-weight: var(--rdd-action-weight); color: var(--rdd-text); }
+.account-profile-page .account-name-preview-help { color: var(--rdd-text-muted); }
+.account-profile-page .account-profile-field { display: grid; min-width: 0; gap: var(--rdd-space-2); }
+.account-profile-page :is(.account-profile-label, .account-checkbox-label) { font-weight: var(--rdd-action-weight); }
+.account-profile-page .account-checkbox-label { display: flex; align-items: center; min-height: var(--rdd-control-min-height); }
+.account-profile-page .account-checkbox-help { display: flex; align-items: center; gap: var(--rdd-space-2); min-height: var(--rdd-control-min-height); color: var(--rdd-text-muted); }
+.account-profile-page .account-checkbox-help input { width: var(--rdd-space-4); height: var(--rdd-space-4); flex: 0 0 auto; }
+.account-profile-page :is(.account-profile-actions, .account-avatar-heading) { display: flex; flex-wrap: wrap; align-items: center; gap: var(--rdd-space-4); }
+.account-profile-page .account-avatar-heading > div { flex: 1; min-width: 0; }
+.account-profile-page .account-avatar-heading p { margin-top: var(--rdd-space-2); color: var(--rdd-text-muted); }
+.account-profile-page :is(.account-edit-action, .account-avatar-picker > button) { justify-self: start; }
+.account-profile-page .account-avatar-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, calc(var(--rdd-space-8) * 3)), 1fr)); gap: var(--rdd-space-2); }
+.account-profile-page .account-avatar-grid button { display: flex; flex-direction: column; gap: var(--rdd-space-2); padding: var(--rdd-space-3) var(--rdd-space-1); min-width: 0; overflow-wrap: anywhere; }
+.account-profile-page .account-avatar-grid button[aria-pressed="true"] { color: var(--rdd-action-primary-text); background: var(--rdd-action-primary-bg); text-decoration: underline; text-underline-offset: var(--rdd-space-1); }
 .directory-search { display: grid; gap: var(--rdd-space-2); }
 .directory-search label { font-weight: 600; }
 .directory-search-help { margin: 0; color: var(--rdd-text-muted); line-height: 1.5; }

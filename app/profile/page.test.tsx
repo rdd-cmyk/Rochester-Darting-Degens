@@ -39,9 +39,9 @@ it('keeps a pending profile save stable and prevents a duplicate submission', as
   supabaseMock.upsert.mockImplementation(() => new Promise(resolve => { finishSave = resolve; }));
 
   render(<ProfilePage />);
-  fireEvent.click(await screen.findByRole('button', { name: 'Edit Profile' }));
+  fireEvent.click(await screen.findByRole('button', { name: 'Edit profile' }));
   fireEvent.change(screen.getByLabelText('Display name'), { target: { value: 'New captain' } });
-  const saveButton = screen.getByRole('button', { name: 'Save Profile' });
+  const saveButton = screen.getByRole('button', { name: 'Save profile' });
   fireEvent.click(saveButton);
 
   await waitFor(() => expect(supabaseMock.upsert).toHaveBeenCalledTimes(1));
@@ -55,7 +55,7 @@ it('keeps a pending profile save stable and prevents a duplicate submission', as
 
   finishSave({ error: null });
   await waitFor(() => expect(screen.getByText('Profile saved successfully.')).toBeInTheDocument());
-  expect(screen.getByRole('button', { name: 'Edit Profile' })).toBeInTheDocument();
+  expect(screen.getByRole('button', { name: 'Edit profile' })).toBeInTheDocument();
   expect(screen.getByLabelText('Display name')).toHaveValue('New captain');
 });
 
@@ -66,7 +66,7 @@ it('shows a retry state when the account check rejects', async () => {
   expect(await screen.findByRole('alert')).toHaveTextContent('Could not load your account or profile.');
   expect(screen.queryByText('Sign in to view or edit your profile.')).not.toBeInTheDocument();
   fireEvent.click(screen.getByRole('button', { name: 'Retry' }));
-  expect(await screen.findByRole('button', { name: 'Edit Profile' })).toBeInTheDocument();
+  expect(await screen.findByRole('button', { name: 'Edit profile' })).toBeInTheDocument();
 });
 
 it('treats a missing auth session as signed out instead of a load failure', async () => {
@@ -87,8 +87,8 @@ it('shows a retry state when the profile request fails without exposing an empty
   render(<ProfilePage />);
 
   expect(await screen.findByRole('alert')).toHaveTextContent('Could not load your account or profile.');
-  expect(screen.queryByRole('button', { name: 'Edit Profile' })).not.toBeInTheDocument();
+  expect(screen.queryByRole('button', { name: 'Edit profile' })).not.toBeInTheDocument();
   fireEvent.click(screen.getByRole('button', { name: 'Retry' }));
-  expect(await screen.findByRole('button', { name: 'Edit Profile' })).toBeInTheDocument();
+  expect(await screen.findByRole('button', { name: 'Edit profile' })).toBeInTheDocument();
   expect(screen.getByLabelText('Display name')).toHaveValue('Captain');
 });

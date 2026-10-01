@@ -1,7 +1,9 @@
 'use client';
 
 import { useEffect, useRef, useState, FormEvent } from 'react';
-import Link from 'next/link';
+import { PageHeader } from '@/components/ui/PageHeader';
+import { ActionButton } from '@/components/ui/ActionButton';
+import { ActionLink } from '@/components/ui/ActionLink';
 import { supabase } from '@/lib/supabaseClient';
 import { formatPlayerName } from '@/lib/playerName';
 import type { User } from '@supabase/supabase-js';
@@ -204,7 +206,7 @@ export default function ProfilePage() {
   if (loadingUser || loadingProfile) {
     return (
       <main className="page-shell account-profile-page">
-        <header className="rdd-page-header rdd-page-header--compact"><p className="rdd-eyebrow">Account settings</p><h1>My Profile</h1></header>
+        <PageHeader eyebrow="Your league identity" title="My Profile" />
         <p className="rdd-state" role="status">Loading your profile…</p>
       </main>
     );
@@ -213,9 +215,9 @@ export default function ProfilePage() {
   if (loadError) {
     return (
       <main className="page-shell account-profile-page">
-        <header className="rdd-page-header rdd-page-header--compact"><p className="rdd-eyebrow">Account settings</p><h1>My Profile</h1></header>
+        <PageHeader eyebrow="Your league identity" title="My Profile" />
         <div className="rdd-state rdd-state--error" role="alert">{loadError}</div>
-        <button type="button" className="rdd-action" onClick={() => setLoadAttempt((attempt) => attempt + 1)}>Retry</button>
+        <div><ActionButton onClick={() => setLoadAttempt((attempt) => attempt + 1)}>Retry</ActionButton></div>
       </main>
     );
   }
@@ -223,12 +225,12 @@ export default function ProfilePage() {
   if (!user) {
     return (
       <main className="page-shell account-profile-page">
-        <header className="rdd-page-header rdd-page-header--compact"><p className="rdd-eyebrow">Account settings</p><h1>My Profile</h1></header>
+        <PageHeader eyebrow="Your league identity" title="My Profile" />
         <p className="rdd-state">Sign in to view or edit your profile.</p>
         <p>
-          <Link href="/auth" className="rdd-action rdd-action--primary">
+          <ActionLink href="/auth" variant="primary">
             Go to sign in
-          </Link>
+          </ActionLink>
         </p>
       </main>
     );
@@ -236,23 +238,22 @@ export default function ProfilePage() {
 
   return (
     <main className="page-shell account-profile-page">
-      <header className="rdd-page-header rdd-page-header--compact">
-        <p className="rdd-eyebrow">Account settings</p>
-        <h1>My Profile</h1>
-        <p>
-          Signed in as <strong>{user.email}</strong>
-        </p>
-      </header>
+      <PageHeader
+        eyebrow="Your league identity"
+        title="My Profile"
+        description="Put a face to the rivalry. Make your name your own."
+      />
+      <p className="account-signed-in">Signed in as <strong>{user.email}</strong></p>
 
-      {/* How your name will appear */}
+      {/* Your name on the scoreboard */}
       <AvatarPicker key={user.id} userId={user.id} name={formattedLeagueName()}/>
-      <section className="rdd-panel account-name-preview">
-        <h2 className="rdd-section-title">How your name will appear</h2>
+      <section className="rdd-content-panel account-name-preview">
+        <h2 className="rdd-section-title">Your name on the scoreboard</h2>
         <p className="account-name-preview-value">
           {formattedLeagueName()}
         </p>
         <p className="account-name-preview-help">
-          This is shown on matches, leaderboards, and stats. Use the setting
+          This name appears in matches, leaderboards, and stats. Use the setting
           below to choose whether your first name is shown with your display
           name.
         </p>
@@ -271,30 +272,32 @@ export default function ProfilePage() {
 
       {/* Edit toggle button */}
       {!editMode && (
-        <button
+        <ActionButton
           type="button"
           onClick={() => {
             setEditMode(true);
             setMessage(null);
             setErrorMessage(null);
           }}
-          className="rdd-action rdd-action--primary account-edit-action"
+          variant="primary"
+          className="account-edit-action"
         >
-          Edit Profile
-        </button>
+          Edit profile
+        </ActionButton>
       )}
 
-      <section className="rdd-panel account-profile-form">
+      <section className="rdd-content-panel account-profile-form">
         <h2 className="rdd-section-title">
-          Profile Details
+          Profile details
         </h2>
 
         <form
+          className="rdd-form-controls"
           onSubmit={handleSave}
           aria-busy={saving}
         >
-          <div className="form-row">
-            <label htmlFor="firstName" className="form-label">
+          <div className="account-profile-field">
+            <label htmlFor="firstName" className="account-profile-label">
               First name
             </label>
             <input
@@ -304,12 +307,11 @@ export default function ProfilePage() {
               onChange={(e) => setFirstName(e.target.value)}
               disabled={!editMode || saving}
               required
-              className="form-control"
             />
           </div>
 
-          <div className="form-row">
-            <label htmlFor="lastName" className="form-label">
+          <div className="account-profile-field">
+            <label htmlFor="lastName" className="account-profile-label">
               Last name
             </label>
             <input
@@ -319,12 +321,11 @@ export default function ProfilePage() {
               onChange={(e) => setLastName(e.target.value)}
               disabled={!editMode || saving}
               required
-              className="form-control"
             />
           </div>
 
-          <div className="form-row">
-            <label htmlFor="displayName" className="form-label">
+          <div className="account-profile-field">
+            <label htmlFor="displayName" className="account-profile-label">
               Display name
             </label>
             <input
@@ -335,12 +336,11 @@ export default function ProfilePage() {
               placeholder="e.g., Ton-Plus Timbo"
               disabled={!editMode || saving}
               required
-              className="form-control"
             />
           </div>
 
-          <div className="form-row">
-            <label htmlFor="includeFirstName" className="form-label account-checkbox-label">
+          <div className="account-profile-field">
+            <label htmlFor="includeFirstName" className="account-checkbox-label">
               Show first name with display name
             </label>
             <div className="account-checkbox-help">
@@ -360,8 +360,8 @@ export default function ProfilePage() {
             </div>
           </div>
 
-          <div className="form-row">
-            <label htmlFor="sex" className="form-label">
+          <div className="account-profile-field">
+            <label htmlFor="sex" className="account-profile-label">
               Sex
             </label>
             <select
@@ -369,7 +369,6 @@ export default function ProfilePage() {
               value={sex}
               onChange={(e) => setSex(e.target.value)}
               disabled={!editMode || saving}
-              className="form-control"
             >
               <option value="">-- select --</option>
               <option value="Yes">Yes</option>
@@ -378,16 +377,16 @@ export default function ProfilePage() {
           </div>
 
           {editMode && (
-            <div className="button-row account-profile-actions">
-              <button
+            <div className="account-profile-actions">
+              <ActionButton
                 type="submit"
                 disabled={saving}
-                className="rdd-action rdd-action--primary"
+                variant="primary"
               >
-                {saving ? 'Saving…' : 'Save Profile'}
-              </button>
+                {saving ? 'Saving…' : 'Save profile'}
+              </ActionButton>
 
-              <button
+              <ActionButton
                 type="button"
                 disabled={saving}
                 onClick={() => {
@@ -396,10 +395,9 @@ export default function ProfilePage() {
                   setMessage(null);
                   setErrorMessage(null);
                 }}
-                className="rdd-action"
               >
                 Cancel
-              </button>
+              </ActionButton>
             </div>
           )}
         </form>

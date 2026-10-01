@@ -410,7 +410,7 @@ changes. Adjacent avatar initials are decorative for the link's accessible name.
 Existing alphabetical sorting, real-name search and name disclosure are retained.
 See the [P06 review record](release/p06-players-consistency-2026-10-01.md).
 
-P07 candidate: Player Profile adopts standard PageHeader with its named identity
+P07 accepted, 2026-10-01: Player Profile adopts standard PageHeader with its named identity
 slot, ActionButton/ActionLink and shared filter/form/panel roles. Its layout is
 scoped to .player-page and uses the existing wide content, shell/panel padding,
 spacing and inset-surface roles. The three league-summary cards occupy their own
@@ -422,3 +422,15 @@ ProfileSoloStats is only used here and now consumes these opt-in primitives
 instead of importing Solo's page stylesheet. Solo itself is unchanged; no shared
 primitive/token value, query or privacy behavior changes. See the
 [P07 review record](release/p07-player-profile-consistency-2026-10-01.md).
+
+P08 candidate: My Profile adopts compact PageHeader, shared ActionButton/ActionLink,
+.rdd-content-panel and .rdd-form-controls. The existing 740px account width is
+centralized as --rdd-content-account and consumed only by this page; its former
+760px cap is brought into that existing account-width proposal. AvatarPicker has
+no other page consumer and adopts these shared skins with account-specific layout
+classes. Its image/initials geometry and stable avatar IDs remain unchanged.
+Choice labels carry an underline as well as aria-pressed when selected, using the
+established primary color roles. Repeated avatar initials are decorative beside
+the named choice. Profile/checkbox/preview spacing consumes central roles; no
+existing shared token value or other route style changes. Avatar and profile saves
+remain separate. See the [P08 record](release/p08-my-profile-consistency-2026-10-01.md).

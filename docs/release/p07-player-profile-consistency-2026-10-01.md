@@ -1,7 +1,8 @@
 # P07 Player Profile consistency and copy
 
-Status: awaiting owner review. Baseline release/next at d9b8da3.
-P06 was accepted and P07 authorized on 2026-10-01. Stop before P08.
+Status: accepted by the owner on 2026-10-01. Baseline release/next at d9b8da3.
+P06 was accepted and P07 authorized on 2026-10-01. The owner accepted P07
+and authorized P08 on the same date.
 
 ## Presentation and copy
 
@@ -70,5 +71,7 @@ sweep checks; this is not a comprehensive accessibility-conformance claim.
 The install's existing one high and one critical dependency finding remain separate
 release gates. Build defaults for absent hosted environment variables do not prove
 hosted connectivity. The exact published source, CI/Vercel results and hosted
-read-only smoke belong to the ignored P07 publication packet. Owner review remains
-pending; P08 is unstarted.
+read-only smoke belong to the ignored P07 publication packet. Published 42492c2
+passed CI 36858790687 and Vercel. Hosted read-only record,
+history/filter and Solo-disclosure smoke passed with no console errors; observed
+Supabase assets pointed to RDD Release Testing. Owner acceptance is recorded above.

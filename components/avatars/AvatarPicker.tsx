@@ -5,6 +5,7 @@ import { AVATARS } from "@/lib/rivalries/catalog";
 import { rivalryError } from "@/lib/rivalries/api";
 import { useRivalryOperation } from "@/lib/rivalries/use-operation";
 import { AVATAR_CHANGED, PlayerAvatar } from "./PlayerAvatar";
+import { ActionButton } from "@/components/ui/ActionButton";
 export function AvatarPicker({
   userId,
   name,
@@ -58,20 +59,20 @@ export function AvatarPicker({
   }, [refresh]);
   const locked = op.busy || !!op.pending || revision === null || !op.ready;
   return (
-    <section className="avatar-picker" aria-labelledby="avatar-title">
-      <div className="avatar-picker-heading">
+    <section className="rdd-content-panel account-avatar-picker" aria-labelledby="avatar-title" aria-busy={op.busy}>
+      <div className="account-avatar-heading">
         <PlayerAvatar name={name} avatarId={selected} size={80} />
         <div>
-          <h2 id="avatar-title">Your player avatar</h2>
+          <h2 id="avatar-title" className="rdd-section-title">Your player avatar</h2>
           <p>Pick your personality. Bring it to every matchup.</p>
         </div>
       </div>
       <div
-        className="avatar-grid"
+        className="account-avatar-grid"
         role="group"
         aria-label="Player avatar choices"
       >
-        <button
+        <ActionButton
           type="button"
           aria-pressed={selected === null}
           disabled={locked}
@@ -80,11 +81,11 @@ export function AvatarPicker({
             setMessage("");
           }}
         >
-          <PlayerAvatar name={name} avatarId={null} />
+          <span aria-hidden="true"><PlayerAvatar name={name} avatarId={null} /></span>
           <span>Initials</span>
-        </button>
+        </ActionButton>
         {AVATARS.map((a) => (
-          <button
+          <ActionButton
             type="button"
             key={a.id}
             aria-pressed={selected === a.id}
@@ -94,14 +95,14 @@ export function AvatarPicker({
               setMessage("");
             }}
           >
-            <PlayerAvatar name={name} avatarId={a.id} size={64} />
+            <span aria-hidden="true"><PlayerAvatar name={name} avatarId={a.id} size={64} /></span>
             <span>{a.label}</span>
-          </button>
+          </ActionButton>
         ))}
       </div>
-      <button
+      <ActionButton
         type="button"
-        className="rr-primary"
+        variant="primary"
         disabled={locked}
         onClick={() =>
           void op.submit({
@@ -112,27 +113,27 @@ export function AvatarPicker({
         }
       >
         Save avatar
-      </button>
+      </ActionButton>
       {op.pending && (
         <div role="status">
           <p>
             An avatar save needs confirmation. Check the same attempt before
             choosing again.
           </p>
-          <button disabled={op.busy} onClick={() => void op.submit()}>
+          <ActionButton disabled={op.busy} onClick={() => void op.submit()}>
             Check avatar save
-          </button>
+          </ActionButton>
         </div>
       )}
       {(error || op.error) && <p role="alert">{error || op.error}</p>}
       {message && <p role="status">{message}</p>}
       {(error || op.error) && (
-        <button
+        <ActionButton
           disabled={op.busy || !!op.pending}
           onClick={() => void refresh()}
         >
           Refresh avatar details
-        </button>
+        </ActionButton>
       )}
     </section>
   );

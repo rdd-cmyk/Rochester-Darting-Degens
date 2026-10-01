@@ -1,7 +1,7 @@
 # P06 Players consistency and copy
 
-Status: awaiting owner review. Baseline release/next at 8a73094.
-P05 was accepted and P06 authorized on 2026-10-01. P07 remains unstarted.
+Status: accepted by the owner on 2026-10-01. Baseline release/next at 8a73094.
+P05 was accepted and P06 authorized on 2026-10-01. The owner accepted P06 and authorized P07 on 2026-10-01.
 
 ## Presentation and copy
 
@@ -61,4 +61,5 @@ fixture details remain ignored under .local/page-consistency. Real RLS/admission
 owner/final-sweep checks. No broad accessibility-conformance claim is made.
 
 Exact published source, CI/Vercel outcome and hosted read-only smoke belong to the
-ignored P06 publication packet. Owner acceptance is still pending; stop before P07.
+ignored P06 publication packet. Published d9b8da3 passed CI 36855535491 and Vercel; hosted read-only roster/search
+review passed. Owner acceptance is recorded above; P07 is separately authorized.

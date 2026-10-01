@@ -11,6 +11,9 @@ import { formatPlayerName } from '@/lib/playerName';
 import { formatRecordedScore } from '@/lib/matchScore';
 import { LinkedPlayerName } from '@/components/LinkedPlayerName';
 import { PlayerAvatar } from '@/components/avatars/PlayerAvatar';
+import { PageHeader } from '@/components/ui/PageHeader';
+import { ActionLink } from '@/components/ui/ActionLink';
+import { ActionButton } from '@/components/ui/ActionButton';
 
 type Profile = {
   id: string;
@@ -568,7 +571,7 @@ export default function ProfilePage() {
   if (loading) {
     return (
       <main className="page-shell player-page">
-        <header className="rdd-page-header rdd-page-header--compact"><p className="rdd-eyebrow">Player profile</p><h1>Player Profile</h1></header>
+        <PageHeader eyebrow="Player profile" title="Player profile" size="standard" />
         <p className="rdd-state" role="status">Loading profile…</p>
       </main>
     );
@@ -577,9 +580,9 @@ export default function ProfilePage() {
   if (signInRequired) {
     return (
       <main className="page-shell player-page">
-        <header className="rdd-page-header rdd-page-header--compact"><p className="rdd-eyebrow">Player profile</p><h1>Player Profile</h1></header>
+        <PageHeader eyebrow="Player profile" title="Player profile" size="standard" />
         <p className="rdd-state">Sign in to view player profiles.</p>
-        <Link href="/auth" className="rdd-action rdd-action--primary">Go to sign in</Link>
+        <ActionLink href="/auth" variant="primary">Go to sign in</ActionLink>
       </main>
     );
   }
@@ -587,11 +590,11 @@ export default function ProfilePage() {
   if (errorMessage || profileMissing || !profile) {
     return (
       <main className="page-shell player-page">
-        <header className="rdd-page-header rdd-page-header--compact"><p className="rdd-eyebrow">Player profile</p><h1>{profileMissing ? 'Player not found' : 'Player Profile'}</h1></header>
+        <PageHeader eyebrow="Player profile" title={profileMissing ? 'Player not found' : 'Player profile'} size="standard" />
         <p className={profileMissing ? 'rdd-state' : 'rdd-state rdd-state--error'} role={profileMissing ? 'status' : 'alert'}>
           {profileMissing ? 'No player profile exists at this link.' : errorMessage || 'Could not load profile.'}
         </p>
-        <div className="rdd-actions"><Link href="/profiles" className="rdd-action rdd-action--primary">Browse all profiles</Link></div>
+        <div className="rdd-actions"><ActionLink href="/profiles" variant="primary">Browse players</ActionLink></div>
       </main>
     );
   }
@@ -618,15 +621,18 @@ export default function ProfilePage() {
 
   return (
     <main className="page-shell player-page">
-      <header className="rdd-page-header rdd-page-header--compact">
-        <p className="rdd-eyebrow">Player profile</p>
-        <div className="player-page-heading"><PlayerAvatar playerId={profile.id} name={title} size={80}/><h1>{title}</h1></div>
-        <div className="rdd-actions"><Link href="/matches" className="rdd-action rdd-action--outline">Back to matches</Link></div>
-      </header>
+      <PageHeader
+        eyebrow="Player profile"
+        title={title}
+        description="The record, the recent form, and the next rival to watch."
+        size="standard"
+        identity={<span aria-hidden="true"><PlayerAvatar playerId={profile.id} name={title} size={80} /></span>}
+        actions={<><ActionLink href="/profiles">Browse players</ActionLink><ActionLink href="/matches" variant="quiet">Back to matches</ActionLink></>}
+      />
 
       {/* Basic profile details */}
-      <section className="rdd-panel player-details">
-        <h2 className="section-heading">Player Details</h2>
+      <section className="rdd-content-panel player-details">
+        <h2 className="section-heading">Player details</h2>
         <ul className="player-details-list">
           {hasDisplayName && (
             <li>
@@ -656,15 +662,15 @@ export default function ProfilePage() {
 
       {/* Stats summary */}
       <section className="player-summary">
-        <h2 className="section-heading">Stats Summary</h2>
+        <h2 className="section-heading">The tale of the tape</h2>
         <ProfileSoloStats key={id} owner={id!} scope={statsScope} onScopeChange={setStatsScope}/>
-        <div hidden={statsScope!=='league'}>
+        <div className="player-summary-grid" hidden={statsScope!=='league'}>
         {!stats || stats.games === 0 ? (
-          <p>No matches recorded for this player yet.</p>
+          <p className="rdd-content-panel player-summary-empty">No competitive league matches recorded for this player yet.</p>
         ) : (
           <>
-            <div className="rdd-panel player-summary-card">
-              <h3 className="subsection-heading">Overall record (all match types)</h3>
+            <div className="rdd-content-panel player-summary-card">
+              <h3 className="subsection-heading">League record</h3>
               <ul>
                 <li>
                   <strong>Games:</strong> {stats.games}
@@ -684,15 +690,15 @@ export default function ProfilePage() {
               </ul>
             </div>
 
-            <div className="rdd-panel player-summary-card">
-              <h3 className="subsection-heading">3-Dart Average (501 / 301)</h3>
-              <p>Legacy individual averages with unspecified rules. <Link href="/stats">See Advanced Statistics for preset and team comparisons.</Link></p>
+            <div className="rdd-content-panel player-summary-card">
+              <h3 className="subsection-heading">3-dart average (301 / 501)</h3>
+              <p>Individual averages from games with rules unspecified. <Link href="/stats">See Advanced Statistics for preset and team comparisons.</Link></p>
               {stats.threeGames === 0 ? (
-                <p>No 501 or 301 matches recorded.</p>
+                <p>No scored individual 301 or 501 games with rules unspecified.</p>
               ) : (
                 <ul>
                   <li>
-                    <strong>Average:</strong> {stats.threeAvg.toFixed(2)}
+                    <strong>Average 3DA:</strong> {stats.threeAvg.toFixed(2)}
                   </li>
                   <li>
                     <strong>Games:</strong> {stats.threeGames}
@@ -701,10 +707,10 @@ export default function ProfilePage() {
               )}
             </div>
 
-            <div className="rdd-panel player-summary-card">
+            <div className="rdd-content-panel player-summary-card">
               <h3 className="subsection-heading">MPR (Cricket)</h3>
               {stats.mprGames === 0 ? (
-                <p>No Cricket matches recorded.</p>
+                <p>No scored individual Cricket games with rules unspecified.</p>
               ) : (
                 <ul>
                   <li>
@@ -722,13 +728,13 @@ export default function ProfilePage() {
       </section>
 
       {/* Match history tabs */}
-      <section className="rdd-panel player-history">
-        <h2 className="section-heading">League Match History</h2>
+      <section className="rdd-content-panel player-history">
+        <h2 className="section-heading">League match history</h2>
         {statsScope !== 'league' && <p className="rdd-muted">The history below shows league matches. Private Solo Play history is not shown on profiles.</p>}
 
-        <div className="player-history-controls">
+        <div className="rdd-filter-group player-history-controls">
           <label className="match-filter-control" htmlFor="gameTypeFilter">
-            <span>Game Type</span>
+            <span>Game type</span>
             <select
               id="gameTypeFilter"
               value={gameTypeFilter}
@@ -767,23 +773,21 @@ export default function ProfilePage() {
           </label>
         </div>
 
-        <div className="rdd-actions player-history-tabs" role="group" aria-label="Match history range">
-          <button
+        <div className="player-history-tabs" role="group" aria-label="Match history range">
+          <ActionButton
             type="button"
             onClick={() => handleTabChange('recent')}
-            className="rdd-action"
             aria-pressed={activeTab === 'recent'}
           >
-            Last 5 Matches
-          </button>
-          <button
+            Last 5 matches
+          </ActionButton>
+          <ActionButton
             type="button"
             onClick={() => handleTabChange('all')}
-            className="rdd-action"
             aria-pressed={activeTab === 'all'}
           >
-            All Matches
-          </button>
+            All matches
+          </ActionButton>
         </div>
 
         {activeTab === 'recent' ? (
@@ -805,7 +809,7 @@ export default function ProfilePage() {
 
             {filteredAllMatches.length > 0 && (
               <div className="rdd-pagination">
-                <button
+                <ActionButton
                   type="button"
                   disabled={allMatchesPage === 1 || allMatchesLoading}
                   onClick={() => {
@@ -813,14 +817,13 @@ export default function ProfilePage() {
                     setAllMatchesLoading(true);
                     setAllMatchesPage((p) => Math.max(1, p - 1));
                   }}
-                  className="rdd-action rdd-action--secondary"
                 >
                   Previous
-                </button>
+                </ActionButton>
                 <span>
                   Page {allMatchesPage} of {allMatchesTotalPages}
                 </span>
-                <button
+                <ActionButton
                   type="button"
                   disabled={allMatchesPage === allMatchesTotalPages || allMatchesLoading}
                   onClick={() => {
@@ -830,16 +833,15 @@ export default function ProfilePage() {
                       p >= allMatchesTotalPages ? allMatchesTotalPages : p + 1
                     );
                   }}
-                  className="rdd-action rdd-action--secondary"
                 >
                   Next
-                </button>
+                </ActionButton>
               </div>
             )}
 
             {allMatchesLoading && (
-              <div className="player-history-loading">
-                <p>Loading matches...</p>
+              <div className="player-history-loading" role="status">
+                <p>Loading match history…</p>
               </div>
             )}
           </div>

@@ -81,7 +81,7 @@ it('shows a distinct missing-player state with a directory link', async () => {
   render(<ProfilePage />);
   await screen.findByRole('heading', { name: 'Player not found' });
   expect(screen.getByRole('status')).toHaveTextContent('No player profile exists at this link.');
-  expect(screen.getByRole('link', { name: 'Browse all profiles' })).toHaveAttribute('href', '/profiles');
+  expect(screen.getByRole('link', { name: 'Browse players' })).toHaveAttribute('href', '/profiles');
   expect(screen.queryByText('Could not load profile.')).not.toBeInTheDocument();
 });
 
@@ -96,7 +96,7 @@ it('keeps a failed profile request separate from a missing player', async () => 
 async function openHistory() {
   render(<ProfilePage />);
   await screen.findByRole('heading', { name: 'Test player' });
-  fireEvent.click(screen.getByRole('button', { name: 'All Matches' }));
+  fireEvent.click(screen.getByRole('button', { name: 'All matches' }));
   await waitFor(() => expect(requests).toHaveLength(1));
 }
 async function finish(index: number, data: Result['data'], count = data?.length ?? 0, error: Result['error'] = null) {
@@ -106,7 +106,7 @@ async function finish(index: number, data: Result['data'], count = data?.length 
 it('filters recent matches immediately without requesting paginated history', async () => {
   render(<ProfilePage />);
   await screen.findByText('Notes: Recent win');
-  fireEvent.change(screen.getByLabelText('Game Type'), { target: { value: 'Cricket' } });
+  fireEvent.change(screen.getByLabelText('Game type'), { target: { value: 'Cricket' } });
   expect(screen.queryByText('Notes: Recent win')).not.toBeInTheDocument();
   expect(screen.getByText('Notes: Recent loss')).toBeInTheDocument();
   fireEvent.change(screen.getByLabelText('Result'), { target: { value: 'wins' } });
@@ -124,7 +124,7 @@ it('keeps an unresolved tie out of the recent losses filter', async () => {
 
 it('keeps settled history while paging and sends filters before resetting to page one', async () => {
   await openHistory();
-  expect(screen.getByText('Loading matches...')).toBeInTheDocument();
+  expect(screen.getByText('Loading match history…')).toBeInTheDocument();
   await finish(0, [match(10, 'Page one')], 21);
   expect(requests[0].range).toEqual([0, 9]);
   fireEvent.click(screen.getByRole('button', { name: 'Next' }));
@@ -134,7 +134,7 @@ it('keeps settled history while paging and sends filters before resetting to pag
   expect(requests[1].range).toEqual([10, 19]);
   await finish(1, [match(20, 'Page two')], 21);
   expect(screen.getByText('Page 2 of 3')).toBeInTheDocument();
-  fireEvent.change(screen.getByLabelText('Game Type'), { target: { value: 'Cricket' } });
+  fireEvent.change(screen.getByLabelText('Game type'), { target: { value: 'Cricket' } });
   await waitFor(() => expect(requests).toHaveLength(3));
   expect(requests[2].range).toEqual([0, 9]);
   expect(requests[2].filters).toContainEqual(['game_type', 'Cricket']);
@@ -163,9 +163,9 @@ it('settles empty results and recovers from a history error on retry', async () 
   await openHistory();
   await finish(0, null, 0, { message: 'synthetic failure' });
   expect(screen.getByText('Could not load match history.')).toBeInTheDocument();
-  expect(screen.queryByText('Loading matches...')).not.toBeInTheDocument();
-  fireEvent.click(screen.getByRole('button', { name: 'Last 5 Matches' }));
-  fireEvent.click(screen.getByRole('button', { name: 'All Matches' }));
+  expect(screen.queryByText('Loading match history…')).not.toBeInTheDocument();
+  fireEvent.click(screen.getByRole('button', { name: 'Last 5 matches' }));
+  fireEvent.click(screen.getByRole('button', { name: 'All matches' }));
   await waitFor(() => expect(requests).toHaveLength(2));
   await finish(1, []);
   expect(screen.getByText('No matches found for this player.')).toBeInTheDocument();

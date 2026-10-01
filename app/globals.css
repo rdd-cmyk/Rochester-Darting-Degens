@@ -1365,8 +1365,6 @@ textarea:disabled {
 }
 
 /* Shared game settings fit both the Matches form and League Night cards. */
-.player-page-heading { display: flex; align-items: center; gap: 1rem; min-width: 0; }
-.player-page-heading h1 { min-width: 0; overflow-wrap: anywhere; }
 .matches-details { border: 0; padding: 0; margin: 0; min-width: 0; }
 .game-options { border: 1px solid var(--input-border, #bbb); border-radius: .6rem; padding: .8rem; }
 .game-options label { display: grid; gap: .35rem; min-width: 0; font-weight: 600; }
@@ -1681,32 +1679,43 @@ textarea:disabled {
 .leaderboard-title { color: var(--rdd-ink); font-size: clamp(1.3rem, 2vw, 1.7rem); letter-spacing: -0.02em; }
 .section-heading { text-transform: none; letter-spacing: -0.02em; font-size: clamp(1.3rem, 2vw, 1.7rem); border-bottom-color: var(--rdd-border); }
 .subsection-heading { text-transform: none; letter-spacing: -0.01em; font-size: 1.05rem; }
-.player-page { max-width: 1000px; }
-.player-details { display: grid; gap: 0.4rem; }
-.player-details-list, .player-summary-card ul { list-style: none; padding: 0; }
-.player-details-list { margin-top: 0.5rem; }
-.player-details-list li + li { margin-top: 0.25rem; }
-.player-summary { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1rem; }
-.player-summary > h2 { grid-column: 1 / -1; }
-.player-summary-card { display: grid; align-content: start; gap: 0.65rem; }
-.player-summary-card ul { display: grid; gap: 0.35rem; }
-.player-history { display: grid; gap: 0.9rem; }
-.player-history-controls { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 0.75rem; margin-bottom: 0.85rem; }
-.player-history-controls .match-filter-control span { font-weight: 600; }
-.player-history-tabs { margin-bottom: 0.25rem; }
-.player-history-tabs .rdd-action[aria-pressed="true"] { color: #fff; background: var(--rdd-navy); border-color: var(--rdd-navy); }
-.player-history .match-filter-control select { min-height: 44px; }
-.player-history-results { position: relative; }
-.player-history-loading { position: absolute; z-index: 1; inset: 0; display: flex; align-items: center; justify-content: center; border-radius: 0.5rem; background: color-mix(in srgb, var(--rdd-panel) 88%, transparent); }
-.player-history-loading p { margin: 0; }
-.player-match-list { display: flex; flex-direction: column; gap: 1rem; margin-top: 0.5rem; padding: 0; list-style: none; }
-.player-match-card { border: 1px solid var(--rdd-border); border-radius: 0.75rem; padding: 1rem; background: color-mix(in srgb, var(--rdd-panel) 86%, var(--rdd-page)); overflow-wrap: anywhere; }
-.player-match-card + .player-match-card { margin-top: 0.2rem; }
-.player-match-header { display: flex; justify-content: space-between; align-items: center; gap: 0.5rem; }
-.player-match-header > div { min-width: 0; }
-.player-match-participants { margin-top: 0.5rem; }
-.player-match-participants ul { margin: 0.25rem 0 0 1rem; }
-@media (max-width: 750px) { .player-summary { grid-template-columns: 1fr; } }
+/* Player Profile owns layout; shared primitives own panel/control skins. */
+.player-page { max-width: var(--rdd-content-wide); padding: var(--rdd-shell-padding); display: grid; gap: var(--rdd-space-6); }
+.player-page .rdd-title-identity { width: auto; }
+.player-page .rdd-state { margin: 0; padding: var(--rdd-panel-padding); border-radius: var(--rdd-radius-panel); }
+.player-page :is(.player-details, .player-summary-card, .player-history, .player-scoring-panel) { display: grid; gap: var(--rdd-space-3); }
+.player-page :is(.section-heading, .subsection-heading, .player-scoring-panel h3, p) { margin: 0; }
+.player-page :is(.player-details-list, .player-summary-card ul) { list-style: none; padding: 0; margin: 0; display: grid; gap: var(--rdd-space-2); }
+.player-page .player-summary { display: grid; gap: var(--rdd-space-4); }
+.player-page .player-summary-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--rdd-space-4); }
+.player-page .player-summary-grid[hidden] { display: none; }
+.player-page .player-summary-empty { grid-column: 1 / -1; }
+.player-page .player-summary-card { align-content: start; overflow-wrap: anywhere; }
+.player-page :is(.player-history-controls, .player-scoring-filters) { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.player-page :is(.player-scope, .player-history-tabs) { display: flex; flex-wrap: wrap; gap: var(--rdd-space-2); }
+.player-page :is(.player-scope, .player-history-tabs) button[aria-pressed="true"] { color: var(--rdd-action-primary-text); background: var(--rdd-action-primary-bg); text-decoration: underline; text-underline-offset: var(--rdd-space-1); }
+.player-page .player-solo-summary { display: grid; gap: var(--rdd-space-4); }
+.player-page :is(.player-scoring-filters, .player-scoring-rules) { gap: var(--rdd-space-3); }
+.player-page :is(.player-scoring-filters label, .player-scoring-rules) { display: grid; min-width: 0; gap: var(--rdd-space-2); font-weight: var(--rdd-action-weight); }
+.player-page .player-scoring-metrics { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--rdd-space-4); }
+.player-page .player-scoring-metrics > div { display: grid; gap: var(--rdd-space-2); padding: var(--rdd-space-4); border-radius: var(--rdd-radius-control); background: var(--rdd-panel-inset-bg); }
+.player-page .player-scoring-metrics strong { font-size: var(--rdd-title-compact-size); }
+.player-page .player-scoring-metrics small { color: var(--rdd-text-muted); }
+.player-page .player-history-results { position: relative; }
+.player-page .player-history-loading { position: absolute; z-index: 1; inset: 0; display: flex; align-items: center; justify-content: center; padding: var(--rdd-space-4); border-radius: var(--rdd-radius-control); background: color-mix(in srgb, var(--rdd-panel) 88%, transparent); }
+.player-page .player-match-list { display: grid; gap: var(--rdd-space-4); margin: 0; padding: 0; list-style: none; }
+.player-page .player-match-card { border: 1px solid var(--rdd-border); border-radius: var(--rdd-radius-panel); padding: var(--rdd-panel-padding); background: var(--rdd-panel-inset-bg); overflow-wrap: anywhere; }
+.player-page .player-match-header { display: flex; justify-content: space-between; align-items: center; gap: var(--rdd-space-2); }
+.player-page .player-match-header > div { min-width: 0; }
+.player-page .player-match-participants { margin-top: var(--rdd-space-2); }
+.player-page .player-match-participants ul { margin: var(--rdd-space-1) 0 0 var(--rdd-space-4); }
+.player-page .rdd-pagination { gap: var(--rdd-space-2); margin-top: var(--rdd-space-4); }
+@media (max-width: 750px) { .player-page .player-summary-grid { grid-template-columns: minmax(0, 1fr); } }
+@media (max-width: 640px) {
+  /* Identity stays visible on profiles; it is meaningful beside a player's name. */
+  .player-page .rdd-title-identity { display: block; grid-row: 1; }
+  .player-page :is(.player-history-controls, .player-scoring-filters, .player-scoring-metrics) { grid-template-columns: minmax(0, 1fr); }
+}
 .leaderboard-title::before { background: var(--rdd-orange); box-shadow: none; }
 @media (max-width: 640px) {
 }

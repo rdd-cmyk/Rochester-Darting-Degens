@@ -401,7 +401,7 @@ primary background/text roles; native pressed/checkbox semantics remain intact.
 No new theme/action variant or access behavior is introduced. See the
 [P05 review record](release/p05-planning-consistency-2026-09-30.md).
 
-P06 candidate: Players adopts standard PageHeader, ActionButton/ActionLink for
+P06 accepted, 2026-10-01: Players adopts standard PageHeader, ActionButton/ActionLink for
 retry/sign-in, and shared form/panel roles for search and linked roster rows.
 Directory geometry uses the existing --rdd-content-form and --rdd-shell-padding;
 row spacing, radius, borders and focus use central roles. All .directory-* rules
@@ -409,3 +409,16 @@ are consumed only by /profiles; no central role value or shared avatar component
 changes. Adjacent avatar initials are decorative for the link's accessible name.
 Existing alphabetical sorting, real-name search and name disclosure are retained.
 See the [P06 review record](release/p06-players-consistency-2026-10-01.md).
+
+P07 candidate: Player Profile adopts standard PageHeader with its named identity
+slot, ActionButton/ActionLink and shared filter/form/panel roles. Its layout is
+scoped to .player-page and uses the existing wide content, shell/panel padding,
+spacing and inset-surface roles. The three league-summary cards occupy their own
+responsive grid beneath the scope selector. Profile identity stays visible above
+the mobile heading; its existing 80px avatar geometry is retained. Selected scope
+and history choices use the primary color roles plus an underline and native
+aria-pressed state, following Planning's token-based selection treatment.
+ProfileSoloStats is only used here and now consumes these opt-in primitives
+instead of importing Solo's page stylesheet. Solo itself is unchanged; no shared
+primitive/token value, query or privacy behavior changes. See the
+[P07 review record](release/p07-player-profile-consistency-2026-10-01.md).

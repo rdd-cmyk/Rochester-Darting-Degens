@@ -5,14 +5,14 @@ assessment complete, Vercel access resolved, isolated-preview gate passed;
 W2 statistics foundation and W3 combined synthetic rehearsal passed locally;
 W5's production-shaped local rehearsal has passed; W6-W8 release gates remain open.
 
-Current resume point: P01-P08 are owner-accepted and P09 is awaiting owner review in the
+Current resume point: P01-P09 are owner-accepted and P10-P15 are in final verification in the
 page-by-page consistency and wording pass before returning to W7 (and affected
 W6 closeout). The [September 30 checkpoint](release/pre-consistency-checkpoint-2026-09-30.md)
 records accepted results, candidate `351a4b0`, remaining dependency/credential
 controls and both W6 SQL supplements. It supersedes stale summary wording below;
 earlier dated evidence remains intact. No production approval is implied.
 The detour is tracked in the [page consistency and wording plan](page-consistency-and-copy-plan.md):
-one page per package, with owner acceptance before proceeding to the next.
+one page per package; the owner authorized P10-P15 as one six-page batch before the next acceptance stop. P16 onward remains unstarted.
 
 ## Candidate and scope
 

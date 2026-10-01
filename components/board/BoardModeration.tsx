@@ -1,4 +1,5 @@
 'use client';
+import { ActionButton } from '@/components/ui/ActionButton';
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { boardAdmin, boardError, boardName, boardWrite, type BoardAdmin } from '@/lib/board';
@@ -29,8 +30,8 @@ export default function BoardModeration({ onChange }: { onChange: () => void }) 
     catch (cause) { setError(boardError(cause)); } finally { setBusy(false); }
   }
   return <section className="board-panel board-moderation" aria-label="Organizer tools">
-    <h2>Organizer tools</h2><p className="board-muted">Approve people you recognize from the league. New accounts cannot read conversations until approved.</p>
-    {error && <p role="alert" className="board-error">{error} <button onClick={load}>Retry</button></p>}
+    <h2 className="rdd-section-title">Organizer tools</h2><p className="board-muted">Approve people you recognize from the league. New accounts cannot read conversations until approved.</p>
+    {error && <p role="alert" className="board-error">{error} <ActionButton onClick={load}>Retry</ActionButton></p>}
     {message && <p role="status">{message}</p>}
     {!data && busy && <p role="status">Loading organizer tools…</p>}
     {data && <>
@@ -39,20 +40,20 @@ export default function BoardModeration({ onChange }: { onChange: () => void }) 
       {data.members.map(member => <div className="board-admin-row" key={member.user_id}>
         <div><strong>{boardName(member.profile)}</strong><span className="board-small board-muted"> · {member.role} · {member.status}</span></div>
         {member.role !== 'organizer' && <div className="board-actions">
-          {member.status !== 'approved' && <button disabled={busy} onClick={() => act('approve_member', member.user_id)}>Approve</button>}
-          {member.status !== 'revoked' && <button disabled={busy} onClick={() => { if(window.confirm(`Revoke board access for ${boardName(member.profile)}?`)) void act('revoke_member', member.user_id); }}>Revoke access</button>}
+          {member.status !== 'approved' && <ActionButton disabled={busy} onClick={() => act('approve_member', member.user_id)}>Approve</ActionButton>}
+          {member.status !== 'revoked' && <ActionButton variant="danger" disabled={busy} onClick={() => { if(window.confirm(`Revoke board access for ${boardName(member.profile)}?`)) void act('revoke_member', member.user_id); }}>Revoke access</ActionButton>}
         </div>}
       </div>)}
       <h3>Reports</h3>
       {!data.reports.length && <p className="board-muted">No open reports on this page.</p>}
       {data.reports.map(report => <div className="board-admin-row" key={report.id}>
         <p className="board-body">{report.body}</p><p><strong>Reason:</strong> {report.reason}</p>
-        <div className="board-actions"><button disabled={busy} onClick={() => act(report.reply_id ? 'hide_reply' : 'hide_post', report.reply_id ?? report.post_id)}>Hide {report.reply_id ? 'reply' : 'post'}</button><button disabled={busy} onClick={() => act('resolve_report', report.id)}>Resolve report</button></div>
+        <div className="board-actions"><ActionButton disabled={busy} onClick={() => act(report.reply_id ? 'hide_reply' : 'hide_post', report.reply_id ?? report.post_id)}>Hide {report.reply_id ? 'reply' : 'post'}</ActionButton><ActionButton disabled={busy} onClick={() => act('resolve_report', report.id)}>Resolve report</ActionButton></div>
       </div>)}
       <h3>Hidden contributions</h3>
       {!data.hidden.length && <p className="board-muted">No hidden contributions on this page.</p>}
-      {data.hidden.map(item => <div className="board-admin-row" key={item.id}><p className="board-body">{item.body}</p><button disabled={busy} onClick={() => act(`restore_${item.kind}`, item.id)}>Restore {item.kind}</button></div>)}
-      <div className="board-actions"><button disabled={busy || page === 0} onClick={() => setPage(page - 1)}>Previous</button><span className="board-small">Page {page + 1}</span><button disabled={busy || Math.max(data.members.length, data.reports.length, data.hidden.length) < 50} onClick={() => setPage(page + 1)}>Next</button><button disabled={busy} onClick={load}>Refresh tools</button></div>
+      {data.hidden.map(item => <div className="board-admin-row" key={item.id}><p className="board-body">{item.body}</p><ActionButton disabled={busy} onClick={() => act(`restore_${item.kind}`, item.id)}>Restore {item.kind}</ActionButton></div>)}
+      <div className="board-actions"><ActionButton disabled={busy || page === 0} onClick={() => setPage(page - 1)}>Previous</ActionButton><span className="board-small">Page {page + 1}</span><ActionButton disabled={busy || Math.max(data.members.length, data.reports.length, data.hidden.length) < 50} onClick={() => setPage(page + 1)}>Next</ActionButton><ActionButton disabled={busy} onClick={load}>Refresh tools</ActionButton></div>
     </>}
   </section>;
 }

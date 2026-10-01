@@ -1,4 +1,6 @@
 'use client';
+import { PageHeader } from '@/components/ui/PageHeader';
+import { ActionButton } from '@/components/ui/ActionButton';
 import Link from 'next/link';
 import { useCallback, useEffect, useRef, useState, type FormEvent } from 'react';
 import { InviteRequestError, inviteRequest } from '@/lib/invites/client';
@@ -74,26 +76,26 @@ export default function InvitesPage() {
     finally { if (principalGeneration.current === principal) setBusy(false); }
   }
   function send(event: FormEvent) { event.preventDefault(); void mutate({ action: 'create', email }); }
-  return <main className="page-shell invite-shell">
-    <div className="invite-heading"><div><p className="invite-eyebrow">BRING SOMEONE TO THE OCHE</p><h1>League invitations</h1><p>Invite a friend. Keep track of who’s joining your next league night.</p></div><button onClick={() => void refresh()} disabled={loading || busy}>Refresh</button></div>
+  return <main className="page-shell invite-shell invite-consistent rdd-form-controls">
+    <PageHeader title="League invitations" size="standard" eyebrow="Bring someone to the oche" description="Invite a friend. Keep track of who’s joining your next league night." actions={<ActionButton onClick={() => void refresh()} disabled={loading || busy}>Refresh</ActionButton>} />
     <form className="invite-panel invite-send" onSubmit={send}>
       <div><label htmlFor="invite-email">Their email address</label><input id="invite-email" type="email" autoComplete="off" maxLength={254} required placeholder="friend@example.com" value={email} onChange={e => setEmail(e.target.value)} disabled={busy || retrying} /></div>
-      <button className="invite-primary" disabled={busy || retrying || !data}>{busy ? 'Please wait…' : 'Send invitation'}</button><p>Each invitation is for one email address and lasts 7 days. They’ll verify their inbox before joining.</p>
+      <ActionButton type="submit" variant="primary" disabled={busy || retrying || !data}>{busy ? 'Please wait…' : 'Send invitation'}</ActionButton><p>Each invitation is for one email address and lasts 7 days. They’ll verify their inbox before joining.</p>
     </form>
-    {message && <div className="invite-panel" role="status"><p>{message}</p>{retrying && <div className="invite-actions"><button disabled={busy} onClick={() => void mutate({})}>Retry same request</button><button disabled={busy} onClick={() => { pending.current = null; setRetrying(false); void refresh(); }}>Check history and start a new request</button></div>}</div>}
-    {loadError && <div role="alert" className="invite-panel"><p>{loadError}</p>{siteOrigin ? <a href={`${siteOrigin}/invites`}>Open invitations on the main site</a> : !signedIn ? <Link href="/auth">Sign in</Link> : <button disabled={loading || busy} onClick={() => void refresh()}>Retry loading invitations</button>}</div>}
+    {message && <div className="invite-panel" role="status"><p>{message}</p>{retrying && <div className="invite-actions"><ActionButton disabled={busy} onClick={() => void mutate({})}>Retry same request</ActionButton><ActionButton disabled={busy} onClick={() => { pending.current = null; setRetrying(false); void refresh(); }}>Check history and start a new request</ActionButton></div>}</div>}
+    {loadError && <div role="alert" className="invite-panel"><p>{loadError}</p>{siteOrigin ? <a href={`${siteOrigin}/invites`}>Open invitations on the main site</a> : !signedIn ? <Link href="/auth">Sign in</Link> : <ActionButton disabled={loading || busy} onClick={() => void refresh()}>Retry loading invitations</ActionButton>}</div>}
     {data && <>
       <div className="invite-counts"><div><strong>{data.pending}</strong><span>Pending</span></div><div><strong>{data.accepted}</strong><span>Accepted</span></div></div>
       <section className="invite-panel" aria-label="Your invitations">
-        <div className="invite-heading"><h2>Your invitations</h2><label>Status <select value={filter} disabled={busy} onChange={e => { setFilter(e.target.value as typeof filter); setPage(0); }}>{['all', 'pending', 'accepted', 'expired', 'revoked'].map(status => <option key={status} value={status}>{status[0].toUpperCase() + status.slice(1)}</option>)}</select></label></div>
+        <div className="invite-heading"><h2 className="rdd-section-title">Your invitations</h2><label>Status <select value={filter} disabled={busy} onChange={e => { setFilter(e.target.value as typeof filter); setPage(0); }}>{['all', 'pending', 'accepted', 'expired', 'revoked'].map(status => <option key={status} value={status}>{status[0].toUpperCase() + status.slice(1)}</option>)}</select></label></div>
         {loading ? <p role="status">Loading invitations…</p> : data.items.length === 0 ? <p>{filter === 'all' && page === 0 ? 'Invite someone to join your next league night.' : 'No invitations in this view.'}</p> : <ul className="invite-list">
           {data.items.map(item => <li key={item.id}><div className="invite-row-main"><strong className="invite-email">{item.email}</strong><span className={`invite-badge invite-${item.status}`}>{item.status}</span></div>
             <p className="invite-detail">Created {date(item.created_at)} · {deliveryLabel[item.delivery]}{item.sent_at ? ` ${date(item.sent_at)}` : ''}{item.accepted_at ? ` · Joined ${date(item.accepted_at)}` : ` · Expires ${date(item.expires_at)}`}</p>
-            {['pending', 'expired'].includes(item.status) && <div className="invite-actions"><button disabled={busy || retrying} onClick={() => void mutate({ action: 'resend', id: item.id })}>Resend</button>
-              {confirmRevoke === item.id ? <><span>Cancel this invitation?</span><button disabled={busy || retrying} onClick={() => void mutate({ action: 'revoke', id: item.id })}>Confirm revoke</button><button onClick={() => setConfirmRevoke(null)}>Keep invitation</button></> : <button disabled={busy || retrying} onClick={() => setConfirmRevoke(item.id)}>Revoke</button>}</div>}
+            {['pending', 'expired'].includes(item.status) && <div className="invite-actions"><ActionButton disabled={busy || retrying} onClick={() => void mutate({ action: 'resend', id: item.id })}>Resend</ActionButton>
+              {confirmRevoke === item.id ? <><span>Cancel this invitation?</span><ActionButton disabled={busy || retrying} onClick={() => void mutate({ action: 'revoke', id: item.id })}>Confirm revoke</ActionButton><ActionButton onClick={() => setConfirmRevoke(null)}>Keep invitation</ActionButton></> : <ActionButton disabled={busy || retrying} onClick={() => setConfirmRevoke(item.id)}>Revoke</ActionButton>}</div>}
           </li>)}
         </ul>}
-        <div className="invite-actions"><button disabled={page === 0 || busy || loading} onClick={() => setPage(p => p - 1)}>Previous</button><span>Page {page + 1}</span><button disabled={(page + 1) * 20 >= data.total || busy || loading} onClick={() => setPage(p => p + 1)}>Next</button></div>
+        <div className="invite-actions"><ActionButton disabled={page === 0 || busy || loading} onClick={() => setPage(p => p - 1)}>Previous</ActionButton><span>Page {page + 1}</span><ActionButton disabled={(page + 1) * 20 >= data.total || busy || loading} onClick={() => setPage(p => p + 1)}>Next</ActionButton></div>
       </section>
     </>}
     {loading && !data && <p role="status">Loading invitations…</p>}

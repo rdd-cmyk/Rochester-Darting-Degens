@@ -1,4 +1,5 @@
 "use client";
+import { ActionButton } from '@/components/ui/ActionButton';
 import { useRef, useState } from "react";
 import Image from "next/image";
 import { avatarById } from "@/lib/rivalries/catalog";
@@ -152,19 +153,19 @@ export function RivalryPoster({
         </label>
       </div>
       <div className="rr-actions">
-        <button disabled={busy} onClick={() => void preview()}>
+        <ActionButton disabled={busy} onClick={() => void preview()}>
           {busy ? "Creating preview…" : "Preview poster"}
-        </button>
+        </ActionButton>
         {url && (
           <a
-            className="rr-primary"
+            className="rdd-page-action rdd-page-action--primary"
             href={url}
             download="rdd-rivalry-poster.png"
           >
             Download this poster
           </a>
         )}
-        <button onClick={() => void openBoard()}>Draft a text post for the Board</button>
+        <ActionButton onClick={() => void openBoard()}>Draft a text post for the Board</ActionButton>
       </div>
       {url && (
         <Image

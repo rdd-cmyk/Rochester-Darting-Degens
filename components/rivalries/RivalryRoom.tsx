@@ -1,4 +1,7 @@
 "use client";
+import { PageHeader } from '@/components/ui/PageHeader';
+import { ActionLink } from '@/components/ui/ActionLink';
+import { ActionButton } from '@/components/ui/ActionButton';
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -39,26 +42,19 @@ export function RivalryRoom({
   const { user, loading } = useCurrentUser();
   if (loading)
     return (
-      <main className="rr-shell">
-        <p>Opening the Rivalry Room…</p>
+      <main className="rr-shell rr-consistent rdd-form-controls">
+        <PageHeader title={challengeId ? "The challenge" : pair ? "Head to head" : "The Rivalry Room"} size={challengeId || pair ? "standard" : "feature"} eyebrow="Rochester Darting Degens" /><p role="status">Opening the Rivalry Room…</p>
       </main>
     );
   if (!user)
     return (
-      <main className="rr-shell rr-welcome">
-        <span className="rr-eyebrow">Rochester Darting Degens</span>
-        <h1>
-          EVERY RIVALRY
-          <br />
-          HAS A STORY.
-        </h1>
-        <p>Find your rival. Set the stakes. Write the next chapter.</p>
-        <Link
-          className="rr-primary"
+      <main className="rr-shell rr-consistent rdd-form-controls">
+        <PageHeader title={challengeId ? "The challenge" : pair ? "Head to head" : "The Rivalry Room"} size={challengeId || pair ? "standard" : "feature"} eyebrow="Rochester Darting Degens" description="Find your rival. Set the stakes. Write the next chapter." />
+        <ActionLink variant="primary"
           href={`/auth?next=${encodeURIComponent(challengeId ? `/rivalries/challenges/${challengeId}` : pair ? `/rivalries/pair/${pair[0]}/${pair[1]}` : "/rivalries")}`}
         >
           Sign in to the league
-        </Link>
+        </ActionLink>
       </main>
     );
   return (
@@ -258,45 +254,35 @@ function Room({
   }
   if (!data)
     return (
-      <main className="rr-shell">
-        <span className="rr-eyebrow">The Rivalry Room</span>
-        <h1>Every rivalry has a story.</h1>
+      <main className="rr-shell rr-consistent rdd-form-controls">
+        <PageHeader title={challengeId ? "The challenge" : pair ? "Head to head" : "The Rivalry Room"} size={challengeId || pair ? "standard" : "feature"} eyebrow="Rochester Darting Degens" />
         <p>{error || "Finding your next chapter…"}</p>
         {error && (
-          <button disabled={refreshing} onClick={() => void refresh()}>
+          <ActionButton disabled={refreshing} onClick={() => void refresh()}>
             Retry
-          </button>
+          </ActionButton>
         )}
       </main>
     );
   if (challengeId && !selectedChallenge)
     return (
-      <main className="rr-shell">
-        <h1>Challenge unavailable</h1>
+      <main className="rr-shell rr-consistent rdd-form-controls">
+        <PageHeader title="Challenge unavailable" size="standard" eyebrow="The Rivalry Room" />
         <p>This challenge is no longer available to your league.</p>
         <Link href="/rivalries">Back to the Rivalry Room</Link>
       </main>
     );
   return (
-    <main className="rr-shell">
-      <header className="rr-page-head">
-        <div>
-          <span className="rr-eyebrow">Rochester Darting Degens</span>
-          <h1>
-            The Rivalry Room<span className="rr-period">.</span>
-          </h1>
-          <p>Your history. Your rivals. Your next chapter.</p>
-        </div>
-        <div className="rr-actions">
-          <Link href="/profile">Choose your avatar ↗</Link>
-          <button disabled={refreshing} onClick={() => void refresh()}>
-            {refreshing ? "Refreshing…" : "Refresh"}
-          </button>
-        </div>
-      </header>
+    <main className="rr-shell rr-consistent rdd-form-controls">
+      <PageHeader title={challengeId ? "The challenge" : pair ? "Head to head" : "The Rivalry Room"}
+        size={challengeId || pair ? "standard" : "feature"} eyebrow="Rochester Darting Degens"
+        description={challengeId ? "Set the stakes. Follow the series. Write the next chapter." : pair ? "The tale of the tape. Every game leaves a mark." : "Your history. Your rivals. Your next chapter."}
+        actions={<>{(pair || challengeId) && <ActionLink variant="quiet" href="/rivalries">Back to the Rivalry Room</ActionLink>}
+          <ActionLink variant="quiet" href="/profile">Choose your avatar ↗</ActionLink>
+          <ActionButton disabled={refreshing} onClick={() => void refresh()}>{refreshing ? "Refreshing…" : "Refresh"}</ActionButton></>} />
       {incoming.length > 0 && (
         <section className="rr-incoming" aria-label="Incoming challenges">
-          <h2>{incoming.length === 1 ? "A challenge is waiting for you" : `${incoming.length} challenges are waiting for you`}</h2>
+          <h2 className="rdd-section-title">{incoming.length === 1 ? "A challenge is waiting for you" : `${incoming.length} challenges are waiting for you`}</h2>
           {incoming.map((c) => (
             <Link key={c.id} href={`/rivalries/challenges/${c.id}`}>
               {nameOf(data.profiles.find((p) => p.id === c.sender))} challenged you · {c.game} · Best of {c.best_of} · Review challenge ↗
@@ -316,22 +302,22 @@ function Room({
       )}
       {!actualRight ? (
         <section className="rr-empty">
-          <h2>A rivalry is waiting to happen.</h2>
+          <h2 className="rdd-section-title">A rivalry is waiting to happen.</h2>
           <p>Another active league player will appear here when they join.</p>
           <Link href="/profiles">See league profiles</Link>
         </section>
       ) : (
         <>
-          <div ref={poster} className={`rr-fight ${tv ? "rr-tv" : ""}`}>
+          <div ref={poster} className={`rr-fight rdd-inverse-actions ${tv ? "rr-tv" : ""}`}>
             <div className="rr-fight-top">
               <span className="rr-eyebrow">
                 {selectedChallenge
                   ? statusLabel(selectedChallenge.state)
                   : "Your featured rivalry"}
               </span>
-              <button onClick={() => void television()}>
+              <ActionButton onClick={() => void television()}>
                 {tv ? "Exit TV view" : "TV view ⛶"}
-              </button>
+              </ActionButton>
             </div>
             <div className="rr-headline">
               <span>
@@ -386,21 +372,21 @@ function Room({
               <p>{terms}</p>
               <div className="rr-actions">
                 {!selectedChallenge && personal && (
-                  <button
-                    className="rr-primary"
+                  <ActionButton
+                    variant="primary"
                     disabled={locked}
                     onClick={() => setModal("challenge")}
                   >
                     Challenge {left === userId ? names[1] : names[0]}{" "}
                     <span>↗</span>
-                  </button>
+                  </ActionButton>
                 )}
-                <button
+                <ActionButton
                   className="rr-poster-button"
                   onClick={() => setModal("poster")}
                 >
                   Make a fight poster
-                </button>
+                </ActionButton>
               </div>
             </div>
           </div>
@@ -411,7 +397,7 @@ function Room({
                   Best of {selectedChallenge.best_of} games · first to{" "}
                   {selectedChallenge.target}
                 </span>
-                <h2>
+                <h2 className="rdd-section-title">
                   {safeWinner
                     ? `${nameOf(data.profiles.find((p) => p.id === safeWinner))} takes the series.`
                     : statusLabel(selectedChallenge.state)}
@@ -432,21 +418,21 @@ function Room({
                   selectedChallenge.state === "pending" &&
                   (userId === selectedChallenge.recipient ? (
                     <>
-                      <button
-                        className="rr-primary"
+                      <ActionButton
+                        variant="primary"
                         disabled={locked}
                         onClick={() => act("accept")}
                       >
                         Accept challenge
-                      </button>
-                      <button disabled={locked} onClick={() => act("decline")}>
+                      </ActionButton>
+                      <ActionButton disabled={locked} onClick={() => act("decline")}>
                         Decline
-                      </button>
+                      </ActionButton>
                     </>
                   ) : (
-                    <button disabled={locked} onClick={() => act("withdraw")}>
+                    <ActionButton disabled={locked} onClick={() => act("withdraw")}>
                       Withdraw invitation
-                    </button>
+                    </ActionButton>
                   ))}
                 {personal &&
                   ["accepted", "in_progress"].includes(
@@ -454,17 +440,16 @@ function Room({
                   ) &&
                   !selectedChallenge.abandonment_by &&
                   !stale && (
-                    <Link
-                      className="rr-primary"
+                    <ActionLink variant="primary"
                       href={`/league-night?night=${selectedChallenge.night_id}&challenge=${selectedChallenge.id}`}
                     >
                       Record the next game ↗
-                    </Link>
+                    </ActionLink>
                   )}
                 {personal &&
                   selectedChallenge.state === "needs_reconfirmation" && (
-                    <button
-                      className="rr-primary"
+                    <ActionButton
+                      variant="primary"
                       disabled={
                         locked ||
                         selectedChallenge.schedule.status !== "scheduled"
@@ -472,15 +457,15 @@ function Room({
                       onClick={() => act("reconfirm")}
                     >
                       I confirm the updated night
-                    </button>
+                    </ActionButton>
                   )}
                 {personal &&
                   selectedChallenge.stored_state === "accepted" &&
                   selectedChallenge.games.length === 0 &&
                   selectedChallenge.state !== "completed" && (
-                    <button disabled={locked} onClick={() => act("cancel")}>
+                    <ActionButton disabled={locked} onClick={() => act("cancel")}>
                       Cancel this series
-                    </button>
+                    </ActionButton>
                   )}
               </div>
               {selectedChallenge.state === "needs_reconfirmation" && (
@@ -516,7 +501,7 @@ function Room({
                       Match #{g.id}
                     </Link>
                     {personal && (
-                      <button
+                      <ActionButton
                         disabled={locked}
                         onClick={() =>
                           act("unlink", {
@@ -526,7 +511,7 @@ function Room({
                         }
                       >
                         Unlink result
-                      </button>
+                      </ActionButton>
                     )}
                   </li>
                 ))}
@@ -551,7 +536,7 @@ function Room({
                         ))}
                       </select>
                     </label>
-                    <button
+                    <ActionButton
                       disabled={locked || !candidates.some((m) => m.id === Number(repairId))}
                       onClick={() => {
                         const match = candidates.find(
@@ -567,7 +552,7 @@ function Room({
                       }}
                     >
                       Link recorded game
-                    </button>
+                    </ActionButton>
                     {!candidates.length && <p>No unlinked games match this challenge’s players, night and rules. Record a game from this challenge or refresh.</p>}
                     {selectedChallenge.abandonment_by ? (
                       <>
@@ -576,14 +561,14 @@ function Room({
                           {selectedChallenge.abandonment_reason}
                         </p>
                         {selectedChallenge.abandonment_by !== userId && (
-                          <button
+                          <ActionButton
                             disabled={locked}
                             onClick={() => act("confirm_abandon")}
                           >
                             Agree to abandon series
-                          </button>
+                          </ActionButton>
                         )}
-                        <button
+                        <ActionButton
                           disabled={locked}
                           onClick={() =>
                             act(
@@ -596,7 +581,7 @@ function Room({
                           {selectedChallenge.abandonment_by === userId
                             ? "Withdraw abandonment proposal"
                             : "Continue the series"}
-                        </button>
+                        </ActionButton>
                       </>
                     ) : (
                       <>
@@ -608,12 +593,12 @@ function Room({
                             onChange={(e) => setReason(e.target.value)}
                           />
                         </label>
-                        <button
+                        <ActionButton
                           disabled={locked || !reason.trim()}
                           onClick={() => act("propose_abandon", { reason })}
                         >
                           Propose abandonment
-                        </button>
+                        </ActionButton>
                       </>
                     )}
                   </details>
@@ -638,12 +623,12 @@ function Room({
                         onChange={(e) => setReason(e.target.value)}
                       />
                     </label>
-                    <button
+                    <ActionButton
                       disabled={locked || !reason.trim()}
                       onClick={() => act("resolve", { reason })}
                     >
                       Resolve as abandoned
-                    </button>
+                    </ActionButton>
                   </details>
                 )}
             </section>
@@ -652,7 +637,7 @@ function Room({
               <div className="rr-section-heading">
                 <div>
                   <span className="rr-eyebrow">Every game leaves a mark</span>
-                  <h2>The last encounters</h2>
+                  <h2 className="rdd-section-title">The last encounters</h2>
                 </div>
                 <Link href={`/rivalries/pair/${left}/${actualRight}`}>
                   Open this rivalry ↗
@@ -755,7 +740,7 @@ function Room({
           <div className="rr-section-heading">
             <div>
               <span className="rr-eyebrow">Who’s next?</span>
-              <h2>Your cast of rivals</h2>
+              <h2 className="rdd-section-title">Your cast of rivals</h2>
             </div>
             <label>
               Find a player
@@ -779,7 +764,7 @@ function Room({
           </div>
           <div className="rr-rival-grid">
             {rivals.slice(0, 6).map((r) => (
-              <button
+              <ActionButton
                 className={`rr-rival ${actualRight === r.opponent ? "rr-selected" : ""}`}
                 key={r.opponent}
                 onClick={() => setOpponent(r.opponent)}
@@ -796,7 +781,7 @@ function Room({
                 <span>
                   {r.wins[0]} : {r.wins[1]} <small>recorded singles wins</small>
                 </span>
-              </button>
+              </ActionButton>
             ))}
           </div>
         </section>
@@ -805,7 +790,7 @@ function Room({
         <div className="rr-section-heading">
           <div>
             <span className="rr-eyebrow">Settle it on the board</span>
-            <h2>Your challenges</h2>
+            <h2 className="rdd-section-title">Your challenges</h2>
           </div>
           <Link href="/league-night/plan">Plan a league night ↗</Link>
         </div>
@@ -843,24 +828,24 @@ function Room({
       </section>
       {op.pending && (
         <section className="rr-panel" role="status">
-          <h2>Check your pending action</h2>
+          <h2 className="rdd-section-title">Check your pending action</h2>
           <p>
             Your {op.pending.payload.action.replaceAll("_", " ")} action needs
             confirmation. Its original details are kept.
           </p>
-          <button
-            className="rr-primary"
+          <ActionButton
+            variant="primary"
             disabled={op.busy}
             onClick={() => void op.submit()}
           >
             Check the same attempt
-          </button>
+          </ActionButton>
         </section>
       )}
       {op.error && (
         <p role="alert" className="rr-error">
           {op.error}{" "}
-          <button onClick={() => void refresh()}>Refresh latest details</button>
+          <ActionButton onClick={() => void refresh()}>Refresh latest details</ActionButton>
         </p>
       )}
       <footer className="rr-footnote">
@@ -870,18 +855,18 @@ function Room({
       {modal && (
         <dialog
           ref={dialog}
-          className="rr-dialog"
+          className="rr-dialog rr-consistent rdd-form-controls"
           onCancel={() => setModal(null)}
         >
           <div className="rr-section-heading">
-            <h2>
+            <h2 className="rdd-section-title">
               {modal === "challenge"
                 ? "Write the next chapter."
                 : "Your fight poster."}
             </h2>
-            <button aria-label="Close dialog" onClick={() => setModal(null)}>
+            <ActionButton aria-label="Close dialog" onClick={() => setModal(null)}>
               ✕
-            </button>
+            </ActionButton>
           </div>
           {modal === "poster" ? (
             <RivalryPoster
@@ -991,9 +976,9 @@ function Room({
                 The invitation expires in seven days or when the night starts.
                 Acceptance keeps RSVP and attendance separate.
               </p>
-              <button className="rr-primary" disabled={locked || !night}>
+              <ActionButton type="submit" variant="primary" disabled={locked || !night}>
                 Send challenge ↗
-              </button>
+              </ActionButton>
               {!data.feed.nights.length && (
                 <p>
                   No upcoming scheduled nights.{" "}

@@ -1,4 +1,5 @@
 'use client';
+import { ActionButton } from '@/components/ui/ActionButton';
 import { PlayerAvatar } from '@/components/avatars/PlayerAvatar';
 import { BoardBody } from './BoardBody';
 
@@ -27,21 +28,21 @@ function ContributionTools({ item, kind, userId, organizer, locked, onChange }: 
   return <div className="board-tools">
     <details><summary>Options</summary><div className="board-actions">
       {item.author_id === userId && <>
-        {!locked && <button type="button" disabled={busy} onClick={() => setMode(mode === 'edit' ? null : 'edit')}>Edit {kind}</button>}
-        <button type="button" disabled={busy} onClick={() => { if(window.confirm(kind === 'post' ? 'Delete this conversation and all its replies? This cannot be undone.' : 'Delete this reply? This cannot be undone.')) void act(`delete_${kind}`); }}>Delete {kind}</button>
+        {!locked && <ActionButton type="button" disabled={busy} onClick={() => setMode(mode === 'edit' ? null : 'edit')}>Edit {kind}</ActionButton>}
+        <ActionButton variant="danger" type="button" disabled={busy} onClick={() => { if(window.confirm(kind === 'post' ? 'Delete this conversation and all its replies? This cannot be undone.' : 'Delete this reply? This cannot be undone.')) void act(`delete_${kind}`); }}>Delete {kind}</ActionButton>
       </>}
-      <button type="button" disabled={busy} onClick={() => setMode(mode === 'report' ? null : 'report')}>Report {kind}</button>
-      {organizer && <button type="button" disabled={busy} onClick={() => act(`hide_${kind}`)}>Hide {kind}</button>}
+      <ActionButton type="button" disabled={busy} onClick={() => setMode(mode === 'report' ? null : 'report')}>Report {kind}</ActionButton>
+      {organizer && <ActionButton type="button" disabled={busy} onClick={() => act(`hide_${kind}`)}>Hide {kind}</ActionButton>}
       {organizer && kind === 'post' && <>
-        <button type="button" disabled={busy} onClick={() => act((item as BoardPost).pinned ? 'unpin' : 'pin')}>{(item as BoardPost).pinned ? 'Unpin' : 'Pin for the league'}</button>
-        <button type="button" disabled={busy} onClick={() => act(locked ? 'unlock' : 'lock')}>{locked ? 'Reopen conversation' : 'Close conversation'}</button>
+        <ActionButton type="button" disabled={busy} onClick={() => act((item as BoardPost).pinned ? 'unpin' : 'pin')}>{(item as BoardPost).pinned ? 'Unpin' : 'Pin for the league'}</ActionButton>
+        <ActionButton type="button" disabled={busy} onClick={() => act(locked ? 'unlock' : 'lock')}>{locked ? 'Reopen conversation' : 'Close conversation'}</ActionButton>
       </>}
     </div></details>
     {mode === 'edit' && <BoardComposer draftKey={`rdd-board:${userId}:edit:${item.id}`} label={`Edit ${kind}`} submitLabel="Save changes" initialBody={item.body}
       onCancel={() => setMode(null)} onSubmit={async body => { await boardWrite(`edit_${kind}`, item.id, body); }} onSuccess={() => { setMode(null); onChange(); }} />}
     {mode === 'report' && <form className="board-report" onSubmit={event => { event.preventDefault(); void act(`report_${kind}`, reason); }}>
       <label>What should the organizers know?<textarea maxLength={500} required value={reason} onChange={e => setReason(e.target.value)} disabled={busy} /></label>
-      <div className="board-actions"><button type="submit" disabled={busy || !reason.trim()}>Send report</button><button type="button" disabled={busy} onClick={() => setMode(null)}>Cancel</button></div>
+      <div className="board-actions"><ActionButton type="submit" disabled={busy || !reason.trim()}>Send report</ActionButton><ActionButton type="button" disabled={busy} onClick={() => setMode(null)}>Cancel</ActionButton></div>
     </form>}
     {error && <p role="alert" className="board-error">{error}</p>}
     {message && <p role="status" className="board-small">{message}</p>}
@@ -152,19 +153,19 @@ export default function BoardPostCard({ post, userId, organizer, initiallyOpen =
     <BoardBody body={post.body}/>
     {post.locked && <p className="board-small board-muted">This conversation is closed. You can still read it or report a concern.</p>}
     <div className="board-actions board-post-actions">
-      <button type="button" disabled={busy || post.locked} aria-pressed={post.reacted} onClick={react}>Cheers{post.reaction_count > 0 ? ` · ${post.reaction_count}` : ''}{post.reacted ? ' · You' : ''}</button>
-      <button type="button" aria-expanded={open} aria-controls={`replies-${post.id}`} onClick={() => { setOpen(!open); if(!open) setLoading(true); }}>{post.reply_count ? `${post.reply_count} ${post.reply_count === 1 ? 'reply' : 'replies'}` : 'Reply'}</button>
-      <button type="button" onClick={share}>Copy link</button>
+      <ActionButton type="button" disabled={busy || post.locked} aria-pressed={post.reacted} onClick={react}>Cheers{post.reaction_count > 0 ? ` · ${post.reaction_count}` : ''}{post.reacted ? ' · You' : ''}</ActionButton>
+      <ActionButton type="button" aria-expanded={open} aria-controls={`replies-${post.id}`} onClick={() => { setOpen(!open); if(!open) setLoading(true); }}>{post.reply_count ? `${post.reply_count} ${post.reply_count === 1 ? 'reply' : 'replies'}` : 'Reply'}</ActionButton>
+      <ActionButton type="button" onClick={share}>Copy link</ActionButton>
     </div>
     <ContributionTools item={post} kind="post" userId={userId} organizer={organizer} locked={post.locked} onChange={onChange} />
     {message && <p role="status" className="board-small">{message}</p>}
-    {error && <p role="alert" className="board-error">{error} {open && <button type="button" disabled={loading} onClick={() => { setLoading(true); void load(); }}>Retry replies</button>}</p>}
+    {error && <p role="alert" className="board-error">{error} {open && <ActionButton type="button" disabled={loading} onClick={() => { setLoading(true); void load(); }}>Retry replies</ActionButton>}</p>}
     <section id={`replies-${post.id}`} className="board-replies" hidden={!open} aria-label="Conversation replies">
       <h3>Replies</h3>
       {replies.map(renderReply)}
       {loaded && !replies.length && !recentReplies.length && !loading && !error && <p className="board-muted">Have an answer or a thought? Jump in.</p>}
       {loading && <p role="status">Loading replies…</p>}
-      {more && <button type="button" disabled={loading} onClick={() => { setLoading(true); void load(cursor); }}>Load more replies</button>}
+      {more && <ActionButton type="button" disabled={loading} onClick={() => { setLoading(true); void load(cursor); }}>Load more replies</ActionButton>}
       {recentReplies.length > 0 && <div aria-label="Your recent replies"><p className="board-small board-muted">Your recent replies</p>{recentReplies.map(renderReply)}</div>}
       {!post.locked && <BoardComposer draftKey={`rdd-board:${userId}:reply:${post.id}`} conversationId={post.id} label="Your reply" submitLabel="Post reply" onSubmit={async (body, _topic, id) => {
         await boardWrite('create_reply', post.id, body, undefined, id);

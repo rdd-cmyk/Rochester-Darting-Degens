@@ -1,4 +1,5 @@
 'use client';
+import { ActionButton } from '@/components/ui/ActionButton';
 
 import { useEffect, useId, useRef, useState } from 'react';
 import Link from 'next/link';
@@ -57,13 +58,13 @@ export default function BoardComposer({ draftKey, label, submitLabel, initialBod
     } catch (cause) { if (mounted.current) { setError(boardError(cause)); setRetryConflict(isBoardRetryConflict(cause)); } }
     finally { if (mounted.current) setBusy(false); }
   }
-  return <form className="board-composer" onSubmit={submit}>
+  return <form className="board-composer rdd-content-panel rdd-form-controls" onSubmit={submit}>
     {starters && <>
-      {!expanded && <button type="button" className="board-composer-prompt" onClick={() => start('conversation', '')}>{draft.body ? "Resume saved draft" : "What’s happening, Degens?"}</button>}
+      {!expanded && <ActionButton type="button" className="board-composer-prompt" onClick={() => start('conversation', '')}>{draft.body ? "Resume saved draft" : "What’s happening, Degens?"}</ActionButton>}
       <div className="board-actions board-starters">
-        <button type="button" disabled={busy} onClick={() => start('sub', 'Anyone available to sub?\nWhen: \nWhere: ')}>Find a sub</button>
-        <button type="button" disabled={busy} onClick={() => start('practice', 'Anyone up for a practice game?\nWhen: \nWhere: ')}>Who’s throwing?</button>
-        <button type="button" disabled={busy} onClick={() => start('highlight', 'My highlight from league night: ')}>Share a highlight</button>
+        <ActionButton type="button" disabled={busy} onClick={() => start('sub', 'Anyone available to sub?\nWhen: \nWhere: ')}>Find a sub</ActionButton>
+        <ActionButton type="button" disabled={busy} onClick={() => start('practice', 'Anyone up for a practice game?\nWhen: \nWhere: ')}>Who’s throwing?</ActionButton>
+        <ActionButton type="button" disabled={busy} onClick={() => start('highlight', 'My highlight from league night: ')}>Share a highlight</ActionButton>
       </div>
     </>}
     {expanded && <>
@@ -74,19 +75,19 @@ export default function BoardComposer({ draftKey, label, submitLabel, initialBod
       <label htmlFor={fieldId}>{label}</label>
       <textarea id={fieldId} maxLength={2000} rows={4} value={draft.body} disabled={busy} required onChange={e => update({ ...draft, body: e.target.value })} aria-describedby={`${fieldId}-length`} />
       <div id={`${fieldId}-length`} className="board-muted board-small">{draft.body.length.toLocaleString()} / 2,000 · Visible to approved league members</div>
-      <div className="board-actions"><button className="board-primary" type="submit" disabled={busy || !draft.body.trim()}>{busy ? 'Saving…' : submitLabel}</button>
-        {onCancel && <button type="button" disabled={busy} onClick={onCancel}>Cancel</button>}
-        {starters && <button type="button" disabled={busy} onClick={() => { setExpanded(false); setMessage('Draft kept in this browser tab. Choose Resume saved draft here to reopen it. Closing the tab can remove it.'); }}>Keep draft for later</button>}
+      <div className="board-actions"><ActionButton variant="primary" type="submit" disabled={busy || !draft.body.trim()}>{busy ? 'Saving…' : submitLabel}</ActionButton>
+        {onCancel && <ActionButton type="button" disabled={busy} onClick={onCancel}>Cancel</ActionButton>}
+        {starters && <ActionButton type="button" disabled={busy} onClick={() => { setExpanded(false); setMessage('Draft kept in this browser tab. Choose Resume saved draft here to reopen it. Closing the tab can remove it.'); }}>Keep draft for later</ActionButton>}
       </div>
     </>}
     {storageWarning && <p className="board-small">This browser cannot save drafts. Keep this page open until you post.</p>}
     {error && <p className="board-error" role="alert">{error}</p>}
     {retryConflict && <div className="board-actions">
       <Link href={`/board/${conversationId ?? draft.id}`}>Open saved conversation</Link>
-      <button type="button" disabled={busy} onClick={() => {
+      <ActionButton type="button" disabled={busy} onClick={() => {
         update({ ...draft, id: crypto.randomUUID() }); setRetryConflict(false); setError('');
         setMessage('Your draft is ready as a separate contribution. Review it before posting.');
-      }}>Use draft for a separate contribution</button>
+      }}>Use draft for a separate contribution</ActionButton>
     </div>}
     {message && <p className="board-small" role="status">{message}</p>}
   </form>;

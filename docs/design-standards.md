@@ -451,3 +451,22 @@ History content from shifting the centered layout. Phone navigation uses two
 equal columns; Refresh keeps the shared outlined skin. Heading context chips
 were removed following owner review.
 See the [P09 record](release/p09-solo-consistency-2026-10-01.md).
+
+
+P09 accepted 2026-10-01 at `6e4683b`.
+
+P10-P15 candidate: Rivalry Room, pair and challenge detail adopt PageHeader,
+ActionButton/ActionLink and shared fields, ordinary panel geometry and spacing.
+The fight artwork, canvas poster palette/export geometry, avatar geometry and TV
+layout remain intentional domain exceptions. Inverse secondary actions use
+central showcase roles; ordinary controls do not borrow poster colors.
+The section-title size/tracking roles centralize the existing values unchanged.
+ActionButton adds an opt-in danger variant for existing delete/revoke actions;
+it changes appearance only and retains existing confirmations/handlers.
+Board feed/thread/composer adopt shared actions, panels and form controls. The
+poster's Board composer is an affected consumer and retains its 180px minimum
+text area. Home's Board preview and League Night's challenge banner keep their
+existing styles. Invites opts into shared headers/actions/fields/panels and
+responsive form layout; Join stays on its legacy selectors until P17.
+No query, permission, retention, retry identifier, statistics or SQL change.
+See the [batch review record](release/p10-p15-consistency-2026-10-01.md).

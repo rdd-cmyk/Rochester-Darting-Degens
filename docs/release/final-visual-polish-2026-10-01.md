@@ -57,10 +57,11 @@ or statistics-calculation change is included.
 React checklist review: callsigns reuse the existing avatar context without new
 fetches; effects depend on primitive night identity/date fields; canvas state is
 restored before captions; meaningful image labels and native controls remain.
-No access, invitation, save, calculation or dependency behavior changes.
+No access, invitation, calculation or dependency behavior changes were made by
+the visual pass. The CI-discovered local recovery correction below is additional.
 
-Required gate: trusted install, 589 tests across 76 files, coverage (96.57%
-statements / 90.75% branches / 97.78% functions / 97.61% lines), lint,
+Required gate: trusted install, 592 tests across 76 files, coverage (96.58%
+statements / 90.77% branches / 97.78% functions / 97.62% lines), lint,
 typecheck and production build all passed. Install and Vitest required permitted
 network/subprocess access after sandbox-only cache/worker startup restrictions.
 The two existing dependency audit findings remain in the separate release gate;
@@ -70,3 +71,28 @@ The exact published commit, CI run and Vercel deployment will be retained in
 the ignored `final-polish-publication.json` packet and reported at handoff.
 W6/W7/W8 remain at the saved checkpoint until this appearance review and the
 remaining human journey gates are handled.
+
+## CI-discovered recovery correction
+
+The first published visual candidate was `4aa4a1a`; its Vercel Preview was Ready
+and hosted Home/Stats/avatar/recap smoke checks passed. CI run `36903162603`
+passed ordinary tests but failed an existing unsent-entry discard test during
+coverage. Source review and two deterministically failing local tests confirmed
+a stale common draft copy between definite save rejection and React's storage
+effect. A fast confirmed discard could leave that copy recoverable on refresh.
+
+`retainNightEntry` now replaces its own common pending copy synchronously after
+writing the retained entry and before removing its operation record. It preserves
+a different pending operation's common copy. If storage fails, the pending
+operation remains retryable. Three focused regressions cover those conditions;
+the original UI discard/refresh regression remains unchanged. No server save,
+record, SQL, or hosted-data mutation is included. This is a narrow browser
+recovery change, not purely visual; W6's affected recovery acceptance must include
+it. Historical W0-W5 SQL/backup/rehearsal evidence remains unchanged.
+
+The additional profile smoke check uses the two-line Triple Threat callsign.
+A 64px header portrait keeps its identity block above the description at both
+320px and 390px; desktop retains ample horizontal separation. Machine and King
+were then inspected together in the read-only synthetic faceoff. The final
+profile size adjustment was checked visually and with lint/typecheck/build;
+the complete tests and coverage passed after the recovery correction.

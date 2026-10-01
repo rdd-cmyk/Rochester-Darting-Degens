@@ -84,6 +84,45 @@ function pendingEntry(): StoredDraft {
   };
 }
 
+it("replaces its own common pending copy before exposing a discardable no-write entry", () => {
+  localStorage.clear();
+  const stored = { ...pendingEntry(), savedAt: Date.now() };
+  localStorage.setItem("key", JSON.stringify(stored));
+  localStorage.setItem(nightOperationKey("key", "a"), JSON.stringify(stored));
+  const retained = retainNightEntry(localStorage, "key", stored);
+  expect(decodeDraft(localStorage.getItem("key"))).toEqual(retained);
+  expect(localStorage.getItem(nightOperationKey("key", "a"))).toBeNull();
+});
+
+it("preserves a different operation's common recovery copy when releasing an older rejection", () => {
+  localStorage.clear();
+  const stored = { ...pendingEntry(), savedAt: Date.now() };
+  const other = { ...stored, draft: { ...stored.draft, pending: { ...stored.draft.pending!, operationId: "b" } } };
+  localStorage.setItem("key", JSON.stringify(other));
+  localStorage.setItem(nightOperationKey("key", "a"), JSON.stringify(stored));
+  localStorage.setItem(nightOperationKey("key", "b"), JSON.stringify(other));
+  retainNightEntry(localStorage, "key", stored);
+  expect(decodeDraft(localStorage.getItem("key"))).toEqual(other);
+  expect(localStorage.getItem(nightOperationKey("key", "b"))).not.toBeNull();
+});
+
+it("keeps the pending operation if replacing its common recovery copy fails", () => {
+  localStorage.clear();
+  const stored = { ...pendingEntry(), savedAt: Date.now() };
+  localStorage.setItem("key", JSON.stringify(stored));
+  localStorage.setItem(nightOperationKey("key", "a"), JSON.stringify(stored));
+  const setItem = Storage.prototype.setItem;
+  const spy = vi.spyOn(Storage.prototype, "setItem").mockImplementation(function (this: Storage, key, value) {
+    if (key === "key") throw new Error("quota");
+    setItem.call(this, key, value);
+  });
+  try {
+    expect(() => retainNightEntry(localStorage, "key", stored)).toThrow("quota");
+    expect(localStorage.getItem(nightOperationKey("key", "a"))).not.toBeNull();
+    expect(localStorage.getItem(nightEntryKey("key", "a"))).not.toBeNull();
+  } finally { spy.mockRestore(); }
+});
+
 it("retains no-write entries separately, reuses their identity on rejection and expires them after 24 hours", () => {
   localStorage.clear();
   const stored = pendingEntry();

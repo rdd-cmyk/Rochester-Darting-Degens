@@ -625,7 +625,7 @@ export default function ProfilePage() {
         eyebrow="Player profile"
         title={title}
         description="The record, the recent form, and the next rival to watch."
-        identity={<span className="player-profile-identity"><span aria-hidden="true"><PlayerAvatar playerId={profile.id} name={title} size={80} /></span><PlayerAvatarName playerId={profile.id} /></span>}
+        identity={<span className="player-profile-identity"><span aria-hidden="true"><PlayerAvatar playerId={profile.id} name={title} size={64} /></span><PlayerAvatarName playerId={profile.id} /></span>}
         actions={<><ActionLink href="/profiles">Browse players</ActionLink><ActionLink href="/matches" variant="quiet">Back to matches</ActionLink></>}
       />
 

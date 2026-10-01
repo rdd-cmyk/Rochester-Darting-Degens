@@ -143,6 +143,12 @@ export function retainNightEntry(
     nightEntryKey(key, entry.draft.recoveredEntryId),
     JSON.stringify(entry),
   );
+  // Finish our own common-copy transition before the UI can offer discard.
+  // Waiting for React's draft effect leaves a stale pending copy on a fast
+  // discard. A different operation may own this slot, so preserve it.
+  const common = decodeDraft(storage.getItem(key));
+  if (common?.draft.pending?.operationId === pending.operationId)
+    storage.setItem(key, JSON.stringify(entry));
   storage.removeItem(nightOperationKey(key, pending.operationId));
   return entry;
 }

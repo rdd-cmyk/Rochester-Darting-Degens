@@ -30,6 +30,15 @@ includes the verified dialog focus correction and is owner-accepted;
 `8b1ed75` is the preceding accepted-page baseline. No SQL, API,
 dependency, hosted configuration or W7/W8 execution is added by this work.
 
+Final-polish addendum: CI on the initial visual candidate (`4aa4a1a`) exposed a
+browser recovery transition issue. The follow-up synchronously replaces a
+definitely rejected operation's own common draft copy before exposing discard,
+while preserving another pending operation and retaining retries if storage
+fails. Three deterministic regressions and the existing discard/refresh test
+cover it; the corrected local suite passes 592 tests. This is an affected W6
+browser-recovery change in addition to the visuals. W0-W5's SQL/backup evidence
+and the deferred W7/W8 plan remain unchanged; no hosted records were modified.
+
 ## Candidate and scope
 
 The integration branch is now `release/next`, renamed from `league-night-mode`

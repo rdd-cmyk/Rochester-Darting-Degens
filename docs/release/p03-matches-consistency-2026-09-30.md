@@ -1,7 +1,7 @@
 # P03 Matches consistency and copy
 
-Status: awaiting owner review. Baseline `21f3e53` on `release/next`.
-The owner accepted P02 and authorized P03 on 2026-09-30. P04 is not started.
+Status: owner-accepted on 2026-09-30 at `938ee34`; CI `36790087612` and Vercel passed. Baseline `21f3e53` on `release/next`.
+The owner accepted P02 and authorized P03 on 2026-09-30. The owner accepted P03 and authorized P04 on 2026-09-30.
 
 ## Shared styles and scope
 

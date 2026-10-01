@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
+import { ActionButton } from "@/components/ui/ActionButton";
 import { NightSoloActivity } from '@/components/solo/NightSoloActivity';
 import { formatLabel, ratingExclusion } from '@/lib/games/catalog';
 import {
@@ -159,7 +160,7 @@ export function NightRecapPanel({
       <section className="night-panel">
         <h2>Highlights are waiting on the full history.</h2>
         <p role="alert">{error}</p>
-        <button onClick={onRefresh}>Try again</button>
+        <ActionButton onClick={onRefresh}>Try again</ActionButton>
       </section>
     );
   return (
@@ -203,9 +204,9 @@ export function NightRecapPanel({
           </p>
         </div>
         {recap.matches.length > 0 && (
-          <button aria-expanded={shareOpen} aria-controls="night-share-card" onClick={() => setShareOpen((open) => !open)}>
+          <ActionButton aria-expanded={shareOpen} aria-controls="night-share-card" onClick={() => setShareOpen((open) => !open)}>
             {shareOpen ? "Close share card" : "Preview share card"}
-          </button>
+          </ActionButton>
         )}
       </div>
       {shareOpen && (
@@ -246,10 +247,10 @@ export function NightRecapPanel({
             <pre className="night-share-text">{shareText}</pre>
           </details>
           <div className="night-actions">
-            <button className="night-primary" onClick={downloadCard}>
+            <ActionButton variant="primary" onClick={downloadCard}>
               Download image
-            </button>
-            <button
+            </ActionButton>
+            <ActionButton
               onClick={async () => {
                 try {
                   await navigator.clipboard.writeText(shareText);
@@ -262,7 +263,7 @@ export function NightRecapPanel({
               }}
             >
               Copy text
-            </button>
+            </ActionButton>
           </div>
           <p role="status">{shareNotice}</p>
         </section>

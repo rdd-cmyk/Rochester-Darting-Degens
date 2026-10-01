@@ -1,5 +1,6 @@
 "use client";
-import Link from "next/link";
+import { ActionLink } from "@/components/ui/ActionLink";
+import { ActionButton } from "@/components/ui/ActionButton";
 import { useEffect, useState } from "react";
 import { loadSoloNight, soloError } from "@/lib/solo/api";
 import { formatPlayerName } from "@/lib/playerName";
@@ -42,7 +43,7 @@ export function NightSoloActivity({
     <section className="night-panel solo-night-activity">
       <div className="night-section-heading">
         <h2>Solo at the venue</h2>
-        <Link href="/solo">Log a solo game →</Link>
+        <ActionLink href="/solo">Log a solo game</ActionLink>
       </div>
       <p className="night-small">
         Shared practice activity · Separate from league averages, rankings and
@@ -55,9 +56,9 @@ export function NightSoloActivity({
       ) : error ? (
         <>
           <p role="alert">Solo activity could not be loaded. {error}</p>
-          <button onClick={() => setRetry((r) => r + 1)}>
+          <ActionButton onClick={() => setRetry((r) => r + 1)}>
             Retry solo activity
-          </button>
+          </ActionButton>
         </>
       ) : items === null ? (
         <p role="status">Loading solo activity…</p>

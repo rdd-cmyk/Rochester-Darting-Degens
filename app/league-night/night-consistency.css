@@ -1,0 +1,567 @@
+/* P04 opt-in domain layout. Legacy night.css remains for unreviewed Planning.
+   Action/form skins come from shared globals and components. */
+.night-shell--consistent {
+  max-width: var(--rdd-content-wide);
+  margin: 0 auto;
+  padding: var(--rdd-space-6);
+  display: flex;
+  flex-direction: column;
+  gap: var(--rdd-space-6);
+  color: var(--stats-ink);
+  background: transparent;
+  min-width: 0;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+.night-shell--consistent * {
+  box-sizing: border-box;
+}
+.night-shell--consistent h1,
+.night-shell--consistent h2,
+.night-shell--consistent h3,
+.night-shell--consistent p {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+.night-shell--consistent h2 {
+  font-size: 1.3rem;
+  font-weight: 750;
+  letter-spacing: -0.025em;
+}
+.night-shell--consistent h3 {
+  font-size: 1rem;
+  font-weight: 700;
+}
+.night-shell--consistent :is(button, input, select, textarea, summary, a):focus-visible {
+  outline: 3px solid var(--rdd-focus-on-panel);
+  outline-offset: 3px;
+}
+.night-shell--consistent label {
+  display: grid;
+  gap: var(--rdd-space-2);
+  font-size: .875rem;
+  font-weight: var(--rdd-action-weight);
+}
+.night-shell--consistent textarea {
+  resize: vertical;
+  min-height: 70px;
+}
+.night-shell--consistent input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--stats-orange);
+  flex-shrink: 0;
+}
+.night-shell--consistent .night-check {
+  display: flex;
+  align-items: center;
+  min-height: 44px;
+  gap: var(--rdd-space-3);
+  font-weight: 400;
+}
+.night-shell--consistent a:not(.rdd-page-action) {
+  color: var(--link-color);
+}
+.night-shell--consistent .night-eyebrow { color: var(--rdd-accent-text); font-size: .75rem; font-weight: 800; letter-spacing: .15em; text-transform: uppercase; }
+.night-shell--consistent .night-section-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--rdd-space-3);
+  flex-wrap: wrap;
+}
+.night-shell--consistent .night-small {
+  font-size: 0.78rem;
+  color: var(--stats-muted);
+  font-weight: 400;
+}
+.night-shell--consistent .night-panel > p {
+  margin-top: 8px;
+}
+.night-shell--consistent .night-panel {
+  border: 1px solid var(--stats-border);
+  background: var(--stats-panel);
+  padding: var(--rdd-panel-padding);
+  border-radius: var(--rdd-radius-panel);
+  min-width: 0;
+}
+.night-shell--consistent .night-list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--rdd-space-4);
+}
+.night-shell--consistent .night-list-item {
+  justify-content: space-between;
+  text-align: left;
+  padding: var(--rdd-panel-padding);
+  border-radius: var(--rdd-radius-panel);
+}
+.night-shell--consistent .night-list-item strong {
+  font-size: 1.15rem;
+}
+.night-shell--consistent .night-list-item .night-small {
+  display: block;
+  margin-top: 6px;
+}
+.night-shell--consistent .night-create {
+  display: grid;
+  gap: var(--rdd-space-4);
+  max-width: var(--rdd-content-form);
+}
+.night-shell--consistent .night-form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--rdd-space-3);
+}
+.night-shell--consistent .night-tabs {
+  display: flex;
+  gap: var(--rdd-space-6);
+  border-bottom: 1px solid var(--stats-border);
+  align-items: center;
+}
+.night-shell--consistent .night-tabs button {
+  border: 0;
+  border-radius: 0;
+  padding: 10px 0 15px;
+  background: transparent;
+  color: var(--stats-muted);
+  position: relative;
+}
+.night-shell--consistent .night-tabs button[aria-pressed="true"] {
+  color: var(--stats-ink);
+}
+.night-shell--consistent .night-tabs button[aria-pressed="true"]:after {
+  content: "";
+  height: 3px;
+  position: absolute;
+  bottom: -1px;
+  left: 0;
+  right: 0;
+  background: var(--stats-orange);
+}
+.night-shell--consistent .night-tabs > span {
+  margin-left: auto;
+}
+.night-shell--consistent .night-main-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.65fr) minmax(260px, 1fr);
+  gap: var(--rdd-space-6);
+  align-items: start;
+}
+.night-shell--consistent .night-fields {
+  border: 0;
+  padding: 0;
+  margin: 20px 0 0;
+  min-width: 0;
+  display: grid;
+  gap: var(--rdd-space-4);
+}
+.night-shell--consistent .night-player-pool {
+  display: flex;
+  gap: var(--rdd-space-2);
+  flex-wrap: wrap;
+}
+.night-shell--consistent .night-player-pool button {
+  border-radius: var(--rdd-radius-pill);
+  padding: 7px 13px;
+  font-size: 0.8rem;
+  font-weight: 500;
+  max-width: 100%;
+  text-align: left;
+}
+.night-shell--consistent .night-player-pool button[aria-pressed="true"] {
+  border-color: var(--stats-orange);
+  background: color-mix(in srgb, var(--stats-orange) 12%, var(--stats-panel));
+}
+.night-shell--consistent .night-unit {
+  font-size: 0.75rem;
+  display: flex;
+  align-items: center;
+  gap: var(--rdd-space-3);
+  flex-wrap: wrap;
+  font-weight: 400;
+  color: var(--stats-muted);
+}
+.night-shell--consistent .night-unit select {
+  width: auto;
+  max-width: 100%;
+  font-size: 0.8rem;
+}
+.night-shell--consistent .night-scorecards {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--rdd-space-3);
+}
+.night-shell--consistent .night-scorecard {
+  border: 1px solid var(--stats-border);
+  background: var(--rdd-panel-inset-bg);
+  border-radius: var(--rdd-radius-panel);
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: var(--rdd-space-3);
+  min-width: 0;
+}
+.night-shell--consistent .night-scorecard h3 {
+  font-size: 1.2rem;
+}
+.night-shell--consistent .night-scorecard label {
+  font-size: 0.75rem;
+}
+.night-shell--consistent .night-scorecard .night-small {
+  font-size: 0.7rem;
+}
+.night-shell--consistent .night-scorecard input {
+  font-size: 1.7rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+.night-shell--consistent .night-scorecard button {
+  width: 100%;
+  margin-top: auto;
+}
+.night-shell--consistent .night-winner {
+  border-color: var(--stats-orange);
+  box-shadow: inset 0 3px var(--stats-orange);
+  background: color-mix(in srgb, var(--stats-orange) 11%, var(--stats-panel));
+}
+.night-shell--consistent .night-winner button[aria-pressed="true"],
+.night-shell--consistent .night-winner button[aria-pressed="true"]:hover:not(:disabled) {
+  background: var(--rdd-action-primary-bg);
+  border-color: var(--rdd-border-control);
+  color: var(--rdd-action-primary-text);
+}
+.night-shell--consistent .night-more {
+  padding-top: 4px;
+}
+.night-shell--consistent .night-more[open] {
+  display: grid;
+  gap: var(--rdd-space-4);
+}
+.night-shell--consistent summary {
+  min-height: 44px;
+  align-content: center;
+  cursor: pointer;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+.night-shell--consistent .night-save-bar {
+  border-top: 1px solid var(--stats-border);
+  padding-top: 16px;
+  margin-top: 20px;
+}
+.night-shell--consistent .night-actions {
+  display: flex;
+  gap: var(--rdd-space-3);
+  flex-wrap: wrap;
+  margin-top: 14px;
+}
+.night-shell--consistent .night-save-bar .rdd-page-action--primary {
+  flex: 1;
+}
+.night-shell--consistent .night-save-note {
+  text-align: center;
+  margin-top: 12px;
+}
+.night-shell--consistent .night-sidebar {
+  display: grid;
+  gap: var(--rdd-space-4);
+  min-width: 0;
+}
+.night-shell--consistent .night-sidebar h2 {
+  font-size: 1rem;
+}
+.night-shell--consistent .night-attendee-chips {
+  display: flex;
+  gap: var(--rdd-space-2);
+  flex-wrap: wrap;
+  margin: 14px 0 4px;
+}
+.night-shell--consistent .night-attendee-chips span {
+  border-radius: 7px;
+  padding: 5px 9px;
+  background: color-mix(in srgb, var(--stats-border) 20%, var(--stats-panel));
+  font-size: 0.8rem;
+  overflow-wrap: anywhere;
+  max-width: 100%;
+}
+.night-shell--consistent .night-attendance-editor {
+  border-top: 1px solid var(--stats-border);
+  padding-top: 12px;
+}
+.night-shell--consistent .night-attendance-list {
+  max-height: 320px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding-right: 6px;
+  margin: 8px 0;
+}
+.night-shell--consistent .night-result {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--rdd-space-3);
+  border-top: 1px solid var(--stats-border);
+  padding: 15px 0;
+  margin-top: 10px;
+  font-size: 0.85rem;
+}
+.night-shell--consistent .night-result > div {
+  min-width: 0;
+}
+.night-shell--consistent .night-result time {
+  font-size: 0.75rem;
+  color: var(--stats-muted);
+  white-space: nowrap;
+}
+.night-shell--consistent .night-result button {
+  flex-shrink: 0;
+}
+.night-shell--consistent .night-warning {
+  background: color-mix(in srgb, var(--stats-orange) 12%, var(--stats-panel));
+  color: var(--stats-ink);
+  border: 1px solid var(--stats-orange);
+  border-radius: var(--rdd-radius-panel);
+  padding: 14px;
+  font-size: 0.875rem;
+  overflow-wrap: anywhere;
+}
+.night-shell--consistent .night-warning p {
+  margin-top: 8px;
+}
+.night-shell--consistent .night-receipt {
+  border: 1px solid var(--stats-positive);
+  background: color-mix(in srgb, var(--stats-positive) 10%, var(--stats-panel));
+  padding: 15px;
+  border-radius: 12px;
+  color: var(--stats-ink);
+  font-weight: 600;
+}
+.night-shell--consistent .night-entry > .night-warning {
+  margin-top: 18px;
+}
+.night-shell--consistent .night-recap {
+  display: grid;
+  gap: var(--rdd-space-6);
+}
+.night-shell--consistent .night-recap-banner {
+  padding: 28px;
+  border-radius: var(--rdd-radius-panel);
+  background: var(--stats-navy);
+  color: var(--stats-cream);
+}
+.night-shell--consistent .night-recap-banner .night-eyebrow { color: var(--rdd-cream); }
+.night-shell--consistent .night-recap-banner h2 {
+  font-size: 2rem;
+  line-height: 1.1;
+  margin: 10px 0 14px;
+}
+.night-shell--consistent .night-recap-banner > p:last-child {
+  color: var(--stats-silver);
+  font-size: 0.875rem;
+}
+.night-shell--consistent .night-award-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--rdd-space-4);
+}
+.night-shell--consistent .night-award {
+  background: var(--stats-panel);
+  border: 1px solid var(--stats-border);
+  border-radius: 16px;
+  padding: 20px;
+  min-width: 0;
+  position: relative;
+}
+.night-shell--consistent .night-award-medal {
+  display: flex;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  align-items: center;
+  justify-content: center;
+  background: color-mix(in srgb, var(--stats-orange) 15%, var(--stats-panel));
+  font-size: 1.5rem;
+  margin-bottom: 16px;
+}
+.night-shell--consistent .night-award .night-eyebrow {
+  color: var(--stats-navy-soft);
+  font-size: .75rem;
+}
+.night-shell--consistent .night-award h3 {
+  font-size: 1.3rem;
+  margin: 7px 0;
+}
+.night-shell--consistent .night-award > p {
+  font-size: 0.85rem;
+  margin-top: 7px;
+}
+.night-shell--consistent .night-award details {
+  margin-top: 12px;
+}
+.night-shell--consistent .night-award details p {
+  font-size: 0.78rem;
+  margin-top: 8px;
+}
+.night-shell--consistent .night-recap-columns {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--rdd-space-5);
+}
+.night-shell--consistent .night-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 14px;
+  font-size: 0.875rem;
+  table-layout: fixed;
+}
+.night-shell--consistent .night-table th,
+.night-shell--consistent .night-table td {
+  padding: 12px 3px;
+  border-bottom: 1px solid var(--stats-border);
+  text-align: right;
+  overflow-wrap: anywhere;
+  font-variant-numeric: tabular-nums;
+}
+.night-shell--consistent .night-table th {
+  font-size: 0.75rem;
+  color: var(--stats-muted);
+}
+.night-shell--consistent .night-table th:first-child,
+.night-shell--consistent .night-table td:first-child {
+  text-align: left;
+  width: 60%;
+}
+.night-shell--consistent .night-rating-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--rdd-space-4);
+  border-bottom: 1px solid var(--stats-border);
+  padding: 13px 0;
+  font-size: 0.875rem;
+}
+.night-shell--consistent .night-rating-row > strong {
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.night-shell--consistent .night-rating-row > div {
+  min-width: 0;
+}
+.night-shell--consistent .night-share-choices {
+  display: flex;
+  gap: 8px 20px;
+  flex-wrap: wrap;
+  margin: 16px 0;
+}
+.night-shell--consistent .night-share-choices label {
+  display: flex;
+  gap: var(--rdd-space-2);
+  align-items: center;
+  min-height: 44px;
+  font-weight: 400;
+  font-size: 0.8rem;
+}
+.night-shell--consistent .night-share-preview {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  padding: 0;
+  background: var(--stats-navy);
+  color: var(--stats-cream);
+  border-radius: 12px;
+  font: inherit;
+  font-size: 0.9rem;
+}
+.night-shell--consistent .night-share-preview canvas {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: 12px;
+}
+.night-shell--consistent .night-share-text {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  font: inherit;
+  font-size: 0.85rem;
+}
+.night-shell--consistent .night-sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+}
+@media (max-width: 850px) {
+  .night-shell--consistent {
+    padding: 18px;
+  }
+.night-shell--consistent .night-main-grid {
+    grid-template-columns: 1fr;
+  }
+.night-shell--consistent .night-sidebar {
+    grid-template-columns: 1fr 1fr;
+  }
+.night-shell--consistent .night-award-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+.night-shell--consistent .night-tabs > span {
+    display: none;
+  }
+}
+@media (max-width: 540px) {
+  .night-shell--consistent {
+    padding: 12px;
+    gap: var(--rdd-space-4);
+  }
+.night-shell--consistent .night-panel {
+    padding: var(--rdd-panel-padding);
+  }
+.night-shell--consistent .night-sidebar,
+.night-shell--consistent .night-recap-columns,
+.night-shell--consistent .night-award-grid,
+.night-shell--consistent .night-list {
+    grid-template-columns: 1fr;
+  }
+.night-shell--consistent .night-scorecard {
+    padding: 12px;
+    gap: var(--rdd-space-3);
+  }
+.night-shell--consistent .night-scorecard h3 {
+    font-size: 1rem;
+  }
+.night-shell--consistent .night-scorecard input {
+    font-size: 1.4rem;
+  }
+.night-shell--consistent .night-scorecards {
+    gap: var(--rdd-space-2);
+  }
+.night-shell--consistent .night-tabs {
+    gap: var(--rdd-space-6);
+  }
+.night-shell--consistent .night-tabs button {
+    font-size: 0.85rem;
+  }
+.night-shell--consistent .night-save-bar .night-actions {
+    flex-direction: column;
+  }
+.night-shell--consistent .night-save-bar button {
+    width: 100%;
+  }
+.night-shell--consistent .night-form-row {
+    gap: var(--rdd-space-2);
+  }
+.night-shell--consistent .night-recap-banner {
+    padding: 22px;
+  }
+.night-shell--consistent .night-recap-banner h2 {
+    font-size: 1.7rem;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .night-shell--consistent * {
+    scroll-behavior: auto;
+    transition: none;
+    animation: none;
+  }
+}

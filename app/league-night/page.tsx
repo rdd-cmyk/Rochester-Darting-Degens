@@ -4,6 +4,9 @@ import { GameOptions, GameResultDetails } from '@/components/GameOptions';
 import { defaultConfig, gameUnit, isX01, hasCricketPoints } from '@/lib/games/catalog';
 
 import Link from "next/link";
+import { PageHeader } from "@/components/ui/PageHeader";
+import { ActionButton } from "@/components/ui/ActionButton";
+import { ActionLink } from "@/components/ui/ActionLink";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { User } from "@supabase/supabase-js";
 import { supabase } from "@/lib/supabaseClient";
@@ -52,7 +55,7 @@ import {
   NightRecapPanel,
   nightDate,
 } from "@/components/league-night/NightRecapPanel";
-import "./night.css";
+import "./night-consistency.css";
 import { NextPlannedNight } from "@/components/planning/NextPlannedNight";
 import { loadChallenge } from '@/lib/rivalries/api';
 import type { Challenge } from '@/lib/rivalries/types';
@@ -63,17 +66,18 @@ export default function LeagueNightPage() {
   const { user, loading } = useCurrentUser();
   if (loading)
     return (
-      <main className="night-shell">
-        <p>Opening League Night…</p>
+      <main className="night-shell night-shell--consistent rdd-form-controls">
+        <PageHeader title="League Night" eyebrow="League play" description="Good darts. Better company." size="feature" />
+        <p role="status">Opening League Night…</p>
       </main>
     );
   if (!user)
     return (
-      <main className="night-shell">
+      <main className="night-shell night-shell--consistent rdd-form-controls">
+        <PageHeader title="League Night" eyebrow="League play" description="Good darts. Better company." size="feature" />
         <div className="night-panel">
-          <h1>League Night</h1>
           <p>Sign in to join tonight, enter matches and see the recap.</p>
-          <Link href="/auth">Sign in</Link>
+          <ActionLink href="/auth" variant="primary">Sign in</ActionLink>
         </div>
       </main>
     );
@@ -192,20 +196,12 @@ function NightLobby({ user }: { user: User }) {
       />
     );
   return (
-    <main className="night-shell">
-      <header className="night-hero">
-        <p className="night-eyebrow">Rochester Darting Degens</p>
-        <h1>
-          Good darts.
-          <br />
-          Better company.
-        </h1>
-        <p>Open tonight’s night. Bring your game.</p>
-      </header>
+    <main className="night-shell night-shell--consistent rdd-form-controls">
+      <PageHeader title="League Night" eyebrow="League play" description="Good darts. Better company. Open a night and bring your game." size="feature" />
       <NextPlannedNight />
       {error && (
         <div className="night-warning" role="alert">
-          {error} <button onClick={() => void refresh()}>Try again</button>
+          {error} <ActionButton onClick={() => void refresh()}>Try again</ActionButton>
         </div>
       )}
       <div className="night-section-heading">
@@ -215,12 +211,12 @@ function NightLobby({ user }: { user: User }) {
             Anyone signed in can start a night or record results.
           </p>
         </div>
-        <button
-          className="night-primary"
+        <ActionButton
+          variant="primary"
           onClick={() => setShowCreate((value) => !value)}
         >
           Start a night
-        </button>
+        </ActionButton>
       </div>
       {showCreate && (
         <form
@@ -265,9 +261,9 @@ function NightLobby({ user }: { user: User }) {
               starting another.
             </p>
           )}
-          <button className="night-primary" disabled={creating}>
+          <ActionButton type="submit" variant="primary" disabled={creating}>
             {creating ? "Starting…" : "Start night & choose who’s here"}
-          </button>
+          </ActionButton>
         </form>
       )}
       {loading ? (
@@ -275,7 +271,7 @@ function NightLobby({ user }: { user: User }) {
       ) : nights.length ? (
         <div className="night-list">
           {nights.map((n) => (
-            <button
+            <ActionButton
               className="night-list-item"
               key={n.id}
               onClick={() => open(n)}
@@ -291,7 +287,7 @@ function NightLobby({ user }: { user: User }) {
                 </span>
               </span>
               <span aria-hidden="true">↗</span>
-            </button>
+            </ActionButton>
           ))}
         </div>
       ) : (
@@ -829,12 +825,10 @@ function NightSession({
   const teamGame = Boolean(draft.gameConfig && draft.gameConfig.format !== 'individual');
   const needsWinner = !draft.gameConfig || draft.gameConfig.status === 'completed';
   return (
-    <main className="night-shell">
-      <header className="night-hero">
-        <div className="night-section-heading">
-          <p className="night-eyebrow">Rochester Darting Degens</p>
-          <button
-            className="night-hero-button"
+    <main className="night-shell night-shell--consistent rdd-form-controls">
+      <div className="night-session-heading">
+        <PageHeader title={night.title} eyebrow="League night" description={<>{nightDate(night.night_date)}{night.venue ? ` · ${night.venue}` : ""}</>} actions={
+          <ActionButton
             onClick={() => {
               if (
                 !dirty.current ||
@@ -846,34 +840,28 @@ function NightSession({
             }}
           >
             Change night
-          </button>
-        </div>
-        <h1>{night.title}</h1>
+          </ActionButton>
+        } />
         {challenge&&<section className="rr-series-banner"><strong>Rivalry series · {challenge.wins.join(' : ')} · first to {challenge.target}</strong><p>{challenge.game} · {presetLabel(challenge.game,{...defaultConfig(),preset:challenge.preset})} · {challenge.board}</p><p>{challenge.state.replaceAll('_',' ')} · RSVP and attendance stay separate.</p><Link href={`/rivalries/challenges/${challenge.id}`}>Open challenge details ↗</Link></section>}
         {night.planning_status === "cancelled" && (
           <p className="night-warning" role="status">
             This league night was cancelled.
           </p>
         )}
-        <p>
-          {nightDate(night.night_date)}
-          {night.venue ? ` · ${night.venue}` : ""}
-        </p>
-        <p className="night-hero-hint">Good darts. Better company.</p>
-      </header>
+      </div>
       <div className="night-tabs">
-        <button
+        <ActionButton
           aria-pressed={view === "entry"}
           onClick={() => setView("entry")}
         >
           Record a match
-        </button>
-        <button
+        </ActionButton>
+        <ActionButton
           aria-pressed={view === "recap"}
           onClick={() => setView("recap")}
         >
           Night recap
-        </button>
+        </ActionButton>
         <span className="night-small">Everyone can enter results</span>
       </div>
       {error && (
@@ -884,7 +872,7 @@ function NightSession({
       {refreshError && (
         <div className="night-warning" role="alert">
           Results may be out of date. {refreshError}{" "}
-          <button onClick={() => void refresh()}>Refresh</button>
+          <ActionButton onClick={() => void refresh()}>Refresh</ActionButton>
         </div>
       )}
       {receipt && (
@@ -929,7 +917,7 @@ function NightSession({
                     : ""}
                 </p>
                 <div className="night-actions">
-                  <button
+                  <ActionButton
                     disabled={saving}
                     onClick={() => {
                       if (restore) {
@@ -941,8 +929,8 @@ function NightSession({
                     }}
                   >
                     Restore draft
-                  </button>
-                  <button
+                  </ActionButton>
+                  <ActionButton
                     disabled={saving}
                     onClick={() => {
                       if (restore?.draft.pending) {
@@ -965,7 +953,7 @@ function NightSession({
                     {restore?.draft.pending
                       ? "Check pending save first"
                       : "Start fresh"}
-                  </button>
+                  </ActionButton>
                 </div>
               </div>
             )}
@@ -982,8 +970,8 @@ function NightSession({
                       {entry.draft.players.map((p) => names.get(p.playerId) ?? "Unknown player").join(" / ")}
                     </p>
                     <div className="night-actions">
-                      <button disabled={locked || draft.recoveredEntryId === entry.draft.recoveredEntryId} onClick={() => restoreEntry(entry)}>Restore saved entry</button>
-                      <button disabled={locked} onClick={() => discardEntry(entry)}>Discard saved entry</button>
+                      <ActionButton disabled={locked || draft.recoveredEntryId === entry.draft.recoveredEntryId} onClick={() => restoreEntry(entry)}>Restore saved entry</ActionButton>
+                      <ActionButton disabled={locked} onClick={() => discardEntry(entry)}>Discard saved entry</ActionButton>
                     </div>
                   </div>
                 ))}
@@ -1048,7 +1036,7 @@ function NightSession({
               </div>
               <div className="night-player-pool">
                 {pool.map((p) => (
-                  <button
+                  <ActionButton
                     type="button"
                     key={p.id}
                     value={p.id}
@@ -1060,11 +1048,11 @@ function NightSession({
                   >
                     {draft.players.some((s) => s.playerId === p.id) ? "✓ " : ""}
                     <PlayerAvatar playerId={p.id} name={names.get(p.id)??'Player'} size={28}/> {names.get(p.id)}
-                  </button>
+                  </ActionButton>
                 ))}
-                <button type="button" disabled={challengeEntry} onClick={() => setManage(true)}>
+                <ActionButton type="button" disabled={challengeEntry} onClick={() => setManage(true)}>
                   + Add someone
-                </button>
+                </ActionButton>
               </div>
               {!challengeEntry && <GameOptions game={draft.game} value={draft.gameConfig ?? null} players={draft.players.map(p => ({id:p.playerId,name:names.get(p.playerId) ?? 'Player'}))} winner={draft.winnerId} onWinner={winnerId => update({winnerId})} onChange={gameConfig => update({gameConfig, ...(gameConfig.format !== (draft.gameConfig?.format ?? 'individual') ? {players:draft.players.map(p => ({...p,score:'',points:''}))} : {})})} />}
               {isX01(draft.game) && (
@@ -1141,7 +1129,7 @@ function NightSession({
                         />
                       </label>
                     )}
-                    <button
+                    <ActionButton
                       type="button"
                       aria-pressed={draft.winnerId === p.playerId}
                       hidden={teamGame || !needsWinner}
@@ -1156,7 +1144,7 @@ function NightSession({
                       {draft.winnerId === p.playerId
                         ? "✓ Winner"
                         : "Mark as winner"}
-                    </button>
+                    </ActionButton>
                   </article>
                 ))}
               </div>
@@ -1222,22 +1210,22 @@ function NightSession({
                   ) : (
                     <p key={id}>
                       Match #{id} is awaiting refresh.{" "}
-                      <button onClick={() => void refresh()}>
+                      <ActionButton onClick={() => void refresh()}>
                         Refresh saved result
-                      </button>
+                      </ActionButton>
                     </p>
                   );
                 })}
                 <div className="night-actions">
-                  <button
+                  <ActionButton
                     disabled={saving}
                     onClick={() =>
                       void submit(draft.pending?.intent ?? "rematch", true)
                     }
                   >
                     This is another game
-                  </button>
-                  <button
+                  </ActionButton>
+                  <ActionButton
                     disabled={saving}
                     onClick={() => {
                       releaseEntry(draft);
@@ -1249,7 +1237,7 @@ function NightSession({
                     }}
                   >
                     Keep existing result
-                  </button>
+                  </ActionButton>
                 </div>
               </div>
             )}
@@ -1267,40 +1255,40 @@ function NightSession({
               </p>
               <div className="night-actions">
                 {draft.pending && !duplicates.length ? (
-                  <button
-                    className="night-primary"
+                  <ActionButton
+                    variant="primary"
                     disabled={saving || tabConflict || Boolean(restore)}
                     onClick={() => void submit(draft.pending!.intent)}
                   >
                     {saving ? "Checking save…" : "Check / retry this save"}
-                  </button>
+                  </ActionButton>
                 ) : draft.editId ? (
-                  <button
-                    className="night-primary"
+                  <ActionButton
+                    variant="primary"
                     disabled={locked || (needsWinner && !draft.winnerId)}
                     onClick={() => void submit("edit")}
                   >
                     Save changes
-                  </button>
+                  </ActionButton>
                 ) : (
                   <>
-                    <button
-                      className="night-primary"
+                    <ActionButton
+                      variant="primary"
                       disabled={
                         locked || draft.players.length < 2 || (needsWinner && !draft.winnerId)
                       }
                       onClick={() => void submit("rematch")}
                     >
                       {saving ? "Saving…" : "Save & Rematch"}
-                    </button>
-                    <button
+                    </ActionButton>
+                    <ActionButton
                       disabled={
                         locked || draft.players.length < 2 || (needsWinner && !draft.winnerId)
                       }
                       onClick={() => void submit("finish")}
                     >
                       Save & Finish
-                    </button>
+                    </ActionButton>
                   </>
                 )}
               </div>
@@ -1327,13 +1315,13 @@ function NightSession({
                   </span>
                 ))}
               </div>
-              <button
-                className="night-text-button"
+              <ActionButton
+                variant="quiet"
                 aria-expanded={manage}
                 onClick={() => setManage((open) => !open)}
               >
                 {manage ? "−" : "+"} Manage attendance
-              </button>
+              </ActionButton>
               {manage && (
                 <div className="night-attendance-editor">
                   <label>
@@ -1410,9 +1398,9 @@ function NightSession({
                       </p>
                     </div>
                     {m.created_by === userId && (
-                      <button disabled={locked} onClick={() => edit(m)}>
+                      <ActionButton disabled={locked} onClick={() => edit(m)}>
                         Edit
-                      </button>
+                      </ActionButton>
                     )}
                   </article>
                 ))
@@ -1425,15 +1413,15 @@ function NightSession({
                 <span className="night-small">
                   {refreshedAt ? `Updated ${refreshedAt}` : "Loading results…"}
                 </span>
-                <button disabled={refreshing} onClick={() => void refresh()}>
+                <ActionButton disabled={refreshing} onClick={() => void refresh()}>
                   {refreshing ? "Refreshing…" : "Refresh"}
-                </button>
+                </ActionButton>
               </div>
             </section>
-            <button onClick={() => setView("recap")}>
+            <ActionButton onClick={() => setView("recap")}>
               See tonight’s recap ↗
-            </button>
-            <button
+            </ActionButton>
+            <ActionButton
               onClick={async () => {
                 try {
                   await navigator.clipboard.writeText(window.location.href);
@@ -1446,7 +1434,7 @@ function NightSession({
               }}
             >
               Copy night link
-            </button>
+            </ActionButton>
           </aside>
         </div>
       )}

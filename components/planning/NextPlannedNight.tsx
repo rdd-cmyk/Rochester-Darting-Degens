@@ -1,5 +1,5 @@
 "use client";
-import Link from "next/link";
+import { ActionLink } from "@/components/ui/ActionLink";
 import { useEffect, useState } from "react";
 import {
   loadPlanning,
@@ -65,7 +65,7 @@ export function NextPlannedNight() {
               : "Vote on a date or venue and RSVP for upcoming league nights."}
           </p>
         </div>
-        <Link href="/league-night/plan">Plan & RSVP →</Link>
+        <ActionLink href="/league-night/plan">Plan & RSVP</ActionLink>
       </div>
     </section>
   );

@@ -7,7 +7,8 @@ P08 was accepted and P09 authorized on 2026-10-01. Stop before P10.
 
 Solo adopts feature PageHeader with the approved decorative orange period,
 shared panels, form controls and actions. The game between game nights and
-Your board. Your pace remain, with noninteractive context chips below the header.
+Your board. Your pace remain. The owner requested removal of the three context
+chips after preview review; the heading now leads directly into the tabs.
 Tabs, game choices and analysis scopes retain aria-pressed with an underline.
 Save game/Save changes retain explicit submit semantics. The benchmark uses
 themed inset/text roles; Your first benchmark starts here replaces Your next
@@ -51,3 +52,22 @@ Exact publication, CI, hosted read-only evidence and screenshots stay ignored in
 .local/page-consistency. No hosted writes, SQL, Supabase configuration, production
 deployment, main merge or W6/W7 closure occurred. P09 awaits owner review;
 P10 remains unstarted.
+
+
+## Owner review adjustments
+
+The short History view removed the desktop scrollbar, shifting centered content.
+Solo now reserves the root scrollbar gutter only while its shell is present.
+At phone widths, the three view choices and Refresh use a two-column grid;
+Refresh has the shared outlined control skin, without an isolated right-aligned
+second row. The three header context chips were removed as requested.
+
+Follow-up checks passed trusted install, 578 tests, coverage, lint, types and build.
+At desktop 1280px, the heading x coordinate stayed 50.518px and the shell x
+coordinate stayed 12.571px across Log a game, History, Your progress and back;
+content heights varied from 900px to 2087px. Root scrollbar-gutter computed
+stable. At 360/390px, all four controls fit two equal columns and 44px rows with
+no document overflow; no context chips remained. Progress rendering, Cricket
+selection and All play scope worked, resolving the earlier progress-tab browser
+limitation for these read-only checks. Visibility writes, delete/undo and retry
+browser checks remain unclaimed; existing automated tests pass.

@@ -90,19 +90,12 @@ export default function SoloPage() {
   const { user, loading } = useCurrentUser();
   return (
     <main className="solo-shell rdd-form-controls">
-      <div>
-        <PageHeader
-          size="feature"
-          title="Solo Play"
-          eyebrow="The game between game nights"
-          description="Your board. Your pace. Log your games, find your rhythm, and make the next game a little better."
-        />
-        <div className="solo-hero-tags" aria-label="Solo Play context">
-          <span>Anywhere, anytime</span>
-          <span>Personal progress</span>
-          <span>Always unranked</span>
-        </div>
-      </div>
+      <PageHeader
+        size="feature"
+        title="Solo Play"
+        eyebrow="The game between game nights"
+        description="Your board. Your pace. Log your games, find your rhythm, and make the next game a little better."
+      />
       {loading ? (
         <p role="status">Opening your practice space…</p>
       ) : user ? (

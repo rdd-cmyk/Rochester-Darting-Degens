@@ -446,4 +446,8 @@ and text roles in both themes. PracticePerformance is a Solo-only consumer and
 adopts the same panel, section heading, eyebrow and quiet action. Statistical
 series colors, SVG mark/axis geometry and bounded horizontal table scrolling
 remain domain-specific. Separate League Night activity styles are unchanged.
+Solo reserves the root scrollbar gutter while its shell exists, preventing short
+History content from shifting the centered layout. Phone navigation uses two
+equal columns; Refresh keeps the shared outlined skin. Heading context chips
+were removed following owner review.
 See the [P09 record](release/p09-solo-consistency-2026-10-01.md).

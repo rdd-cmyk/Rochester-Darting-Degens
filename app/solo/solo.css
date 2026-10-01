@@ -1,3 +1,6 @@
+/* Reserve the page scrollbar space across short and long Solo tabs. */
+html:has(.solo-shell) { scrollbar-gutter: stable; }
+
 /* Solo owns layout; shared primitives own headers, actions, panels and fields. */
 .solo-shell {
   max-width: var(--rdd-content-wide);
@@ -12,12 +15,7 @@
 .solo-shell * { box-sizing: border-box; }
 .solo-shell :is(h1, h2, h3, p) { margin: 0; }
 .solo-shell h3 { font-size: var(--rdd-action-font-size); }
-.solo-hero-tags {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--rdd-space-2);
-}
-.solo-hero-tags span, .solo-tag {
+.solo-tag {
   background: var(--rdd-panel-inset-bg);
   border: 1px solid var(--rdd-border);
   border-radius: var(--rdd-radius-pill);
@@ -286,7 +284,17 @@
 }
 @media (max-width: 640px) {
   .solo-form-row, .solo-sidebar, .solo-metrics { grid-template-columns: minmax(0, 1fr); }
-  .solo-tabs { gap: var(--rdd-space-2); }
+  .solo-tabs {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--rdd-space-2);
+  }
+  .solo-tabs .solo-refresh {
+    margin-left: 0;
+    border: 1px solid var(--rdd-border-control);
+    border-radius: var(--rdd-radius-control);
+    background: var(--rdd-action-secondary-bg);
+  }
   .solo-history-row { align-items: flex-start; flex-wrap: wrap; }
   .solo-shell th, .solo-shell td { padding: var(--rdd-space-3) var(--rdd-space-1); }
 }

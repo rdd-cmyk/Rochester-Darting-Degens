@@ -1,6 +1,6 @@
 # Page consistency and league voice plan
 
-Prepared: 2026-09-30. Status: **P01-P24 owner-accepted; final combined sweep pending**.
+Prepared: 2026-09-30. Status: **P01-P24 owner-accepted; combined sweep performed; shared-frame/focus updates on Preview; affected human acceptance open**.
 Baseline: `release/next` at `351a4b0253f2c7f05d7a70708597d1c847977c65`.
 
 Before this plan was written, the release position was saved in the
@@ -273,6 +273,7 @@ different header positions/heights, font sizes and page widths before returning
 to W packages. The [shared-frame correction](release/shared-page-frame-2026-10-01.md)
 supersedes earlier per-page size/width choices. Every route adopts one outer
 frame and PageHeader family, with common heading slots and a separate toolbar.
-The work preserves the accepted page content/features and earlier local focus
-fix. Its combined visual acceptance and publication are pending; old P01-P24
+The work preserves the accepted page content/features and earlier focus
+fix. Both are [published to Preview](release/shared-page-frame-preview-2026-10-01.md)
+at application `020136e`. Combined visual acceptance is pending; old P01-P24
 acceptance remains the historical baseline. W6/W7/W8 remain at their checkpoint.

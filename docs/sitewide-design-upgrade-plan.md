@@ -6,8 +6,8 @@ September 30 continuation: the combined release now starts a separate
 [page consistency and wording plan](page-consistency-and-copy-plan.md), with one
 page per work package and an owner review stop after each page. Its current
 status is P01-P24 owner-accepted, with the combined sweep performed and its
-focus-return finding locally corrected; publication and affected human acceptance
-remain open. See the
+focus-return finding corrected and published with the shared-frame update;
+affected human acceptance remains open. See the
 [final review](release/final-consistency-review-2026-10-01.md). Use that plan for this
 pass's order and ledger. The M0-M8 material below remains historical context;
 do not execute its whole-site goal as authority to bypass the new review stops.
@@ -19,7 +19,9 @@ frame instead of independent page geometry. The
 [shared-frame correction](release/shared-page-frame-2026-10-01.md) centralizes
 outer width/padding, title size/rhythm and ordinary section-heading roles. All
 PageHeader consumers adopt it. Local checks are recorded there; combined owner
-appearance acceptance/publication remain pending before the W-package return.
+appearance acceptance remains pending before the W-package return. Both frame
+and focus corrections are on Preview; see the
+[publication record](release/shared-page-frame-preview-2026-10-01.md).
 
 Release integration checkpoint, 2026-09-29: the owner authorized merging the
 updated PR #75 branch at `804b74f` into `release/next`. The

@@ -353,8 +353,10 @@ Identity artwork may use the named slot: Home's redundant logo is hidden on
 phones; player identity remains visible and long names can wrap beside it.
 Posters/showcase artwork and dense sidebar labels remain domain treatments;
 ordinary section headings consume the shared section-title role. The candidate
-is locally verified; owner appearance acceptance and publication remain separate.
-See [shared-frame evidence](release/shared-page-frame-2026-10-01.md).
+is locally verified and published to Preview; combined owner appearance
+acceptance remains open. See
+[shared-frame evidence](release/shared-page-frame-2026-10-01.md) and the
+[publication record](release/shared-page-frame-preview-2026-10-01.md).
 
 **Structure to standardize:** optional back link/breadcrumb above the header; optional short eyebrow; one `h1`; brief description; optional context/status; optional primary and secondary actions. Context is not another hero or an arbitrary metric grid. Use the same component in populated, loading, empty, signed-out and error states so identity and spacing do not jump.
 

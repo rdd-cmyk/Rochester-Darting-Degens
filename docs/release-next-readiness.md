@@ -7,9 +7,11 @@ W5's production-shaped local rehearsal has passed; W6-W8 release gates remain op
 
 Current resume point: all P01-P24 page packages are owner-accepted at app
 `8b1ed75`. The [final combined review](release/final-consistency-review-2026-10-01.md)
-has been performed; the poster-dialog focus-return correction is locally fixed
-and fully checked. Its publication/new candidate identity and affected human
-acceptance remain open before returning to W7 (and W6 closeout). The
+has been performed; the poster-dialog focus-return correction and combined
+shared-frame update are published to Preview at application `020136e`. See the
+[publication record](release/shared-page-frame-preview-2026-10-01.md) for exact
+CI/Vercel evidence. Affected human acceptance remains open before returning
+to W7 (and W6 closeout). The
 [candidate addendum](release/post-consistency-candidate-2026-10-01.json) confirms
 unchanged W5/W6 SQL inputs. The [September 30 checkpoint](release/pre-consistency-checkpoint-2026-09-30.md)
 records accepted results, candidate `351a4b0`, remaining dependency/credential
@@ -21,9 +23,9 @@ one page per package; the owner authorized P10-P15 as one six-page batch before 
 October 1 follow-up: the owner requested a combined page-frame audit/correction
 before resuming W packages. [Shared-frame evidence](release/shared-page-frame-2026-10-01.md)
 records removal of route-specific outer widths and title sizes, shared rhythm,
-local responsive/theme checks and regression guards. This working-tree update
+local responsive/theme checks and regression guards. The published update
 includes the verified dialog focus correction and awaits combined appearance
-review/publication; `8b1ed75` is still the published baseline. No SQL, API,
+review; `8b1ed75` is the preceding accepted-page baseline. No SQL, API,
 dependency, hosted configuration or W7/W8 execution is added by this work.
 
 ## Candidate and scope

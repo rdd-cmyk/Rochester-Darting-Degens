@@ -1,7 +1,9 @@
 # Shared page-frame audit and correction
 
-Status: implemented and locally verified; combined owner appearance acceptance
-and publication pending. W6/W7/W8 remain at their existing return point.
+Status: implemented, locally verified and published to Preview at application
+`020136e`; combined owner appearance acceptance pending. See the
+[publication record](shared-page-frame-preview-2026-10-01.md).
+W6/W7/W8 remain at their existing return point.
 
 The owner requested a cross-page consistency audit after P01-P24 acceptance.
 Those packages adopted shared headers/actions/fields, but kept separate outer
@@ -67,6 +69,7 @@ lint; typecheck; production build; and diff whitespace checks. The build used
 local Supabase defaults, not a hosted deployment. Existing dependency findings
 (one high, one critical) remain in their separately scoped release gate. There
 are no changed SQL, library save/calculation logic, API or package-manifest paths.
-No new CI/Preview identity is claimed: `8b1ed75` remains the published baseline,
-and this correction plus the earlier focus fix are local working-tree changes.
-Review the combined geometry before continuing to release packages.
+The local review above preceded publication. The subsequent publication record
+supersedes that status and identifies the new CI/Preview candidate; `8b1ed75`
+remains the previous accepted-page baseline. Review the combined geometry on
+Preview before continuing to release packages.

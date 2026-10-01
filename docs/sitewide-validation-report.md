@@ -3,15 +3,17 @@
 Current combined-release review, 2026-10-01: all P01-P24 pages are owner-accepted
 at `8b1ed75`. The [final consistency review](release/final-consistency-review-2026-10-01.md)
 records the combined walkthrough, unchanged SQL hashes, exact-candidate checks,
-the locally verified dialog focus-return correction and remaining publication,
-human and release gates.
+the verified dialog focus-return correction and remaining human/release gates.
 That review supersedes the standalone branch status below. Earlier dated
 results remain historical evidence, not current release sign-off.
 
 The subsequent owner-requested [shared-frame audit/correction](release/shared-page-frame-2026-10-01.md)
-records the current working-tree layout, cross-page measurements and source
-guards. It supersedes earlier page-specific geometry. The published candidate
-above predates these local changes; no new hosted or production result is implied.
+records the cross-page layout, measurements and source guards. It supersedes
+earlier page-specific geometry. The
+[preview publication record](release/shared-page-frame-preview-2026-10-01.md)
+identifies application `020136e` and hosted checks for both frame and focus
+corrections. The accepted-page candidate above predates them; no production
+or additional full functional acceptance is implied.
 
 Historical checkpoint status: in progress, updated 2026-09-29. This report is a checkpoint, not acceptance sign-off.
 

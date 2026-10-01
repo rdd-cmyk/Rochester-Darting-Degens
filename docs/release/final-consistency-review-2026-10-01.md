@@ -1,5 +1,11 @@
 # Final combined consistency walkthrough and evidence review
 
+Publication addendum: the focus correction and subsequent shared-frame update
+are on Preview at application `020136e`. See the
+[publication record](shared-page-frame-preview-2026-10-01.md) for current
+CI/Vercel and read-only hosted checks. The `8b1ed75` evidence below remains
+historical; outstanding human/release gates are unchanged.
+
 Reviewed: 2026-10-01. Branch: `release/next`. Application candidate:
 `8b1ed75ec33bbebc2b015894a39b7d3b0ce44a8a`.
 

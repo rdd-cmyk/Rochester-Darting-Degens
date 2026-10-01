@@ -58,7 +58,7 @@ export function NextPlannedNight() {
     <section className="night-panel">
       <div className="night-section-heading">
         <div>
-          <h2>{night ? "Next on the calendar" : "Plan the next night"}</h2>
+          <h2 className="rdd-section-title">{night ? "Next on the calendar" : "Plan the next night"}</h2>
           <p>
             {night
               ? `${night.title} · ${rochesterTime(night.starts_at)} · ${night.venue}`

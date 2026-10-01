@@ -66,15 +66,15 @@ export default function LeagueNightPage() {
   const { user, loading } = useCurrentUser();
   if (loading)
     return (
-      <main className="night-shell--consistent rdd-form-controls">
-        <PageHeader title="League Night" eyebrow="League play" description="Good darts. Better company." size="feature" />
+      <main className="rdd-page-shell night-shell--consistent rdd-form-controls">
+        <PageHeader title="League Night" eyebrow="League play" description="Good darts. Better company." />
         <p role="status">Opening League Night…</p>
       </main>
     );
   if (!user)
     return (
-      <main className="night-shell--consistent rdd-form-controls">
-        <PageHeader title="League Night" eyebrow="League play" description="Good darts. Better company." size="feature" />
+      <main className="rdd-page-shell night-shell--consistent rdd-form-controls">
+        <PageHeader title="League Night" eyebrow="League play" description="Good darts. Better company." />
         <div className="night-panel">
           <p>Sign in to join tonight, enter matches and see the recap.</p>
           <ActionLink href="/auth" variant="primary">Sign in</ActionLink>
@@ -196,8 +196,8 @@ function NightLobby({ user }: { user: User }) {
       />
     );
   return (
-    <main className="night-shell--consistent rdd-form-controls">
-      <PageHeader title="League Night" eyebrow="League play" description="Good darts. Better company. Open a night and bring your game." size="feature" />
+    <main className="rdd-page-shell night-shell--consistent rdd-form-controls">
+      <PageHeader title="League Night" eyebrow="League play" description="Good darts. Better company. Open a night and bring your game." />
       <NextPlannedNight />
       {error && (
         <div className="night-warning" role="alert">
@@ -206,7 +206,7 @@ function NightLobby({ user }: { user: User }) {
       )}
       <div className="night-section-heading">
         <div>
-          <h2>Find your night</h2>
+          <h2 className="rdd-section-title">Find your night</h2>
           <p className="night-small">
             Anyone signed in can start a night or record results.
           </p>
@@ -226,7 +226,7 @@ function NightLobby({ user }: { user: User }) {
             void create();
           }}
         >
-          <h2>Set the scene</h2>
+          <h2 className="rdd-section-title">Set the scene</h2>
           <label>
             Night name
             <input
@@ -293,7 +293,7 @@ function NightLobby({ user }: { user: User }) {
       ) : (
         !error && (
           <div className="night-panel">
-            <h2>Make tonight the first.</h2>
+            <h2 className="rdd-section-title">Make tonight the first.</h2>
             <p>
               Start a night, choose who’s here, and everyone can enter their
               games.
@@ -825,8 +825,7 @@ function NightSession({
   const teamGame = Boolean(draft.gameConfig && draft.gameConfig.format !== 'individual');
   const needsWinner = !draft.gameConfig || draft.gameConfig.status === 'completed';
   return (
-    <main className="night-shell--consistent rdd-form-controls">
-      <div className="night-session-heading">
+    <main className="rdd-page-shell night-shell--consistent rdd-form-controls">
         <PageHeader title={night.title} eyebrow="League night" description={<>{nightDate(night.night_date)}{night.venue ? ` · ${night.venue}` : ""}</>} actions={
           <ActionButton
             onClick={() => {
@@ -848,7 +847,6 @@ function NightSession({
             This league night was cancelled.
           </p>
         )}
-      </div>
       <div className="night-tabs">
         <ActionButton
           aria-pressed={view === "entry"}
@@ -892,7 +890,7 @@ function NightSession({
         <div className="night-main-grid">
           <section className="night-panel night-entry">
             <div className="night-section-heading">
-              <h2>
+              <h2 className="rdd-section-title">
                 {draft.editId ? `Edit match #${draft.editId}` : "Next up."}
               </h2>
               <span className="night-small">Draft on this device</span>
@@ -1304,7 +1302,7 @@ function NightSession({
           <aside className="night-sidebar">
             <section className="night-panel">
               <div className="night-section-heading">
-                <h2>Who’s here?</h2>
+                <h2 className="rdd-section-title">Who’s here?</h2>
                 <span className="night-small">{present.length} players</span>
               </div>
               <p className="night-small">Shared with everyone in this night.</p>
@@ -1364,7 +1362,7 @@ function NightSession({
             </section>
             <section className="night-panel">
               <div className="night-section-heading">
-                <h2>Just played</h2>
+                <h2 className="rdd-section-title">Just played</h2>
                 <span className="night-small">{matches.length} matches</span>
               </div>
               <p className="night-small">Results from everyone tonight</p>

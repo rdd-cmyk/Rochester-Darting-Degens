@@ -5,11 +5,21 @@ Prepared: 2026-09-26 • Status: active; implementation underway
 September 30 continuation: the combined release now starts a separate
 [page consistency and wording plan](page-consistency-and-copy-plan.md), with one
 page per work package and an owner review stop after each page. Its current
-status is P01-P15 owner-accepted and P16-P20 awaiting owner review. Use that plan for this
+status is P01-P24 owner-accepted, with the combined sweep performed and its
+focus-return finding locally corrected; publication and affected human acceptance
+remain open. See the
+[final review](release/final-consistency-review-2026-10-01.md). Use that plan for this
 pass's order and ledger. The M0-M8 material below remains historical context;
 do not execute its whole-site goal as authority to bypass the new review stops.
 The [release checkpoint](release/pre-consistency-checkpoint-2026-09-30.md)
 preserves the W6/W7 return point.
+
+October 1 cross-page follow-up: the owner requested one production-style page
+frame instead of independent page geometry. The
+[shared-frame correction](release/shared-page-frame-2026-10-01.md) centralizes
+outer width/padding, title size/rhythm and ordinary section-heading roles. All
+PageHeader consumers adopt it. Local checks are recorded there; combined owner
+appearance acceptance/publication remain pending before the W-package return.
 
 Release integration checkpoint, 2026-09-29: the owner authorized merging the
 updated PR #75 branch at `804b74f` into `release/next`. The
@@ -394,4 +404,4 @@ challenges above the featured rivalry. These changes preserve the seasonal toggl
 reduced-motion setting and opaque readable cards. See the W6 operational evidence
 for verification and remaining owner acceptance.
 
-2026-10-01: P01-P20 are owner-accepted; P21-P24 adopt the shared utility/fallback presentation as the final batch, awaiting owner review. The [page ledger](page-consistency-and-copy-plan.md) owns current package state. Final combined journey/device acceptance remains open until all 24 packages are accepted and the final sweep is recorded; this does not resume production release work.
+2026-10-01: all P01-P24 are owner-accepted; P21-P24 acceptance is recorded at `8b1ed75`. The [page ledger](page-consistency-and-copy-plan.md) owns current package state. Final combined journey/device acceptance remains open until the final sweep is recorded; this does not resume production release work.

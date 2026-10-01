@@ -261,9 +261,8 @@ export default function AdvancedStatsPage() {
   );
 
   return (
-    <main className="stats-page-shell">
+    <main className="rdd-page-shell stats-page-shell">
       <PageHeader
-        size="feature"
         eyebrow="RDD League Lab"
         title="Advanced Statistics"
         description="Go beyond the win column. Compare power ratings, current form, strength of schedule and consistency—all built from recorded league matches."

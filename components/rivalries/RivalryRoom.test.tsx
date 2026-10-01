@@ -63,8 +63,35 @@ beforeEach(() => {
   );
   Object.defineProperty(HTMLDialogElement.prototype, "showModal", {
     configurable: true,
-    value: vi.fn(),
+    value: vi.fn(function (this: HTMLDialogElement) {
+      this.setAttribute("open", "");
+      this.querySelector<HTMLButtonElement>('button[aria-label="Close dialog"]')?.focus();
+    }),
   });
+  Object.defineProperty(HTMLDialogElement.prototype, "close", {
+    configurable: true,
+    value: vi.fn(function (this: HTMLDialogElement) {
+      this.removeAttribute("open");
+    }),
+  });
+});
+it.each([
+  ["Make a fight poster", "close"],
+  ["Make a fight poster", "cancel"],
+  ["Challenge Bravo", "close"],
+  ["Challenge Bravo", "cancel"],
+])("returns focus to %s after dialog %s", async (label, dismissal) => {
+  render(<RivalryRoom />);
+  const opener = await screen.findByRole("button", { name: new RegExp(label) });
+  opener.focus();
+  fireEvent.click(opener);
+  const element = screen.getByRole("dialog");
+  const close = screen.getByRole("button", { name: "Close dialog" });
+  expect(close).toHaveFocus();
+  if (dismissal === "cancel") fireEvent(element, new Event("cancel", { bubbles: false }));
+  else fireEvent.click(close);
+  expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+  expect(opener).toHaveFocus();
 });
 afterEach(() => {
   cleanup();

@@ -1,7 +1,4 @@
 .rr-shell {
-  max-width: 1160px;
-  margin: auto;
-  padding: 40px 28px 64px;
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
@@ -582,9 +579,6 @@ a.rr-primary,
   font-size: 13px;
 }
 @media (max-width: 700px) {
-  .rr-shell {
-    padding: 24px 14px 45px;
-  }
   .rr-page-head {
     align-items: start;
     flex-direction: column;
@@ -737,7 +731,7 @@ a.rr-primary,
 .rr-incoming a { display: block; padding-block: 10px; font-weight: 700; }
 
 /* P10-P12: ordinary page chrome shares roles; fight art and TV geometry remain domain layout. */
-.rr-shell.rr-consistent { max-width: var(--rdd-content-wide); padding: var(--rdd-space-8) var(--rdd-shell-padding) calc(var(--rdd-space-8) * 2); color: var(--rdd-text); font-family: inherit; }
+.rr-shell.rr-consistent { color: var(--rdd-text); font-family: inherit; }
 .rr-consistent .rr-actions { gap: var(--rdd-space-3); }
 .rr-consistent :is(.rr-panel, .rr-empty, .rr-incoming) { margin: var(--rdd-space-6) 0; padding: var(--rdd-panel-padding); background: var(--panel-bg); color: var(--rdd-text); border: 1px solid var(--panel-border); border-radius: var(--rdd-radius-panel); }
 .rr-consistent .rr-incoming { border-left: 4px solid var(--rdd-accent-text); }

@@ -5,7 +5,7 @@ export const metadata = { title: 'Page Not Found' };
 
 export default function NotFound() {
   return (
-    <main className="page-shell utility-consistent">
+    <main className="rdd-page-shell page-shell utility-consistent">
       <PageHeader eyebrow="Page not found" title="That page is off the board"
         description="The link may have changed. Return to the standings or browse matches." />
       <div className="rdd-actions">

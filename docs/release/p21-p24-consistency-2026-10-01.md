@@ -1,6 +1,6 @@
 # P21-P24 consistency and copy
 
-Status: awaiting owner review. Baseline `release/next` at `f238849`.
+Status: owner accepted 2026-10-01 at `8b1ed75`. Baseline `release/next` at `f238849`.
 The owner accepted P16-P20 and authorized all four remaining pages together,
 with full checks and one preview publication after the batch is ready.
 
@@ -63,7 +63,7 @@ such as `/qa-missing-page`. The hosted diagnostic error trigger remains absent;
 P24 is illustrated by the saved local synthetic screenshot, so hosted failures
 need not be deliberately induced. Verify readability, headings and navigation.
 
-After accepting this batch, all 24 page rows can be marked accepted. Then record
+All 24 page rows are now owner-accepted. Next record
 the final combined journey sweep: navigation and both themes; profile/privacy;
 planning organizer/member views and polls; individual/team match and night
 entry/edit/rematch; Solo history/privacy/undo; Board access, drafts and replies;
@@ -77,3 +77,5 @@ dependency/credential gates, rehearse both W6 SQL supplements and the compatible
 rollback app, then W7 exact packet and owner go/no-go. W8 needs separate cutover
 approval, fresh protected backups and write-pause/no-record-loss controls.
 Neither this batch nor owner appearance acceptance authorizes a DB deployment.
+
+Acceptance checkpoint: published app `8b1ed75ec33bbebc2b015894a39b7d3b0ce44a8a`; [CI run](https://github.com/rdd-cmyk/Rochester-Darting-Degens/actions/runs/36875808556) passed; Vercel Preview `6LmqWgafZuvYk97jLbRMAfBnGfhj` was Ready on that exact commit. Owner acceptance closes page appearance review; final combined journey/device and release gates remain separate.

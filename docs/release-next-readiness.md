@@ -1,18 +1,30 @@
 # Next release: readiness and rollout plan
 
-Updated: 2026-09-30. Status: W0 complete and manifest refreshed; W1 read-only
+Updated: 2026-10-01. Status: W0 complete and manifest refreshed; W1 read-only
 assessment complete, Vercel access resolved, isolated-preview gate passed;
 W2 statistics foundation and W3 combined synthetic rehearsal passed locally;
 W5's production-shaped local rehearsal has passed; W6-W8 release gates remain open.
 
-Current resume point: P01-P15 are owner-accepted and P16-P20 are awaiting owner review in the
-page-by-page consistency and wording pass before returning to W7 (and affected
-W6 closeout). The [September 30 checkpoint](release/pre-consistency-checkpoint-2026-09-30.md)
+Current resume point: all P01-P24 page packages are owner-accepted at app
+`8b1ed75`. The [final combined review](release/final-consistency-review-2026-10-01.md)
+has been performed; the poster-dialog focus-return correction is locally fixed
+and fully checked. Its publication/new candidate identity and affected human
+acceptance remain open before returning to W7 (and W6 closeout). The
+[candidate addendum](release/post-consistency-candidate-2026-10-01.json) confirms
+unchanged W5/W6 SQL inputs. The [September 30 checkpoint](release/pre-consistency-checkpoint-2026-09-30.md)
 records accepted results, candidate `351a4b0`, remaining dependency/credential
 controls and both W6 SQL supplements. It supersedes stale summary wording below;
 earlier dated evidence remains intact. No production approval is implied.
 The detour is tracked in the [page consistency and wording plan](page-consistency-and-copy-plan.md):
-one page per package; the owner authorized P10-P15 as one six-page batch before the next acceptance stop. P01-P20 are owner-accepted. P21-P24 are the final authorized four-page batch, awaiting owner review. Final combined journey acceptance and the W6/W7 return gates remain tracked in the page plan.
+one page per package; the owner authorized P10-P15 as one six-page batch before the next acceptance stop. P01-P24 are owner-accepted; no page implementation packages remain. Final combined journey acceptance and the W6/W7 return gates remain tracked in the page plan.
+
+October 1 follow-up: the owner requested a combined page-frame audit/correction
+before resuming W packages. [Shared-frame evidence](release/shared-page-frame-2026-10-01.md)
+records removal of route-specific outer widths and title sizes, shared rhythm,
+local responsive/theme checks and regression guards. This working-tree update
+includes the verified dialog focus correction and awaits combined appearance
+review/publication; `8b1ed75` is still the published baseline. No SQL, API,
+dependency, hosted configuration or W7/W8 execution is added by this work.
 
 ## Candidate and scope
 

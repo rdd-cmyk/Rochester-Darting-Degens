@@ -125,8 +125,9 @@ export default function LeagueBoard({ postId }: { postId?: string }) {
     try { await boardWrite('request_access'); await access.refresh(); }
     catch(cause) { setError(boardError(cause)); } finally { setRequesting(false); }
   }
-  return <main className="board-page board-consistent rdd-form-controls"><div className="board-shell">
-    <PageHeader title={postId ? "League conversation" : "League Board"} size="standard" eyebrow="Rochester Darting Degens" description="Between rounds. Before next week. Your league, off the board." />
+  return <main className="rdd-page-shell board-page board-consistent rdd-form-controls">
+    <PageHeader title={postId ? "League conversation" : "League Board"} eyebrow="Rochester Darting Degens" description="Between rounds. Before next week. Your league, off the board." />
+    <div className="board-shell">
     <p className="board-access-label">Members only · Organizer-approved access</p>
     {access.loading ? <p role="status">Checking board access…</p> : access.error ? <div className="board-panel"><p role="alert" className="board-error">{access.error}</p><ActionButton onClick={access.refresh}>Retry access check</ActionButton></div> : !access.user ? <section className="board-panel"><h2 className="rdd-section-title">Your league, between nights.</h2><p>Sign in to read and join conversations. An organizer approves board access for league members.</p><ActionLink variant="primary" href={`/auth?next=${encodeURIComponent(destination)}`}>Sign in to the board</ActionLink></section> : access.member?.status !== 'approved' ? <section className="board-panel">
       <h2 className="rdd-section-title">{access.member?.status === 'pending' ? 'Your request is with the organizers.' : access.member?.status === 'revoked' ? 'Your board access is paused.' : 'Join the league conversation.'}</h2>

@@ -11,7 +11,7 @@ function VerifyEmailContent() {
   const email = searchParams.get('email');
 
   return (
-    <main className="page-shell account-page account-consistent">
+    <main className="rdd-page-shell page-shell account-page account-consistent">
       <PageHeader title="Check your email" eyebrow="Account confirmation" description="Follow the confirmation link to finish verifying your account." />
 
       <div className="rdd-content-panel account-message-panel">
@@ -37,7 +37,7 @@ function VerifyEmailContent() {
 
 export default function VerifyEmailPage() {
   return (
-    <Suspense fallback={<main className="page-shell account-page account-consistent"><PageHeader title="Check your email" eyebrow="Account confirmation" /><p className="rdd-state" role="status">Loading verification details…</p></main>}>
+    <Suspense fallback={<main className="rdd-page-shell page-shell account-page account-consistent"><PageHeader title="Check your email" eyebrow="Account confirmation" /><p className="rdd-state" role="status">Loading verification details…</p></main>}>
       <VerifyEmailContent />
     </Suspense>
   );

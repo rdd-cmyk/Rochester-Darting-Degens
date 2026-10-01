@@ -1,12 +1,7 @@
-/* P04 opt-in domain layout. Legacy night.css remains for unreviewed Planning.
-   Action/form skins come from shared globals and components. */
+/* Night domain layout. Outer frame and primitive skins belong to shared globals. */
 .night-shell--consistent {
-  max-width: var(--rdd-content-wide);
-  margin: 0 auto;
-  padding: var(--rdd-space-6);
   display: flex;
   flex-direction: column;
-  gap: var(--rdd-space-6);
   color: var(--stats-ink);
   background: transparent;
   min-width: 0;
@@ -24,9 +19,10 @@
   overflow-wrap: anywhere;
 }
 .night-shell--consistent h2 {
-  font-size: 1.3rem;
-  font-weight: 750;
-  letter-spacing: -0.025em;
+  font-size: var(--rdd-section-title-size);
+  font-weight: 800;
+  letter-spacing: var(--rdd-title-tracking);
+  line-height: 1.2;
 }
 .night-shell--consistent h3 {
   font-size: 1rem;
@@ -269,7 +265,7 @@
   min-width: 0;
 }
 .night-shell--consistent .night-sidebar h2 {
-  font-size: 1rem;
+  font-size: var(--rdd-action-font-size);
 }
 .night-shell--consistent .night-attendee-chips {
   display: flex;
@@ -493,9 +489,6 @@
   white-space: nowrap;
 }
 @media (max-width: 850px) {
-  .night-shell--consistent {
-    padding: 18px;
-  }
 .night-shell--consistent .night-main-grid {
     grid-template-columns: 1fr;
   }
@@ -510,10 +503,6 @@
   }
 }
 @media (max-width: 540px) {
-  .night-shell--consistent {
-    padding: 12px;
-    gap: var(--rdd-space-4);
-  }
 .night-shell--consistent .night-panel {
     padding: var(--rdd-panel-padding);
   }

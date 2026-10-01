@@ -42,7 +42,7 @@ export default function AuthPage() {
     finally { setBusy(false); }
   }
   return (
-    <main className="page-shell account-page account-consistent rdd-form-controls">
+    <main className="rdd-page-shell page-shell account-page account-consistent rdd-form-controls">
       <PageHeader title="Welcome back" eyebrow="League account" description="Sign in to your league account." />
       <form className="rdd-content-panel account-auth-form" onSubmit={signIn} aria-busy={busy}>
         <div className="form-row">

@@ -207,18 +207,16 @@ export function PlanningPage({ userId }: { userId: string }) {
     }
   };
   return (
-    <main className="planning-page rdd-form-controls">
-      <div className="plan-stack">
-        <ActionLink className="plan-link" href="/league-night">
-          ← League Night
-        </ActionLink>
-        <PageHeader size="standard" eyebrow="Plan & RSVP" title="Make the next night happen"
+    <main className="rdd-page-shell planning-page rdd-form-controls">
+        <PageHeader eyebrow="Plan & RSVP" title="Make the next night happen"
           description="Pick a night. Find a spot. Get the lineup ready."
-          actions={feed?.organizer ? <>
+          actions={<>
+            <ActionLink className="plan-link" href="/league-night">← League Night</ActionLink>
+            {feed?.organizer && <>
             <ActionButton disabled={Boolean(pending) || busy || !ready} onClick={() => setEditor({ kind: "poll" })}>Create poll</ActionButton>
             <ActionButton variant="primary" disabled={Boolean(pending) || busy || !ready} onClick={() => setEditor({ kind: "night" })}>Schedule a night</ActionButton>
-          </> : undefined} />
-      </div>
+            </>}
+          </>} />
       <div className="plan-head plan-toolbar">
         <p className="plan-muted">
           Rochester time ·{" "}
@@ -320,7 +318,7 @@ export function PlanningPage({ userId }: { userId: string }) {
           )}
         </fieldset>
         <section className="plan-stack" aria-label="Upcoming league nights">
-          <h2>On the calendar</h2>
+          <h2 className="rdd-section-title">On the calendar</h2>
           {feed?.nights.map((n) => (
             <NightCard
               key={n.night_id}
@@ -351,7 +349,7 @@ export function PlanningPage({ userId }: { userId: string }) {
           )}
         </section>
         <section className="plan-stack" aria-label="Planning polls">
-          <h2>Choose the next one</h2>
+          <h2 className="rdd-section-title">Choose the next one</h2>
           {feed?.polls.map((p) => (
             <PollCard
               key={p.id}

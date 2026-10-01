@@ -1,6 +1,6 @@
 # Page consistency and league voice plan
 
-Prepared: 2026-09-30. Status: **P01-P20 accepted; P21-P24 awaiting owner review**.
+Prepared: 2026-09-30. Status: **P01-P24 owner-accepted; final combined sweep pending**.
 Baseline: `release/next` at `351a4b0253f2c7f05d7a70708597d1c847977c65`.
 
 Before this plan was written, the release position was saved in the
@@ -125,10 +125,10 @@ early, then competition/community pages, then account and utility pages.
 | P18 | Verify Email `/auth/verify-email` — matching `page.tsx` | Shared compact account header/message/actions; clear next-step copy. | Actual supported confirmation path, email-present/absent states, safe display of address and existing sign-in destination; do not imply this replaces invite verification. | Accepted |
 | P19 | Reset Password `/reset-password` — matching `page.tsx` | Consistent account fields/status/action layout; especially clear expired and success messages. | Recovery-session/hash handoff, pending/update failure, validation, no false no-active-reset flash, confirmed success and Continue to Matches. | Accepted |
 | P20 | Change Log `/change-log` — matching `page.tsx` | Shared title, update cards/date metadata, pagination and state wording; release-note voice. | Main-only merged PR feed, links, dates, paging, auth/member gate, loading/empty/upstream failure distinctions. | Accepted |
-| P21 | Release Readiness `/release-readiness` — matching `page.tsx` | Shared compact utility shell, readable wrapped diagnostic output and precise scope statement. | Preview/release-branch restriction, sanitized output, connection-isolation meaning; never call it full release/DB acceptance. | Awaiting owner review |
-| P22 | Client Diagnostics `/test-supabase` — matching `page.tsx` | Consistent utility title/status and restrained factual wording. | Session-check scope, no false database-connectivity claim, fixture-only error trigger stays disabled on hosted preview. | Awaiting owner review |
-| P23 | Not Found — `app/not-found.tsx` | Shared compact missing-page experience and friendly useful exit. | Genuine 404/missing context, safe destination, keyboard focus and no suggestion that a failed request means a missing record. | Awaiting owner review |
-| P24 | Error Fallback — `app/error.tsx` | Shared failure presentation, readable message and existing retry action; plain recovery copy. | Framework reset/retry, safe boundary rendering, access to navigation, and no misleading save/undo assurance. | Awaiting owner review |
+| P21 | Release Readiness `/release-readiness` — matching `page.tsx` | Shared compact utility shell, readable wrapped diagnostic output and precise scope statement. | Preview/release-branch restriction, sanitized output, connection-isolation meaning; never call it full release/DB acceptance. | Accepted |
+| P22 | Client Diagnostics `/test-supabase` — matching `page.tsx` | Consistent utility title/status and restrained factual wording. | Session-check scope, no false database-connectivity claim, fixture-only error trigger stays disabled on hosted preview. | Accepted |
+| P23 | Not Found — `app/not-found.tsx` | Shared compact missing-page experience and friendly useful exit. | Genuine 404/missing context, safe destination, keyboard focus and no suggestion that a failed request means a missing record. | Accepted |
+| P24 | Error Fallback — `app/error.tsx` | Shared failure presentation, readable message and existing retry action; plain recovery copy. | Framework reset/retry, safe boundary rendering, access to navigation, and no misleading save/undo assurance. | Accepted |
 
 Per-package source listings are entry points: inspect rendered shared children,
 dialogs and CSS before editing. Changes stay scoped to that page and its minimum
@@ -246,10 +246,33 @@ P10-P15 owner-accepted at `f4613de` on 2026-10-01. P16-P20 are authorized togeth
 
 P16-P20 owner-accepted at `f238849` on 2026-10-01. The owner authorized P21-P24 together in the same fashion: finish all four, then full checks and one preview publication, followed by one review stop. Historical batch exceptions above describe their authorization at that time. The final combined journey sweep remains a completion gate after this batch acceptance; W6/W7/W8 do not resume automatically. See [P21-P24 review record](release/p21-p24-consistency-2026-10-01.md).
 
-P21: baseline `f238849`; shared compact utility presentation, existing restrictions and recovery retained. Technical evidence and owner-review limits are in the batch record; awaiting owner acceptance.
+P21: baseline `f238849`; shared compact utility presentation, existing restrictions and recovery retained. Technical evidence and owner-review limits are in the batch record; owner accepted 2026-10-01 at `8b1ed75`; final-sweep limits retained.
 
-P22: baseline `f238849`; shared compact utility presentation, existing restrictions and recovery retained. Technical evidence and owner-review limits are in the batch record; awaiting owner acceptance.
+P22: baseline `f238849`; shared compact utility presentation, existing restrictions and recovery retained. Technical evidence and owner-review limits are in the batch record; owner accepted 2026-10-01 at `8b1ed75`; final-sweep limits retained.
 
-P23: baseline `f238849`; shared compact utility presentation, existing restrictions and recovery retained. Technical evidence and owner-review limits are in the batch record; awaiting owner acceptance.
+P23: baseline `f238849`; shared compact utility presentation, existing restrictions and recovery retained. Technical evidence and owner-review limits are in the batch record; owner accepted 2026-10-01 at `8b1ed75`; final-sweep limits retained.
 
-P24: baseline `f238849`; shared compact utility presentation, existing restrictions and recovery retained. Technical evidence and owner-review limits are in the batch record; awaiting owner acceptance.
+P24: baseline `f238849`; shared compact utility presentation, existing restrictions and recovery retained. Technical evidence and owner-review limits are in the batch record; owner accepted 2026-10-01 at `8b1ed75`; final-sweep limits retained.
+
+P21-P24 owner-accepted on 2026-10-01 at `8b1ed75ec33bbebc2b015894a39b7d3b0ce44a8a`. All 24 page packages are accepted. Next: final combined journey sweep and evidence reconciliation, followed by the checkpointed W6/W7 return gates. This acceptance does not close those gates or authorize production/DB changes.
+
+Final sweep update, 2026-10-01: the combined walkthrough and evidence review
+have been performed at that exact candidate. The
+[review record](release/final-consistency-review-2026-10-01.md) and
+[candidate addendum](release/post-consistency-candidate-2026-10-01.json) record
+the results and unchanged W5/W6 SQL inputs. The owner authorized the confirmed
+poster-dialog focus correction; it is now locally fixed and verified by native
+browser checks and all required application gates (582 tests). Its publication
+and new candidate identity remain separate from `8b1ed75`. Unconfirmed real multi-account
+journeys remain focused W6 acceptance. The final completion gate remains open
+until those findings are resolved or explicitly dispositioned. W7/W8 have not
+started from this review.
+
+Additional owner request, 2026-10-01: review the pages as one system and correct
+different header positions/heights, font sizes and page widths before returning
+to W packages. The [shared-frame correction](release/shared-page-frame-2026-10-01.md)
+supersedes earlier per-page size/width choices. Every route adopts one outer
+frame and PageHeader family, with common heading slots and a separate toolbar.
+The work preserves the accepted page content/features and earlier local focus
+fix. Its combined visual acceptance and publication are pending; old P01-P24
+acceptance remains the historical baseline. W6/W7/W8 remain at their checkpoint.

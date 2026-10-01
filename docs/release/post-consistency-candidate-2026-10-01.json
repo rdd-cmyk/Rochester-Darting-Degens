@@ -1,0 +1,176 @@
+{
+  "reviewedDate": "2026-10-01",
+  "branch": "release/next",
+  "appCommit": "8b1ed75ec33bbebc2b015894a39b7d3b0ce44a8a",
+  "previousCheckpoint": "351a4b0253f2c7f05d7a70708597d1c847977c65",
+  "status": "All pages owner-accepted; combined review performed; focus correction and affected human acceptance open",
+  "changedPaths": [
+    "app/auth/page.tsx",
+    "app/auth/verify-email/page.tsx",
+    "app/change-log/ChangeLogClient.tsx",
+    "app/change-log/page.tsx",
+    "app/error.tsx",
+    "app/globals.css",
+    "app/invites/page.tsx",
+    "app/join/page.tsx",
+    "app/league-night/night-consistency.css",
+    "app/league-night/page.tsx",
+    "app/league-night/plan/page.tsx",
+    "app/league-night/plan/planning.css",
+    "app/matches/page.tsx",
+    "app/not-found.tsx",
+    "app/page.tsx",
+    "app/profile/page.test.tsx",
+    "app/profile/page.tsx",
+    "app/profiles/[id]/page.test.tsx",
+    "app/profiles/[id]/page.tsx",
+    "app/profiles/layout.tsx",
+    "app/profiles/page.test.tsx",
+    "app/profiles/page.tsx",
+    "app/release-readiness/page.tsx",
+    "app/reset-password/page.tsx",
+    "app/solo/solo.css",
+    "app/stats/page.tsx",
+    "app/test-supabase/page.tsx",
+    "components/avatars/AvatarPicker.tsx",
+    "components/board/BoardComposer.tsx",
+    "components/board/BoardModeration.tsx",
+    "components/board/BoardPostCard.tsx",
+    "components/board/LeagueBoard.tsx",
+    "components/league-night/NightRecapPanel.tsx",
+    "components/planning/NextPlannedNight.tsx",
+    "components/planning/PlanningForms.tsx",
+    "components/planning/PlanningPage.tsx",
+    "components/rivalries/RivalryPoster.tsx",
+    "components/rivalries/RivalryRoom.tsx",
+    "components/rivalries/rivalries.css",
+    "components/solo/NightSoloActivity.tsx",
+    "components/solo/PracticePerformance.tsx",
+    "components/solo/ProfileSoloStats.tsx",
+    "components/solo/SoloPage.tsx",
+    "components/ui/ActionButton.tsx",
+    "components/ui/ActionLink.tsx",
+    "components/ui/PageHeader.tsx",
+    "docs/design-standards.md",
+    "docs/page-consistency-and-copy-plan.md",
+    "docs/release-next-readiness.md",
+    "docs/release/p01-home-consistency-2026-09-30.md",
+    "docs/release/p02-stats-consistency-2026-09-30.md",
+    "docs/release/p03-matches-consistency-2026-09-30.md",
+    "docs/release/p04-league-night-consistency-2026-09-30.md",
+    "docs/release/p05-planning-consistency-2026-09-30.md",
+    "docs/release/p06-players-consistency-2026-10-01.md",
+    "docs/release/p07-player-profile-consistency-2026-10-01.md",
+    "docs/release/p08-my-profile-consistency-2026-10-01.md",
+    "docs/release/p09-solo-consistency-2026-10-01.md",
+    "docs/release/p10-p15-consistency-2026-10-01.md",
+    "docs/release/p16-p20-consistency-2026-10-01.md",
+    "docs/release/p21-p24-consistency-2026-10-01.md",
+    "docs/release/pre-consistency-checkpoint-2026-09-30.md",
+    "docs/release/w6-operational-acceptance-2026-09-29.md",
+    "docs/sitewide-design-upgrade-plan.md"
+  ],
+  "protectedChanges": [],
+  "w5Inputs": [
+    {
+      "source": "supabase/tests/fixtures/advanced_statistics_foundation.sql",
+      "version": "20260929000001",
+      "sha256_lf": "b94636f673f8e9902f80aa96f78200b617623480aef081316c2b589d0e6aa4d0",
+      "matchesW5": true
+    },
+    {
+      "source": "supabase/pending/league_night.sql",
+      "version": "20260929000002",
+      "sha256_lf": "e94ba4bd37b11f76fc1486c4b4c498bee2feab84e303cbdbe2bd134e7790fc82",
+      "matchesW5": true
+    },
+    {
+      "source": "supabase/tests/fixtures/league_planning.sql",
+      "version": "20260929000003",
+      "sha256_lf": "66aa6d8b5b6877a06db7b9e83b9376bd3382011ecda04d52db88541651d9441f",
+      "matchesW5": true
+    },
+    {
+      "source": "supabase/tests/fixtures/league_board.sql",
+      "version": "20260929000004",
+      "sha256_lf": "73a86c6997bece0af6d9f874aa53ba6f787a104ce804f5e9cc35ab46727d0fc4",
+      "matchesW5": true
+    },
+    {
+      "source": "supabase/tests/fixtures/invite_only_registration.sql",
+      "version": "20260929000005",
+      "sha256_lf": "f812179eabd8245ecf0598298a3e9cea5233fe1ec917aef10ef31b179e360f25",
+      "matchesW5": true
+    },
+    {
+      "source": "supabase/tests/fixtures/invite_parent_admission.sql",
+      "version": "20260929000006",
+      "sha256_lf": "93923f653aeed189070c08e3375132c841620092bbcb121fbd074ceb01636794",
+      "matchesW5": true
+    },
+    {
+      "source": "supabase/tests/fixtures/game_modes.sql",
+      "version": "20260929000007",
+      "sha256_lf": "4dc9333cd92cd3061a88cda970e8d8c043617e7db4d781f9e4926953d79d0bea",
+      "matchesW5": true
+    },
+    {
+      "source": "supabase/tests/fixtures/advanced_statistics_final.sql",
+      "version": "20260929000008",
+      "sha256_lf": "47debada4f2cfa25bda32c1d63e8ce5ae1ac5db4bae88247f2784fdd1f3f6a23",
+      "matchesW5": true
+    },
+    {
+      "source": "supabase/tests/fixtures/solo_play.sql",
+      "version": "20260929000009",
+      "sha256_lf": "74ca8a4a0b1421c09e461cc0414798a53260ae543da8380d2c081df3ade82f10",
+      "matchesW5": true
+    },
+    {
+      "source": "supabase/tests/fixtures/rivalry_room.sql",
+      "version": "20260929000010",
+      "sha256_lf": "4640de1b46210adf05e7f2d99676666a85a07327b14dbc4b53db8b4641a34853",
+      "matchesW5": true
+    },
+    {
+      "source": "supabase/pending/league_night_enforce.sql",
+      "version": "20260929000011",
+      "sha256_lf": "b162ee8ecfafce0ff83d9fc242791b14c1ed7d45331bade935e2918e6c01ed81",
+      "matchesW5": true
+    }
+  ],
+  "w6SupplementInputs": [
+    {
+      "path": "supabase/tests/fixtures/w6_poll_privacy_solo_701.sql",
+      "matchesManifest": true,
+      "sha256_lf": "5a25ccd33d6732b08cae1cc48e9acbb2653400a592aad7ec901761fe7bf74fd9"
+    },
+    {
+      "path": "supabase/tests/fixtures/w6_poll_privacy_solo_701.test.sql",
+      "matchesManifest": true,
+      "sha256_lf": "f7231ab87671de50e3fd869d48b5805d76760bb37cb7e405361b19dc9bca28d2"
+    },
+    {
+      "path": "supabase/tests/fixtures/w6_solo_summary_default.sql",
+      "matchesManifest": true,
+      "sha256_lf": "31c01ed5f15779320db7ccde79b67b768743e1e12144566785381a4fc451e7fe"
+    },
+    {
+      "path": "supabase/tests/fixtures/w6_solo_summary_default.test.sql",
+      "matchesManifest": true,
+      "sha256_lf": "03de25083b777f2937e7555e04b8d4b0a339e4036155572e29071c46184691ed"
+    }
+  ],
+  "ci": {
+    "conclusion": "success",
+    "exactShaReverified": true,
+    "runId": "36875808556"
+  },
+  "preview": {
+    "status": "Ready",
+    "deploymentId": "6LmqWgafZuvYk97jLbRMAfBnGfhj",
+    "evidenceSource": "P21-P24 publication record; no new hosted browser pass in final sweep"
+  },
+  "productionAuthorized": false,
+  "databaseRehearsalPerformedInSweep": false
+}

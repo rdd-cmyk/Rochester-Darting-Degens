@@ -77,7 +77,7 @@ function MatchesHeader({ user }: { user?: User }) {
     title="Darts Matches"
     description={<>
       <span>Log the result. Follow the league’s latest games.</span>
-      {user && <span className="matches-account-line">Signed in as <strong>{user.email}</strong></span>}
+      {user && <span className="rdd-title-context">Signed in as <strong>{user.email}</strong></span>}
     </>}
     actions={user && <>
       <ActionLink href="/league-night">Open League Night</ActionLink>
@@ -88,8 +88,8 @@ function MatchesHeader({ user }: { user?: User }) {
 
 export default function MatchesPage() {
   const { user, loading } = useCurrentUser();
-  if (loading) return <main className="page-shell matches-page"><MatchesHeader /><p className="rdd-state" role="status">Loading matches…</p></main>;
-  if (!user) return <main className="page-shell matches-page"><MatchesHeader /><p className="rdd-state">You must be signed in to view and add matches.</p><ActionLink href="/auth" variant="primary">Go to sign in</ActionLink></main>;
+  if (loading) return <main className="rdd-page-shell page-shell matches-page"><MatchesHeader /><p className="rdd-state" role="status">Loading matches…</p></main>;
+  if (!user) return <main className="rdd-page-shell page-shell matches-page"><MatchesHeader /><p className="rdd-state">You must be signed in to view and add matches.</p><ActionLink href="/auth" variant="primary">Go to sign in</ActionLink></main>;
   return <MatchesWorkspace key={user.id} user={user} />;
 }
 
@@ -544,7 +544,7 @@ function MatchesWorkspace({ user }: { user: User }) {
 
   if (loading) {
     return (
-      <main className="page-shell matches-page">
+      <main className="rdd-page-shell page-shell matches-page">
         <MatchesHeader />
         <p className="rdd-state" role="status">Loading matches…</p>
       </main>
@@ -553,7 +553,7 @@ function MatchesWorkspace({ user }: { user: User }) {
 
   if (!user) {
     return (
-      <main className="page-shell matches-page">
+      <main className="rdd-page-shell page-shell matches-page">
         <MatchesHeader />
         <p className="rdd-state">You must be signed in to view and add matches.</p>
         <p>
@@ -564,7 +564,7 @@ function MatchesWorkspace({ user }: { user: User }) {
   }
 
   return (
-    <main className="page-shell matches-page">
+    <main className="rdd-page-shell page-shell matches-page">
       <MatchesHeader user={user} />
 
       {errorMessage && (
@@ -578,7 +578,7 @@ function MatchesWorkspace({ user }: { user: User }) {
         setOtherRecoveries(Math.max(0,waiting.length-1));
         if(waiting[0]) restoreSave(waiting[0]);
       }}>Review next pending save</ActionButton></p>}
-      {savedEntries.length>0 && <section><h2>Saved unsent entries</h2><p>Rejected or released entries stay on this device for 24 hours. Restoring replaces the visible form only after confirmation.</p>{savedEntries.map(entry=><p key={entry.operationId}>
+      {savedEntries.length>0 && <section><h2 className="rdd-section-title">Saved unsent entries</h2><p>Rejected or released entries stay on this device for 24 hours. Restoring replaces the visible form only after confirmation.</p>{savedEntries.map(entry=><p key={entry.operationId}>
         {entry.payload.game_type || 'Unknown format'} · {new Date(entry.payload.played_at).toLocaleString()} · {entry.payload.players.length} players{' '}
         <ActionButton type="button" disabled={saving || Boolean(pendingSave) || otherRecoveries>0 || recoveredEntryId===entry.operationId} onClick={()=>{if(window.confirm('Replace the visible form with this saved entry?')) restoreSave(entry);}}>Restore saved entry</ActionButton>{' '}
         <ActionButton type="button" disabled={saving || Boolean(pendingSave)} onClick={()=>{if(window.confirm('Discard this saved unsent entry? This does not delete any match.')){localStorage.removeItem(pendingSaveKey(matchRecoveryKey(user.id),entry.operationId));setSavedEntries(readSavedEntries(localStorage,matchRecoveryKey(user.id)));if(recoveredEntryId===entry.operationId)setRecoveredEntryId(null);}}}>Discard saved entry</ActionButton>

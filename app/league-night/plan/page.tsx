@@ -7,14 +7,14 @@ import "./planning.css";
 export default function PlanPage() {
   const { user, loading } = useCurrentUser();
   if (loading) return (
-    <main className="planning-page">
-      <PageHeader size="standard" eyebrow="Plan & RSVP"
+    <main className="rdd-page-shell planning-page">
+      <PageHeader eyebrow="Plan & RSVP"
         title="Make the next night happen" description="Opening the next-night lineup…" />
     </main>
   );
   if (!user) return (
-    <main className="planning-page">
-      <PageHeader size="standard" eyebrow="Plan & RSVP" title="Make the next night happen"
+    <main className="rdd-page-shell planning-page">
+      <PageHeader eyebrow="Plan & RSVP" title="Make the next night happen"
         description="Sign in to vote on the next league night and let everyone know you’re coming."
         actions={<ActionLink variant="primary" href="/auth">Sign in</ActionLink>} />
     </main>

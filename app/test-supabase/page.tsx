@@ -35,7 +35,7 @@ export default function TestSupabasePage() {
   if (previewError) throw new Error('Synthetic local preview render failure.');
 
   return (
-    <main className="page-shell utility-consistent">
+    <main className="rdd-page-shell page-shell utility-consistent">
       <PageHeader eyebrow="Diagnostics" title="Client session check"
         description="Inspect the session available to this browser. This does not test the database connection." />
       <p className="rdd-state" role="status">{status}</p>

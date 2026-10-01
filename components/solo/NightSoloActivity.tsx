@@ -42,7 +42,7 @@ export function NightSoloActivity({
   return (
     <section className="night-panel solo-night-activity">
       <div className="night-section-heading">
-        <h2>Solo at the venue</h2>
+        <h2 className="rdd-section-title">Solo at the venue</h2>
         <ActionLink href="/solo">Log a solo game</ActionLink>
       </div>
       <p className="night-small">

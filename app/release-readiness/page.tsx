@@ -14,7 +14,7 @@ export default async function ReleaseReadinessPage() {
   // may refuse direct navigation to non-HTML API responses.
   const response = await GET();
   const result = await response.json();
-  return <main className="page-shell utility-consistent">
+  return <main className="rdd-page-shell page-shell utility-consistent">
     <PageHeader eyebrow="Release diagnostics" title="Preview isolation check"
       description="Check which environment this release preview connects to." />
     <p className="rdd-state" role="status">{response.ok ? 'Client and server credentials verified on RDD Release Testing.' :

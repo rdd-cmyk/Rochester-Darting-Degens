@@ -63,7 +63,7 @@ export default function JoinPage() {
       else setUncertain(true);
     } finally { setBusy(false); }
   }
-  return <main className="page-shell invite-shell account-consistent join-consistent rdd-form-controls">
+  return <main className="rdd-page-shell page-shell invite-shell account-consistent join-consistent rdd-form-controls">
     <PageHeader title={accepted ? "You’re in. See you at the oche" : "You’re invited to the league"} eyebrow="Rochester Darting Degens" />
     {checking && <p role="status">Checking your invitation…</p>}
     {message && <p role="status" className="invite-panel">{message}</p>}

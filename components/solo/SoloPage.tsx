@@ -89,9 +89,8 @@ const fresh = (): Draft => ({
 export default function SoloPage() {
   const { user, loading } = useCurrentUser();
   return (
-    <main className="solo-shell rdd-form-controls">
+    <main className="rdd-page-shell solo-shell rdd-form-controls">
       <PageHeader
-        size="feature"
         title="Solo Play"
         eyebrow="The game between game nights"
         description="Your board. Your pace. Log your games, find your rhythm, and make the next game a little better."

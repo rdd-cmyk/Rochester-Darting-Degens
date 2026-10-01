@@ -1,7 +1,7 @@
-.planning-page { width: 100%; max-width: var(--rdd-content-wide); margin: 0 auto; padding: var(--rdd-shell-padding); display: grid; gap: var(--rdd-space-6); min-width: 0; color: var(--rdd-text); line-height: 1.5; overflow-wrap: anywhere; }
+.planning-page { display: grid; min-width: 0; color: var(--rdd-text); line-height: 1.5; overflow-wrap: anywhere; }
 .planning-page * { box-sizing: border-box; }
 .planning-page :is(h2, h3, p) { margin: 0; }
-.planning-page h2 { font-size: 1.3rem; letter-spacing: -.025em; }
+.planning-page h2 { font-size: var(--rdd-section-title-size); letter-spacing: var(--rdd-title-tracking); font-weight: 800; line-height: 1.2; }
 .planning-page h3 { font-size: 1.1rem; }
 .planning-page label { display: grid; gap: var(--rdd-space-2); font-weight: 600; }
 .planning-page .night-check { display: flex; align-items: center; min-height: var(--rdd-control-min-height); gap: var(--rdd-space-3); }

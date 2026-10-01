@@ -112,7 +112,7 @@ Use tabular numerals for comparable values. Use the mono role for numeric tables
 
 Observed `/stats` baseline:
 
-- Outer shell: width 100%, maximum 1240px, centered, padding `clamp(1rem, 3vw, 2.5rem)`.
+- Outer shell: every page uses `.rdd-page-shell`, width 100%, maximum 1240px, centered, padding `clamp(1rem, 3vw, 2.5rem)`. Outer width, padding, centering and section gap belong to the shared rule; domain stylesheets must not redefine them.
 - Main section gap: 2rem; 1.35rem at widths up to 640px.
 - Hero: padding `clamp(1.5rem, 4vw, 3.5rem)`, radius 1.25rem, desktop minimum height 260px; no minimum height on mobile.
 - Panels: 1px themed border, radius 1rem, restrained `0 12px 32px rgba(8,38,77,.07)` shadow.
@@ -123,7 +123,12 @@ Observed `/stats` baseline:
 
 Use those values as the base family. Prefer a small shared spacing scale (0.25, 0.5, 0.75, 1, 1.25, 1.5, 2, 3rem) plus the reference's fluid expressions and documented component-specific values. Do not mechanically replace the reference's distinct values merely to enforce a scale.
 
-The site-wide shell supports a wide data layout up to 1240px, a readable form layout around 760–900px, and compact account content around 740px or narrower when the task calls for it, each capped at 100% available width. Use the implemented `.page-shell`, `.rdd-page-header`, `.rdd-panel`, `.rdd-action`, `.rdd-field`, `.rdd-state`, and scroll-region patterns before introducing another one-off surface. Keep form content aligned and avoid stretching short inputs across a full dashboard.
+All routes share the same outer 1240px frame. Readable account forms can use the
+740px account role **inside** that frame, aligned to its content edge; they must
+not narrow or recenter the page heading. Domain grids/cards retain their useful
+layouts. Use `PageHeader`, `ActionButton`/`ActionLink`, shared panel/form/filter
+roles and scroll regions before introducing another surface. Reserve scrollbar
+space globally so short/long pages do not shift sideways.
 
 Use solid panels as the default. Reserve navy blocks and subtle dartboard-ring decoration for identity or explanation. Decorative elements must not obscure content, intercept interaction, or convey necessary information. Keep the existing RDD logo and recognizable identity.
 
@@ -253,7 +258,11 @@ The project proposes a 3px solid focus outline with 3px offset. This is a local 
 Use three layers: **palette → semantic role → component variant**. A palette color says what it is; a semantic role says where it is safe; a variant combines roles with geometry and interaction. Pages choose a variant, never a new shade or local button radius. Variables alone cannot stop drift if each route assembles its own button.
 
 - Keep the existing `--rdd-*` palette and `--stats-*` compatibility aliases during a later migration. Do not rename every token at once. Existing contrast tests parse some explicit `--stats-*` literals; alias changes need corresponding test updates.
-- Introduce the following proposed roles centrally in `app/globals.css`, only in a separately authorized implementation. The names below **do not exist yet**. A single shared action component and page-header component should own their markup/variants; route CSS owns domain layout, not their colors or dimensions.
+- The following table began as a role proposal. Adopted roles now live in
+  `app/globals.css`; the current contracts and adoption records below identify
+  their consumers. Remaining proposals still need scoped implementation. Shared
+  action/header components own markup and skins; route CSS owns domain layout,
+  not page-frame or title geometry. CSS definitions are the executable authority.
 - Put literals in token definitions, not TSX, Tailwind arbitrary colors, route styles, or inline presentation styles. Dynamic chart coordinates and per-player avatar geometry remain legitimate dynamic values.
 - A token change is a system change: review every consuming variant in both themes and on both panel and hero surfaces. Hover, active, selected and focus combinations need their own checks. Composite alpha layers over their actual background; never test only the uncomposited hex.
 
@@ -327,6 +336,26 @@ Forms use the same control radius and 44px floor, 1rem input text, visible label
 
 This is the title area immediately below the site navigation. The global navbar is a different component.
 
+**Current implementation contract, 2026-10-01:** the owner requested one
+consistent frame and title rhythm across pages after P01-P24. `PageHeader` now
+has one size family; compact/standard/feature route variants are removed. All
+titles use `--rdd-page-title-size` (`clamp(1.75rem, 3vw, 2.5rem)`), line-height
+`--rdd-page-title-line-height` (`1.14`), weight 800 and the orange period. Its
+eyebrow/title/description slots have shared minimum dimensions, including when
+copy is absent in loading/access states. Description text uses 1rem/1.6 and a
+68ch reading measure. At 640px and below, reserve two title lines, two eyebrow
+lines and four description lines. Long names/copy grow without clipping.
+
+Actions occupy a separate shared toolbar below the title area; wrapping controls
+must not change the heading's geometry. Every route uses the same shell padding
+and section gap. Back actions belong in that toolbar, not above the heading.
+Identity artwork may use the named slot: Home's redundant logo is hidden on
+phones; player identity remains visible and long names can wrap beside it.
+Posters/showcase artwork and dense sidebar labels remain domain treatments;
+ordinary section headings consume the shared section-title role. The candidate
+is locally verified; owner appearance acceptance and publication remain separate.
+See [shared-frame evidence](release/shared-page-frame-2026-10-01.md).
+
 **Structure to standardize:** optional back link/breadcrumb above the header; optional short eyebrow; one `h1`; brief description; optional context/status; optional primary and secondary actions. Context is not another hero or an arbitrary metric grid. Use the same component in populated, loading, empty, signed-out and error states so identity and spacing do not jump.
 
 **Owner-selected appearance (2026-09-30): D — Plain heading**, based on The Rivalry Room. Include its contrasting **orange period at the end of the page title**, coordinated with the orange eyebrow above it. This is the default family for page-title areas below the navbar, including future compact, standard and feature sizes. Selecting this appearance does not authorize implementation or approve the other proposed dimensions.
@@ -346,9 +375,10 @@ The [comparison preview](mockups/style-guide-preview.html) remains the original 
 | C — Solo hero | Solo Play | Large title, ring and contextual tags; expressive but its own spacing/type system |
 | **D — Plain heading (selected)** | Rivalry Room / League Board; related approach in Planning | Content arrives sooner. Include Rivalry Room's orange terminal period; its showcase remains a separate domain panel below it. |
 
-Proposed implementation structure: one header component with **compact, standard and feature** sizes, all sharing the selected plain-heading family and orange period. A route's size may differ for a concrete task reason; its accent role and action styling should not drift. Size variants do not reintroduce the unselected hero backgrounds or rings.
+Historical proposal: one header component with compact, standard and feature
+sizes. The October 1 current contract above supersedes those route variants.
 
-Proposed dimensions after selection:
+Historical size proposal after selection (superseded; do not use for new pages):
 
 | Size | Title / line-height / tracking | Padding | Intended use |
 | --- | --- | --- | --- |
@@ -360,7 +390,7 @@ These normalize current geometry; they are not today's CSS and remain proposed. 
 
 Proposed shared spacing: `.5rem` text-stack gap, 1rem action-area gap and 1.5rem space before the next content section. Plain headings have no enclosing rounded panel; the panel-radius token remains for actual content panels. At 640px and below, actions move below copy and wrap/stack; titles and the terminal period never clip. Feature headers have no mobile minimum height. Use wrapping/min-width rules instead of truncating names. Preserve back destinations and signed-out access explanations.
 
-Proposed route mapping, subject to owner review:
+Historical proposed route mapping (superseded by the common frame/title family):
 
 | Route group | Proposed size | Domain content to retain |
 | --- | --- | --- |
@@ -375,6 +405,15 @@ Proposed route mapping, subject to owner review:
 **Decision record — 2026-09-30:** the owner selected D, Plain heading, and requested the orange period used by The Rivalry Room, visually coordinated with its orange eyebrow. This supersedes the earlier open appearance decision. Remaining proposals include final size/spacing values, route size assignments and exact semantic accent values. This decision changes the guide only; site adoption remains separately authorized work.
 
 ## 15. Keeping the guide in use
+
+October 1 shared-frame correction: every PageHeader consumer, including loading,
+access, utility and fallback render states, now adopts `.rdd-page-shell`. Five
+active stylesheets no longer own outer shell geometry. Shared typography and
+spacing rules protect the header from broad route paragraph selectors; Planning,
+League Night, Stats and player sections also use common section-heading roles.
+`components/ui/page-frame.test.ts` guards cross-consumer adoption, the absence
+of title-size variants and central ownership of outer geometry. This supersedes
+the earlier page-specific width/size decisions below; those remain history.
 
 P01 accepted, 2026-09-30: Home uses the opt-in `PageHeader` and `ActionLink` family and central geometry/action roles. The owner accepted the appearance and requested a shorter introduction, now applied.
 
@@ -473,4 +512,4 @@ See the [batch review record](release/p10-p15-consistency-2026-10-01.md).
 
 P16-P20 accepted 2026-10-01 at `f238849`: account tasks adopt compact PageHeader, shared actions/panels/fields and the existing account-width role. Change Log adopts the standard heading, wide shell, panel and section-title roles. Layout rules are scoped to opting-in consumers; no token values, API or recovery/admission handlers change. Verify Email copy distinguishes confirmation links from invitation codes. See the [batch record](release/p16-p20-consistency-2026-10-01.md).
 
-P21-P24 candidate: the two diagnostic pages and both fallbacks adopt compact PageHeader, shared actions and a scoped `.utility-consistent` shell using the existing account width, shell padding, spacing and panel roles. Sanitized diagnostic output wraps within the panel. No token value or shared component changes. Utility language remains factual; only the missing-page title keeps a light league metaphor. Existing preview restrictions, session-only check, local-only error trigger and framework reset are preserved. See [batch record](release/p21-p24-consistency-2026-10-01.md).
+P21-P24 accepted 2026-10-01 at `8b1ed75`: the two diagnostic pages and both fallbacks adopt compact PageHeader, shared actions and a scoped `.utility-consistent` shell using the existing account width, shell padding, spacing and panel roles. Sanitized diagnostic output wraps within the panel. No token value or shared component changes. Utility language remains factual; only the missing-page title keeps a light league metaphor. Existing preview restrictions, session-only check, local-only error trigger and framework reset are preserved. See [batch record](release/p21-p24-consistency-2026-10-01.md).

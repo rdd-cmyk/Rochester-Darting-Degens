@@ -205,7 +205,7 @@ export default function ProfilePage() {
 
   if (loadingUser || loadingProfile) {
     return (
-      <main className="page-shell account-profile-page">
+      <main className="rdd-page-shell page-shell account-profile-page">
         <PageHeader eyebrow="Your league identity" title="My Profile" />
         <p className="rdd-state" role="status">Loading your profile…</p>
       </main>
@@ -214,7 +214,7 @@ export default function ProfilePage() {
 
   if (loadError) {
     return (
-      <main className="page-shell account-profile-page">
+      <main className="rdd-page-shell page-shell account-profile-page">
         <PageHeader eyebrow="Your league identity" title="My Profile" />
         <div className="rdd-state rdd-state--error" role="alert">{loadError}</div>
         <div><ActionButton onClick={() => setLoadAttempt((attempt) => attempt + 1)}>Retry</ActionButton></div>
@@ -224,7 +224,7 @@ export default function ProfilePage() {
 
   if (!user) {
     return (
-      <main className="page-shell account-profile-page">
+      <main className="rdd-page-shell page-shell account-profile-page">
         <PageHeader eyebrow="Your league identity" title="My Profile" />
         <p className="rdd-state">Sign in to view or edit your profile.</p>
         <p>
@@ -237,7 +237,7 @@ export default function ProfilePage() {
   }
 
   return (
-    <main className="page-shell account-profile-page">
+    <main className="rdd-page-shell page-shell account-profile-page">
       <PageHeader
         eyebrow="Your league identity"
         title="My Profile"

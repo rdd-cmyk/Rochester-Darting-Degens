@@ -122,12 +122,12 @@ export default function ChangeLogClient() {
   const showPagination = hasPreviousPage || hasNextPage;
 
   const heading = (
-    <PageHeader title="Change Log" size="standard" eyebrow="Site updates" description="The latest updates merged into main. See what’s new around the league." />
+    <PageHeader title="Change Log" eyebrow="Site updates" description="The latest updates merged into main. See what’s new around the league." />
   );
 
   if (loading) {
     return (
-      <main className="page-shell change-log-page change-log-consistent" aria-label="Change log">
+      <main className="rdd-page-shell page-shell change-log-page change-log-consistent" aria-label="Change log">
         {heading}
         <div className="rdd-state" role="status">
           {LOADING_MESSAGE}
@@ -138,7 +138,7 @@ export default function ChangeLogClient() {
 
   if (authRequired) {
     return (
-      <main className="page-shell change-log-page change-log-consistent" aria-label="Change log">
+      <main className="rdd-page-shell page-shell change-log-page change-log-consistent" aria-label="Change log">
         {heading}
         <div className="rdd-state">
           Please sign in to view the change log.{" "}
@@ -153,7 +153,7 @@ export default function ChangeLogClient() {
 
   if (errorMessage) {
     return (
-      <main className="page-shell change-log-page change-log-consistent" aria-label="Change log">
+      <main className="rdd-page-shell page-shell change-log-page change-log-consistent" aria-label="Change log">
         {heading}
         <div className="rdd-state rdd-state--error" role="alert">
           {errorMessage.startsWith('Missing GitHub configuration')
@@ -196,7 +196,7 @@ export default function ChangeLogClient() {
     );
 
   return (
-    <main className="page-shell change-log-page change-log-consistent" aria-label="Change log">
+    <main className="rdd-page-shell page-shell change-log-page change-log-consistent" aria-label="Change log">
       {heading}
       {content}
 

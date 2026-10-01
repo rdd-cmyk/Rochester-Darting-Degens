@@ -42,14 +42,14 @@ export function RivalryRoom({
   const { user, loading } = useCurrentUser();
   if (loading)
     return (
-      <main className="rr-shell rr-consistent rdd-form-controls">
-        <PageHeader title={challengeId ? "The challenge" : pair ? "Head to head" : "The Rivalry Room"} size={challengeId || pair ? "standard" : "feature"} eyebrow="Rochester Darting Degens" /><p role="status">Opening the Rivalry Room…</p>
+      <main className="rdd-page-shell rr-shell rr-consistent rdd-form-controls">
+        <PageHeader title={challengeId ? "The challenge" : pair ? "Head to head" : "The Rivalry Room"} eyebrow="Rochester Darting Degens" /><p role="status">Opening the Rivalry Room…</p>
       </main>
     );
   if (!user)
     return (
-      <main className="rr-shell rr-consistent rdd-form-controls">
-        <PageHeader title={challengeId ? "The challenge" : pair ? "Head to head" : "The Rivalry Room"} size={challengeId || pair ? "standard" : "feature"} eyebrow="Rochester Darting Degens" description="Find your rival. Set the stakes. Write the next chapter." />
+      <main className="rdd-page-shell rr-shell rr-consistent rdd-form-controls">
+        <PageHeader title={challengeId ? "The challenge" : pair ? "Head to head" : "The Rivalry Room"} eyebrow="Rochester Darting Degens" description="Find your rival. Set the stakes. Write the next chapter." />
         <ActionLink variant="primary"
           href={`/auth?next=${encodeURIComponent(challengeId ? `/rivalries/challenges/${challengeId}` : pair ? `/rivalries/pair/${pair[0]}/${pair[1]}` : "/rivalries")}`}
         >
@@ -176,7 +176,15 @@ function Room({
     };
   }, [refresh]);
   useEffect(() => {
-    if (modal) dialog.current?.showModal();
+    const element = dialog.current;
+    if (!modal || !element) return;
+    const opener = document.activeElement;
+    element.showModal();
+    return () => {
+      // The conditional dialog is removed on dismissal; restore focus explicitly.
+      element.close();
+      if (opener instanceof HTMLElement && opener.isConnected) opener.focus();
+    };
   }, [modal]);
   useEffect(() => {
     const change = () => setTv(!!document.fullscreenElement);
@@ -254,8 +262,8 @@ function Room({
   }
   if (!data)
     return (
-      <main className="rr-shell rr-consistent rdd-form-controls">
-        <PageHeader title={challengeId ? "The challenge" : pair ? "Head to head" : "The Rivalry Room"} size={challengeId || pair ? "standard" : "feature"} eyebrow="Rochester Darting Degens" />
+      <main className="rdd-page-shell rr-shell rr-consistent rdd-form-controls">
+        <PageHeader title={challengeId ? "The challenge" : pair ? "Head to head" : "The Rivalry Room"} eyebrow="Rochester Darting Degens" />
         <p>{error || "Finding your next chapter…"}</p>
         {error && (
           <ActionButton disabled={refreshing} onClick={() => void refresh()}>
@@ -266,16 +274,15 @@ function Room({
     );
   if (challengeId && !selectedChallenge)
     return (
-      <main className="rr-shell rr-consistent rdd-form-controls">
-        <PageHeader title="Challenge unavailable" size="standard" eyebrow="The Rivalry Room" />
+      <main className="rdd-page-shell rr-shell rr-consistent rdd-form-controls">
+        <PageHeader title="Challenge unavailable" eyebrow="The Rivalry Room" />
         <p>This challenge is no longer available to your league.</p>
         <Link href="/rivalries">Back to the Rivalry Room</Link>
       </main>
     );
   return (
-    <main className="rr-shell rr-consistent rdd-form-controls">
-      <PageHeader title={challengeId ? "The challenge" : pair ? "Head to head" : "The Rivalry Room"}
-        size={challengeId || pair ? "standard" : "feature"} eyebrow="Rochester Darting Degens"
+    <main className="rdd-page-shell rr-shell rr-consistent rdd-form-controls">
+      <PageHeader title={challengeId ? "The challenge" : pair ? "Head to head" : "The Rivalry Room"} eyebrow="Rochester Darting Degens"
         description={challengeId ? "Set the stakes. Follow the series. Write the next chapter." : pair ? "The tale of the tape. Every game leaves a mark." : "Your history. Your rivals. Your next chapter."}
         actions={<>{(pair || challengeId) && <ActionLink variant="quiet" href="/rivalries">Back to the Rivalry Room</ActionLink>}
           <ActionLink variant="quiet" href="/profile">Choose your avatar ↗</ActionLink>

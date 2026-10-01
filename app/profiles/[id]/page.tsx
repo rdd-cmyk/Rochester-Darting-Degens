@@ -570,8 +570,8 @@ export default function ProfilePage() {
 
   if (loading) {
     return (
-      <main className="page-shell player-page">
-        <PageHeader eyebrow="Player profile" title="Player profile" size="standard" />
+      <main className="rdd-page-shell page-shell player-page">
+        <PageHeader eyebrow="Player profile" title="Player profile" />
         <p className="rdd-state" role="status">Loading profile…</p>
       </main>
     );
@@ -579,8 +579,8 @@ export default function ProfilePage() {
 
   if (signInRequired) {
     return (
-      <main className="page-shell player-page">
-        <PageHeader eyebrow="Player profile" title="Player profile" size="standard" />
+      <main className="rdd-page-shell page-shell player-page">
+        <PageHeader eyebrow="Player profile" title="Player profile" />
         <p className="rdd-state">Sign in to view player profiles.</p>
         <ActionLink href="/auth" variant="primary">Go to sign in</ActionLink>
       </main>
@@ -589,8 +589,8 @@ export default function ProfilePage() {
 
   if (errorMessage || profileMissing || !profile) {
     return (
-      <main className="page-shell player-page">
-        <PageHeader eyebrow="Player profile" title={profileMissing ? 'Player not found' : 'Player profile'} size="standard" />
+      <main className="rdd-page-shell page-shell player-page">
+        <PageHeader eyebrow="Player profile" title={profileMissing ? 'Player not found' : 'Player profile'} />
         <p className={profileMissing ? 'rdd-state' : 'rdd-state rdd-state--error'} role={profileMissing ? 'status' : 'alert'}>
           {profileMissing ? 'No player profile exists at this link.' : errorMessage || 'Could not load profile.'}
         </p>
@@ -620,12 +620,11 @@ export default function ProfilePage() {
       : filteredAllMatches;
 
   return (
-    <main className="page-shell player-page">
+    <main className="rdd-page-shell page-shell player-page">
       <PageHeader
         eyebrow="Player profile"
         title={title}
         description="The record, the recent form, and the next rival to watch."
-        size="standard"
         identity={<span aria-hidden="true"><PlayerAvatar playerId={profile.id} name={title} size={80} /></span>}
         actions={<><ActionLink href="/profiles">Browse players</ActionLink><ActionLink href="/matches" variant="quiet">Back to matches</ActionLink></>}
       />

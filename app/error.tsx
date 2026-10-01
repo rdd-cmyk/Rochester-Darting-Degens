@@ -11,7 +11,7 @@ export default function ErrorPage({ error, reset }: { error: Error & { digest?: 
   }, [error]);
 
   return (
-    <main className="page-shell utility-consistent">
+    <main className="rdd-page-shell page-shell utility-consistent">
       <PageHeader eyebrow="Something went wrong" title="We could not load this page"
         description="Try again, or return to the standings." />
       <div className="rdd-actions">

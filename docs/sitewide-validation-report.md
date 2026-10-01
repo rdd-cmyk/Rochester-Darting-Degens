@@ -1,6 +1,19 @@
 # Site-wide design validation report
 
-Status: in progress, updated 2026-09-29. This report is a checkpoint, not acceptance sign-off.
+Current combined-release review, 2026-10-01: all P01-P24 pages are owner-accepted
+at `8b1ed75`. The [final consistency review](release/final-consistency-review-2026-10-01.md)
+records the combined walkthrough, unchanged SQL hashes, exact-candidate checks,
+the locally verified dialog focus-return correction and remaining publication,
+human and release gates.
+That review supersedes the standalone branch status below. Earlier dated
+results remain historical evidence, not current release sign-off.
+
+The subsequent owner-requested [shared-frame audit/correction](release/shared-page-frame-2026-10-01.md)
+records the current working-tree layout, cross-page measurements and source
+guards. It supersedes earlier page-specific geometry. The published candidate
+above predates these local changes; no new hosted or production result is implied.
+
+Historical checkpoint status: in progress, updated 2026-09-29. This report is a checkpoint, not acceptance sign-off.
 
 Combined release update: PR #75 at `804b74f` has been integrated locally into
 `release/next`, preserving its newer admission, recovery and game behavior.

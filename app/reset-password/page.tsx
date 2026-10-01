@@ -141,7 +141,7 @@ export default function ResetPasswordPage() {
 
   if (checkingTokens) {
     return (
-      <main className="page-shell account-page account-consistent rdd-form-controls">
+      <main className="rdd-page-shell page-shell account-page account-consistent rdd-form-controls">
         <PageHeader title="Reset your password" eyebrow="Account recovery" />
         <p className="rdd-state" role="status">Checking reset session…</p>
       </main>
@@ -149,7 +149,7 @@ export default function ResetPasswordPage() {
   }
 
   return (
-    <main className="page-shell account-page account-consistent rdd-form-controls">
+    <main className="rdd-page-shell page-shell account-page account-consistent rdd-form-controls">
       <PageHeader title="Reset your password" eyebrow="Account recovery" />
 
       <p className="rdd-muted">

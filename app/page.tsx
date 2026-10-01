@@ -966,9 +966,8 @@ export default function Home() {
 
   return (
     <main
-      className="page-shell home-page"
+      className="rdd-page-shell page-shell home-page"
     >
-      {authErrorMessage && <p className="rdd-state rdd-state--error" role="alert">{authErrorMessage}</p>}
 
       <PageHeader
         eyebrow="Rochester Darting Degens"
@@ -992,6 +991,8 @@ export default function Home() {
           />
         }
       />
+
+      {authErrorMessage && <p className="rdd-state rdd-state--error" role="alert">{authErrorMessage}</p>}
 
       {/* Overall W/L Leaderboard */}
       <section className="home-leaderboard" aria-labelledby="overall-leaderboard-title">

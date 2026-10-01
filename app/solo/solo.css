@@ -1,13 +1,6 @@
-/* Reserve the page scrollbar space across short and long Solo tabs. */
-html:has(.solo-shell) { scrollbar-gutter: stable; }
-
 /* Solo owns layout; shared primitives own headers, actions, panels and fields. */
 .solo-shell {
-  max-width: var(--rdd-content-wide);
-  margin: auto;
-  padding: var(--rdd-shell-padding);
   display: grid;
-  gap: var(--rdd-space-6);
   color: var(--rdd-text);
   font-variant-numeric: tabular-nums;
   min-width: 0;

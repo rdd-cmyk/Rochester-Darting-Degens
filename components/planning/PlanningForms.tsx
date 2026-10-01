@@ -68,7 +68,7 @@ export function PollForm({
   return (
     <section className="rdd-content-panel plan-stack" aria-label="Poll editor">
       <div className="plan-head">
-        <h2>
+        <h2 className="rdd-section-title">
           {duplicate
             ? "Copy into a new poll"
             : poll
@@ -308,7 +308,7 @@ export function ScheduleForm({
   return (
     <section className="rdd-content-panel plan-stack" aria-label="Night editor">
       <div className="plan-head">
-        <h2>{night ? "Edit scheduled night" : "Put it on the calendar"}</h2>
+        <h2 className="rdd-section-title">{night ? "Edit scheduled night" : "Put it on the calendar"}</h2>
         <ActionButton onClick={onClose}>Cancel</ActionButton>
       </div>
       <form

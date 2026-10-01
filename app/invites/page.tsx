@@ -76,8 +76,8 @@ export default function InvitesPage() {
     finally { if (principalGeneration.current === principal) setBusy(false); }
   }
   function send(event: FormEvent) { event.preventDefault(); void mutate({ action: 'create', email }); }
-  return <main className="page-shell invite-shell invite-consistent rdd-form-controls">
-    <PageHeader title="League invitations" size="standard" eyebrow="Bring someone to the oche" description="Invite a friend. Keep track of who’s joining your next league night." actions={<ActionButton onClick={() => void refresh()} disabled={loading || busy}>Refresh</ActionButton>} />
+  return <main className="rdd-page-shell page-shell invite-shell invite-consistent rdd-form-controls">
+    <PageHeader title="League invitations" eyebrow="Bring someone to the oche" description="Invite a friend. Keep track of who’s joining your next league night." actions={<ActionButton onClick={() => void refresh()} disabled={loading || busy}>Refresh</ActionButton>} />
     <form className="invite-panel invite-send" onSubmit={send}>
       <div><label htmlFor="invite-email">Their email address</label><input id="invite-email" type="email" autoComplete="off" maxLength={254} required placeholder="friend@example.com" value={email} onChange={e => setEmail(e.target.value)} disabled={busy || retrying} /></div>
       <ActionButton type="submit" variant="primary" disabled={busy || retrying || !data}>{busy ? 'Please wait…' : 'Send invitation'}</ActionButton><p>Each invitation is for one email address and lasts 7 days. They’ll verify their inbox before joining.</p>

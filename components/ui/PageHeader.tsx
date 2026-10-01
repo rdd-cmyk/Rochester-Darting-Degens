@@ -1,26 +1,30 @@
 import type { ReactNode } from 'react';
 
-/** Opt-in heading family: adopting one page must not restyle older headers. */
+/** Every route shares this title rhythm; domain artwork belongs below it. */
 export function PageHeader({
   title, eyebrow, description, actions, identity,
-  size = 'compact',
 }: {
   title: string;
   eyebrow?: string;
   description?: ReactNode;
   actions?: ReactNode;
   identity?: ReactNode;
-  size?: 'compact' | 'standard' | 'feature';
 }) {
   return (
-    <header className={`rdd-title-header rdd-title-header--${size}`}>
+    <>
+    <header className="rdd-title-header">
       <div className="rdd-title-header-copy">
-        {eyebrow && <p className="rdd-title-eyebrow">{eyebrow}</p>}
+        <div className="rdd-title-eyebrow-slot">
+          {eyebrow && <p className="rdd-title-eyebrow">{eyebrow}</p>}
+        </div>
         <h1>{title}<span className="rdd-title-period" aria-hidden="true">.</span></h1>
-        {description && <p className="rdd-title-description">{description}</p>}
-        {actions && <div className="rdd-title-actions">{actions}</div>}
+        <div className="rdd-title-description-slot">
+          {description && <p className="rdd-title-description">{description}</p>}
+        </div>
       </div>
       {identity && <div className="rdd-title-identity">{identity}</div>}
     </header>
+    {actions && <div className="rdd-title-actions">{actions}</div>}
+    </>
   );
 }

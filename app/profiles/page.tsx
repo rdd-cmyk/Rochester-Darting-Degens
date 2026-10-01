@@ -144,7 +144,6 @@ export default function AllProfilesPage() {
 
   const header = (
     <PageHeader
-      size="standard"
       eyebrow="Players"
       title="The league lineup"
       description="Meet the players, scout your next rival, and put a face to the name."
@@ -153,7 +152,7 @@ export default function AllProfilesPage() {
 
   if (authLoading || loading) {
     return (
-      <main className="page-shell directory-page">
+      <main className="rdd-page-shell page-shell directory-page">
         {header}
         <p className="rdd-state" role="status">Loading the lineup…</p>
       </main>
@@ -162,7 +161,7 @@ export default function AllProfilesPage() {
 
   if (authError) {
     return (
-      <main className="page-shell directory-page">
+      <main className="rdd-page-shell page-shell directory-page">
         {header}
         <p className="rdd-state rdd-state--error" role="alert">Could not check your account. Please try again.</p>
         <ActionButton onClick={() => setAuthRetryVersion((version) => version + 1)}>Retry</ActionButton>
@@ -172,7 +171,7 @@ export default function AllProfilesPage() {
 
   if (!user) {
     return (
-      <main className="page-shell directory-page">
+      <main className="rdd-page-shell page-shell directory-page">
         {header}
         <p className="rdd-state">Sign in to browse player profiles.</p>
         <p>
@@ -185,7 +184,7 @@ export default function AllProfilesPage() {
   }
 
   return (
-    <main className="page-shell directory-page">
+    <main className="rdd-page-shell page-shell directory-page">
       {header}
 
       <section className="rdd-content-panel rdd-form-controls directory-search">

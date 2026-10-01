@@ -12,7 +12,7 @@ records accepted results, candidate `351a4b0`, remaining dependency/credential
 controls and both W6 SQL supplements. It supersedes stale summary wording below;
 earlier dated evidence remains intact. No production approval is implied.
 The detour is tracked in the [page consistency and wording plan](page-consistency-and-copy-plan.md):
-one page per package; the owner authorized P10-P15 as one six-page batch before the next acceptance stop. P16-P20 are authorized as one five-page batch; P21-P24 remain unstarted.
+one page per package; the owner authorized P10-P15 as one six-page batch before the next acceptance stop. P01-P20 are owner-accepted. P21-P24 are the final authorized four-page batch, awaiting owner review. Final combined journey acceptance and the W6/W7 return gates remain tracked in the page plan.
 
 ## Candidate and scope
 

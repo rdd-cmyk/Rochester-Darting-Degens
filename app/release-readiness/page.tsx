@@ -1,4 +1,5 @@
 import { notFound } from 'next/navigation';
+import { PageHeader } from '@/components/ui/PageHeader';
 import { GET } from '../api/release-readiness/route';
 
 export const dynamic = 'force-dynamic';
@@ -13,12 +14,13 @@ export default async function ReleaseReadinessPage() {
   // may refuse direct navigation to non-HTML API responses.
   const response = await GET();
   const result = await response.json();
-  return <main className="container" style={{ padding: '2rem 1rem' }}>
-    <h1>Release preview isolation check</h1>
-    <p>{response.ok ? 'Client and server credentials verified on RDD Release Testing.' :
+  return <main className="page-shell utility-consistent">
+    <PageHeader eyebrow="Release diagnostics" title="Preview isolation check"
+      description="Check which environment this release preview connects to." />
+    <p className="rdd-state" role="status">{response.ok ? 'Client and server credentials verified on RDD Release Testing.' :
       'The isolation check has not passed.'}</p>
-    <pre style={{ whiteSpace: 'pre-wrap', overflowWrap: 'anywhere' }}>{JSON.stringify(result, null, 2)}</pre>
-    <p>This checks connection isolation only. Database schema, gameplay, email,
+    <pre className="rdd-content-panel utility-output" aria-label="Sanitized isolation result">{JSON.stringify(result, null, 2)}</pre>
+    <p className="utility-scope">This checks connection isolation only. Database schema, gameplay, email,
       backup and restore acceptance remain separate release steps.</p>
   </main>;
 }

@@ -1614,6 +1614,11 @@ textarea:disabled {
 .account-message-panel a:not(.rdd-page-action) { color: var(--rdd-positive); font-weight: 700; }
 .change-log-page { max-width: 1000px; }
 .diagnostic-page { max-width: 740px; }
+.utility-consistent { max-width: var(--rdd-content-account); padding: var(--rdd-shell-padding); display: grid; gap: var(--rdd-space-6); }
+.utility-consistent > .rdd-state { margin: 0; padding: var(--rdd-panel-padding); border-radius: var(--rdd-radius-panel); }
+.utility-consistent > .rdd-page-action { justify-self: start; }
+.utility-output { margin: 0; min-width: 0; max-width: 100%; white-space: pre-wrap; overflow-wrap: anywhere; overflow: auto; color: var(--rdd-text); }
+.utility-scope { margin: 0; color: var(--rdd-text-muted); line-height: 1.6; overflow-wrap: anywhere; }
 .change-log-card { background: var(--rdd-panel); border-color: var(--rdd-border); }
 .change-log-card-header { border-bottom-color: var(--rdd-border); }
 .change-log-card-title, .change-log-markdown { color: var(--rdd-ink); }

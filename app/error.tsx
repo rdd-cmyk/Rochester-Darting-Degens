@@ -1,7 +1,9 @@
 'use client';
 
 import { useEffect } from 'react';
-import Link from 'next/link';
+import { PageHeader } from '@/components/ui/PageHeader';
+import { ActionLink } from '@/components/ui/ActionLink';
+import { ActionButton } from '@/components/ui/ActionButton';
 
 export default function ErrorPage({ error, reset }: { error: Error & { digest?: string }; reset: () => void }) {
   useEffect(() => {
@@ -9,15 +11,12 @@ export default function ErrorPage({ error, reset }: { error: Error & { digest?: 
   }, [error]);
 
   return (
-    <main className="page-shell account-page">
-      <header className="rdd-page-header rdd-page-header--compact">
-        <p className="rdd-eyebrow">Something went wrong</p>
-        <h1>We could not load this page.</h1>
-        <p>Try again, or return to the standings.</p>
-      </header>
+    <main className="page-shell utility-consistent">
+      <PageHeader eyebrow="Something went wrong" title="We could not load this page"
+        description="Try again, or return to the standings." />
       <div className="rdd-actions">
-        <button type="button" className="rdd-action rdd-action--primary" onClick={reset}>Try again</button>
-        <Link href="/" className="rdd-action">Home leaderboard</Link>
+        <ActionButton variant="primary" onClick={reset}>Try again</ActionButton>
+        <ActionLink href="/">Home leaderboard</ActionLink>
       </div>
     </main>
   );

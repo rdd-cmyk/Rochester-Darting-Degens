@@ -393,3 +393,5 @@ dialog, size its text composer, clarify tab-local Board drafts, and move incomin
 challenges above the featured rivalry. These changes preserve the seasonal toggle,
 reduced-motion setting and opaque readable cards. See the W6 operational evidence
 for verification and remaining owner acceptance.
+
+2026-10-01: P01-P20 are owner-accepted; P21-P24 adopt the shared utility/fallback presentation as the final batch, awaiting owner review. The [page ledger](page-consistency-and-copy-plan.md) owns current package state. Final combined journey/device acceptance remains open until all 24 packages are accepted and the final sweep is recorded; this does not resume production release work.

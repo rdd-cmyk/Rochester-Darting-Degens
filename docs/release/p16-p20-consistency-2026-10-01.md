@@ -1,9 +1,9 @@
 # P16-P20 consistency and copy
 
-Status: awaiting owner review. Baseline `release/next` at `f4613de`.
+Status: owner accepted 2026-10-01 at `f238849`. Baseline `release/next` at `f4613de`.
 P10-P15 were accepted on 2026-10-01; the owner authorized these five pages
 together, with full checks and one preview publication after all are ready.
-P21-P24 remain unstarted; W6/W7/W8 remain paused at the release checkpoint.
+P21-P24 subsequently authorized as the final batch; W6/W7/W8 remain paused at the release checkpoint.
 
 ## P16: Sign In
 

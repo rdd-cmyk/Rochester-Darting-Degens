@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabaseClient';
+import { PageHeader } from '@/components/ui/PageHeader';
+import { ActionButton } from '@/components/ui/ActionButton';
 
 export default function TestSupabasePage() {
   const [status, setStatus] = useState('Checking the local client session…');
@@ -33,13 +35,14 @@ export default function TestSupabasePage() {
   if (previewError) throw new Error('Synthetic local preview render failure.');
 
   return (
-    <main className="page-shell diagnostic-page">
-      <header className="rdd-page-header rdd-page-header--compact"><p className="rdd-eyebrow">Diagnostics</p><h1>Supabase Test</h1></header>
+    <main className="page-shell utility-consistent">
+      <PageHeader eyebrow="Diagnostics" title="Client session check"
+        description="Inspect the session available to this browser. This does not test the database connection." />
       <p className="rdd-state" role="status">{status}</p>
       {process.env.NEXT_PUBLIC_RDD_VISUAL_FIXTURE === '1' && (
-        <button type="button" className="rdd-action" onClick={() => setPreviewError(true)}>
+        <ActionButton onClick={() => setPreviewError(true)}>
           Preview error fallback
-        </button>
+        </ActionButton>
       )}
     </main>
   );

@@ -27,3 +27,21 @@ gate and audit, inspect final commit range, push release/next, then verify CI
 and Vercel status for the exact published SHA and preview availability.
 Production and hosted Supabase schema/data remain unchanged; this preview
 publication does not authorize W7/W8 cutover.
+
+## Approved dependency gate completion
+
+On 2026-10-01 the owner explicitly approved the proposed patches and resuming
+publication. Next.js and eslint-config-next are now 16.3.6, including their
+matching Next.js compiler/environment packages. brace-expansion is 1.1.21 and
+5.0.12 within existing parent dependency ranges. No other package versions,
+peer ranges, install-script approvals, or application code changed in this
+separate patch package. The installed dependency tree has no compatibility
+errors and npm audit reports zero vulnerabilities.
+
+The trusted clean install passed after stopping the local preview that held a
+Windows native-module file lock. All 80 test files / 614 tests passed, as did
+coverage (96.44% statements, 90.19% branches, 97.82% functions, 97.54% lines),
+lint, typecheck, production build using synthetic local configuration, and
+diff checks. These are local application checks, not hosted database evidence.
+Revert the separate security-patch commit to restore the previous package pins
+and lockfile if a regression requires rollback.

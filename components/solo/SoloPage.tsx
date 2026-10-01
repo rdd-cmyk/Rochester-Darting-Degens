@@ -1,5 +1,7 @@
 "use client";
-import Link from "next/link";
+import { PageHeader } from "@/components/ui/PageHeader";
+import { ActionButton } from "@/components/ui/ActionButton";
+import { ActionLink } from "@/components/ui/ActionLink";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useCurrentUser } from "@/lib/league-night/use-current-user";
 import { loadMatches } from "@/lib/league-night/api";
@@ -87,34 +89,34 @@ const fresh = (): Draft => ({
 export default function SoloPage() {
   const { user, loading } = useCurrentUser();
   return (
-    <main className="solo-shell">
-      <header className="solo-hero">
-        <p className="solo-eyebrow">THE GAME BETWEEN GAME NIGHTS</p>
-        <h1>Solo Play.</h1>
-        <p>
-          Your board. Your pace. Log your games, find your rhythm, and make the
-          next game a little better.
-        </p>
-        <div className="solo-hero-tags">
+    <main className="solo-shell rdd-form-controls">
+      <div>
+        <PageHeader
+          size="feature"
+          title="Solo Play"
+          eyebrow="The game between game nights"
+          description="Your board. Your pace. Log your games, find your rhythm, and make the next game a little better."
+        />
+        <div className="solo-hero-tags" aria-label="Solo Play context">
           <span>Anywhere, anytime</span>
           <span>Personal progress</span>
           <span>Always unranked</span>
         </div>
-      </header>
+      </div>
       {loading ? (
         <p role="status">Opening your practice space…</p>
       ) : user ? (
         <SoloEditor key={user.id} owner={user.id} />
       ) : (
-        <section className="solo-panel">
-          <h2>Get a game in.</h2>
+        <section className="rdd-content-panel solo-panel">
+          <h2 className="rdd-section-title">Get a game in.</h2>
           <p>
             Sign in to keep your personal practice history and explore how your
             solo and league play change over time.
           </p>
-          <Link className="solo-primary" href="/auth">
+          <ActionLink variant="primary" href="/auth">
             Sign in to log a game
-          </Link>
+          </ActionLink>
         </section>
       )}
     </main>
@@ -442,28 +444,28 @@ function SoloEditor({ owner }: { owner: string }) {
   return (
     <>
       <nav className="solo-tabs" aria-label="Solo Play">
-        <button aria-pressed={tab === "log"} onClick={() => setTab("log")}>
+        <ActionButton aria-pressed={tab === "log"} onClick={() => setTab("log")}>
           Log a game
-        </button>
-        <button
+        </ActionButton>
+        <ActionButton
           aria-pressed={tab === "progress"}
           onClick={() => setTab("progress")}
         >
           Your progress
-        </button>
-        <button
+        </ActionButton>
+        <ActionButton
           aria-pressed={tab === "history"}
           onClick={() => setTab("history")}
         >
           History
-        </button>
-        <button
+        </ActionButton>
+        <ActionButton
           className="solo-refresh"
           onClick={() => void refresh()}
           disabled={busy}
         >
           Refresh
-        </button>
+        </ActionButton>
       </nav>
       {error && (
         <p className="solo-alert" role="alert">
@@ -476,8 +478,8 @@ function SoloEditor({ owner }: { owner: string }) {
         </p>
       )}
       {!!operations.length && (
-        <section className="solo-panel">
-          <h2>Check your previous save</h2>
+        <section className="rdd-content-panel solo-panel">
+          <h2 className="rdd-section-title">Check your previous save</h2>
           <p>
             These submitted entries stay on this device until their outcome is
             confirmed. Return with the same account to reconcile them.
@@ -488,9 +490,9 @@ function SoloEditor({ owner }: { owner: string }) {
                 {op.payload.game_type ?? op.payload.action} ·{" "}
                 {op.payload.score ?? "No score"}
               </span>
-              <button onClick={() => void submit(op)} disabled={busy}>
+              <ActionButton onClick={() => void submit(op)} disabled={busy}>
                 Check / retry save
-              </button>
+              </ActionButton>
             </div>
           ))}
         </section>
@@ -498,7 +500,7 @@ function SoloEditor({ owner }: { owner: string }) {
       {undo && (
         <p className="solo-receipt">
           Game deleted.{" "}
-          <button
+          <ActionButton
             disabled={disabled}
             onClick={() =>
               void submit({
@@ -514,20 +516,20 @@ function SoloEditor({ owner }: { owner: string }) {
             }
           >
             Undo deletion
-          </button>
+          </ActionButton>
         </p>
       )}
       {tab === "log" && (
         <div className="solo-layout">
           <form
-            className="solo-panel"
+            className="rdd-content-panel solo-panel"
             onSubmit={(e) => {
               e.preventDefault();
               void save(false);
             }}
           >
             <div className="solo-heading">
-              <h2>{draft.id ? "Edit your game" : "Get a game in."}</h2>
+              <h2 className="rdd-section-title">{draft.id ? "Edit your game" : "Get a game in."}</h2>
               <span className="solo-tag">SOLO · UNRANKED</span>
             </div>
             <fieldset disabled={disabled} className="solo-fields">
@@ -539,7 +541,7 @@ function SoloEditor({ owner }: { owner: string }) {
                   aria-labelledby="solo-game-label"
                 >
                   {(["301", "501", "701", "Cricket"] as SoloGameType[]).map((game) => (
-                    <button
+                    <ActionButton
                       type="button"
                       key={game}
                       aria-pressed={draft.game === game}
@@ -556,7 +558,7 @@ function SoloEditor({ owner }: { owner: string }) {
                       }
                     >
                       {game}
-                    </button>
+                    </ActionButton>
                   ))}
                 </div>
               </div>
@@ -674,9 +676,9 @@ function SoloEditor({ owner }: { owner: string }) {
                         </small>
                       </span>
                     </label>
-                    <Link href={`/league-night?night=${draft.night}`}>
+                    <ActionLink variant="quiet" href={`/league-night?night=${draft.night}`}>
                       Open league night →
-                    </Link>
+                    </ActionLink>
                   </>
                 )}
               </div>
@@ -793,24 +795,24 @@ function SoloEditor({ owner }: { owner: string }) {
               </p>
               <div className="solo-actions">
                 {!draft.id && (
-                  <button
-                    className="solo-primary"
+                  <ActionButton
+                    variant="primary"
                     type="button"
                     onClick={() => void save(true)}
                   >
                     Save &amp; play again <span aria-hidden="true">↗</span>
-                  </button>
+                  </ActionButton>
                 )}
-                <button
-                  className={draft.id ? "solo-primary" : ""}
+                <ActionButton
+                  variant={draft.id ? "primary" : "secondary"}
                   type="submit"
                 >
                   {busy ? "Saving…" : draft.id ? "Save changes" : "Save game"}
-                </button>
+                </ActionButton>
                 {draft.id && (
-                  <button type="button" onClick={() => setDraft(fresh())}>
+                  <ActionButton type="button" onClick={() => setDraft(fresh())}>
                     Cancel edit
-                  </button>
+                  </ActionButton>
                 )}
               </div>
               <p className="solo-small">
@@ -820,8 +822,8 @@ function SoloEditor({ owner }: { owner: string }) {
             </fieldset>
           </form>
           <aside className="solo-sidebar">
-            <section className="solo-best">
-              <p className="solo-eyebrow">YOUR PERSONAL BENCHMARK</p>
+            <section className="rdd-content-panel solo-best">
+              <p className="rdd-title-eyebrow">YOUR PERSONAL BENCHMARK</p>
               <strong>
                 {soloReady && benchmark.length
                   ? Math.max(...benchmark).toFixed(1)
@@ -831,7 +833,7 @@ function SoloEditor({ owner }: { owner: string }) {
               <h3>
                 {benchmark.length
                   ? "One good game to chase."
-                  : "Your next game starts it."}
+                  : "Your first benchmark starts here."}
               </h3>
               <p>
                 {draft.game} · {draft.board} · {benchmark.length} scored games
@@ -840,7 +842,7 @@ function SoloEditor({ owner }: { owner: string }) {
                 Same rule preset · Best reported game average
               </p>
             </section>
-            <section className="solo-panel">
+            <section className="rdd-content-panel solo-panel">
               <h3>Recent solo games</h3>
               {loading ? (
                 <p role="status">Loading practice…</p>
@@ -883,8 +885,8 @@ function SoloEditor({ owner }: { owner: string }) {
         </div>
       )}
       {tab === "history" && (
-        <section className="solo-panel">
-          <h2>Your solo history</h2>
+        <section className="rdd-content-panel solo-panel">
+          <h2 className="rdd-section-title">Your solo history</h2>
           <p className="solo-muted">
             Every saved game, including scores excluded from profile stats.
           </p>
@@ -912,10 +914,10 @@ function SoloEditor({ owner }: { owner: string }) {
                   {g.notes && <p>{g.notes}</p>}
                 </div>
                 <div className="solo-actions">
-                  <button disabled={disabled} onClick={() => edit(g)}>
+                  <ActionButton disabled={disabled} onClick={() => edit(g)}>
                     Edit
-                  </button>
-                  <button
+                  </ActionButton>
+                  <ActionButton
                     disabled={disabled}
                     onClick={() => {
                       if (
@@ -936,7 +938,7 @@ function SoloEditor({ owner }: { owner: string }) {
                     }}
                   >
                     Delete
-                  </button>
+                  </ActionButton>
                 </div>
               </article>
             ))
@@ -945,9 +947,9 @@ function SoloEditor({ owner }: { owner: string }) {
       )}
       {tab === "progress" && (
         <>
-          <section className="solo-panel">
-            <p className="solo-eyebrow">YOUR GAME, IN PERSPECTIVE</p>
-            <h2>Personal progress.</h2>
+          <section className="rdd-content-panel solo-panel">
+            <p className="rdd-title-eyebrow">YOUR GAME, IN PERSPECTIVE</p>
+            <h2 className="rdd-section-title">Personal progress.</h2>
             <div className="solo-form-row">
               <label>
                 Game
@@ -1000,7 +1002,7 @@ function SoloEditor({ owner }: { owner: string }) {
             </label>
             <div className="solo-scope">
               {(["league", "solo", "all"] as const).map((s) => (
-                <button
+                <ActionButton
                   key={s}
                   aria-pressed={scope === s}
                   onClick={() => setScope(s)}
@@ -1010,7 +1012,7 @@ function SoloEditor({ owner }: { owner: string }) {
                     : s === "league"
                       ? "League"
                       : "Solo"}
-                </button>
+                </ActionButton>
               ))}
             </div>
             {!soloReady ? (
@@ -1136,11 +1138,11 @@ function SoloEditor({ owner }: { owner: string }) {
                   : "Profile visibility is unconfirmed. Use Refresh to check before changing it again."}
               </p>
             )}
-            <Link href={`/profiles/${owner}`}>View my profile →</Link>
+            <ActionLink variant="quiet" href={`/profiles/${owner}`}>View my profile →</ActionLink>
           </section>
           {!soloReady || !contextReady ? (
-            <section className="solo-panel">
-              <h2>Practice &amp; Performance</h2>
+            <section className="rdd-content-panel solo-panel">
+              <h2 className="rdd-section-title">Practice &amp; Performance</h2>
               {analysisError ? (
                 <p role="alert">{analysisError}</p>
               ) : (
@@ -1151,7 +1153,7 @@ function SoloEditor({ owner }: { owner: string }) {
                 </p>
               )}
               {(analysisError || (!loading && !soloReady)) && (
-                <button onClick={() => void refresh()}>Retry comparison</button>
+                <ActionButton onClick={() => void refresh()}>Retry comparison</ActionButton>
               )}
             </section>
           ) : (

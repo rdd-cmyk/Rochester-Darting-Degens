@@ -423,7 +423,7 @@ instead of importing Solo's page stylesheet. Solo itself is unchanged; no shared
 primitive/token value, query or privacy behavior changes. See the
 [P07 review record](release/p07-player-profile-consistency-2026-10-01.md).
 
-P08 candidate: My Profile adopts compact PageHeader, shared ActionButton/ActionLink,
+P08 accepted: My Profile adopts compact PageHeader, shared ActionButton/ActionLink,
 .rdd-content-panel and .rdd-form-controls. The existing 740px account width is
 centralized as --rdd-content-account and consumed only by this page; its former
 760px cap is brought into that existing account-width proposal. AvatarPicker has
@@ -434,3 +434,16 @@ established primary color roles. Repeated avatar initials are decorative beside
 the named choice. Profile/checkbox/preview spacing consumes central roles; no
 existing shared token value or other route style changes. Avatar and profile saves
 remain separate. See the [P08 record](release/p08-my-profile-consistency-2026-10-01.md).
+
+
+P09 candidate: Solo Play adopts feature PageHeader, shared ActionButton/ActionLink,
+.rdd-content-panel and .rdd-form-controls in entry, history and progress. Shell,
+spacing, panel inset, selection and metric sizes consume the existing central
+roles; no shared token value changes. Selected tabs/format/scope choices retain
+aria-pressed and add an underline. Intentional submit buttons retain type=submit;
+all other actions use native button semantics. The benchmark uses themed inset
+and text roles in both themes. PracticePerformance is a Solo-only consumer and
+adopts the same panel, section heading, eyebrow and quiet action. Statistical
+series colors, SVG mark/axis geometry and bounded horizontal table scrolling
+remain domain-specific. Separate League Night activity styles are unchanged.
+See the [P09 record](release/p09-solo-consistency-2026-10-01.md).

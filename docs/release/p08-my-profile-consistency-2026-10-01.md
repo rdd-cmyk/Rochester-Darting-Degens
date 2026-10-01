@@ -1,7 +1,7 @@
 # P08 My Profile consistency and copy
 
-Status: awaiting owner review. Baseline release/next at 42492c2.
-P07 was accepted and P08 authorized on 2026-10-01. Stop before P09.
+Status: owner accepted 2026-10-01 at 6fb7fc9. Baseline release/next at 42492c2.
+P07 was accepted and P08 authorized on 2026-10-01. P08 CI 36862583510, Vercel deployment and hosted read-only smoke passed; owner acceptance authorized P09.
 
 ## Presentation and copy
 
@@ -72,5 +72,4 @@ technology acceptance remain owner/final-sweep work.
 Screenshots, synthetic fixture and exact publication/hosted read-only evidence
 remain ignored under .local/page-consistency. The install's pre-existing one high
 and one critical dependency finding remain separate release gates. Build defaults
-for absent hosted variables are not hosted connectivity proof. Owner review is
-pending; P09 remains unstarted.
+for absent hosted variables are not hosted connectivity proof. Owner review passed on 2026-10-01; P09 was authorized.

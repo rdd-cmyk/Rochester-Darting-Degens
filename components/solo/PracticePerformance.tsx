@@ -1,4 +1,5 @@
 "use client";
+import { ActionButton } from "@/components/ui/ActionButton";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { practicePerformance, soloScore } from "@/lib/solo/analysis";
 import type { SoloFilter, SoloGame } from "@/lib/solo/types";
@@ -67,11 +68,11 @@ export function PracticePerformance({
   const detail = data.points.find((p) => p.nightId === selected);
   return (
     <section
-      className="solo-panel solo-performance"
+      className="rdd-content-panel solo-panel solo-performance"
       aria-labelledby="practice-title"
     >
-      <p className="solo-eyebrow">PRACTICE &amp; PERFORMANCE</p>
-      <h2 id="practice-title">Does it carry over?</h2>
+      <p className="rdd-title-eyebrow">PRACTICE &amp; PERFORMANCE</p>
+      <h2 className="rdd-section-title" id="practice-title">Does it carry over?</h2>
       <p className="solo-muted">
         Your solo rhythm alongside your league scoring. Personal analysis ·{" "}
         {unit} · Individual games
@@ -281,13 +282,12 @@ export function PracticePerformance({
               {data.points.map((p) => (
                 <tr key={p.nightId}>
                   <td>
-                    <button
+                    <ActionButton variant="quiet"
                       type="button"
-                      className="solo-text-button"
                       onClick={() => setSelected(p.nightId)}
                     >
                       {p.date}
-                    </button>
+                    </ActionButton>
                   </td>
                   <td>
                     {p.practice}

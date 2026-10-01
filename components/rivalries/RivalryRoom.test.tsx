@@ -29,7 +29,8 @@ vi.mock("@/lib/rivalries/use-operation", () => ({
     submit: vi.fn(),
   }),
 }));
-vi.mock("@/components/avatars/PlayerAvatar", () => ({
+vi.mock("@/components/avatars/PlayerAvatar", async (importOriginal) => ({
+  ...await importOriginal<typeof import('@/components/avatars/PlayerAvatar')>(),
   PlayerAvatar: () => <span />,
 }));
 vi.mock("./RivalryPoster", () => ({

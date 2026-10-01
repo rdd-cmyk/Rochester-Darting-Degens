@@ -51,3 +51,18 @@ it('keeps an open share card visible throughout a background history refresh', (
   fireEvent.click(screen.getByRole('button',{name:'Preview share card'}));
   expect(screen.getByRole('img')).toBeInTheDocument();
 });
+it('shares the night identity and optional venue without calling a past night live', () => {
+  vi.spyOn(HTMLCanvasElement.prototype, 'getContext').mockReturnValue(null);
+  const night: LeagueNight = {id:'night',title:'Friday at the oche',night_date:'2026-01-01',venue:'The Dart Hall',created_by:'a',created_at:'2026-01-01T00:00:00Z'};
+  const history: NightMatch[] = [{id:1,revision:1,night_id:'night',created_by:'a',played_at:'2026-01-01T20:00:00Z',game_type:'501',board_type:'Steel Tip',venue:null,notes:'Private match note',match_players:['a','b'].map((player_id,i)=>({id:i+1,player_id,is_winner:i===0,score:null,points_scored:null,profiles:{display_name:player_id,first_name:null,include_first_name_in_display:false}}))}];
+  const view = render(<NightRecapPanel night={night} history={history} loading={false} error="" onRefresh={()=>{}} />);
+  fireEvent.click(screen.getByRole('button',{name:'Preview share card'}));
+  const card = screen.getByRole('img');
+  expect(card).toHaveAccessibleName(/Friday at the oche/);
+  expect(card).toHaveAccessibleName(/The Dart Hall/);
+  expect(card).toHaveAccessibleName(/Night recap/);
+  expect(card).not.toHaveAccessibleName(/So far tonight|Private match note/);
+  view.rerender(<NightRecapPanel night={{...night,venue:null,title:'The return match'}} history={history} loading={false} error="" onRefresh={()=>{}} />);
+  expect(card).toHaveAccessibleName(/The return match/);
+  expect(card).not.toHaveAccessibleName(/The Dart Hall|null/);
+});

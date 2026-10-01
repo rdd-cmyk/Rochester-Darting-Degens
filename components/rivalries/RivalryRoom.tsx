@@ -19,7 +19,7 @@ import { repairCandidates } from "@/lib/rivalries/repair";
 import { loadRivalryFeed, rivalryError } from "@/lib/rivalries/api";
 import type { RivalryFeed } from "@/lib/rivalries/types";
 import { useRivalryOperation } from "@/lib/rivalries/use-operation";
-import { PlayerAvatar } from "@/components/avatars/PlayerAvatar";
+import { PlayerAvatar, PlayerAvatarName } from "@/components/avatars/PlayerAvatar";
 import { RivalryPoster } from "./RivalryPoster";
 import "./rivalries.css";
 const nameOf = (p: PlayerProfile | undefined) =>
@@ -349,6 +349,7 @@ function Room({
                 <div className="rr-player-name">
                   <small>{left === userId ? "YOU" : "CONTENDER"}</small>
                   <Link href={`/profiles/${left}`}>{names[0]}</Link>
+                  <PlayerAvatarName avatarId={avatarIds[0]} className="rr-avatar-name" />
                 </div>
               </div>
               <div className="rr-score">
@@ -372,6 +373,7 @@ function Room({
                 <div className="rr-player-name">
                   <small>{actualRight === userId ? "YOU" : "THE RIVAL"}</small>
                   <Link href={`/profiles/${actualRight}`}>{names[1]}</Link>
+                  <PlayerAvatarName avatarId={avatarIds[1]} className="rr-avatar-name" />
                 </div>
               </div>
             </div>

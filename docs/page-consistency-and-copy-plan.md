@@ -1,6 +1,6 @@
 # Page consistency and league voice plan
 
-Prepared: 2026-09-30. Status: **P01-P24 owner-accepted; combined sweep performed; shared-frame/focus updates on Preview; affected human acceptance open**.
+Prepared: 2026-09-30. Status: **P01-P24 and shared-frame appearance owner-accepted; final visual polish local gates passed and Preview candidate prepared; affected W6 journeys remain open**.
 Baseline: `release/next` at `351a4b0253f2c7f05d7a70708597d1c847977c65`.
 
 Before this plan was written, the release position was saved in the
@@ -275,5 +275,8 @@ supersedes earlier per-page size/width choices. Every route adopts one outer
 frame and PageHeader family, with common heading slots and a separate toolbar.
 The work preserves the accepted page content/features and earlier focus
 fix. Both are [published to Preview](release/shared-page-frame-preview-2026-10-01.md)
-at application `020136e`. Combined visual acceptance is pending; old P01-P24
-acceptance remains the historical baseline. W6/W7/W8 remain at their checkpoint.
+at application `020136e`. The owner accepted the combined appearance on October 1.
+The [final visual polish](release/final-visual-polish-2026-10-01.md) records the
+subsequent avatar, mobile filter/logo, recap and poster requests. Its appearance
+acceptance remains separate. W6/W7/W8 remain at their checkpoint; real
+multi-account journey acceptance has not been replaced by visual checks.

@@ -114,10 +114,10 @@
   {
     "id": "robot",
     "label": "Machine",
-    "version": 1,
+    "version": 2,
     "review_status": "locally inspected; owner final acceptance pending",
     "tool": "Built-in image_gen",
-    "generation_date": "2026-09-28",
+    "generation_date": "2026-10-01",
     "dimensions": {
       "hero": [
         512,
@@ -132,8 +132,8 @@
         96
       ]
     },
-    "source": "pilot.png",
-    "cell": 4,
+    "source": "robot-v2.png",
+    "cell": null,
     "image": "/avatars/robot.webp",
     "thumbnail": "/avatars/robot-96.webp",
     "medium": "/avatars/robot-256.webp",
@@ -589,7 +589,7 @@
   },
   {
     "id": "lion",
-    "label": "Crown",
+    "label": "King",
     "version": 1,
     "review_status": "locally inspected; owner final acceptance pending",
     "tool": "Built-in image_gen",

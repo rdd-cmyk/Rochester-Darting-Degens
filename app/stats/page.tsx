@@ -272,7 +272,7 @@ export default function AdvancedStatsPage() {
         </>}
       />
 
-      <section className="stats-filter-panel rdd-filter-group" aria-label="Advanced statistics filters">
+      <section className="stats-filter-panel rdd-filter-group rdd-filter-group--compact" aria-label="Advanced statistics filters">
         <label>
           <span>Game type</span>
           <select
@@ -334,7 +334,7 @@ export default function AdvancedStatsPage() {
         </div>
       </section>
 
-      <div className="stats-filters rdd-filter-group">
+      <div className="stats-filters rdd-filter-group rdd-filter-group--compact">
         <label>Competition format<select aria-label="Competition format" value={formatFilter} onChange={e => {setFormatFilter(e.target.value);setScoreCohort('All');}}>{['All','Singles','Free-for-all','2v2','3v3'].map(f => <option key={f}>{f}</option>)}</select></label>
         <label>Comparable score group<select aria-label="Comparable score group" value={scoreCohort} onChange={e => setScoreCohort(e.target.value)}><option value="All">All rules — combined results</option>{Array.from(new Map(facts.filter(f => gameType === 'All' || f.gameType === gameType).map(f => [comparisonKey(f.gameType,f.boardType,f.gameConfig),f])).entries()).map(([key,f]) => <option value={key} key={key}>{f.gameType} · {f.boardType ?? 'Unknown board'} · {formatLabel(f.gameConfig?.format)} · {presetLabel(f.gameType,f.gameConfig)}</option>)}</select></label>
       </div>
@@ -640,7 +640,7 @@ export default function AdvancedStatsPage() {
       <details className="stats-data-note"><summary>Rating changes explained</summary>{eligiblePlayers.map(player => <details key={player.playerId}><summary>{player.displayName} · {(player.evidenceGames ?? player.games).toFixed(1)} evidence games · {Object.entries(player.formatGames ?? {}).map(([format,count]) => `${format}: ${count}`).join(', ')}</summary><ul>{player.ratingHistory.filter(p => p.change !== undefined).slice(-20).reverse().map(p => <li key={p.matchId}>Match #{p.matchId} · {p.format} · vs {p.opponents?.join(' + ')} · {((p.expectedWin ?? 0)*100).toFixed(1)}% expected win · {signed(p.change ?? 0,2)} points</li>)}</ul></details>)}</details>
       <section className="stats-methodology" id="methodology">
         <p className="stats-eyebrow">Methodology</p>
-        <h2>Advanced without becoming mysterious</h2>
+        <h2>How the numbers call the game</h2>
         <div className="stats-methodology-grid">
           <div>
             <h3>Power rating</h3>

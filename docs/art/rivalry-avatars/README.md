@@ -21,6 +21,28 @@ Prompt: Edit target: the provided avatar. Replace the raccoon-like animal with a
 
 ## Production prompts
 
+### Machine expression correction — 2026-10-01
+
+`robot-v2.png` is the selected standalone transparent master from built-in
+image_gen output `exec-45b0f9c1-12c5-4172-a4c2-0aaf475da745.png`. The original
+pilot sheet and tool output are preserved. The exporter gives it precedence
+for all three public sizes while preserving the stable `robot` ID. Locally
+inspected; owner final appearance acceptance pending. The lion's display label
+is now King; its `lion` ID and artwork are unchanged.
+
+Prompt: Edit the provided Machine robot darts-league avatar. Give the same robot
+a quietly competitive, focused game-face: slightly narrowed glowing orange eyes
+with subtle angled metallic brow ridges and a restrained confident asymmetric
+smirk instead of the wide cheerful smile. Keep it appealing and approachable,
+never evil, frightening or grotesque. Preserve its silver retro robot identity,
+round orange eyes, headphone-like ears with orange antenna tips, three-quarter
+head pose facing right, cream/navy/orange jersey and uniform details, hand-inked
+dark outlines, painterly cel shading, controlled print texture, chest-up square
+composition and artwork scale. One centered portrait with safe transparent
+margin and bottom torso crop. True transparent alpha outside the robot; remove
+the brown/grey backdrop. No text, props, frame, watermark, extra characters or
+scenery. Generated with the built-in tool; exports are routine Sharp resizes.
+
 ### pack-b
 
 Use the provided six-character sheet ONLY as an art-style reference, not an edit target. Create a NEW six-character avatar production sheet for the Rochester Darting Degens darts league. Exactly 3 columns by 2 rows, landscape 1536 by 1024, six equal 512-square cells. Each portrait centered in its cell, all ears/horns/details and body silhouette inside the cell with at least 20 pixels of safe transparent margin on left/right/top, chest-up crop at bottom of cell. Exact same framing, scale, eye line, lighting and hand-inked cartoon illustration quality as the reference: bold charcoal outlines, painterly cel shading, angular sports mascot shapes, controlled print texture, expressive friendly confident personalities, orange/navy/cream uniforms. Original designs. True transparent alpha everywhere behind and between the six characters. No gradients or background scenes. No hands, props, lettering, numerals, badges, trademarks, frames or watermarks. Characters in left-to-right top row then bottom row order: a confident badger in orange jersey; a cool black panther in cream/navy jersey; a determined brown bear in navy jersey; a relaxed green crocodile in orange jersey; a clever purple octopus in cream/navy jersey; an energetic white rabbit in navy/orange jersey

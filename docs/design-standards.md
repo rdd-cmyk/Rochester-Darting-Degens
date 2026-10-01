@@ -349,14 +349,25 @@ lines and four description lines. Long names/copy grow without clipping.
 Actions occupy a separate shared toolbar below the title area; wrapping controls
 must not change the heading's geometry. Every route uses the same shell padding
 and section gap. Back actions belong in that toolbar, not above the heading.
-Identity artwork may use the named slot: Home's redundant logo is hidden on
-phones; player identity remains visible and long names can wrap beside it.
+Identity artwork may use the named slot: Home's original logo uses a 52px
+mobile eyebrow slot (`--rdd-home-logo-mobile-size`) without increasing the
+shared heading height; player identity remains visible and long names can wrap
+beside it. Avatar callsigns use `PlayerAvatarName` and the shared
+`--rdd-avatar-name-size` role on profiles and rivalry faceoffs. Faceoff portraits
+align at the top, with identity labels below; names grow downward independently.
 Posters/showcase artwork and dense sidebar labels remain domain treatments;
 ordinary section headings consume the shared section-title role. The candidate
-is locally verified and published to Preview; combined owner appearance
-acceptance remains open. See
+is locally verified and published to Preview; the owner accepted that combined
+appearance on October 1. The subsequent
+[final visual polish](release/final-visual-polish-2026-10-01.md) has its own
+appearance acceptance. See
 [shared-frame evidence](release/shared-page-frame-2026-10-01.md) and the
 [publication record](release/shared-page-frame-preview-2026-10-01.md).
+
+The opt-in `.rdd-filter-group--compact` variant uses two columns, shared
+8px gaps and 12px padding at 640px and below. Both Stats filter panels consume
+it. Controls retain the shared 44px minimum height, native select behavior and
+visible labels; panel heights follow their content rather than a fixed value.
 
 **Structure to standardize:** optional back link/breadcrumb above the header; optional short eyebrow; one `h1`; brief description; optional context/status; optional primary and secondary actions. Context is not another hero or an arbitrary metric grid. Use the same component in populated, loading, empty, signed-out and error states so identity and spacing do not jump.
 

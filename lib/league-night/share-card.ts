@@ -1,9 +1,10 @@
 import type { NightAward } from "./recap";
+export type NightShareContext = { title: string; date: string; venue: string | null; summary: string };
 
 /** One canvas is both the exact on-screen preview and the downloaded card. */
 export function drawShareCard(
   canvas: HTMLCanvasElement,
-  date: string,
+  context: NightShareContext,
   games: number,
   players: number,
   awards: NightAward[],
@@ -44,9 +45,16 @@ export function drawShareCard(
     (c) =>
       115 + c.name.length * 49 + c.reason.length * 36 + c.scope.length * 32,
   );
+  const titleLines = wrap(context.title, "bold 58px Arial", 1072);
+  const venueLines = context.venue ? wrap(context.venue, "28px Arial", 1072) : [];
+  const summaryLines = wrap(`${games} games  ·  ${players} players  ·  ${context.summary}`, "bold 30px Arial", 1072);
+  const dateY = 106 + titleLines.length * 70 + 16;
+  const venueY = dateY + 42;
+  const summaryY = venueY + venueLines.length * 36 + (venueLines.length ? 16 : 0);
+  const cardsY = summaryY + summaryLines.length * 40 + 38;
   canvas.height = Math.max(
     680,
-    360 + sizes.reduce((a, b) => a + b + 22, 0) + 120,
+    cardsY + sizes.reduce((a, b) => a + b + 22, 0) + (cards.length ? 120 : 240),
   );
   ctx.fillStyle = "#08264d";
   ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -62,19 +70,16 @@ export function drawShareCard(
   ctx.font = "bold 21px Arial";
   ctx.fillText("ROCHESTER DARTING DEGENS  /  LEAGUE NIGHT", 64, 54);
   ctx.fillStyle = "#fff3dc";
-  ctx.font = "bold 64px Arial";
-  ctx.fillText("A night worth talking about.", 64, 106);
+  ctx.font = "bold 58px Arial";
+  titleLines.forEach((line, i) => ctx.fillText(line, 64, 106 + i * 70));
   ctx.fillStyle = "#c4d5ec";
   ctx.font = "28px Arial";
-  ctx.fillText(date, 64, 192);
+  ctx.fillText(context.date, 64, dateY);
+  venueLines.forEach((line, i) => ctx.fillText(line, 64, venueY + i * 36));
   ctx.fillStyle = "#ff9a48";
   ctx.font = "bold 30px Arial";
-  ctx.fillText(
-    `${games} games  ·  ${players} players  ·  So far tonight`,
-    64,
-    256,
-  );
-  let y = 334;
+  summaryLines.forEach((line, i) => ctx.fillText(line, 64, summaryY + i * 40));
+  let y = cardsY;
   cards.forEach((c, index) => {
     ctx.fillStyle = "#12365e";
     ctx.beginPath();
@@ -110,7 +115,7 @@ export function drawShareCard(
   if (!cards.length) {
     ctx.fillStyle = "#fff3dc";
     ctx.font = "36px Arial";
-    ctx.fillText("Good darts. Better company.", 64, 390);
+    ctx.fillText("Good darts. Better company.", 64, cardsY + 56);
   }
   ctx.fillStyle = "#b8cde8";
   ctx.font = "21px Arial";

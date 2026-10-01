@@ -160,7 +160,7 @@ a.rr-primary,
   position: relative;
   display: grid;
   grid-template-columns: 1fr 185px 1fr;
-  align-items: end;
+  align-items: start;
   margin-top: 24px;
   min-height: 360px;
 }
@@ -186,8 +186,8 @@ a.rr-primary,
   text-align: center;
   width: 100%;
   padding: 10px 10px 24px;
-  background: linear-gradient(transparent, #101a2b 35%);
-  margin-top: -20px;
+  background: none;
+  margin-top: var(--rdd-space-2);
 }
 .rr-player-name small {
   display: block;
@@ -207,10 +207,20 @@ a.rr-primary,
   overflow-wrap: anywhere;
   display: block;
 }
+.rr-player-name .rr-avatar-name {
+  display: inline-block;
+  margin-top: var(--rdd-space-2);
+  padding: var(--rdd-space-1) var(--rdd-space-2);
+  border-bottom: 2px solid var(--rdd-showcase-focus);
+  color: var(--rdd-showcase-focus);
+  font-size: var(--rdd-avatar-name-size);
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
 .rr-score {
   text-align: center;
-  align-self: center;
-  padding-top: 40px;
+  align-self: start;
+  padding-top: var(--rdd-showcase-score-offset);
   z-index: 2;
 }
 .rr-score > span {
@@ -484,7 +494,7 @@ a.rr-primary,
 .rr-tv .rr-faceoff {
   flex: 1;
   min-height: 0;
-  align-items: end;
+  align-items: start;
 }
 .rr-tv .rr-contender .player-portrait {
   max-height: 42vh;
@@ -619,7 +629,7 @@ a.rr-primary,
     max-width: none;
   }
   .rr-score {
-    padding-top: 0;
+    padding-top: var(--rdd-space-6);
   }
   .rr-score strong {
     font-size: 32px;
@@ -638,7 +648,7 @@ a.rr-primary,
     font-size: 9px;
   }
   .rr-player-name {
-    margin-top: -6px;
+    margin-top: var(--rdd-space-2);
     min-height: 92px;
     padding: 12px 5px;
   }

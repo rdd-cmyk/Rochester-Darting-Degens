@@ -1,6 +1,7 @@
 import { expect, it, vi } from "vitest";
 import { drawShareCard } from "./share-card";
 import type { NightAward } from "./recap";
+const context = { title: 'Friday at the oche', date: 'Saturday, September 26, 2026', venue: 'The Dart Hall', summary: 'Night recap' };
 
 it("draws a legible card from approved summary fields only, including unbroken names", () => {
   const calls: { text: string; x: number; y: number }[] = [];
@@ -38,7 +39,7 @@ it("draws a legible card from approved summary fields only, including unbroken n
     matchIds: [1],
   };
   expect(
-    drawShareCard(canvas, "Saturday, September 26, 2026", 3, 2, [award]),
+    drawShareCard(canvas, context, 3, 2, [award]),
   ).toBe(true);
   expect(canvas.width).toBe(1200);
   expect(canvas.height).toBeGreaterThan(680);
@@ -47,14 +48,20 @@ it("draws a legible card from approved summary fields only, including unbroken n
   ).toBe(true);
   expect(calls.every((c) => c.x >= 0 && c.y < canvas.height)).toBe(true);
   expect(calls.map((c) => c.text).join(" ")).not.toContain("PRIVATE");
-  expect(drawShareCard(canvas, "Saturday", 0, 0, [])).toBe(true);
+  const cardText = calls.map(c => c.text).join(' ');
+  expect(cardText).toContain(context.title);
+  expect(cardText).toContain(context.venue);
+  expect(cardText).toContain('Night recap');
+  expect(cardText).not.toContain('So far tonight');
+  expect(drawShareCard(canvas, {...context, title:'A'.repeat(200),venue:'Venue '.repeat(60)}, 0, 0, [])).toBe(true);
+  expect(calls.every(c => c.y < canvas.height)).toBe(true);
   expect(calls.some((c) => c.text === "Good darts. Better company.")).toBe(
     true,
   );
   expect(
     drawShareCard(
       { getContext: () => null } as unknown as HTMLCanvasElement,
-      "Saturday",
+      context,
       0,
       0,
       [],

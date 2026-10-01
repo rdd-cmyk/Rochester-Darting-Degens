@@ -10,7 +10,7 @@ import { supabase } from '@/lib/supabaseClient';
 import { formatPlayerName } from '@/lib/playerName';
 import { formatRecordedScore } from '@/lib/matchScore';
 import { LinkedPlayerName } from '@/components/LinkedPlayerName';
-import { PlayerAvatar } from '@/components/avatars/PlayerAvatar';
+import { PlayerAvatar, PlayerAvatarName } from '@/components/avatars/PlayerAvatar';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { ActionLink } from '@/components/ui/ActionLink';
 import { ActionButton } from '@/components/ui/ActionButton';
@@ -625,7 +625,7 @@ export default function ProfilePage() {
         eyebrow="Player profile"
         title={title}
         description="The record, the recent form, and the next rival to watch."
-        identity={<span aria-hidden="true"><PlayerAvatar playerId={profile.id} name={title} size={80} /></span>}
+        identity={<span className="player-profile-identity"><span aria-hidden="true"><PlayerAvatar playerId={profile.id} name={title} size={80} /></span><PlayerAvatarName playerId={profile.id} /></span>}
         actions={<><ActionLink href="/profiles">Browse players</ActionLink><ActionLink href="/matches" variant="quiet">Back to matches</ActionLink></>}
       />
 

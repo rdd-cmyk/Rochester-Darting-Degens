@@ -75,7 +75,14 @@ export function RivalryPoster({
             const img = new window.Image();
             img.src = avatar.image;
             await img.decode();
-            ctx.drawImage(img, i ? 620 : 20, 480, 560, 560);
+            ctx.save();
+            if (i === 1) {
+              // Match the room's faceoff: the right portrait faces inward.
+              ctx.translate(1180, 480);
+              ctx.scale(-1, 1);
+              ctx.drawImage(img, 0, 0, 560, 560);
+            } else ctx.drawImage(img, 20, 480, 560, 560);
+            ctx.restore();
           }),
         );
       ctx.fillStyle = "#f6e9ce";

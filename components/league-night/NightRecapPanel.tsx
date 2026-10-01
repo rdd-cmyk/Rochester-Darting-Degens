@@ -13,6 +13,7 @@ import {
 } from "@/lib/league-night/recap";
 import type { LeagueNight, NightMatch } from "@/lib/league-night/types";
 import { drawShareCard } from "@/lib/league-night/share-card";
+import { nightRecapContext } from "@/lib/league-night/recap-context";
 
 export function nightDate(date: string): string {
   return new Date(`${date}T12:00:00Z`).toLocaleDateString("en-US", {
@@ -74,6 +75,8 @@ export function NightRecapPanel({
   const [shareOpen, setShareOpen] = useState(false);
   const [shareNotice, setShareNotice] = useState("");
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const context = nightRecapContext(night.night_date);
+  const cardContext = { title: night.title, date: nightDate(night.night_date), venue: night.venue, summary: context.summary };
   const featured = useMemo(
     () =>
       recap.awards
@@ -87,7 +90,7 @@ export function NightRecapPanel({
     if (canvasRef.current)
       drawShareCard(
         canvasRef.current,
-        nightDate(night.night_date),
+        { title: night.title, date: nightDate(night.night_date), venue: night.venue, summary: context.summary },
         recap.matches.length,
         playerCount,
         featured,
@@ -95,6 +98,9 @@ export function NightRecapPanel({
   }, [
     featured,
     night.night_date,
+    night.title,
+    night.venue,
+    context.summary,
     recap.matches.length,
     playerCount,
     shareOpen,
@@ -102,8 +108,9 @@ export function NightRecapPanel({
     error,
   ]);
   const shareText = [
-    `Rochester Darting Degens — ${nightDate(night.night_date)}`,
-    `${recap.matches.length} recorded games · ${playerCount} players · So far tonight`,
+    `Rochester Darting Degens — ${night.title}`,
+    `${nightDate(night.night_date)}${night.venue ? ` · ${night.venue}` : ''}`,
+    `${recap.matches.length} recorded games · ${playerCount} players · ${context.summary}`,
     ...featured.map(
       (a) => `${a.title}: ${a.playerName} — ${a.reason} (${a.scope})`,
     ),
@@ -116,7 +123,7 @@ export function NightRecapPanel({
         !canvas ||
         !drawShareCard(
           canvas,
-          nightDate(night.night_date),
+          cardContext,
           recap.matches.length,
           playerCount,
           featured,
@@ -152,7 +159,7 @@ export function NightRecapPanel({
   if (loading && history.length === 0)
     return (
       <section className="night-panel" aria-live="polite">
-        Loading the full recorded history for tonight’s highlights…
+        Loading the full recorded history for this night’s highlights…
       </section>
     );
   if (error)
@@ -166,7 +173,7 @@ export function NightRecapPanel({
   return (
     <section className="night-recap" aria-busy={loading}>
       <div className="night-recap-banner">
-        <p className="night-eyebrow">The night so far</p>
+        <p className="night-eyebrow">{context.eyebrow}</p>
         <h2>
           A few good games.
           <br />A lot to talk about.
@@ -198,7 +205,7 @@ export function NightRecapPanel({
       )}
       <div className="night-section-heading">
         <div>
-          <h2>Tonight’s awards</h2>
+          <h2>Night awards</h2>
           <p className="night-small">
             Earned bragging rights. Updated as results come in.
           </p>
@@ -213,8 +220,8 @@ export function NightRecapPanel({
         <section id="night-share-card" className="night-panel night-share">
           <h3>Choose up to three awards to share</h3>
           <p className="night-small">
-            Includes display names and results. Venue and private notes are
-            omitted.
+            Includes the night name, venue when given, display names and results.
+            Private match notes are omitted.
           </p>
           <div className="night-share-choices">
             {recap.awards.map((a) => (
@@ -272,13 +279,13 @@ export function NightRecapPanel({
         <div className="night-panel">
           <h3>
             {recap.matches.length
-              ? "The night is still young."
+              ? "Every game adds to the story."
               : "Your story starts with the first game."}
           </h3>
           <p>
             {recap.matches.length
               ? "No awards qualify yet. Personal milestones and streaks will appear when the recorded results support them."
-              : "Record a match to start tonight’s results and highlights."}
+              : "Record a match to start this night’s results and highlights."}
           </p>
         </div>
       ) : (
@@ -302,7 +309,7 @@ export function NightRecapPanel({
       )}
       <div className="night-recap-columns">
         <section className="night-panel">
-          <h2>Tonight’s results</h2>
+          <h2>Night results</h2>
           {recap.unrated > 0 && <p className="night-small">Competitive results only.</p>}
           <table className="night-table">
             <thead>
@@ -326,7 +333,7 @@ export function NightRecapPanel({
         <section className="night-panel">
           <h2>Rating movement</h2>
           <p className="night-small">
-            Only tonight’s contribution, using earlier recorded games for
+            Only this night’s contribution, using earlier recorded games for
             context.
           </p>
           {recap.ratingMoves.length ? (

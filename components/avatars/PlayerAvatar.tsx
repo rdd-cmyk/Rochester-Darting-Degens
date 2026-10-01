@@ -83,6 +83,16 @@ function AvatarStore({
 export function useAvatarChoice(id: string) {
   return useContext(Choices)[id];
 }
+/** Visible callsign for a known selection; initials have no invented callsign. */
+export function PlayerAvatarName({ playerId, avatarId, className = "" }: {
+  playerId?: string;
+  avatarId?: string | null;
+  className?: string;
+}) {
+  const choices = useContext(Choices);
+  const avatar = avatarById(avatarId === undefined ? choices[playerId ?? ""]?.avatar_id : avatarId);
+  return avatar ? <span className={`player-avatar-name ${className}`}>{avatar.label}</span> : null;
+}
 export function PlayerAvatar({
   playerId,
   name,

@@ -2,7 +2,9 @@
 
 Baseline: `release/next` at `247e4f5`. Owner accepted the combined shared-frame
 update and requested this final pass. Status: implementation complete; all local
-gates passed; Preview candidate prepared; owner appearance review open.
+gates passed; exact-commit CI and Preview verified; owner appearance accepted
+on 2026-10-01. Follow-up Alien/Red Panda edge cleanup is recorded in
+[art provenance](../art/rivalry-avatars/edge-cleanup-2026-10-01.md).
 
 1. Rename the lion's display label Crown to King; preserve stable avatar IDs.
 2. Give Machine a focused competitive expression, preserving the roster style

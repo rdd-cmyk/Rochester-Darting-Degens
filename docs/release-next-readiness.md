@@ -12,7 +12,9 @@ shared-frame update are published to Preview at application `020136e`. See the
 [publication record](release/shared-page-frame-preview-2026-10-01.md) for exact
 CI/Vercel evidence. The owner accepted the shared-frame appearance on October 1;
 the subsequent [final visual polish](release/final-visual-polish-2026-10-01.md)
-has passed all local gates and is prepared for Preview. Its appearance review and affected W6
+has passed local gates and exact-commit CI/Preview checks at `f807358`; its
+appearance was accepted on October 1. The Alien/Red Panda edge cleanup is
+recorded in [art provenance](art/rivalry-avatars/edge-cleanup-2026-10-01.md). Affected W6
 multi-account journeys remain open before returning to W7 (and W6 closeout). The
 [candidate addendum](release/post-consistency-candidate-2026-10-01.json) confirms
 unchanged W5/W6 SQL inputs. The [September 30 checkpoint](release/pre-consistency-checkpoint-2026-09-30.md)

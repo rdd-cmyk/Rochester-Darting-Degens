@@ -366,10 +366,10 @@
   {
     "id": "red-panda",
     "label": "Wildcard",
-    "version": 1,
+    "version": 2,
     "review_status": "locally inspected; owner final acceptance pending",
     "tool": "Built-in image_gen",
-    "generation_date": "2026-09-28",
+    "generation_date": "2026-10-01",
     "dimensions": {
       "hero": [
         512,
@@ -384,8 +384,8 @@
         96
       ]
     },
-    "source": "pack-c.png",
-    "cell": 1,
+    "source": "red-panda-v2.png",
+    "cell": null,
     "image": "/avatars/red-panda.webp",
     "thumbnail": "/avatars/red-panda-96.webp",
     "medium": "/avatars/red-panda-256.webp",
@@ -450,10 +450,10 @@
   {
     "id": "alien",
     "label": "Anomaly",
-    "version": 1,
+    "version": 2,
     "review_status": "locally inspected; owner final acceptance pending",
     "tool": "Built-in image_gen",
-    "generation_date": "2026-09-28",
+    "generation_date": "2026-10-01",
     "dimensions": {
       "hero": [
         512,
@@ -468,8 +468,8 @@
         96
       ]
     },
-    "source": "pack-c.png",
-    "cell": 4,
+    "source": "alien-v2.png",
+    "cell": null,
     "image": "/avatars/alien.webp",
     "thumbnail": "/avatars/alien-96.webp",
     "medium": "/avatars/alien-256.webp",

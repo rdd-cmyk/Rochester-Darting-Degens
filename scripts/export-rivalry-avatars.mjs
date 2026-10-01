@@ -41,7 +41,12 @@ for (const sheet of sheets) {
     const name = sheet.names[i];
     const top = i < 3 ? 0 : 512;
     // Individual replacements take precedence over the original sheet cell.
-    const replacement = ({ wolf: "wolf-v2.png", robot: "robot-v2.png" })[name] ?? null;
+    const replacement = ({
+      wolf: "wolf-v2.png",
+      robot: "robot-v2.png",
+      alien: "alien-v2.png",
+      "red-panda": "red-panda-v2.png",
+    })[name] ?? null;
     const cell = replacement ? sharp(path.join(sources, replacement)) : sharp(source).extract({
       left: (i % 3) * 512,
       top,
@@ -69,7 +74,7 @@ for (const sheet of sheets) {
       version: replacement ? 2 : 1,
       review_status: "locally inspected; owner final acceptance pending",
       tool: "Built-in image_gen",
-      generation_date: name === "robot" ? "2026-10-01" : replacement ? "2026-09-30" : "2026-09-28",
+      generation_date: replacement ? (name === "wolf" ? "2026-09-30" : "2026-10-01") : "2026-09-28",
       dimensions: { hero: [512, 512], medium: [256, 256], thumbnail: [96, 96] },
       source: replacement ?? `${sheet.id}.png`,
       cell: replacement ? null : i,

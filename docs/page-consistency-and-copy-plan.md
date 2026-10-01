@@ -1,6 +1,6 @@
 # Page consistency and league voice plan
 
-Prepared: 2026-09-30. Status: **P01-P24 and shared-frame appearance owner-accepted; final visual polish local gates passed and Preview candidate prepared; affected W6 journeys remain open**.
+Prepared: 2026-09-30. Status: **P01-P24, shared-frame and final visual polish appearance owner-accepted; affected W6 journeys remain open**.
 Baseline: `release/next` at `351a4b0253f2c7f05d7a70708597d1c847977c65`.
 
 Before this plan was written, the release position was saved in the

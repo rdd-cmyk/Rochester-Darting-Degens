@@ -1,7 +1,7 @@
 # P04 League Night consistency and copy
 
-Status: awaiting owner review. Baseline release/next at 938ee34.
-The owner accepted P03 and authorized P04 on 2026-09-30. P05 is unstarted.
+Status: owner-accepted on 2026-09-30 at acc01a0. CI 36800191914 and Vercel passed.
+Baseline release/next at 938ee34. The owner authorized P05 in the acceptance message.
 
 ## Presentation and scope
 
@@ -73,5 +73,4 @@ Supabase settings, production changes, SQL or release gate changes are included.
 ## Review stop
 
 Review lobby, Start a night form, one existing night’s entry/attendance and recap,
-including selected winners, narrow scorecards and the share-card preview. Keep P05
-unstarted until the owner accepts P04 and authorizes the next page.
+including selected winners, narrow scorecards and the share-card preview. The owner subsequently accepted P04 and authorized P05 on 2026-09-30.

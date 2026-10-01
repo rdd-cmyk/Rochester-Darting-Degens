@@ -1,5 +1,7 @@
 "use client";
-import Link from "next/link";
+import { ActionButton } from "@/components/ui/ActionButton";
+import { ActionLink } from "@/components/ui/ActionLink";
+import { PageHeader } from "@/components/ui/PageHeader";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { formatPlayerName } from "@/lib/playerName";
 import {
@@ -205,36 +207,18 @@ export function PlanningPage({ userId }: { userId: string }) {
     }
   };
   return (
-    <main className="night-shell planning-page">
-      <header className="plan-stack">
-        <Link className="plan-link" href="/league-night">
+    <main className="planning-page rdd-form-controls">
+      <div className="plan-stack">
+        <ActionLink className="plan-link" href="/league-night">
           ← League Night
-        </Link>
-        <div className="plan-head">
-          <div>
-            <p className="night-eyebrow">Plan & RSVP</p>
-            <h1>Make the next night happen.</h1>
-            <p>Pick a night. Find a spot. Know who’s coming.</p>
-          </div>
-          {feed?.organizer && (
-            <div className="plan-row">
-              <button
-                disabled={Boolean(pending) || busy || !ready}
-                onClick={() => setEditor({ kind: "poll" })}
-              >
-                Create poll
-              </button>
-              <button
-                className="night-primary"
-                disabled={Boolean(pending) || busy || !ready}
-                onClick={() => setEditor({ kind: "night" })}
-              >
-                Schedule a night
-              </button>
-            </div>
-          )}
-        </div>
-      </header>
+        </ActionLink>
+        <PageHeader size="standard" eyebrow="Plan & RSVP" title="Make the next night happen"
+          description="Pick a night. Find a spot. Get the lineup ready."
+          actions={feed?.organizer ? <>
+            <ActionButton disabled={Boolean(pending) || busy || !ready} onClick={() => setEditor({ kind: "poll" })}>Create poll</ActionButton>
+            <ActionButton variant="primary" disabled={Boolean(pending) || busy || !ready} onClick={() => setEditor({ kind: "night" })}>Schedule a night</ActionButton>
+          </> : undefined} />
+      </div>
       <div className="plan-head plan-toolbar">
         <p className="plan-muted">
           Rochester time ·{" "}
@@ -242,13 +226,13 @@ export function PlanningPage({ userId }: { userId: string }) {
             ? `Updated ${rochesterTime(feed.server_now)}`
             : "Loading planning…"}
         </p>
-        <button disabled={busy} onClick={() => void refresh()}>
+        <ActionButton disabled={busy} onClick={() => void refresh()}>
           Refresh
-        </button>
+        </ActionButton>
       </div>
       {error && (
         <p className="night-warning" role="alert">
-          {error} {feed ? "Showing the last loaded information." : ""}
+          {feed ? `${error} Showing the last loaded information.` : "Couldn’t load planning. Refresh to try again."}
         </p>
       )}
       {storageError && (
@@ -266,9 +250,9 @@ export function PlanningPage({ userId }: { userId: string }) {
               ? "Saving…"
               : "A submitted request still needs confirmation. Check it before making another change."}
           </p>
-          <button disabled={busy} onClick={() => void perform(pending)}>
+          <ActionButton disabled={busy} onClick={() => void perform(pending)}>
             Check / retry saved request
-          </button>
+          </ActionButton>
         </section>
       )}
       <p className="plan-status" role="status">
@@ -287,7 +271,7 @@ export function PlanningPage({ userId }: { userId: string }) {
                 : "This item changed since you opened it. Your edits are still shown below."}
             </p>
             {!missingEditor && canReloadEditor ? (
-              <button
+              <ActionButton
                 onClick={() =>
                   setEditor(
                     (current) =>
@@ -300,11 +284,11 @@ export function PlanningPage({ userId }: { userId: string }) {
                 }
               >
                 Load latest version (discard my edits)
-              </button>
+              </ActionButton>
             ) : !missingEditor ? (
               <p>Its status no longer allows this edit.</p>
             ) : null}
-            <button onClick={() => setEditor(null)}>Close editor</button>
+            <ActionButton onClick={() => setEditor(null)}>Close editor</ActionButton>
           </div>
         )}
         <fieldset className="plan-stack">
@@ -348,7 +332,7 @@ export function PlanningPage({ userId }: { userId: string }) {
             />
           ))}
           {feed && !feed.nights.length && (
-            <div className="night-panel">
+            <div className="rdd-content-panel">
               <h3>No upcoming nights yet.</h3>
               <p>
                 Vote on a plan below, or check back for the next confirmed
@@ -383,7 +367,7 @@ export function PlanningPage({ userId }: { userId: string }) {
             />
           ))}
           {feed && !feed.polls.length && (
-            <div className="night-panel">
+            <div className="rdd-content-panel">
               <h3>No polls yet.</h3>
               <p>
                 {feed.organizer
@@ -422,21 +406,21 @@ function Pagination({
   if (total <= 20 && offset === 0) return null;
   return (
     <div className="plan-row">
-      <button
+      <ActionButton
         disabled={disabled || !offset}
         onClick={() => move(Math.max(0, offset - 20))}
       >
         Previous {label}
-      </button>
+      </ActionButton>
       <span>
         {offset + 1}–{Math.min(offset + 20, total)} of {total}
       </span>
-      <button
+      <ActionButton
         disabled={disabled || offset + 20 >= total}
         onClick={() => move(offset + 20)}
       >
         Next {label}
-      </button>
+      </ActionButton>
     </div>
   );
 }
@@ -459,7 +443,7 @@ function NightCard({
   const yes = night.responses.filter((r) => r.going);
   const no = night.responses.filter((r) => !r.going);
   return (
-    <article className="night-panel plan-card plan-stack plan-night-card">
+    <article className="rdd-content-panel plan-card plan-stack plan-night-card">
       <div className="plan-head">
         <h3>{night.title}</h3>
         <span className="plan-badge">
@@ -478,12 +462,12 @@ function NightCard({
         </p>
         {night.notes && <p>{night.notes}</p>}
         {night.status !== "cancelled" && (
-          <Link
+          <ActionLink
             className="plan-link"
             href={`/league-night?night=${night.night_id}`}
           >
             Open this league night →
-          </Link>
+          </ActionLink>
         )}
         {night.override_reason && (
           <p className="plan-muted">
@@ -494,7 +478,7 @@ function NightCard({
       <div className="plan-night-response">
         <div className="plan-row">
           <span>Will you be there?</span>
-          <button
+          <ActionButton
             className="plan-choice"
             disabled={closed}
             aria-pressed={current && night.mine?.going === true}
@@ -508,8 +492,8 @@ function NightCard({
             }
           >
             Going
-          </button>
-          <button
+          </ActionButton>
+          <ActionButton
             className="plan-choice"
             disabled={closed}
             aria-pressed={current && night.mine?.going === false}
@@ -523,7 +507,7 @@ function NightCard({
             }
           >
             Not going
-          </button>
+          </ActionButton>
         </div>
         <p className="plan-muted">
           {yes.length} going · {no.length} not going ·{" "}
@@ -574,8 +558,8 @@ function NightCard({
           <details>
             <summary>Manage night</summary>
             <div className="plan-row">
-              <button onClick={edit}>Edit night</button>
-              <button onClick={() => setConfirm(true)}>Cancel night</button>
+              <ActionButton onClick={edit}>Edit night</ActionButton>
+              <ActionButton onClick={() => setConfirm(true)}>Cancel night</ActionButton>
             </div>
             {confirm && (
               <div className="plan-notice">
@@ -583,7 +567,7 @@ function NightCard({
                   Cancel this night and stop RSVPs? Its history will be kept.
                 </p>
                 <div className="plan-row">
-                  <button
+                  <ActionButton
                     onClick={async () => {
                       if (
                         await change("cancel_night", {
@@ -595,8 +579,8 @@ function NightCard({
                     }}
                   >
                     Yes, cancel night
-                  </button>
-                  <button onClick={() => setConfirm(false)}>Keep night</button>
+                  </ActionButton>
+                  <ActionButton onClick={() => setConfirm(false)}>Keep night</ActionButton>
                 </div>
               </div>
             )}
@@ -651,7 +635,7 @@ function PollCard({
     setDirty(true);
   }
   return (
-    <article className="night-panel plan-stack">
+    <article className="rdd-content-panel plan-stack">
       <div className="plan-head">
         <span className="plan-badge">
           {poll.status === "open" && closed
@@ -710,7 +694,7 @@ function PollCard({
                       </span>
                     </label>
                     {!closed && !o.withdrawn && (o.is_mine ?? o.suggested_by === userId) && (
-                      <button
+                      <ActionButton
                         onClick={() =>
                           void change("withdraw", {
                             poll_id: poll.id,
@@ -719,7 +703,7 @@ function PollCard({
                         }
                       >
                         Withdraw {optionLabel(o)}
-                      </button>
+                      </ActionButton>
                     )}
                   </div>
                 ))}
@@ -729,8 +713,8 @@ function PollCard({
       {!closed && (
         <div className="plan-head plan-divider">
           <div className="plan-row">
-            <button
-              className="night-primary"
+            <ActionButton
+              variant="primary"
               disabled={stale}
               onClick={async () => {
                 if (
@@ -747,7 +731,7 @@ function PollCard({
               }}
             >
               Save my votes
-            </button>
+            </ActionButton>
             <span className="plan-muted">
               {dirty
                 ? "Unsaved choices"
@@ -757,12 +741,12 @@ function PollCard({
             </span>
           </div>
           <div className="plan-row">
-            <button
+            <ActionButton
               disabled={poll.suggestions_used >= 2}
               onClick={() => setSuggest((v) => !v)}
             >
               Suggest an option
-            </button>
+            </ActionButton>
             <span className="plan-muted">
               {poll.suggestions_used} of 2 suggestions used
             </span>
@@ -772,7 +756,7 @@ function PollCard({
       {stale && (
         <p className="night-warning">
           Your ballot changed on another device.{" "}
-          <button
+          <ActionButton
             onClick={() => {
               setSelected(poll.mine);
               setBallotRevision(poll.ballot_revision);
@@ -780,7 +764,7 @@ function PollCard({
             }}
           >
             Load my saved ballot
-          </button>
+          </ActionButton>
         </p>
       )}
       {!closed && suggest && (
@@ -851,44 +835,44 @@ function PollCard({
             does not restore a slot. Adding an option does not vote for it.
           </p>
           <div className="plan-row">
-            <button type="submit">Add suggestion</button>
-            <button type="button" onClick={() => setSuggest(false)}>
+            <ActionButton variant="primary" type="submit">Add suggestion</ActionButton>
+            <ActionButton type="button" onClick={() => setSuggest(false)}>
               Cancel suggestion
-            </button>
+            </ActionButton>
           </div>
         </form>
       )}
       {poll.night_id && (
-        <Link
+        <ActionLink
           className="plan-link"
           href={`/league-night?night=${poll.night_id}`}
         >
           Open the confirmed night →
-        </Link>
+        </ActionLink>
       )}
       {organizer && (
         <details>
           <summary>Organizer controls</summary>
           <div className="plan-row">
             {poll.status === "draft" && (
-              <button onClick={() => edit(false)}>Edit / publish draft</button>
+              <ActionButton onClick={() => edit(false)}>Edit / publish draft</ActionButton>
             )}
             {poll.status === "open" && !closed && (
-              <button onClick={() => setConfirm("close_poll")}>
+              <ActionButton onClick={() => setConfirm("close_poll")}>
                 Close voting now
-              </button>
+              </ActionButton>
             )}
             {(poll.status === "closed" ||
               (poll.status === "open" && closed)) && (
-              <button className="night-primary" onClick={schedule}>
+              <ActionButton variant="primary" onClick={schedule}>
                 Review results & schedule
-              </button>
+              </ActionButton>
             )}
-            <button onClick={() => edit(true)}>Copy to new draft</button>
+            <ActionButton onClick={() => edit(true)}>Copy to new draft</ActionButton>
             {!["scheduled", "cancelled"].includes(poll.status) && (
-              <button onClick={() => setConfirm("cancel_poll")}>
+              <ActionButton onClick={() => setConfirm("cancel_poll")}>
                 Cancel poll
-              </button>
+              </ActionButton>
             )}
           </div>
           {confirm && (
@@ -899,7 +883,7 @@ function PollCard({
                   : "Cancel this poll? Its history will be kept."}
               </p>
               <div className="plan-row">
-                <button
+                <ActionButton
                   onClick={async () => {
                     if (
                       await change(confirm, {
@@ -911,8 +895,8 @@ function PollCard({
                   }}
                 >
                   Confirm {confirm === "close_poll" ? "close" : "cancellation"}
-                </button>
-                <button onClick={() => setConfirm(null)}>Keep poll</button>
+                </ActionButton>
+                <ActionButton onClick={() => setConfirm(null)}>Keep poll</ActionButton>
               </div>
             </div>
           )}

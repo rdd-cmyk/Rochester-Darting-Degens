@@ -1509,6 +1509,7 @@ textarea:disabled {
   --rdd-radius-control: .55rem;
   --rdd-radius-pill: 999px;
   --rdd-content-wide: 1240px;
+  --rdd-shell-padding: clamp(1rem, 3vw, 2.5rem);
   --rdd-content-form: 880px;
   --rdd-radius-panel: 1rem;
   --rdd-panel-padding: clamp(1rem, 2vw, 1.5rem);

@@ -1,4 +1,6 @@
 "use client";
+import { ActionButton } from "@/components/ui/ActionButton";
+
 import { useState } from "react";
 import {
   optionLabel,
@@ -64,7 +66,7 @@ export function PollForm({
     );
   }
   return (
-    <section className="night-panel plan-stack" aria-label="Poll editor">
+    <section className="rdd-content-panel plan-stack" aria-label="Poll editor">
       <div className="plan-head">
         <h2>
           {duplicate
@@ -73,7 +75,7 @@ export function PollForm({
               ? "Edit draft"
               : "Create a planning poll"}
         </h2>
-        <button onClick={onClose}>Cancel</button>
+        <ActionButton onClick={onClose}>Cancel</ActionButton>
       </div>
       <form
         className="plan-form"
@@ -168,7 +170,7 @@ export function PollForm({
         )}
         <p className="plan-muted">
           Once published, the question and deadline are fixed. You can close
-          early. Each profile can add two suggestions after publication.
+          early. Each person can add two suggestions after publication.
         </p>
         {(["date", "venue"] as const)
           .filter((kind) => scope === "both" || scope === kind)
@@ -202,7 +204,7 @@ export function PollForm({
                         }
                       />
                     </label>
-                    <button
+                    <ActionButton
                       type="button"
                       onClick={() =>
                         setOptions((values) =>
@@ -211,11 +213,11 @@ export function PollForm({
                       }
                     >
                       Remove option {index + 1}
-                    </button>
+                    </ActionButton>
                   </div>
                 ),
               )}
-              <button
+              <ActionButton
                 type="button"
                 disabled={options.length >= 20}
                 onClick={() =>
@@ -226,21 +228,21 @@ export function PollForm({
                 }
               >
                 Add {kind === "date" ? "date" : "venue"} option
-              </button>
+              </ActionButton>
             </fieldset>
           ))}
         <div className="plan-row">
-          <button
+          <ActionButton
             disabled={blocked}
             type="submit"
             value="publish"
-            className="night-primary"
+            variant="primary"
           >
             Publish poll
-          </button>
-          <button disabled={blocked} type="submit" value="draft">
+          </ActionButton>
+          <ActionButton disabled={blocked} type="submit" value="draft">
             Save draft
-          </button>
+          </ActionButton>
         </div>
       </form>
     </section>
@@ -304,10 +306,10 @@ export function ScheduleForm({
     poll?.pairs.find((p) => p.date_id === dateId && p.venue_id === venueId)
       ?.support ?? 0;
   return (
-    <section className="night-panel plan-stack" aria-label="Night editor">
+    <section className="rdd-content-panel plan-stack" aria-label="Night editor">
       <div className="plan-head">
         <h2>{night ? "Edit scheduled night" : "Put it on the calendar"}</h2>
-        <button onClick={onClose}>Cancel</button>
+        <ActionButton onClick={onClose}>Cancel</ActionButton>
       </div>
       <form
         className="plan-form"
@@ -448,13 +450,13 @@ export function ScheduleForm({
             respond again.
           </p>
         )}
-        <button
+        <ActionButton
           disabled={blocked || needsFutureCutoff}
           type="submit"
-          className="night-primary"
+          variant="primary"
         >
           {night ? "Save night changes" : "Confirm & schedule"}
-        </button>
+        </ActionButton>
       </form>
     </section>
   );

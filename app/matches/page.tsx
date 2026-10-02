@@ -905,7 +905,7 @@ function MatchesWorkspace({ user }: { user: User }) {
             {editingMatchId && !pendingSave && (
               <ActionButton
                 type="button"
-                onClick={resetForm}
+                onClick={() => { resetForm(); setEditorOpen(false); }}
                 variant="secondary"
                 disabled={saving}
               >

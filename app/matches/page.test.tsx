@@ -50,6 +50,31 @@ it('opens the archive first and makes standalone recording an explicit choice', 
   expect(screen.getByRole('button', { name: 'Save match' })).toBeInTheDocument();
   expect(rpc).not.toHaveBeenCalled();
 });
+it('closes the recording panel when an existing result edit is canceled', async () => {
+  const match = {
+    id: 42, created_by: players[0].id, revision: 1, night_id: null,
+    played_at: '2026-10-01T19:00:00Z', game_type: '501', game_config: null,
+    notes: 'Existing result', board_type: null, venue: null,
+    match_players: players.slice(0, 2).map((player, index) => ({
+      id: index + 1, match_id: 42, player_id: player.id, score: 60 - index,
+      points_scored: null, is_winner: index === 0, profiles: player,
+    })),
+  };
+  const originalFrom = from.getMockImplementation()!;
+  from.mockImplementation((table: string) => {
+    const query = originalFrom(table);
+    if (table === 'matches') query.range.mockResolvedValue({ data: [match], error: null, count: 1 });
+    return query;
+  });
+  const view = render(<MatchesPage />);
+  fireEvent.click(await screen.findByRole('button', { name: 'Edit result' }));
+  expect(screen.getByRole('heading', { name: 'Edit Match' })).toBeInTheDocument();
+  fireEvent.click(screen.getByRole('button', { name: 'Cancel edit' }));
+  expect(view.container.querySelector('#match-editor')).not.toBeInTheDocument();
+  expect(screen.getByRole('heading', { name: 'Match archive' })).toBeInTheDocument();
+  expect(rpc).not.toHaveBeenCalled();
+});
+
 function selectPlayer(index: number) {
   fireEvent.change(screen.getByLabelText(`Player ${index + 1}`, { exact: true }), { target: { value: players[index].id } });
 }

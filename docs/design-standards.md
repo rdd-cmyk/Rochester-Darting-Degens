@@ -343,8 +343,10 @@ titles use `--rdd-page-title-size` (`clamp(1.75rem, 3vw, 2.5rem)`), line-height
 `--rdd-page-title-line-height` (`1.14`), weight 800 and the orange period. Its
 eyebrow/title/description slots have shared minimum dimensions, including when
 copy is absent in loading/access states. Description text uses 1rem/1.6 and a
-68ch reading measure. At 640px and below, reserve two title lines, two eyebrow
-lines and four description lines. Long names/copy grow without clipping.
+68ch reading measure. At 640px and below, eyebrow, title and description use
+their natural content height, without reserved blank lines (owner approved
+2026-10-01). Shared header padding and the 24px shell gap provide a consistent
+separation from the next content or toolbar. Long names/copy grow without clipping.
 
 Actions occupy a separate shared toolbar below the title area; wrapping controls
 must not change the heading's geometry. Every route uses the same shell padding

@@ -1562,8 +1562,8 @@ html { scrollbar-gutter: stable; }
 .rdd-title-identity { position: absolute; top: var(--rdd-space-4); right: 0; width: clamp(72px, 10vw, 112px); }
 .rdd-title-header:has(.rdd-title-identity) :is(.rdd-title-eyebrow-slot, h1) { padding-right: 128px; }
 @media (max-width: 640px) {
-  :root { --rdd-page-title-min-height: calc(var(--rdd-page-title-size) * var(--rdd-page-title-line-height) * 2); --rdd-page-description-min-height: 6.4rem; }
-  .rdd-title-eyebrow-slot { min-height: 2.25rem; }
+  :root { --rdd-page-title-min-height: 0; --rdd-page-description-min-height: 0; }
+  .rdd-title-eyebrow-slot { min-height: 0; }
   .rdd-title-identity { width: 64px; }
   .rdd-title-header:has(.rdd-title-identity) :is(.rdd-title-eyebrow-slot, h1) { padding-right: 96px; }
 }

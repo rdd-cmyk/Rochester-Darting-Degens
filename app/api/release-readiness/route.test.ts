@@ -42,9 +42,21 @@ it.each(['https://hrqsbzmsfichiimtxijj.supabase.co', 'http://127.0.0.1:54321',
   expect(mocks.fetch).not.toHaveBeenCalled();
   expect(mocks.createClient).not.toHaveBeenCalled();
 });
-it.each(['RDD_LOCAL_PREVIEW', 'RDD_VISUAL_FIXTURE', 'NEXT_PUBLIC_RDD_VISUAL_FIXTURE',
-  'RDD_INVITES_ENABLED'])('rejects enabled %s before any request', async (name) => {
+it.each(['RDD_LOCAL_PREVIEW', 'RDD_VISUAL_FIXTURE', 'NEXT_PUBLIC_RDD_VISUAL_FIXTURE'])('rejects enabled %s before any request', async (name) => {
   vi.stubEnv(name, '1');
+  expect((await GET()).status).toBe(409);
+  expect(mocks.fetch).not.toHaveBeenCalled();
+});
+it('checks isolation with invitations enabled for W6 without sending mail', async () => {
+  vi.stubEnv('RDD_INVITES_ENABLED', '1');
+  const response = await GET();
+  expect(response.status).toBe(200);
+  expect(JSON.parse(await response.text()).invitationsEnabled).toBe(true);
+  expect(mocks.fetch).toHaveBeenCalledTimes(1);
+  expect(mocks.listUsers).toHaveBeenCalledTimes(1);
+});
+it.each(['', 'true', '2'])('rejects ambiguous invitation configuration %s', async (value) => {
+  vi.stubEnv('RDD_INVITES_ENABLED', value);
   expect((await GET()).status).toBe(409);
   expect(mocks.fetch).not.toHaveBeenCalled();
 });

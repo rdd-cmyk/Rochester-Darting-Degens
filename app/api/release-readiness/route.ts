@@ -31,7 +31,7 @@ export async function GET() {
     'NEXT_PUBLIC_RDD_VISUAL_FIXTURE'].some((name) => process.env[name] === '1');
 
   if (url !== testingUrl || !clientKey || !serverKey || fixtureEnabled ||
-      process.env.RDD_INVITES_ENABLED !== '0') {
+      !['0', '1'].includes(process.env.RDD_INVITES_ENABLED ?? '')) {
     return diagnostic({ message: 'Release preview configuration is not ready.' }, 409);
   }
 
@@ -60,7 +60,7 @@ export async function GET() {
       commit: process.env.VERCEL_GIT_COMMIT_SHA ?? null,
       supabaseProjectRef: testingRef,
       clientCredentialVerified: true, serverCredentialVerified: true,
-      invitationsEnabled: false, fixtureFlagsEnabled: false,
+      invitationsEnabled: process.env.RDD_INVITES_ENABLED === '1', fixtureFlagsEnabled: false,
       schemaAcceptance: 'not_exercised',
     });
   } catch {

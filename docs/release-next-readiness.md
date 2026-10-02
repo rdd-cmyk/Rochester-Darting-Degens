@@ -5,6 +5,13 @@ assessment complete, Vercel access resolved, isolated-preview gate passed;
 W2 statistics foundation and W3 combined synthetic rehearsal passed locally;
 W5's production-shaped local rehearsal has passed; W6-W8 release gates remain open.
 
+Latest resume point: the owner accepted the mobile header follow-up at
+`c278bd4` and requested sequential W0–W6 refresh. The
+[October 1 refresh ledger](release/w0-w6-refresh-2026-10-01.md) supersedes older
+resume wording below. It records the accepted League front door/Matches/Stats
+redesign documents, current SQL hash check, W1 diagnostic correction, and the
+Docker-engine dependency for the W3 refresh. W4–W6 refresh and W7/W8 remain open.
+
 October 1 statistics scope amendment: the owner authorized implementation of
 [provisional opponent replacement](provisional-schedule-proposal.md) for the
 existing Schedule metric. This supersedes the calculation-preservation scope

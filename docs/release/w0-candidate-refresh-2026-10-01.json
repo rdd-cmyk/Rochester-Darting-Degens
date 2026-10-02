@@ -1,0 +1,109 @@
+{
+  "recordedAtUtc": "2026-10-02T02:07:55.928Z",
+  "appCommit": "c278bd4eee084a1077ff8700d8d27b4749933085",
+  "branch": "release/next",
+  "remoteCommit": "c278bd4eee084a1077ff8700d8d27b4749933085",
+  "productionBase": "690a01b84d96c55b8ec455a6e298c17ec6093b50",
+  "inputs": [
+    {
+      "path": "supabase/tests/fixtures/advanced_statistics_foundation.sql",
+      "expected": "b94636f673f8e9902f80aa96f78200b617623480aef081316c2b589d0e6aa4d0",
+      "sha256_lf": "b94636f673f8e9902f80aa96f78200b617623480aef081316c2b589d0e6aa4d0",
+      "matches": true
+    },
+    {
+      "path": "supabase/pending/league_night.sql",
+      "expected": "e94ba4bd37b11f76fc1486c4b4c498bee2feab84e303cbdbe2bd134e7790fc82",
+      "sha256_lf": "e94ba4bd37b11f76fc1486c4b4c498bee2feab84e303cbdbe2bd134e7790fc82",
+      "matches": true
+    },
+    {
+      "path": "supabase/tests/fixtures/league_planning.sql",
+      "expected": "66aa6d8b5b6877a06db7b9e83b9376bd3382011ecda04d52db88541651d9441f",
+      "sha256_lf": "66aa6d8b5b6877a06db7b9e83b9376bd3382011ecda04d52db88541651d9441f",
+      "matches": true
+    },
+    {
+      "path": "supabase/tests/fixtures/league_board.sql",
+      "expected": "73a86c6997bece0af6d9f874aa53ba6f787a104ce804f5e9cc35ab46727d0fc4",
+      "sha256_lf": "73a86c6997bece0af6d9f874aa53ba6f787a104ce804f5e9cc35ab46727d0fc4",
+      "matches": true
+    },
+    {
+      "path": "supabase/tests/fixtures/invite_only_registration.sql",
+      "expected": "f812179eabd8245ecf0598298a3e9cea5233fe1ec917aef10ef31b179e360f25",
+      "sha256_lf": "f812179eabd8245ecf0598298a3e9cea5233fe1ec917aef10ef31b179e360f25",
+      "matches": true
+    },
+    {
+      "path": "supabase/tests/fixtures/invite_parent_admission.sql",
+      "expected": "93923f653aeed189070c08e3375132c841620092bbcb121fbd074ceb01636794",
+      "sha256_lf": "93923f653aeed189070c08e3375132c841620092bbcb121fbd074ceb01636794",
+      "matches": true
+    },
+    {
+      "path": "supabase/tests/fixtures/game_modes.sql",
+      "expected": "4dc9333cd92cd3061a88cda970e8d8c043617e7db4d781f9e4926953d79d0bea",
+      "sha256_lf": "4dc9333cd92cd3061a88cda970e8d8c043617e7db4d781f9e4926953d79d0bea",
+      "matches": true
+    },
+    {
+      "path": "supabase/tests/fixtures/advanced_statistics_final.sql",
+      "expected": "47debada4f2cfa25bda32c1d63e8ce5ae1ac5db4bae88247f2784fdd1f3f6a23",
+      "sha256_lf": "47debada4f2cfa25bda32c1d63e8ce5ae1ac5db4bae88247f2784fdd1f3f6a23",
+      "matches": true
+    },
+    {
+      "path": "supabase/tests/fixtures/solo_play.sql",
+      "expected": "74ca8a4a0b1421c09e461cc0414798a53260ae543da8380d2c081df3ade82f10",
+      "sha256_lf": "74ca8a4a0b1421c09e461cc0414798a53260ae543da8380d2c081df3ade82f10",
+      "matches": true
+    },
+    {
+      "path": "supabase/tests/fixtures/rivalry_room.sql",
+      "expected": "4640de1b46210adf05e7f2d99676666a85a07327b14dbc4b53db8b4641a34853",
+      "sha256_lf": "4640de1b46210adf05e7f2d99676666a85a07327b14dbc4b53db8b4641a34853",
+      "matches": true
+    },
+    {
+      "path": "supabase/pending/league_night_enforce.sql",
+      "expected": "b162ee8ecfafce0ff83d9fc242791b14c1ed7d45331bade935e2918e6c01ed81",
+      "sha256_lf": "b162ee8ecfafce0ff83d9fc242791b14c1ed7d45331bade935e2918e6c01ed81",
+      "matches": true
+    },
+    {
+      "path": "supabase/tests/fixtures/w6_poll_privacy_solo_701.sql",
+      "expected": "5a25ccd33d6732b08cae1cc48e9acbb2653400a592aad7ec901761fe7bf74fd9",
+      "sha256_lf": "5a25ccd33d6732b08cae1cc48e9acbb2653400a592aad7ec901761fe7bf74fd9",
+      "matches": true
+    },
+    {
+      "path": "supabase/tests/fixtures/w6_poll_privacy_solo_701.test.sql",
+      "expected": "f7231ab87671de50e3fd869d48b5805d76760bb37cb7e405361b19dc9bca28d2",
+      "sha256_lf": "f7231ab87671de50e3fd869d48b5805d76760bb37cb7e405361b19dc9bca28d2",
+      "matches": true
+    },
+    {
+      "path": "supabase/tests/fixtures/w6_solo_summary_default.sql",
+      "expected": "31c01ed5f15779320db7ccde79b67b768743e1e12144566785381a4fc451e7fe",
+      "sha256_lf": "31c01ed5f15779320db7ccde79b67b768743e1e12144566785381a4fc451e7fe",
+      "matches": true
+    },
+    {
+      "path": "supabase/tests/fixtures/w6_solo_summary_default.test.sql",
+      "expected": "03de25083b777f2937e7555e04b8d4b0a339e4036155572e29071c46184691ed",
+      "sha256_lf": "03de25083b777f2937e7555e04b8d4b0a339e4036155572e29071c46184691ed",
+      "matches": true
+    }
+  ],
+  "automaticMigrationFiles": "",
+  "scope": [
+    "League Night root and logo landing",
+    "Stats Power, Records and Head to Head",
+    "Archive-first Matches and explicit standalone recording",
+    "Provisional opponent Schedule amendment",
+    "Shared mobile natural header heights",
+    "Approved minimal dependency security patches"
+  ],
+  "productionAuthorized": false
+}

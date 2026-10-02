@@ -16,7 +16,7 @@ const container = `supabase_db_${project}`;
 const network = 'rdd-w2-loopback';
 const files = [
   'supabase/tests/fixtures/advanced_statistics_foundation.sql',
-  'supabase/pending/league_night.sql',
+  'supabase/tests/fixtures/league_night.sql',
   'supabase/tests/fixtures/league_planning.sql',
   'supabase/tests/fixtures/league_board.sql',
   'supabase/tests/fixtures/invite_only_registration.sql',
@@ -25,7 +25,7 @@ const files = [
   'supabase/tests/fixtures/advanced_statistics_final.sql',
   'supabase/tests/fixtures/solo_play.sql',
   'supabase/tests/fixtures/rivalry_room.sql',
-  'supabase/pending/league_night_enforce.sql',
+  'supabase/tests/fixtures/league_night_enforce.sql',
 ];
 const read = file => readFileSync(path.join(root, file), 'utf8');
 const output = [];

@@ -58,8 +58,8 @@ try {
   );
   for (const file of [
     "supabase/tests/fixtures/existing_schema_baseline.sql",
-    "supabase/pending/league_night.sql",
-    "supabase/pending/league_night_enforce.sql",
+    "supabase/tests/fixtures/league_night.sql",
+    "supabase/tests/fixtures/league_night_enforce.sql",
   ])
     sql(readFileSync(path.join(root, file), "utf8"));
   const testPath = "/tmp/league-night.test.sql";
@@ -104,7 +104,7 @@ try {
   // Refresh only function bodies in this task's isolated development stack.
   // Schema changes require another reviewed fixture step; no table reset here.
   const definitions = readFileSync(
-    path.join(root, "supabase/pending/league_night.sql"),
+    path.join(root, "supabase/tests/fixtures/league_night.sql"),
     "utf8",
   ).match(/CREATE FUNCTION[\s\S]*?\$\$;/g);
   sql(
@@ -114,7 +114,7 @@ try {
         .join("\n") +
       "\n" +
       readFileSync(
-        path.join(root, "supabase/pending/league_night_enforce.sql"),
+        path.join(root, "supabase/tests/fixtures/league_night_enforce.sql"),
         "utf8",
       )
         .replace("BEGIN;", "")

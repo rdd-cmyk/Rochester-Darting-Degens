@@ -1,3 +1,4 @@
+import { canonicalDeferredSqlSource } from './deferred-sql-source.mjs';
 // Deliberately abort one not-yet-applied W5 input before COMMIT, proving the
 // protected local database remains unchanged. No raw dump or row data is logged.
 import {readFileSync,writeFileSync,existsSync} from 'node:fs';
@@ -14,7 +15,7 @@ const workdir=path.join(root,'.local','release-w5-protected');
 const manifest=JSON.parse(readFileSync(path.join(workdir,'manifest.json'),'utf8'));
 if(manifest.targetProjectId!=='rdd-release-w4-protected')throw Error('Wrong W5 target');
 const step=manifest.steps[number-1];
-const source=readFileSync(path.join(root,step.source));
+const source=readFileSync(path.join(root,canonicalDeferredSqlSource(step.source)));
 if(createHash('sha256').update(source).digest('hex')!==step.sha256)
  throw Error('W5 SQL changed since manifest preparation');
 const text=source.toString('utf8');

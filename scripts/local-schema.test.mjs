@@ -1,5 +1,7 @@
 // @vitest-environment node
-import { existsSync, readdirSync } from 'node:fs';
+import { existsSync, readdirSync, readFileSync } from 'node:fs';
+import { createHash } from 'node:crypto';
+import { canonicalDeferredSqlSource } from './deferred-sql-source.mjs';
 import { beforeEach, expect, it, vi } from 'vitest';
 import { execFileSync } from 'node:child_process';
 import { ensureLocalSchema } from './local-schema.mjs';
@@ -48,4 +50,19 @@ it('keeps the automatic production migration directory empty', () => {
   const directory = new URL('../supabase/migrations/', import.meta.url);
   const migrations = existsSync(directory) ? readdirSync(directory, { withFileTypes: true }) : [];
   expect(migrations.filter(entry => entry.isFile() && entry.name.endsWith('.sql'))).toEqual([]);
+});
+
+it('keeps League Night SQL in the governed fixtures with the reviewed content', () => {
+  const reviewed = {
+    'league_night.sql': 'e94ba4bd37b11f76fc1486c4b4c498bee2feab84e303cbdbe2bd134e7790fc82',
+    'league_night_enforce.sql': 'b162ee8ecfafce0ff83d9fc242791b14c1ed7d45331bade935e2918e6c01ed81',
+  };
+  for (const [name, expected] of Object.entries(reviewed)) {
+    const legacy = `supabase/pending/${name}`;
+    const source = canonicalDeferredSqlSource(legacy);
+    expect(source).toBe(`supabase/tests/fixtures/${name}`);
+    expect(existsSync(new URL(`../${legacy}`, import.meta.url))).toBe(false);
+    const sql = readFileSync(new URL(`../${source}`, import.meta.url), 'utf8').replace(/\r\n/g, '\n');
+    expect(createHash('sha256').update(sql).digest('hex')).toBe(expected);
+  }
 });

@@ -287,7 +287,7 @@ Retain the League Lab's visual quality and sample guardrails. Enhanced scoring
 fields and the old deferred statistics schema are not required by this scope.
 Shared nights require narrowly scoped new storage under the same database
 review and deployment gates as safer saving. The reviewed local SQL is under
-`supabase/pending/`, not the auto-deployment migration directory. Follow
+`supabase/tests/fixtures/`, not the auto-deployment migration directory. Follow
 [the ordered rollout](league-night-database-rollout.md); do not deploy this app
 against an unchanged hosted database.
 

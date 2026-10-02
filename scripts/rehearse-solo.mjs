@@ -59,8 +59,8 @@ try {
   for (const file of [
     "supabase/tests/fixtures/existing_schema_baseline.sql",
     "supabase/tests/fixtures/advanced_statistics_foundation.sql",
-    "supabase/pending/league_night.sql",
-    "supabase/pending/league_night_enforce.sql",
+    "supabase/tests/fixtures/league_night.sql",
+    "supabase/tests/fixtures/league_night_enforce.sql",
     "supabase/tests/rehearsal/legacy-fixture.sql",
     "supabase/tests/fixtures/league_planning.sql",
     "supabase/tests/fixtures/league_board.sql",

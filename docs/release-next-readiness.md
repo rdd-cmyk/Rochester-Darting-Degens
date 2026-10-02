@@ -189,7 +189,7 @@ hashes, preconditions, postconditions and recovery actions before execution.
 | Source | Purpose and release dependency |
 | --- | --- |
 | `supabase/tests/fixtures/advanced_statistics_foundation.sql` | W2 storage preparation: unknown historical provenance/modification time, optional measurements, closed seasons and compatibility view. Install before invitations. No season seeded. Refuses the older experimental foundation pending reconciliation. |
-| `supabase/pending/league_night.sql` | Nights, attendance, revisions and atomic match save/replay; precedes planning and game modes. |
+| `supabase/tests/fixtures/league_night.sql` | Nights, attendance, revisions and atomic match save/replay; precedes planning and game modes. |
 | `supabase/tests/fixtures/league_planning.sql` | Polls, votes, schedules, RSVPs and private organizer authority; requires League Night. Current source includes `published_at`. |
 | `supabase/tests/fixtures/league_board.sql` | Board content, approval, moderation and RPCs; precedes parent admission wrappers. |
 | `supabase/tests/fixtures/invite_only_registration.sql` | Invitation service, `league_members` and restrictive base-table policies; requires the reviewed statistics dependency. Does not admit existing users automatically. |
@@ -198,7 +198,7 @@ hashes, preconditions, postconditions and recovery actions before execution.
 | `supabase/tests/fixtures/advanced_statistics_final.sql` | W2 final caller-permission view and member-only season reads; after invitation admission and game modes. Includes complete game/team context and all optional measurements; no current site consumer. |
 | `supabase/tests/fixtures/solo_play.sql` | Private solo sessions/games/preferences, operation records, consented projections and membership checks. Requires the combined parent/game-mode contract. |
 | `supabase/tests/fixtures/rivalry_room.sql` | Private avatar catalog/selections, challenge terms, game links, audit events and replay receipts; requires profiles, League Night/planning, invitation admission and the final game-mode save implementation. Installs an outer `rdd_save_match` wrapper for atomic challenge linking; test ordinary/team saving and admission through the entire wrapper chain. Solo does not replace that RPC and may precede this input. |
-| `supabase/pending/league_night_enforce.sql` | Revokes direct split match/participant writes. Separate cutover step after the compatible application works and legacy writes are drained. |
+| `supabase/tests/fixtures/league_night_enforce.sql` | Revokes direct split match/participant writes. Separate cutover step after the compatible application works and legacy writes are drained. |
 | `supabase/tests/fixtures/advanced_statistics_profile.sql` | W2 read-only actual-CHECK conflict counts; inspect before validation. Does not repair or expose conflicting real rows in tracked output. |
 | `supabase/tests/fixtures/advanced_statistics_validate.sql` | W2 separate atomic constraint validation with bounded lock/statement timeouts. Promote only after profiling and representative rehearsal; not an automatic installation step. |
 

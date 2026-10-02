@@ -102,7 +102,7 @@ if (command === "test") {
     const hasGames = docker(['exec',container,'psql','-U','postgres','-Atqc',"select to_regclass('rdd_private.game_modes_control') is not null"]);
     for (const file of [
       ...(exists === 'f' ? ['supabase/tests/fixtures/existing_schema_baseline.sql'] : []),
-      ...(hasNight === 'f' ? ['supabase/pending/league_night.sql','supabase/pending/league_night_enforce.sql'] : []),
+      ...(hasNight === 'f' ? ['supabase/tests/fixtures/league_night.sql','supabase/tests/fixtures/league_night_enforce.sql'] : []),
       ...(hasGames === 'f' ? ['supabase/tests/fixtures/game_modes.sql','supabase/tests/fixtures/game_modes_local_enable.sql'] : []),
     ]) {
       execFileSync(

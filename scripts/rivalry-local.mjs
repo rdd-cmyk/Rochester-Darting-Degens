@@ -87,8 +87,8 @@ if (command === "start") {
       : []),
     ...(!has("public.league_nights")
       ? [
-          "supabase/pending/league_night.sql",
-          "supabase/pending/league_night_enforce.sql",
+          "supabase/tests/fixtures/league_night.sql",
+          "supabase/tests/fixtures/league_night_enforce.sql",
         ]
       : []),
     ...(!has("rdd_private.planning_schedules")

@@ -73,13 +73,13 @@ async function main() {
     // Older invitation-only stacks gain the rebased parent's fixtures once.
     // Existing parent tables and invitation records are never replayed.
     for (const [table, fixture] of [
-      ['public.league_nights', 'supabase/pending/league_night.sql'],
+      ['public.league_nights', 'supabase/tests/fixtures/league_night.sql'],
       ['rdd_private.planning_polls', 'supabase/tests/fixtures/league_planning.sql'],
       ['public.board_members', 'supabase/tests/fixtures/league_board.sql'],
     ]) {
       if (inviteSql(`select to_regclass('${table}') is null;`) === 't') inviteSql(readFileSync(path.join(root, fixture), 'utf8'));
     }
-    inviteSql(readFileSync(path.join(root, 'supabase/pending/league_night_enforce.sql'), 'utf8'));
+    inviteSql(readFileSync(path.join(root, 'supabase/tests/fixtures/league_night_enforce.sql'), 'utf8'));
     if (inviteSql("select to_regprocedure('invite_private.require_admission()') is null;") === 't') {
       inviteSql(readFileSync(path.join(root, 'supabase/tests/fixtures/invite_parent_admission.sql'), 'utf8'));
     }

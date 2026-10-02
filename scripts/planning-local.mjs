@@ -156,8 +156,8 @@ try {
       if (exists === "f")
         for (const file of [
           "supabase/tests/fixtures/existing_schema_baseline.sql",
-          "supabase/pending/league_night.sql",
-          "supabase/pending/league_night_enforce.sql",
+          "supabase/tests/fixtures/league_night.sql",
+          "supabase/tests/fixtures/league_night_enforce.sql",
           "supabase/tests/fixtures/league_planning.sql",
         ])
           sql(readFileSync(path.join(root, file), "utf8"));

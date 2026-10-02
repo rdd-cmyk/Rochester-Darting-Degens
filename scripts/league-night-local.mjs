@@ -96,8 +96,8 @@ if (["dev", "build", "serve"].includes(command)) {
     for (const file of exists === "f"
       ? [
           "supabase/tests/fixtures/existing_schema_baseline.sql",
-          "supabase/pending/league_night.sql",
-          "supabase/pending/league_night_enforce.sql",
+          "supabase/tests/fixtures/league_night.sql",
+          "supabase/tests/fixtures/league_night_enforce.sql",
         ]
       : []) {
       execFileSync(

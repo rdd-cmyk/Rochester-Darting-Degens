@@ -10,7 +10,7 @@ export const sql=(input,database='postgres')=>execFileSync('docker',['--host',do
  input,env:localDockerEnv(),cwd:root,encoding:'utf8',timeout:60000,windowsHide:true,stdio:['pipe','pipe','pipe']});
 export const releaseFiles=[
  'supabase/tests/fixtures/advanced_statistics_foundation.sql',
- 'supabase/pending/league_night.sql',
+ 'supabase/tests/fixtures/league_night.sql',
  'supabase/tests/fixtures/league_planning.sql',
  'supabase/tests/fixtures/league_board.sql',
  'supabase/tests/fixtures/invite_only_registration.sql',
@@ -19,5 +19,5 @@ export const releaseFiles=[
  'supabase/tests/fixtures/advanced_statistics_final.sql',
  'supabase/tests/fixtures/solo_play.sql',
  'supabase/tests/fixtures/rivalry_room.sql',
- 'supabase/pending/league_night_enforce.sql',
+ 'supabase/tests/fixtures/league_night_enforce.sql',
 ];

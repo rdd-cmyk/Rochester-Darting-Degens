@@ -3,7 +3,7 @@
 Implementation target: local rehearsal only until the hosted release gate is
 completed. User authorized building League Night Mode on 2026-09-26.
 
-The SQL in `supabase/pending/` is deliberately outside automatic deployment.
+The SQL in `supabase/tests/fixtures/` is deliberately outside automatic deployment.
 It depends on the existing three tables, not the deferred statistics schema.
 
 ## Security contract

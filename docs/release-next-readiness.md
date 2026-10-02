@@ -9,8 +9,10 @@ Latest resume point: the owner accepted the mobile header follow-up at
 `c278bd4` and requested sequential W0–W6 refresh. The
 [October 1 refresh ledger](release/w0-w6-refresh-2026-10-01.md) supersedes older
 resume wording below. It records the accepted League front door/Matches/Stats
-redesign documents, current SQL hash check, W1 diagnostic correction, and the
-Docker-engine dependency for the W3 refresh. W4–W6 refresh and W7/W8 remain open.
+redesign documents, current SQL hash check, passed W1 diagnostic correction,
+affected W3/W5 checks and W4 backup integrity refresh. W0–W5 evidence is refreshed
+within its recorded scope; W6 hosted technical checks passed and affected owner
+phone/multi-account acceptance remains open. W7/W8 remain unstarted.
 
 October 1 statistics scope amendment: the owner authorized implementation of
 [provisional opponent replacement](provisional-schedule-proposal.md) for the

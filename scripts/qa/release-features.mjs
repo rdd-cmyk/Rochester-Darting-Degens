@@ -50,6 +50,30 @@ if(['planning-browser','night-browser','board-browser'].includes(suite)) {
  return {db,id:auth.user.id,email};
 }`+source.slice(end);
  if(suite==='night-browser') {
+  // October 1 front door: login lands on League Night; archive recording is explicit.
+  source=source.replaceAll('name: "Darts Matches", exact: true', 'name: "Matches", exact: true');
+  source=source.replace('page.getByRole("heading", { name: "Matches", exact: true }),', 'page.getByRole("heading", { name: "League Night", exact: true }),');
+  const loginEnd=source.indexOf('\n}',source.indexOf('async function signIn(page, person)'));
+  if(loginEnd<0)throw Error('Missing sign-in helper');
+  source=source.slice(0,loginEnd)+`\n  await page.goto('/matches'); await openRecording(page);`+source.slice(loginEnd);
+  source+=`\nasync function openRecording(page) {
+   if (!(await page.locator('#match-editor').isVisible())) {
+    await page.getByRole('button',{name:'Record a standalone match',exact:true}).click();
+    await page.getByRole('button',{name:'Continue with standalone',exact:true}).click();
+   }
+  }
+  async function openArchiveEdit(page, notes) {
+   const row=page.locator('details.archive-match').filter({hasText:notes}).first();
+   if ((await row.getAttribute('open')) === null) await row.locator('summary').click();
+   await row.getByRole('button',{name:'Edit result',exact:true}).click();
+  }\n`;
+  source=source.replace('async function fillClassic(page, venue) {', 'async function fillClassic(page, venue) {\n  await openRecording(page);');
+  source=source.replace(/await page\s*\.getByRole\("listitem"\)\s*\.filter\(\{ hasText: `Notes: \$\{marker\}` \}\)\s*\.getByRole\("button", \{ name: "Edit", exact: true \}\)\s*\.click\(\);/, 'await openArchiveEdit(page, `Notes: ${marker}`);');
+  source=source.replace("await page.getByRole('listitem').filter({hasText:'Notes: Synthetic queued result'}).first().getByRole('button',{name:'Edit',exact:true}).click();", "await openArchiveEdit(page, 'Notes: Synthetic queued result');");
+  source=source.replaceAll('Tonight’s awards','Night awards');
+  source=source.replace('page.getByText(`Notes: Newer ${marker}`, { exact: true })', 'page.locator("details.archive-match").filter({hasText:`Notes: Newer ${marker}`})');
+  // A different account starts in the archive until it explicitly opens recording.
+  source=source.replace('await expect(\n    page.getByLabel("Player 1 3-Dart Average", { exact: true }),\n  ).toHaveValue("");', 'await openRecording(page);\n  await expect(page.getByLabel("Player 1 3-Dart Average", { exact: true })).toHaveValue("");');
   replace('localStatus, leagueNightLocal, root', 'localStatus, projectId, root');
   replace('if (!leagueNightLocal)',"if (projectId !== 'rdd-release-w3')");
   source=source.replace('match_id: null,', 'submitted_by: ben.id, match_id: null,');

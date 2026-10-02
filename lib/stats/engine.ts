@@ -218,7 +218,12 @@ export function buildLeagueAdvancedStats(
     const winnerProbability = expectedProbabilities[winnerIndex];
     const winner = participantStates[winnerIndex];
 
-    upsets.push({
+    // Use pre-match evidence so later graduation cannot qualify earlier wins.
+    const allEstablished = preMatchProvisional.every(provisional => !provisional);
+    const winnerIsUnderdog = teamSize > 1
+      ? winnerProbability < 0.5
+      : preMatchRatings.some(rating => rating > preMatchRatings[winnerIndex]);
+    if (allEstablished && winnerIsUnderdog) upsets.push({
       matchId: match.matchId,
       playedAt: match.playedAt,
       gameType: match.gameType,

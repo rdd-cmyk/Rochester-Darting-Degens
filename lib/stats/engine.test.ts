@@ -92,17 +92,15 @@ describe('RDD rating engine', () => {
 
   test('uses chronology for ratings and identifies the least likely winner', () => {
     const facts = [
-      ...match('1', 'A', [{ id: 'A' }, { id: 'B' }]),
-      ...match('2', 'A', [{ id: 'A' }, { id: 'B' }]),
-      ...match('3', 'A', [{ id: 'A' }, { id: 'B' }]),
-      ...match('4', 'B', [{ id: 'A' }, { id: 'B' }]),
+      ...Array.from({ length: 10 }, (_, index) => match(String(index + 1), 'A', [{ id: 'A' }, { id: 'B' }] )).flat(),
+      ...match('11', 'B', [{ id: 'A' }, { id: 'B' }]),
     ];
     const result = buildLeagueAdvancedStats(facts.reverse());
 
-    expect(result.biggestUpset?.matchId).toBe('4');
+    expect(result.biggestUpset?.matchId).toBe('11');
     expect(result.biggestUpset?.winnerId).toBe('B');
     expect(result.biggestUpset?.expectedWinProbability).toBeLessThan(0.5);
-    expect(result.matchesAnalyzed).toBe(4);
+    expect(result.matchesAnalyzed).toBe(11);
   });
 
   test('orders numeric match IDs numerically when timestamps are equal', () => {
@@ -112,8 +110,30 @@ describe('RDD rating engine', () => {
       ...match('2', 'A', [{ id: 'A' }, { id: 'B' }], { playedAt }),
     ]);
 
-    expect(result.biggestUpset?.matchId).toBe('10');
-    expect(result.upsets.map((upset) => upset.matchId)).toEqual(['10', '2']);
+    expect(result.players.find(player => player.playerId === 'B')?.rating).toBeGreaterThan(1500);
+    expect(result.upsets).toEqual([]);
+  });
+
+  test('excludes provisional wins permanently, including the tenth match', () => {
+    const facts = Array.from({ length: 10 }, (_, index) =>
+      match(String(index + 1), index === 9 ? 'B' : 'A', [{ id: 'A' }, { id: 'B' }])
+    ).flat();
+    expect(buildLeagueAdvancedStats(facts).upsets).toEqual([]);
+    expect(buildLeagueAdvancedStats([...facts, ...match('11', 'A', [{ id: 'A' }, { id: 'B' }])]).upsets).toEqual([]);
+  });
+
+  test('excludes a multiplayer favorite below 50 percent and any provisional opponent', () => {
+    const history = Array.from({ length: 10 }, (_, index) =>
+      match(String(index + 1), ['A', 'B', 'C'][index % 3], [{ id: 'A' }, { id: 'B' }, { id: 'C' }])
+    ).flat();
+    const leader = buildLeagueAdvancedStats(history).players[0].playerId;
+    const favoriteWin = buildLeagueAdvancedStats([...history,
+      ...match('11', leader, [{ id: 'A' }, { id: 'B' }, { id: 'C' }]),
+    ]);
+    expect(favoriteWin.upsets).toEqual([]);
+    expect(buildLeagueAdvancedStats([...history,
+      ...match('11', 'B', [{ id: 'A' }, { id: 'B' }, { id: 'D' }]),
+    ]).upsets).toEqual([]);
   });
 
   test('calculates expected record, schedule strength, form, and quality wins', () => {

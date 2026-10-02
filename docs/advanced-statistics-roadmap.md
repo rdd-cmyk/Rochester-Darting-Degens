@@ -216,7 +216,7 @@ matches and remains zero-sum for every match.
 - Power leader: highest current rating above the selected minimum sample.
 - On fire: largest positive five-match rating change.
 - Most improved: largest rating gain from the 1500 baseline.
-- Giant killer: win with the lowest pre-match probability.
+- Giant killer: eligible underdog win with the lowest pre-match probability. Every participant must have an established rating (ten prior evidence games in the selected filters). A singles/free-for-all winner must have a lower pre-match rating than at least one opponent; a winning team must have a pre-match probability below 50%, based on team average ratings. Later matches do not retroactively qualify provisional wins. Show "No qualifying upset yet" when none qualify.
 - Most consistent: lowest normalized median absolute deviation with at least
   three scored matches.
 

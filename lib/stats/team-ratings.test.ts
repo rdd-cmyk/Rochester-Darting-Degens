@@ -16,8 +16,18 @@ describe('team Power Rating',()=>{
     for(const p of result.players) expect(p.rating).toBeCloseTo(1500+(p.wins?16:-16)/size,10);
     expect(result.players.reduce((n,p)=>n+p.ratingDelta,0)).toBeCloseTo(0,10);
     expect(result.players[0].evidenceGames).toBeCloseTo(1/size);
+    expect(result.upsets).toEqual([]);
+  });
+  it.each([2, 3])('qualifies established team underdogs using evidence games for size %i', size => {
+    const history = Array.from({length: 10 * size}, (_, i) => game(i + 1, size)).flat();
+    expect(buildLeagueAdvancedStats(history).upsets).toEqual([]);
+    const result = buildLeagueAdvancedStats([...history, ...game(10 * size + 1, size, false)]);
+    expect(result.upsets).toHaveLength(1);
     expect(result.upsets[0].winnerIds).toHaveLength(size);
     expect(result.upsets[0].opponentNames).toHaveLength(size);
+    expect(result.upsets[0].expectedWinProbability).toBeLessThan(0.5);
+    const earlyWin = [...history.slice(0, -size * 2), ...game(10 * size, size, false)];
+    expect(buildLeagueAdvancedStats(earlyWin).upsets).toEqual([]);
   });
   it('uses only opponents in schedule strength and explains the simultaneous update',()=>{
     const rows=[...game(1,2),...game(2,2,false)];

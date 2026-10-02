@@ -354,16 +354,14 @@ export default function AdvancedStatsPage() {
                   ).toLocaleDateString()}`}
                   accent="cream"
                 />
-              ) : mostImproved ? (
+              ) : (
                 <StatsStoryCard
-                  eyebrow="Most improved"
-                  value={signed(mostImproved.ratingDelta)}
-                  playerId={mostImproved.playerId}
-                  playerName={mostImproved.displayName}
-                  detail="Rating change from the 1500 baseline"
+                  eyebrow="Giant killer"
+                  value="No qualifying upset yet"
+                  detail="Requires an underdog win with every player established before the match."
                   accent="cream"
                 />
-              ) : null}
+              )}
               {mostConsistent && mostConsistent.scoreDistribution ? (
                 <StatsStoryCard
                   eyebrow="Steadiest hand"
@@ -373,7 +371,7 @@ export default function AdvancedStatsPage() {
                   detail={`Median absolute deviation across ${mostConsistent.scoreDistribution.games} scored matches`}
                   accent="silver"
                 />
-              ) : eligibleUpset && mostImproved ? (
+              ) : mostImproved ? (
                 <StatsStoryCard
                   eyebrow="Most improved"
                   value={signed(mostImproved.ratingDelta)}
@@ -560,6 +558,15 @@ export default function AdvancedStatsPage() {
               who were provisional, we use their rating immediately after they first reach
               ten evidence games. Until then, their original pre-match rating is used.
               This is calculated within your selected filters and does not change power-rating updates.
+            </p>
+          </div>
+          <div>
+            <h3>Giant killer</h3>
+            <p>
+              The least likely underdog win, using pre-match ratings. Every participant
+              must have an established rating before the match in the selected filters.
+              A singles winner must be rated below an opponent; a winning team must
+              have less than a 50% chance based on the average rating of each team.
             </p>
           </div>
           <div>

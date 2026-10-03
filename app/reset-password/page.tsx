@@ -1,6 +1,10 @@
 'use client';
 
-import { useEffect, useState, FormEvent, startTransition } from 'react';
+import { useEffect, useRef, useState, FormEvent, startTransition } from 'react';
+import { PageHeader } from '@/components/ui/PageHeader';
+import { ActionButton } from '@/components/ui/ActionButton';
+import { ActionLink } from '@/components/ui/ActionLink';
+
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabaseClient';
 
@@ -13,12 +17,17 @@ export default function ResetPasswordPage() {
   const [message, setMessage] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [checkingTokens, setCheckingTokens] = useState(true);
+  const [updating, setUpdating] = useState(false);
+  const updateInProgress = useRef(false);
+  const recoveryHashChecked = useRef(false);
   const [recoveryTokens, setRecoveryTokens] = useState<
     | { accessToken: string; refreshToken: string }
     | null
   >(null);
 
   useEffect(() => {
+    if (recoveryHashChecked.current) return;
+    recoveryHashChecked.current = true;
     const hash = window.location.hash;
     if (!hash || hash.length < 2) {
       startTransition(() => {
@@ -63,6 +72,7 @@ export default function ResetPasswordPage() {
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
+    if (updateInProgress.current) return;
     setMessage(null);
     setErrorMessage(null);
 
@@ -90,127 +100,129 @@ export default function ResetPasswordPage() {
       return;
     }
 
-    const { error: sessionError } = await supabase.auth.setSession({
-      access_token: recoveryTokens.accessToken,
-      refresh_token: recoveryTokens.refreshToken,
-    });
+    updateInProgress.current = true;
+    setUpdating(true);
+    try {
+      const { error: sessionError } = await supabase.auth.setSession({
+        access_token: recoveryTokens.accessToken,
+        refresh_token: recoveryTokens.refreshToken,
+      });
 
-    if (sessionError) {
-      setErrorMessage(
-        'Could not start password reset session. Please request a new password reset email.'
-      );
-      return;
+      if (sessionError) {
+        const invalidRecovery = sessionError.name === 'AuthSessionMissingError' || [
+          'bad_jwt', 'refresh_token_not_found', 'refresh_token_already_used',
+          'session_not_found', 'session_expired', 'user_not_found', 'user_banned',
+        ].includes(sessionError.code ?? '');
+        if (invalidRecovery) {
+          setErrorMessage('Could not start password reset session. Please request a new password reset email.');
+          setRecoveryTokens(null);
+        } else {
+          // The hash has already been removed. Keep the only copy of the
+          // recovery tokens and the entered passwords after temporary failures.
+          setErrorMessage('Could not start password reset session. Please try again.');
+        }
+        return;
+      }
+
+      const { error } = await supabase.auth.updateUser({ password: newPassword });
+      if (error) {
+        setErrorMessage('Error updating password: ' + error.message);
+        return;
+      }
+
+      setMessage('Password updated successfully. You are signed in.');
+    } catch {
+      setErrorMessage('Could not update your password. Please try again.');
+    } finally {
+      updateInProgress.current = false;
+      setUpdating(false);
     }
-
-    // If we get here, we *think* the password meets policy
-    const { error } = await supabase.auth.updateUser({
-      password: newPassword,
-    });
-
-    if (error) {
-      // Fallback: if Supabase still complains, show its message,
-      // but the user can keep adjusting and resubmitting.
-      setErrorMessage('Error updating password: ' + error.message);
-      return;
-    }
-
-    setMessage('Password updated successfully. You can now sign in.');
-    setTimeout(() => {
-      router.push('/auth');
-    }, 2000);
   }
 
   if (checkingTokens) {
     return (
-      <main className="page-shell" style={{ maxWidth: '720px' }}>
-        <h1>Reset Password</h1>
-        <p>Checking reset session…</p>
+      <main className="rdd-page-shell page-shell account-page account-consistent rdd-form-controls">
+        <PageHeader title="Reset your password" eyebrow="Account recovery" />
+        <p className="rdd-state" role="status">Checking reset session…</p>
       </main>
     );
   }
 
   return (
-    <main className="page-shell" style={{ maxWidth: '720px' }}>
-      <h1>Reset Your Password</h1>
+    <main className="rdd-page-shell page-shell account-page account-consistent rdd-form-controls">
+      <PageHeader title="Reset your password" eyebrow="Account recovery" />
 
-      <p style={{ marginTop: '0.5rem', color: '#555', maxWidth: '480px' }}>
+      <p className="rdd-muted">
         Your new password must be at least 16 characters long.
       </p>
 
       {errorMessage && (
-        <p style={{ color: 'red', marginTop: '1rem' }}>{errorMessage}</p>
+        <p className="rdd-state rdd-state--error" role="alert">{errorMessage}</p>
       )}
       {message && (
-        <p style={{ color: 'green', marginTop: '1rem' }}>{message}</p>
+        <p className="rdd-state rdd-state--success" role="status">{message}</p>
+      )}
+      {message && (
+        <ActionButton type="button" variant="primary" onClick={() => router.push('/')}>Continue to League Night</ActionButton>
       )}
 
-      {!message && (
+      {!message && !recoveryTokens && (
+        <ActionLink href="/auth">Return to sign in</ActionLink>
+      )}
+
+      {!message && recoveryTokens && (
         <form
+          className="rdd-content-panel account-auth-form account-reset-form"
           onSubmit={handleSubmit}
-          style={{
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '0.75rem',
-            marginTop: '1rem',
-            maxWidth: '520px',
-            width: '100%',
-          }}
         >
           <div className="form-row">
-            <label className="form-label">
+            <label className="form-label" htmlFor="new-password">
               New password:
             </label>
             <div className="password-row">
               <input
+                id="new-password"
                 type={showNewPassword ? 'text' : 'password'}
                 value={newPassword}
                 onChange={(e) => setNewPassword(e.target.value)}
                 className="form-control"
               />
-              <button
+              <ActionButton
                 type="button"
                 onClick={() => setShowNewPassword((prev) => !prev)}
-                className="password-toggle"
               >
                 {showNewPassword ? 'Hide' : 'Show'}
-              </button>
+              </ActionButton>
             </div>
           </div>
 
           <div className="form-row">
-            <label className="form-label">
+            <label className="form-label" htmlFor="confirm-password">
               Confirm password:
             </label>
             <div className="password-row">
               <input
+                id="confirm-password"
                 type={showConfirm ? 'text' : 'password'}
                 value={confirm}
                 onChange={(e) => setConfirm(e.target.value)}
                 className="form-control"
               />
-              <button
+              <ActionButton
                 type="button"
                 onClick={() => setShowConfirm((prev) => !prev)}
-                className="password-toggle"
               >
                 {showConfirm ? 'Hide' : 'Show'}
-              </button>
+              </ActionButton>
             </div>
           </div>
-          <button
+          <ActionButton
             type="submit"
-            style={{
-              cursor: 'pointer',
-              padding: '0.6rem 1rem',
-              borderRadius: '0.5rem',
-              border: '1px solid #ccc',
-              backgroundColor: '#0366d6',
-              color: 'white',
-              fontWeight: 500,
-            }}
+            variant="primary"
+            disabled={updating}
           >
-            Update Password
-          </button>
+            {updating ? 'Updating…' : 'Update Password'}
+          </ActionButton>
         </form>
       )}
     </main>

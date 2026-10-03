@@ -14,12 +14,12 @@ export default defineConfig({
     // Transform both SDKs so their Next navigation imports use the same test
     // router mock (Speed Insights also publishes a CommonJS entry point).
     server: { deps: { inline: ['@vercel/analytics', '@vercel/speed-insights'] } },
-    exclude: [...configDefaults.exclude, 'scripts/qa/**'],
+    exclude: [...configDefaults.exclude, 'scripts/qa/**', '.local/**'],
     environment: 'jsdom',
     setupFiles: ['./vitest.setup.ts'],
     coverage: {
       provider: 'v8',
-      include: ['lib/stats/**/*.ts', 'lib/matchState.js'],
+      include: ['lib/stats/**/*.ts', 'lib/games/**/*.ts', 'lib/solo/{analysis,recovery}.ts', 'lib/matchState.js', 'lib/planning.ts', 'lib/league-night/{draft,match-write,recap,recovery,share-card}.ts', 'lib/rivalries/{engine,api,catalog}.ts'],
       reporter: ['text', 'html'],
       thresholds: {
         lines: 85,

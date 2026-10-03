@@ -1,0 +1,403 @@
+"use client";
+
+import { useEffect, useMemo, useRef, useState } from "react";
+import Link from "next/link";
+import { ActionButton } from "@/components/ui/ActionButton";
+import { NightSoloActivity } from '@/components/solo/NightSoloActivity';
+import { formatLabel, ratingExclusion } from '@/lib/games/catalog';
+import {
+  buildNightRecap,
+  participantName,
+  scoreSummary,
+  type NightAward,
+} from "@/lib/league-night/recap";
+import type { LeagueNight, NightMatch } from "@/lib/league-night/types";
+import { drawShareCard } from "@/lib/league-night/share-card";
+import { nightRecapContext } from "@/lib/league-night/recap-context";
+
+export function nightDate(date: string): string {
+  return new Date(`${date}T12:00:00Z`).toLocaleDateString("en-US", {
+    timeZone: "America/New_York",
+    weekday: "long",
+    month: "long",
+    day: "numeric",
+    year: "numeric",
+  });
+}
+function AwardCard({ award }: { award: NightAward }) {
+  return (
+    <article className="night-award">
+      <span className="night-award-medal" aria-hidden="true">
+        {award.kind === "streak"
+          ? "🔥"
+          : award.kind === "best"
+            ? "★"
+            : award.kind === "upset"
+              ? "⚡"
+              : "🏅"}
+      </span>
+      <p className="night-eyebrow">{award.title}</p>
+      <h3>{award.playerName}</h3>
+      <p>{award.reason}</p>
+      <p className="night-small">{award.scope}</p>
+      <details>
+        <summary>Why this award?</summary>
+        <p>{award.rule}</p>
+        <p className="night-small">
+          Recorded match{award.matchIds.length === 1 ? "" : "es"}:{" "}
+          {award.matchIds.join(", ")}
+        </p>
+      </details>
+    </article>
+  );
+}
+export function NightRecapPanel({
+  night,
+  history,
+  loading,
+  error,
+  onRefresh,
+}: {
+  night: LeagueNight;
+  history: NightMatch[];
+  loading: boolean;
+  error: string;
+  onRefresh: () => void;
+}) {
+  const recap = useMemo(
+    () => buildNightRecap(history, night.id),
+    [history, night.id],
+  );
+  const playerCount = new Set(
+    recap.matches.flatMap((m) => m.match_players!.map((p) => p.player_id)),
+  ).size;
+  const [chosen, setChosen] = useState<string[] | null>(null);
+  const [shareOpen, setShareOpen] = useState(false);
+  const [shareNotice, setShareNotice] = useState("");
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const context = nightRecapContext(night.night_date);
+  const cardContext = { title: night.title, date: nightDate(night.night_date), venue: night.venue, summary: context.summary };
+  const featured = useMemo(
+    () =>
+      recap.awards
+        .filter((a) =>
+          (chosen ?? recap.awards.slice(0, 3).map((a) => a.id)).includes(a.id),
+        )
+        .slice(0, 3),
+    [recap.awards, chosen],
+  );
+  useEffect(() => {
+    if (canvasRef.current)
+      drawShareCard(
+        canvasRef.current,
+        { title: night.title, date: nightDate(night.night_date), venue: night.venue, summary: context.summary },
+        recap.matches.length,
+        playerCount,
+        featured,
+      );
+  }, [
+    featured,
+    night.night_date,
+    night.title,
+    night.venue,
+    context.summary,
+    recap.matches.length,
+    playerCount,
+    shareOpen,
+    loading,
+    error,
+  ]);
+  const shareText = [
+    `Rochester Darting Degens — ${night.title}`,
+    `${nightDate(night.night_date)}${night.venue ? ` · ${night.venue}` : ''}`,
+    `${recap.matches.length} recorded games · ${playerCount} players · ${context.summary}`,
+    ...featured.map(
+      (a) => `${a.title}: ${a.playerName} — ${a.reason} (${a.scope})`,
+    ),
+    "Based on confirmed site results; awards use competitive recorded history.",
+  ].join("\n");
+  async function downloadCard() {
+    try {
+      const canvas = canvasRef.current;
+      if (
+        !canvas ||
+        !drawShareCard(
+          canvas,
+          cardContext,
+          recap.matches.length,
+          playerCount,
+          featured,
+        )
+      )
+        throw new Error(
+          "Image export is unavailable. The text version is still here.",
+        );
+      const blob = await new Promise<Blob>((resolve, reject) =>
+        canvas.toBlob(
+          (value) =>
+            value
+              ? resolve(value)
+              : reject(new Error("Could not create the share image.")),
+          "image/png",
+        ),
+      );
+      const url = URL.createObjectURL(blob);
+      const anchor = document.createElement("a");
+      anchor.href = url;
+      anchor.download = `rdd-night-${night.night_date}.png`;
+      anchor.click();
+      setTimeout(() => URL.revokeObjectURL(url), 10000);
+      setShareNotice("Your recap image is ready.");
+    } catch (cause) {
+      setShareNotice(
+        cause instanceof Error
+          ? cause.message
+          : "Image export failed. Your recap is still here.",
+      );
+    }
+  }
+  if (loading && history.length === 0)
+    return (
+      <section className="night-panel" aria-live="polite">
+        Loading the full recorded history for this night’s highlights…
+      </section>
+    );
+  if (error)
+    return (
+      <section className="night-panel">
+        <h2>Highlights are waiting on the full history.</h2>
+        <p role="alert">{error}</p>
+        <ActionButton onClick={onRefresh}>Try again</ActionButton>
+      </section>
+    );
+  return (
+    <section className="night-recap" aria-busy={loading}>
+      <div className="night-recap-banner">
+        <p className="night-eyebrow">{context.eyebrow}</p>
+        <h2>
+          A few good games.
+          <br />A lot to talk about.
+        </h2>
+        <p>
+          {recap.matches.length} recorded game{recap.matches.length === 1 ? "" : "s"} · {playerCount}{" "}
+          players in action
+        </p>
+      </div>
+      <NightSoloActivity nightId={night.id} refreshToken={history}/>
+      {recap.unrated > 0 && (
+        <p className="night-small">
+          {recap.unrated} unrated game{recap.unrated === 1 ? "" : "s"} recorded.
+          {" "}These stay in the activity log and contribute no competitive
+          results, ratings or awards.
+        </p>
+      )}
+      {recap.incompleteHistory > 0 && (
+        <p className="night-small">
+          Some recorded history is incomplete. Affected awards are withheld;
+          rating changes use complete results only.
+        </p>
+      )}
+      {recap.ignored > 0 && (
+        <p className="night-warning">
+          {recap.ignored} incomplete or inconsistent result
+          {recap.ignored === 1 ? " is" : "s are"} excluded from highlights.
+        </p>
+      )}
+      <div className="night-section-heading">
+        <div>
+          <h2>Night awards</h2>
+          <p className="night-small">
+            Earned bragging rights. Updated as results come in.
+          </p>
+        </div>
+        {recap.matches.length > 0 && (
+          <ActionButton aria-expanded={shareOpen} aria-controls="night-share-card" onClick={() => setShareOpen((open) => !open)}>
+            {shareOpen ? "Close share card" : "Preview share card"}
+          </ActionButton>
+        )}
+      </div>
+      {shareOpen && (
+        <section id="night-share-card" className="night-panel night-share">
+          <h3>Choose up to three awards to share</h3>
+          <p className="night-small">
+            Includes the night name, venue when given, display names and results.
+            Private match notes are omitted.
+          </p>
+          <div className="night-share-choices">
+            {recap.awards.map((a) => (
+              <label key={a.id}>
+                <input
+                  type="checkbox"
+                  checked={featured.some((f) => f.id === a.id)}
+                  disabled={
+                    featured.length >= 3 && !featured.some((f) => f.id === a.id)
+                  }
+                  onChange={(e) =>
+                    setChosen(
+                      e.target.checked
+                        ? [...featured.map((f) => f.id), a.id]
+                        : featured
+                            .filter((f) => f.id !== a.id)
+                            .map((f) => f.id),
+                    )
+                  }
+                />
+                {a.title} · {a.playerName}
+              </label>
+            ))}
+          </div>
+          <div className="night-share-preview">
+            <canvas ref={canvasRef} role="img" aria-label={shareText} />
+          </div>
+          <details>
+            <summary>Text version</summary>
+            <pre className="night-share-text">{shareText}</pre>
+          </details>
+          <div className="night-actions">
+            <ActionButton variant="primary" onClick={downloadCard}>
+              Download image
+            </ActionButton>
+            <ActionButton
+              onClick={async () => {
+                try {
+                  await navigator.clipboard.writeText(shareText);
+                  setShareNotice("Recap copied.");
+                } catch {
+                  setShareNotice(
+                    "Open Text version above to select and copy the recap.",
+                  );
+                }
+              }}
+            >
+              Copy text
+            </ActionButton>
+          </div>
+          <p role="status">{shareNotice}</p>
+        </section>
+      )}
+      {recap.awards.length === 0 ? (
+        <div className="night-panel">
+          <h3>
+            {recap.matches.length
+              ? "Every game adds to the story."
+              : "Your story starts with the first game."}
+          </h3>
+          <p>
+            {recap.matches.length
+              ? "No awards qualify yet. Personal milestones and streaks will appear when the recorded results support them."
+              : "Record a match to start this night’s results and highlights."}
+          </p>
+        </div>
+      ) : (
+        <>
+          <div className="night-award-grid">
+            {recap.awards.slice(0, 3).map((a) => (
+              <AwardCard key={a.id} award={a} />
+            ))}
+          </div>
+          {recap.awards.length > 3 && (
+            <details className="night-panel">
+              <summary>All awards ({recap.awards.length})</summary>
+              <div className="night-award-grid">
+                {recap.awards.slice(3).map((a) => (
+                  <AwardCard key={a.id} award={a} />
+                ))}
+              </div>
+            </details>
+          )}
+        </>
+      )}
+      <div className="night-recap-columns">
+        <section className="night-panel">
+          <h2>Night results</h2>
+          {recap.unrated > 0 && <p className="night-small">Competitive results only.</p>}
+          <table className="night-table">
+            <thead>
+              <tr>
+                <th>Player</th>
+                <th>Wins</th>
+                <th>Games</th>
+              </tr>
+            </thead>
+            <tbody>
+              {recap.standings.map((p) => (
+                <tr key={p.playerId}>
+                  <td>{p.name}</td>
+                  <td>{p.wins}</td>
+                  <td>{p.games}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </section>
+        <section className="night-panel">
+          <h2>Rating movement</h2>
+          <p className="night-small">
+            Only this night’s contribution, using earlier recorded games for
+            context.
+          </p>
+          {recap.ratingMoves.length ? (
+            recap.ratingMoves.map((p) => (
+              <div
+                className="night-rating-row"
+                key={`${p.scope}:${p.playerId}`}
+              >
+                <div>
+                  <strong>{p.name}</strong>
+                  <p className="night-small">
+                    {p.scope} · {p.games} game{p.games === 1 ? "" : "s"}
+                    {p.provisional ? " · Provisional" : ""}
+                  </p>
+                </div>
+                <strong>
+                  {p.gain > 0 ? "+" : ""}
+                  {p.gain.toFixed(1)}
+                </strong>
+              </div>
+            ))
+          ) : (
+            <p>No supported discipline ratings yet.</p>
+          )}
+        </section>
+      </div>
+      <section className="night-panel">
+        <h2>Every game, in order</h2>
+        {recap.matches.map((m) => (
+          <div className="night-result" key={m.id}>
+            <div>
+              <strong>
+                {m.game_config?.status === 'tied' ? 'Tied game'
+                  : m.game_config?.status === 'abandoned' ? 'Abandoned game'
+                  : <>{m.match_players!.filter((p) => p.is_winner).map(participantName).join(' + ')}{' '}
+                    won{m.game_config?.format && m.game_config.format !== 'individual'
+                      ? ` as ${formatLabel(m.game_config.format)}` : ''}</>}
+              </strong>
+              {ratingExclusion(m.game_config) && (
+                <p className="night-small">Unrated · {ratingExclusion(m.game_config)}</p>
+              )}
+              <p className="night-small">
+                {m.match_players!.map(participantName).join(" · ")} ·{" "}
+                {m.game_type || "Unknown format"} ·{" "}
+                {m.board_type || "Unknown board"}
+              </p>
+              <p className="night-small">
+                #{m.id} · {scoreSummary(m)}
+              </p>
+            </div>
+            <time dateTime={m.played_at}>
+              {new Date(m.played_at).toLocaleTimeString("en-US", {
+                timeZone: "America/New_York",
+                hour: "numeric",
+                minute: "2-digit",
+              })}
+            </time>
+          </div>
+        ))}
+        <p className="night-small">
+          Times shown in America/New_York.{" "}
+          <Link href="/stats">Explore the full League Lab</Link>.
+        </p>
+      </section>
+    </section>
+  );
+}

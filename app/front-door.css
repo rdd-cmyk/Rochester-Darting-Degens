@@ -1,0 +1,47 @@
+/* Domain composition only. Shared tokens, actions and title geometry stay in globals. */
+.landing-grid { display: grid; grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr); gap: var(--rdd-space-6); min-width: 0; }
+.landing-stack, .stats-view, .records-view { display: grid; gap: var(--rdd-space-6); min-width: 0; }
+.landing-grid > *, .stats-view > *, .records-view > * { min-width: 0; }
+.landing-feature { border-top: 4px solid var(--rdd-orange); display: grid; align-content: start; gap: var(--rdd-space-3); }
+.landing-section-heading { display: flex; align-items: center; justify-content: space-between; gap: var(--rdd-space-4); flex-wrap: wrap; }
+.landing-actions { display: flex; align-items: center; gap: var(--rdd-space-3); flex-wrap: wrap; margin-top: var(--rdd-space-4); }
+.landing-night-choice { display: flex; align-items: center; justify-content: space-between; gap: var(--rdd-space-4); flex-wrap: wrap; }
+.landing-power-list { margin: var(--rdd-space-4) 0; padding-left: var(--rdd-space-6); }
+.landing-power-list li { padding: var(--rdd-space-3) 0; border-bottom: 1px solid var(--rdd-border); }
+.landing-power-list li > div { display: inline-block; width: calc(100% - 5rem); vertical-align: middle; }
+.landing-power-list .rdd-field-help { display: block; }
+.landing-power-list strong { display: inline-block; width: 5rem; text-align: right; font-size: var(--rdd-section-title-size); font-variant-numeric: tabular-nums; }
+.landing-grid .board-home { margin: 0; border-radius: var(--rdd-radius-panel); padding: var(--rdd-panel-padding); background: var(--rdd-panel); border-color: var(--rdd-border); }
+.landing-grid .board-home h2 { font-size: var(--rdd-section-title-size); }
+.rdd-view-navigation { display: flex; gap: var(--rdd-space-2); flex-wrap: wrap; min-width: 0; }
+.rdd-view-navigation a[aria-current="page"] { background: var(--rdd-navy); border-color: var(--rdd-navy); color: var(--rdd-showcase-text); }
+.records-view > section { padding: var(--rdd-panel-padding); border: 1px solid var(--rdd-border); border-radius: var(--rdd-radius-panel); background: var(--rdd-panel); }
+.records-view .home-table-scroll { width: 100%; overflow-x: auto; }
+.archive-filters { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--rdd-space-3); align-items: end; }
+.archive-filters label { display: grid; gap: var(--rdd-space-2); font-size: .875rem; font-weight: var(--rdd-action-weight); min-width: 0; }
+.matches-page .archive-filters :is(select,input) { width: 100%; max-width: none; min-width: 0; }
+.archive-match { padding: var(--rdd-space-4) 0; border-bottom: 1px solid var(--rdd-border); }
+.archive-match summary { display: flex; justify-content: space-between; align-items: start; gap: var(--rdd-space-4); min-height: var(--rdd-control-min-height); cursor: pointer; list-style: none; }
+.archive-match summary::-webkit-details-marker { display: none; }
+.archive-match summary > div { min-width: 0; overflow-wrap: anywhere; }
+.archive-expand { flex: 0 0 auto; color: var(--link-color); text-decoration: underline; }
+.archive-match-details { margin-top: var(--rdd-space-3); padding: var(--rdd-space-4); border-radius: var(--rdd-radius-control); background: var(--rdd-panel-inset-bg); }
+.archive-match-details ul { padding-left: var(--rdd-space-6); }
+.recording-choice .landing-grid { margin-top: var(--rdd-space-4); }
+.recording-choice .rdd-page-action { margin-top: var(--rdd-space-3); }
+.matches-archive .rdd-pagination { margin-top: var(--rdd-space-4); }
+.matches-form-panel { scroll-margin-top: var(--rdd-space-6); }
+@media (max-width: 640px) {
+  .landing-grid { grid-template-columns: minmax(0, 1fr); }
+  .rdd-view-navigation { flex-wrap: nowrap; }
+  .rdd-view-navigation a { flex: 1; min-width: 0; font-size: .8rem; text-align: center; padding: var(--rdd-space-2); }
+  .archive-filters { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--rdd-space-2); }
+  .landing-actions { align-items: stretch; }
+  .matches-archive-actions > :first-child { flex-basis: 100%; }
+}
+
+.landing-power-player { display: inline-flex; align-items: center; gap: var(--rdd-space-2); }
+@media (max-width: 640px) {
+  .night-shell--consistent .rdd-title-header:has(.home-logo-image) .rdd-title-identity { width: var(--rdd-home-logo-mobile-size); height: var(--rdd-home-logo-mobile-size); }
+  .night-shell--consistent .rdd-title-header:has(.home-logo-image) h1 { padding-right: 0; }
+}

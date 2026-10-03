@@ -10,6 +10,17 @@ Before planning or changing this repository:
    silently.
 4. Apply `docs/skill-governance.md` before proposing or creating a project
    skill.
+5. Before planning, implementing or reviewing website interface work, read
+   `docs/design-standards.md`, including its token, action, accessibility and
+   page-title-header contracts. Reuse shared variants instead of route-local
+   colors or dimensions. Follow the owner-selected Plain heading with orange
+   terminal period (2026-09-30); other draft values remain proposals.
+   Documentation does not authorize a site
+   migration. For the site-wide upgrade, follow
+   `docs/sitewide-design-upgrade-plan.md` and keep its progress ledger current.
+   League Night is the root/logo landing page; Stats contains Power, Records
+   and Head to Head (owner accepted 2026-10-01). Summer decorations remain optional and
+   restrained. Design-only requests stay documentation/mockup-only.
 
 Use npm with the checked-in `package-lock.json`. Preserve useful point-of-use
 comments and avoid duplicating them in the registry. Never place credentials,
@@ -41,3 +52,13 @@ pass. Do not describe hosted Supabase schema, policies, authentication, data, or
 migration behavior as verified unless it was exercised against an authorized
 target and the evidence was reviewed. Otherwise, label the result source-only
 or local-only.
+
+<!-- BEGIN:nextjs-agent-rules -->
+
+# This is NOT the Next.js you know
+
+This version has breaking changes — APIs, conventions, and file structure may all differ from your training data. Read the relevant guide in `node_modules/next/dist/docs/` (resolved from this file's directory; in monorepos the `next` package may not be visible from the repo root) before writing any code. Heed deprecation notices.
+
+This block is written and re-added by `next dev` — verify at `node_modules/next/dist/server/lib/generate-agent-files.js`. Removing it from a diff only re-creates the uncommitted change; committing it with your work keeps the tree clean.
+
+<!-- END:nextjs-agent-rules -->

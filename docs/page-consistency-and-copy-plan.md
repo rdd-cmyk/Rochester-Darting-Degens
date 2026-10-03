@@ -1,0 +1,282 @@
+# Page consistency and league voice plan
+
+Prepared: 2026-09-30. Status: **P01-P24, shared-frame and final visual polish appearance owner-accepted; affected W6 journeys remain open**.
+Baseline: `release/next` at `351a4b0253f2c7f05d7a70708597d1c847977c65`.
+
+Before this plan was written, the release position was saved in the
+[pre-consistency checkpoint](release/pre-consistency-checkpoint-2026-09-30.md).
+W0-W5's dated evidence is retained; affected W6 closeout and W7/W8 wait until this
+pass is accepted. This document plans future work only. It does not authorize
+implementation, publication, hosted changes or production cutover by itself.
+
+## Intent and boundaries
+
+Make the existing pages feel like one site through small, reviewable consistency
+adjustments. Keep the Rochester navy/orange/cream identity, current features,
+information order and page-specific character. Follow the updated
+[design standards](design-standards.md), including the selected plain heading
+with orange terminal period. Keep Home leaderboard-first, optional restrained
+Summer decoration, the new navbar/logo and curated avatars.
+
+Each work package owns **one page**. A dynamic route means one reusable page
+template, not a package for each player, thread or challenge. Error and not-found
+fallbacks have their own single-page packages. Tabs, dialogs, loading and error
+states belong to the page that opens them. API endpoints are not visual pages.
+The inventory below covers all 22 current `page.tsx` routes and two fallback
+pages; re-enumerate the tree before starting and add a row for a new page.
+
+This is a consistency pass, not a new dashboard, new feature, wholesale layout
+rewrite, font replacement or dependency upgrade. Preserve queries, handlers,
+calculations, saved identifiers, data precision, routes, access/privacy rules and
+recovery semantics. No SQL or Supabase configuration changes are planned.
+If an existing defect needs a behavior change, record it separately and assess
+its release impact before widening the page package.
+
+The earlier [site-wide upgrade plan](sitewide-design-upgrade-plan.md) remains
+historical implementation/evidence context. This plan controls the next pass's
+page order and review stops; it does not restart its old M0-M8 migration.
+
+## Shared foundations without a multi-page package
+
+P01 introduces only the minimum central roles and reusable presentation needed
+by Home. Subsequent pages extend those same primitives when a repeated need
+appears. Shared work belongs to the current page package, not an extra foundation
+package or a silent migration of other pages.
+
+- Keep palette, semantic roles and component variants distinct. Define recurring
+  color, spacing, radius, width, control-height and interaction decisions once.
+  Route CSS owns domain layout; it does not invent another button or title skin.
+- Reuse existing `--rdd-*`, shared classes and `--stats-*` compatibility roles.
+  Introduce missing semantic aliases centrally. Do not rename every token or
+  break contrast checks that parse existing explicit values.
+- Use one shared page-header family: optional eyebrow/back link, one h1 with
+  the orange period, concise description and optional context/actions. Compact,
+  standard and feature sizes share that appearance. Preserve useful domain
+  showcases below it, including the Rivalry poster.
+- Use shared primary, secondary, quiet and destructive actions, with common
+  geometry and explicit pending/disabled/focus states. Tabs and filters use
+  selection variants, not primary-button styling. Preserve native semantics.
+- Remaining guide values are proposals. For each package, document the concrete
+  subset being adopted and show it in the page review; do not claim every draft
+  token is already approved. Prefer current established values when equivalent.
+  Update the guide's adoption record after the owner's page acceptance.
+- Keep old consumers compatible until their page is converted. Use scoped or
+  opt-in variants; do not change global `.rdd-action` or header meaning in a way
+  that silently restyles all remaining pages. If a shared change affects accepted
+  pages, retest them and reopen their acceptance if the visible result changes.
+- Avoid broad final CSS overrides, copied variants or fixed widths to conceal
+  inconsistencies. Preserve legitimate chart coordinates/avatar geometry.
+
+The navbar/footer/shared canvas are regression surfaces in every package; they
+are not additional redesign packages. Fix a verified shared inconsistency only
+as narrowly as needed and record every affected page. No changes to the recently
+accepted navigation layout are assumed.
+
+## Wording: friends' league, broadcast energy
+
+Use the existing friendly sports-announcer voice: confident, brief, competitive
+and playful. Keep the sense of a bunch of friends chasing bragging rights.
+Retain good existing lines rather than rewriting everything to sound identical.
+
+Use energy in headings, introductions, recaps and rivalry context. Examples of
+tone, not mandatory replacements: “The league standings,” “Tonight's lineup,”
+“The tale of the tape,” and “Your next shot at bragging rights.” Pair that voice
+with concrete task labels such as “Save result,” “Send invitation,” “Accept
+challenge,” and “Resume draft.” A user should know what a button does.
+
+Keep instructions, validation, privacy, permissions and recovery plain and
+precise. “Your result wasn't saved. Retry with the same entry” is more useful
+than a joke when connectivity fails. Do not invent standings, dates, live status,
+records, probabilities or a winner for flavor. Never imply a draft was posted,
+an unconfirmed save succeeded, or private data is public. Practice stays practice;
+small samples and provisional ratings keep their caveats.
+
+Each package includes a short **keep / revise / reason** copy review covering
+title, eyebrow, description, help, labels, empty/loading/error/success states,
+confirmation dialogs and relevant share/poster captions. Keep established terms
+consistent across pages and preserve 3DA, PPD, MPR and team-result meanings.
+The owner reviews wording together with the visual changes.
+
+## One-page work packages, in order
+
+All rows start **not started**. Finish and obtain owner acceptance for a row
+before beginning the next row. Suggested order puts shared data/form patterns
+early, then competition/community pages, then account and utility pages.
+
+| Package | One page / primary source | Small consistency and wording focus | Behaviors and states to protect | Status |
+| --- | --- | --- | --- | --- |
+| P01 | Home `/` — `app/page.tsx` | Compact plain title, standings copy, shared table/section/control spacing; establish minimum reusable roles. | Overall leaderboard first; all other existing tables, sorting, selection, player links, sample/record meanings, loading/empty/access/failure states. | Accepted |
+| P02 | Advanced Stats `/stats` — `app/stats/page.tsx` | Align title/actions/filters with P01 while retaining analytical content; review broadcast introductions and precise methodology. | Filters, eligibility versus match counts, chart geometry/series, exact history, provisional badges, scored-game counts, numerical outputs and bounded overflow. | Accepted |
+| P03 | Matches `/matches` — `app/matches/page.tsx` | Common task header, participant fields, actions, validation and history cards; concise result-entry instructions. | Existing game/team modes, winner, units, date/board/venue/notes, create/edit/cancel, permissions, pending saves, exact retry and history pagination. | Accepted |
+| P04 | League Night `/league-night` — `app/league-night/page.tsx` | Consistent night setup, attendance, score-entry sections, recap, TV/share controls and modal presentation; announcer-style recap copy. | Creation/resume, attendance, individual/team saves, rematch, recovery, practice classification, awards, refresh stability, poster preview and export. | Accepted |
+| P05 | Night Planning `/league-night/plan` — `app/league-night/plan/page.tsx` | Align poll/suggestion/RSVP controls and status wording; keep the next-night energy. | Organizer/member differences, hidden open-poll tallies/authors, own withdrawal, two-suggestion cap, poll close/schedule and binary RSVP states. | Accepted |
+| P06 | Players `/profiles` — `app/profiles/page.tsx` | Shared directory header/search/rows, avatar/name alignment and friendly league-roster introduction. | Search, order, disclosure/name formatting, links, no-results versus no-data, and access/failure states. | Accepted |
+| P07 | Player Profile `/profiles/[id]` — `app/profiles/[id]/page.tsx` | Consistent identity/header, record panels, history filters and Solo summary disclosure; competitive profile wording. | History/filter-before-pagination, stale-response handling, private versus missing summary, explicit Solo opt-out, units, profile-not-found versus request failure. | Accepted |
+| P08 | My Profile `/profile` — `app/profile/page.tsx` | Align avatar picker, identity preview, fields and save/cancel feedback; inviting personality copy. | Stable avatar IDs/selection/persistence, name-disclosure settings, disabled view mode, edit/reset/cancel and confirmed save/recovery. | Accepted |
+| P09 | Solo `/solo` — `app/solo/page.tsx`, `components/solo/SoloPage.tsx` | Unify entry/history/progress tabs, fields and states; training/broadcast tone that stays separate from league results. | 301/501/701/Cricket order, logging/edit/delete/undo/retry, privacy, summary default-on with stored opt-out, night-practice defaults/linking and no competitive effects. | Owner accepted 2026-10-01 |
+| P10 | Rivalry Room `/rivalries` — `app/rivalries/page.tsx` | Shared page heading/rows/actions around the existing distinctive showcase; preserve its strongest rivalry copy. | Prominent incoming challenges, avatar/name display, discovery/history, access/loading/empty/failure and challenge setup. | Accepted |
+| P11 | Rivalry Pair `/rivalries/pair/[left]/[right]` — matching `page.tsx` | Align record sections, chapter cards, challenge actions and poster dialog; keep tale-of-the-tape character. | Pair identity, statistics definitions, chapter data, challenge creation, poster export/preview and Board draft permission boundary. | Accepted |
+| P12 | Challenge Detail `/rivalries/challenges/[id]` — matching `page.tsx` | Common status badges, series/result controls, repair selector and confirmations; clear competitive stakes. | Participants/permissions, accept/decline lifecycle, eligibility/revision checks, match correction/repair, best-of progression and exactly-once result handling. | Accepted |
+| P13 | League Board `/board` — `app/board/page.tsx` | Align feed/composer/access panels, actions and retained-draft affordance; friends' clubhouse voice. | Access request/moderation/organizer rules, categories, drafts and their tab-local storage, Keep/Resume/discard, poster text/image limitations, save and read errors. | Accepted |
+| P14 | Board Thread `/board/[id]` — matching `page.tsx` | Consistent post/reply structure, author/metadata hierarchy, actions and moderation wording. | Markdown/links/long content, replies, editing/moderation rights, posting/retry, missing thread versus temporary failure. | Accepted |
+| P15 | Invites `/invites` — `app/invites/page.tsx` | Shared form/history/status treatment; welcoming league invitation wording with clear required fields. | Active-member gate, origin restriction, send/pending/failure/retry, existing revoke/expiry behavior and invitation history retention. | Accepted |
+| P16 | Sign In `/auth` — `app/auth/page.tsx` | Compact account title, fields and recovery action; warm league welcome with explicit sign-in instructions. | Invite-only admission, password visibility, session/redirect transitions, pending/errors and recovery request behavior. | Accepted |
+| P17 | Invitation Join `/join` — `app/join/page.tsx` | Align verification/registration fields and steps; friendly invitation introduction, factual security messages. | Token validity/expiry, verification code flow, admission and membership provisioning, field validation, pending/retry and successful next step. | Accepted |
+| P18 | Verify Email `/auth/verify-email` — matching `page.tsx` | Shared compact account header/message/actions; clear next-step copy. | Actual supported confirmation path, email-present/absent states, safe display of address and existing sign-in destination; do not imply this replaces invite verification. | Accepted |
+| P19 | Reset Password `/reset-password` — matching `page.tsx` | Consistent account fields/status/action layout; especially clear expired and success messages. | Recovery-session/hash handoff, pending/update failure, validation, no false no-active-reset flash, confirmed success and Continue to Matches. | Accepted |
+| P20 | Change Log `/change-log` — matching `page.tsx` | Shared title, update cards/date metadata, pagination and state wording; release-note voice. | Main-only merged PR feed, links, dates, paging, auth/member gate, loading/empty/upstream failure distinctions. | Accepted |
+| P21 | Release Readiness `/release-readiness` — matching `page.tsx` | Shared compact utility shell, readable wrapped diagnostic output and precise scope statement. | Preview/release-branch restriction, sanitized output, connection-isolation meaning; never call it full release/DB acceptance. | Accepted |
+| P22 | Client Diagnostics `/test-supabase` — matching `page.tsx` | Consistent utility title/status and restrained factual wording. | Session-check scope, no false database-connectivity claim, fixture-only error trigger stays disabled on hosted preview. | Accepted |
+| P23 | Not Found — `app/not-found.tsx` | Shared compact missing-page experience and friendly useful exit. | Genuine 404/missing context, safe destination, keyboard focus and no suggestion that a failed request means a missing record. | Accepted |
+| P24 | Error Fallback — `app/error.tsx` | Shared failure presentation, readable message and existing retry action; plain recovery copy. | Framework reset/retry, safe boundary rendering, access to navigation, and no misleading save/undo assurance. | Accepted |
+
+Per-package source listings are entry points: inspect rendered shared children,
+dialogs and CSS before editing. Changes stay scoped to that page and its minimum
+compatible shared dependencies. No package is marked complete just because its
+title was replaced or its tests passed.
+
+## Authorized P10-P15 batch exception (2026-10-01)
+
+The owner requested all six packages together and confirmed P10-P15 rather than
+stopping at P14. Keep each page's scope and evidence separate, but defer full
+tests, CI, Vercel and preview publication until all six are ready. Present the
+six pages for one owner review stop. P16-P24 remain unstarted. This exception
+does not authorize release work, production changes or database changes.
+
+See the [six-page review record](release/p10-p15-consistency-2026-10-01.md).
+
+## Repeatable package workflow and review stop
+
+1. **Inspect and propose.** Refresh branch/diff, guide and baseline for the page.
+   Capture current desktop/mobile and light/dark states with stable fixtures.
+   List a short visual delta and the keep/revise/reason copy review. Use a small
+   mockup only if a decision would otherwise be hard to judge; a new full-page
+   design is not the objective. Record existing defects separately.
+2. **Implement the one page after its package is requested.** Keep product logic
+   intact; extract/reuse compatible primitives and document the token subset.
+   Include its tabs/modals/alternate states. Avoid unrelated cleanup.
+3. **Verify.** Run the required implementation checks from `AGENTS.md`: trusted
+   install, tests, coverage, lint, type-check and build. Add regression tests
+   only for a meaningful behavior risk or verified defect, not mirrored CSS.
+   Use isolated synthetic fixtures for writes; production data is not a UI
+   fixture. Record any unavailable device/access/state check explicitly.
+4. **Review the rendered result.** Compare before/after in light/dark at 320px,
+   390px, tablet and desktop. Check relevant populated/loading/empty/filter-empty/
+   signed-out/access-restricted/error/pending/success states, long labels/names,
+   keyboard/focus, 44px standalone targets, contrast, text zoom/reflow, scrolling
+   and reduced motion. No broad WCAG conformance claim from a sample.
+5. **Check shared consumers.** When central CSS/components change, inspect Stats
+   and another affected page in both themes on mobile/desktop, plus accepted
+   consumers actually affected. Ensure navigation, Summer preference and footer
+   remain intact. Reopen a row if a later change visibly alters its accepted UI.
+6. **Present for owner review.** When publication is part of the requested
+   package, commit only its scope, push `release/next`, and verify exact CI/Vercel
+   identity and test-project isolation. Provide the preview link, a screenshot,
+   brief changes/copy rationale, checks and limitations. Preserve unrelated work.
+7. **Stop at this page.** Status becomes **awaiting owner review**, not passed.
+   Adjust the same page until accepted. Record the owner's acceptance, source
+   SHA and evidence, then mark **accepted**. Start the next package only when the
+   owner requests it. Do not batch the remaining pages in the background.
+
+These are future implementation steps; no tests, mockups, previews or application
+changes are required to complete this planning-only request.
+
+## Progress and evidence ledger
+
+Use row status: **not started → in progress → awaiting owner review → accepted**.
+Use **blocked** for a named missing prerequisite and **reopened** for affected
+accepted pages. Keep the package table current and add a ledger row per package:
+
+| Package | Source SHA / preview identity | Visual and copy delta / shared dependencies | Checks and evidence | Owner acceptance / limits | Next action |
+| --- | --- | --- | --- | --- | --- |
+| Plan | Baseline `351a4b0`; documentation only | Release checkpoint saved; 24 page packages inventoried. | Source/route/link/whitespace review only; no implementation verification claimed. | All packages unstarted. | Owner chooses to start P01, or requests a different first page. |
+| P01 | App `2d81b61`, evidence `f757ed0`; shorter copy in P02 commit | Shared heading/actions/spacing retained. | Original checks and CI passed; Home rechecked in P02. | Owner accepted 2026-09-30 with shorter intro. | Accepted; preserve this appearance. |
+| P02 | App `21f3e53`; stable preview | Shared feature heading/actions and filter roles adopted. | Full local checks, CI/Vercel and hosted read-only smoke passed. | Owner accepted 2026-09-30. | Accepted; retain appearance. |
+| P03 | Accepted at `938ee34`; CI `36790087612` and Vercel passed | Matches adopts header/actions/form/panel roles and concise intro/link wording. | Full local checks, eight theme/width checks, local UI save/retry/team/history states, contrast and Home/Stats smoke. See P03 record. | Accepted; fixture saves are UI-only evidence. | P03 accepted at `938ee34`; P04 authorized. |
+| P04 | Baseline `938ee34`; accepted at `acc01a0`; CI `36800191914` and Vercel passed | League Night adopts shared headers/actions/fields and scoped panel/selection styling; Planning remains on legacy CSS. | 578 tests, coverage, lint, types, build; synthetic save/rematch/PPD and attendance; responsive light/dark-token entry and dark-token recap. Browser interruption limits listed in P04 record. | Owner accepted 2026-09-30. | Accepted; P05 authorized. |
+
+| P05 | Baseline `acc01a0`; accepted at `8a73094`; CI `36803569793` and Vercel passed | Planning adopts shared heading/actions/fields/panels; scoped spacing and binary choice states; tighter lineup and error copy. | Required local checks and responsive synthetic organizer/member review; see P05 record. | Owner accepted 2026-10-01; fixture saves are UI-only evidence. | Accepted; P06 authorized. |
+
+| P06 | Baseline `8a73094`; accepted at `d9b8da3`; CI `36855535491` and Vercel passed | Players adopts shared standard heading/actions/fields/panels, token-based roster rows and league-lineup copy. | 578 tests, coverage, lint, types, build; synthetic search/retry/account states and responsive light/dark-token review. See P06 record. | Owner accepted 2026-10-01; synthetic evidence does not prove hosted admission or RLS. | Accepted; P07 authorized. |
+| P07 | Baseline `d9b8da3`; accepted at `42492c2`; CI `36858790687` and Vercel passed | Player Profile adopts shared heading/identity/actions/fields/panels, a responsive record grid and tale-of-the-tape copy. | 578 tests, coverage, lint, types, build; synthetic privacy/history/error states and light/dark-token reflow. See P07 record. | Owner accepted 2026-10-01; synthetic checks do not prove hosted Auth/RLS. | Accepted; P08 authorized. |
+| P08 | Baseline `42492c2`; accepted at `6fb7fc9`; CI `36862583510` and Vercel passed | My Profile adopts shared heading, panels, fields and action variants; avatar selection uses the same token family; restrained identity copy. | Required local checks; synthetic profile/avatar saves, cancel/retry/recovery and light/dark-token reflow. See P08 record. | Owner accepted 2026-10-01; fixture persistence is in memory only. | Accepted; P09 authorized. |
+
+| P09 | Baseline `6fb7fc9`; exact publication identity in ignored QA packet | Solo adopts shared header/actions/fields/panels and themed benchmark/selection roles; precise privacy and recovery copy retained. | Required local checks; synthetic save/play-again/edit, eight entry reflow checks; browser-confirmation limitation in P09 record. | Owner accepted 2026-10-01; fixture persistence is in memory only. | Accepted; P10-P15 batch authorized. |
+
+| P10 | Baseline `6e4683b`; exact published identity in ignored QA packet | Shared landing heading/actions around retained rivalry showcase. | Full local checks pass; sampled synthetic UI review. See [batch record](release/p10-p15-consistency-2026-10-01.md). | Accepted; real-account and final-sweep limits recorded. | Accepted at `f4613de` on 2026-10-01; P16-P20 authorized. |
+| P11 | Baseline `6e4683b`; exact published identity in ignored QA packet | Shared pair heading, sections and poster dialog controls. | Full local checks pass; sampled synthetic UI review. See [batch record](release/p10-p15-consistency-2026-10-01.md). | Accepted; real-account and final-sweep limits recorded. | Accepted at `f4613de` on 2026-10-01; P16-P20 authorized. |
+| P12 | Baseline `6e4683b`; exact published identity in ignored QA packet | Shared challenge status, actions and repair fields. | Full local checks pass; sampled synthetic UI review. See [batch record](release/p10-p15-consistency-2026-10-01.md). | Accepted; real-account and final-sweep limits recorded. | Accepted at `f4613de` on 2026-10-01; P16-P20 authorized. |
+| P13 | Baseline `6e4683b`; exact published identity in ignored QA packet | Shared Board feed, access, composer and organizer controls. | Full local checks pass; sampled synthetic UI review. See [batch record](release/p10-p15-consistency-2026-10-01.md). | Accepted; real-account and final-sweep limits recorded. | Accepted at `f4613de` on 2026-10-01; P16-P20 authorized. |
+| P14 | Baseline `6e4683b`; exact published identity in ignored QA packet | Shared conversation heading, replies and moderation actions. | Full local checks pass; sampled synthetic UI review. See [batch record](release/p10-p15-consistency-2026-10-01.md). | Accepted; real-account and final-sweep limits recorded. | Accepted at `f4613de` on 2026-10-01; P16-P20 authorized. |
+| P15 | Baseline `6e4683b`; exact published identity in ignored QA packet | Shared invitation form, history and retry controls. | Full local checks pass; sampled synthetic UI review. See [batch record](release/p10-p15-consistency-2026-10-01.md). | Accepted; real-account and final-sweep limits recorded. | Accepted at `f4613de` on 2026-10-01; P16-P20 authorized. |
+
+| P16 | Baseline `f4613de`; exact publication identity in ignored QA packet | Shared compact sign-in heading, actions, fields and panels. | Full local checks pass; sampled synthetic UI review. See [batch record](release/p16-p20-consistency-2026-10-01.md). | Owner accepted 2026-10-01; real-flow and final-sweep limits retained. | Accepted at `f238849`; P21-P24 authorized. |
+| P17 | Baseline `f4613de`; exact publication identity in ignored QA packet | Shared invitation registration and code-form treatment. | Full local checks pass; sampled synthetic UI review. See [batch record](release/p16-p20-consistency-2026-10-01.md). | Owner accepted 2026-10-01; real-flow and final-sweep limits retained. | Accepted at `f238849`; P21-P24 authorized. |
+| P18 | Baseline `f4613de`; exact publication identity in ignored QA packet | Shared confirmation heading with conditional email wording. | Full local checks pass; sampled synthetic UI review. See [batch record](release/p16-p20-consistency-2026-10-01.md). | Owner accepted 2026-10-01; real-flow and final-sweep limits retained. | Accepted at `f238849`; P21-P24 authorized. |
+| P19 | Baseline `f4613de`; exact publication identity in ignored QA packet | Shared recovery heading/actions/fields; session behavior retained. | Full local checks pass; sampled synthetic UI review. See [batch record](release/p16-p20-consistency-2026-10-01.md). | Owner accepted 2026-10-01; real-flow and final-sweep limits retained. | Accepted at `f238849`; P21-P24 authorized. |
+| P20 | Baseline `f4613de`; exact publication identity in ignored QA packet | Shared release-note heading/cards/pagination; main-only feed retained. | Full local checks pass; sampled synthetic UI review. See [batch record](release/p16-p20-consistency-2026-10-01.md). | Owner accepted 2026-10-01; real-flow and final-sweep limits retained. | Accepted at `f238849`; P21-P24 authorized. |
+
+Keep screenshots and private synthetic fixture details in the existing ignored
+QA locations; store a concise sanitized summary in `docs/`. Do not put credentials,
+invitation tokens or real account details in the plan. For shared primitives,
+keep a consumer/adoption list and review affected accepted rows before changing
+their tokens. A final sweep is a completion gate of this plan, not a multi-page
+implementation package.
+
+## Finish the pass and return to W6/W7
+
+Completion requires all 24 rows owner-accepted (or an explicit owner-approved
+scope exception), guide/adoption/consumer records current, and no unresolved
+regression in the changed pages. Perform a final combined read/journey sweep
+covering navigation, profile, planning, match/night, Solo, Board, challenges,
+invitation and password recovery, plus targeted full checks on the final SHA.
+Do not repeat broad testing without changed code or an unresolved concern.
+
+Then follow the [release checkpoint](release/pre-consistency-checkpoint-2026-09-30.md):
+refresh the final app/candidate addendum; review any remaining W6 human/affected-
+flow acceptance and the separate dependency/credential gates; include both W6
+SQL supplements in the final rehearsal; rebuild the compatible rollback app;
+and execute W7's exact artifact/SQL packet and owner go/no-go. W8 still needs the
+fresh protected backup, drained write pause, approved production cutover and
+observation. A UI pass cannot count as production or DB rehearsal evidence.
+
+P01 accepted by the owner on 2026-09-30 with the shorter introduction: “Check the standings, follow the rivalries, and see who holds the bragging rights.” The owner authorized P02 in the same message. [P02 review record](release/p02-stats-consistency-2026-09-30.md) records the token adoption and checks. P02 was accepted and P03 authorized on 2026-09-30. See the [P03 review record](release/p03-matches-consistency-2026-09-30.md); P03 was accepted at `938ee34` and P04 authorized on 2026-09-30. See the [P04 review record](release/p04-league-night-consistency-2026-09-30.md); P04 was accepted at `acc01a0` and P05 authorized on 2026-09-30. See the [P05 review record](release/p05-planning-consistency-2026-09-30.md); P05 was accepted at `8a73094` and P06 authorized on 2026-10-01. See the [P06 review record](release/p06-players-consistency-2026-10-01.md); P06 was accepted at `d9b8da3` and P07 authorized on 2026-10-01. See the [P07 review record](release/p07-player-profile-consistency-2026-10-01.md); P07 was accepted at `42492c2` and P08 authorized on 2026-10-01. See the [P08 review record](release/p08-my-profile-consistency-2026-10-01.md); P08 was accepted at `6fb7fc9` and P09 authorized on 2026-10-01. See the [P09 review record](release/p09-solo-consistency-2026-10-01.md); P09 was accepted at `6e4683b`. The owner authorized P10-P15 together on 2026-10-01, explicitly confirming all six packages.
+
+P10-P15 owner-accepted at `f4613de` on 2026-10-01. P16-P20 are authorized together in the same fashion: finish all five, then run full checks and publish one preview update, followed by one owner review stop. This does not authorize P21-P24 or resume W6/W7/W8.
+
+P16-P20 owner-accepted at `f238849` on 2026-10-01. The owner authorized P21-P24 together in the same fashion: finish all four, then full checks and one preview publication, followed by one review stop. Historical batch exceptions above describe their authorization at that time. The final combined journey sweep remains a completion gate after this batch acceptance; W6/W7/W8 do not resume automatically. See [P21-P24 review record](release/p21-p24-consistency-2026-10-01.md).
+
+P21: baseline `f238849`; shared compact utility presentation, existing restrictions and recovery retained. Technical evidence and owner-review limits are in the batch record; owner accepted 2026-10-01 at `8b1ed75`; final-sweep limits retained.
+
+P22: baseline `f238849`; shared compact utility presentation, existing restrictions and recovery retained. Technical evidence and owner-review limits are in the batch record; owner accepted 2026-10-01 at `8b1ed75`; final-sweep limits retained.
+
+P23: baseline `f238849`; shared compact utility presentation, existing restrictions and recovery retained. Technical evidence and owner-review limits are in the batch record; owner accepted 2026-10-01 at `8b1ed75`; final-sweep limits retained.
+
+P24: baseline `f238849`; shared compact utility presentation, existing restrictions and recovery retained. Technical evidence and owner-review limits are in the batch record; owner accepted 2026-10-01 at `8b1ed75`; final-sweep limits retained.
+
+P21-P24 owner-accepted on 2026-10-01 at `8b1ed75ec33bbebc2b015894a39b7d3b0ce44a8a`. All 24 page packages are accepted. Next: final combined journey sweep and evidence reconciliation, followed by the checkpointed W6/W7 return gates. This acceptance does not close those gates or authorize production/DB changes.
+
+Final sweep update, 2026-10-01: the combined walkthrough and evidence review
+have been performed at that exact candidate. The
+[review record](release/final-consistency-review-2026-10-01.md) and
+[candidate addendum](release/post-consistency-candidate-2026-10-01.json) record
+the results and unchanged W5/W6 SQL inputs. The owner authorized the confirmed
+poster-dialog focus correction; it is now locally fixed and verified by native
+browser checks and all required application gates (582 tests). Its publication
+and new candidate identity remain separate from `8b1ed75`. Unconfirmed real multi-account
+journeys remain focused W6 acceptance. The final completion gate remains open
+until those findings are resolved or explicitly dispositioned. W7/W8 have not
+started from this review.
+
+Additional owner request, 2026-10-01: review the pages as one system and correct
+different header positions/heights, font sizes and page widths before returning
+to W packages. The [shared-frame correction](release/shared-page-frame-2026-10-01.md)
+supersedes earlier per-page size/width choices. Every route adopts one outer
+frame and PageHeader family, with common heading slots and a separate toolbar.
+The work preserves the accepted page content/features and earlier focus
+fix. Both are [published to Preview](release/shared-page-frame-preview-2026-10-01.md)
+at application `020136e`. The owner accepted the combined appearance on October 1.
+The [final visual polish](release/final-visual-polish-2026-10-01.md) records the
+subsequent avatar, mobile filter/logo, recap and poster requests. Its appearance
+acceptance remains separate. W6/W7/W8 remain at their checkpoint; real
+multi-account journey acceptance has not been replaced by visual checks.

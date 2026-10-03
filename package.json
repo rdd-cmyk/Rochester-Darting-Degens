@@ -19,10 +19,19 @@
     }
   },
   "scripts": {
+    "invites:start:local": "node scripts/invites-local.mjs start",
+    "invites:setup:local": "node scripts/invites-local.mjs setup",
+    "invites:preview:local": "node scripts/invites-local.mjs preview",
+    "test:invites:local": "node scripts/qa/invites-integration.mjs",
+    "solo:local": "node scripts/solo-local.mjs",
     "dev": "next dev",
     "dev:local": "node scripts/dev-local.mjs",
     "build:local": "node scripts/dev-local.mjs --build",
+    "night:local": "node scripts/league-night-local.mjs",
+    "plan:local": "node scripts/planning-local.mjs",
     "test:db:local": "node scripts/supabase-local.mjs test",
+    "board:setup:local": "node scripts/board-local.mjs setup",
+    "test:board:local": "node scripts/board-local.mjs test",
     "build": "next build",
     "check:install-scripts": "node scripts/check-install-scripts.mjs",
     "ci:install": "npm exec --yes --ignore-scripts --package=npm@11.19.0 -- npm --ignore-scripts=false run ci:install:trusted",
@@ -38,17 +47,19 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "rivalry:local": "node scripts/rivalry-local.mjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "2.116.0",
     "@vercel/analytics": "2.0.1",
     "@vercel/speed-insights": "2.0.0",
-    "next": "16.3.4",
+    "next": "16.3.6",
     "react": "19.2.8",
     "react-dom": "19.2.8",
     "react-markdown": "10.1.0",
-    "remark-gfm": "4.0.1"
+    "remark-gfm": "4.0.1",
+    "server-only": "^0.0.1"
   },
   "devDependencies": {
     "@eslint/compat": "2.1.1",
@@ -61,7 +72,7 @@
     "@types/react-dom": "19.2.7",
     "@vitest/coverage-v8": "4.1.11",
     "eslint": "10.10.0",
-    "eslint-config-next": "16.3.4",
+    "eslint-config-next": "16.3.6",
     "jsdom": "^30.0.1",
     "supabase": "2.116.0",
     "tailwindcss": "4.3.3",

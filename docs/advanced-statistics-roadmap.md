@@ -1,12 +1,56 @@
 # Rochester Darting Degens Advanced Statistics Roadmap
 
-Status: advanced-statistics PR open; hosted database changes deferred
+Current combined-release coordination: [Next release readiness](release-next-readiness.md).
+`release/next` now contains League Night, planning, Board, invitations, game modes,
+team ratings, Solo Play, the PR #75 interface and Rivalry Room/player avatars.
+Prior feature results below remain dated evidence;
+the full release's backup/restore, migration and deployment gates are open.
+The owner confirmed future statistics SQL/storage preparation for this release
+on 2026-09-28, with no new statistics UI or calculation features. See package W2
+and section 1A of the release plan; seasons remain storage-only for this scope.
+W0 scope/candidate preparation is complete; see its
+[evidence record](release/w0-scope-and-candidate.md) and
+[expanded manifest](release/w0-candidate-2026-09-29.json). W1's
+[2026-09-29 read-only refresh](release/w1-completion-2026-09-29.md) is complete;
+Vercel access/configuration is verified. Its original isolated-preview gate
+is now passed: the [exact combined Preview](release/w1-preview-gate-2026-09-29.md)
+has verified browser/server credentials on RDD Release Testing, with passing
+CI/Vercel. W2's [storage preparation](release/w2-statistics-foundation-2026-09-29.md)
+now passes independent source review and focused local SQL/application checks.
+W3's [combined synthetic rehearsal](release/w3-combined-synthetic-2026-09-29.md)
+passed locally. W4's [protected backup and restore proof](release/w4-backup-restore-2026-09-29.md)
+passed with owner-accepted recovery limits: downtime of 48 hours or more is
+acceptable, but committed records must not be lost. W5's
+[protected production-shaped rehearsal](release/w5-production-shaped-2026-09-29.md)
+also passed locally, including exact original-row preservation and compatible
+app rollback. W6-W8 remain open. The isolated test project now has the reviewed SQL for W6 acceptance. No
+production hosted SQL or production rollout was performed.
+
+Status: advanced-statistics PR #69 merged; League Night Mode implemented and locally verified; hosted database changes deferred
 
 Supabase project: `hrqsbzmsfichiimtxijj`
 
-Last updated: 2026-09-08
+Last updated: 2026-09-29
+
+Release checkpoint: PR #69 merged into `main` as `690a01b` on 2026-09-25.
+The package rows below retain their dated implementation evidence; they are not
+a current deployment-status dashboard. Ben reported that the merged website
+looks good. The new Phase 4 branch starts from that merged release, with no
+deployable migration SQL. League Night SQL remains outside automatic deployment.
 
 ## Implementation status
+
+Plan & RSVP is implemented on the isolated `league-night-planning` worktree:
+polls, two suggestions per profile, scheduling and binary RSVPs. See the
+[local handoff](league-night-planning-handoff.md). This does not approve hosted
+SQL, organizer assignments or publication.
+
+Rivalry Room and 24 player avatars are integrated locally into `release/next`
+on 2026-09-29 from `rivalry-room` at `5f9a24c`, preserving the PR #75 interface.
+See the [integration record](release/rivalry-ui-integration.md), original
+[local handoff](rivalry-room-handoff-2026-09-28.md) and
+[independent review](rivalry-room-review-2026-09-29.md). The new SQL remains a
+fixture; publication, full release rehearsal and hosted rollout remain deferred.
 
 | Phase | Status | Notes |
 | --- | --- | --- |
@@ -14,6 +58,9 @@ Last updated: 2026-09-08
 | 1 — Data foundation | Implemented in source | Editable match chronology is ready; the additive SQL is retained as a local-only fixture, not an auto-deployed migration. Hosted deployment remains gated on schema/RLS review. |
 | 2 — Advanced statistics | Implemented | The pure rating and distribution engine is covered by deterministic tests. |
 | 3 — Statistics experience | Implemented | The responsive `/stats` dashboard, filters, stories, trend chart, table, and methodology are in place. |
+| 4A–4C — League Night Mode | Implemented; Ben's local demo review complete | Shared attendance, atomic saving, recovery, rematches, recap awards and export. [Local verification](league-night-verification-2026-09-26.md) and [read-only hosted audit](league-night-hosted-audit-2026-09-27.md); backup/restore, migration-history adoption and hosted rollout remain open. |
+| Game modes and team Power Rating | Implemented and locally verified; prerequisites included in Solo integration | Eight game additions, rule presets, shared 2v2/3v3 entry, split team ratings, score cohorts and audited correction previews. [Original evidence](game-modes-verification-2026-09-27.md) and [League Night rebase/admission verification](solo-play-rebase-2026-09-28.md). Hosted deployment and activation remain gated. |
+| Solo Play and Practice & Performance | Implemented, reviewed and rebased onto remote League Night Mode | Private solo logging, profile scopes, consented night activity and descriptive practice comparisons. [Plan](solo-play-plan.md), [original verification](solo-play-verification-2026-09-28.md) and [integration verification](solo-play-rebase-2026-09-28.md). Preserves invitation admission; hosted rollout remains gated. |
 | 3A — Runtime and delivery contract | Complete | Local verification, GitHub Actions run `33327531198`, and Vercel deployment `7Q8bJBqSjuM3hhGKYkcPNomx7ADt` pass on commit `db5816d`. |
 | Local Supabase readiness follow-up | User approved | Approved on 2026-09-07 before beginning 3B; reviewed baseline, loopback core services, local RLS/preservation tests, and synthetic browser acceptance. See `docs/local-approval-readiness-2026-09-07.md`. Hosted deployment remains gated. |
 | 3B — Next.js security baseline | Implemented and locally verified | Next/eslint-config-next 16.3.4, React/DOM 19.2.8; production audit zero; 59 unit tests and two production-browser scenarios pass. CI/Vercel remain pending push. |
@@ -135,7 +182,16 @@ matches and remains zero-sum for every match.
 
 ### Strength of schedule
 
-- For each appearance, calculate the mean pre-match rating of every opponent.
+- For each appearance, calculate the mean rating of opposing players only.
+- Established opponents contribute their pre-match rating. Opponents provisional
+  before that match contribute their rating immediately after the first match
+  reaching ten evidence games, once available in the selected history. This
+  includes the graduation match itself. Until graduation, retain the original
+  pre-match rating. Later results do not overwrite the graduation rating.
+- Graduation follows the existing evidence weights: singles/free-for-all count
+  as one, doubles as one-half, triples as one-third. Filters recompute this
+  history; corrections can change the graduation point. Power updates remain
+  based on actual pre-match ratings.
 - A player's strength of schedule is the mean of those match-level values.
 
 ### Form
@@ -160,7 +216,7 @@ matches and remains zero-sum for every match.
 - Power leader: highest current rating above the selected minimum sample.
 - On fire: largest positive five-match rating change.
 - Most improved: largest rating gain from the 1500 baseline.
-- Giant killer: win with the lowest pre-match probability.
+- Giant killer: eligible underdog win with the lowest pre-match probability. Every participant must have an established rating (ten prior evidence games in the selected filters). A singles/free-for-all winner must have a lower pre-match rating than at least one opponent; a winning team must have a pre-match probability below 50%, based on team average ratings. Later matches do not retroactively qualify provisional wins. Show "No qualifying upset yet" when none qualify.
 - Most consistent: lowest normalized median absolute deviation with at least
   three scored matches.
 
@@ -216,10 +272,24 @@ Phase 4 entry gate is satisfied. Package 3F may remain deferred.
 
 ### Phase 4 — League Night Mode
 
-- Enter date, venue, board, and roster once per session.
-- Add recent-player chips, same-players/rematch shortcuts, draft autosave, and
-  duplicate warnings.
-- Keep enhanced fields collapsed by default.
+Detailed delivery and design plan: [League Night Mode](league-night-mode-plan.md).
+
+- **4A — Save with confidence:** atomic create/edit, safe retries, conflict
+  handling, and independently reviewed database/backup/deployment gates.
+- **4B — Save & Rematch:** shared persistent nights and attendee lists, entry
+  from any signed-in user's phone, mobile-friendly player cards, device-local
+  score drafts, and explicit successful saves. Preserve creator-only match editing.
+- **4C — Night recap:** confirmed results from all contributors, historically
+  grounded rating changes, upsets, best-recorded scores, earned night awards
+  with clear eligibility, and a user-reviewed share card.
+
+Retain the League Lab's visual quality and sample guardrails. Enhanced scoring
+fields and the old deferred statistics schema are not required by this scope.
+Shared nights require narrowly scoped new storage under the same database
+review and deployment gates as safer saving. The reviewed local SQL is under
+`supabase/tests/fixtures/`, not the auto-deployment migration directory. Follow
+[the ordered rollout](league-night-database-rollout.md); do not deploy this app
+against an unchanged hosted database.
 
 ### Phase 5 — Enhanced darts metrics
 

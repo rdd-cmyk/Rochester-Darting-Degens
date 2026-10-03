@@ -52,9 +52,12 @@ export function ChangeLogMarkdown({ content }: ChangeLogMarkdownProps) {
               <span>{children}</span>
             ),
           table: ({ children }) => (
-            <div className="change-log-table-scroll">
+            <div className="change-log-table-scroll" role="region" aria-label="Scrollable change log table" tabIndex={0}>
               <table>{children}</table>
             </div>
+          ),
+          pre: ({ children }) => (
+            <pre role="region" aria-label="Scrollable change log code" tabIndex={0}>{children}</pre>
           ),
           img: ({ src, alt }) => {
             const trustedSource = trustedImageSource(typeof src === "string" ? src : undefined);
@@ -65,7 +68,6 @@ export function ChangeLogMarkdown({ content }: ChangeLogMarkdownProps) {
                   alt={alt ?? "Pull request image"}
                   fill
                   sizes="(max-width: 768px) 100vw, 780px"
-                  style={{ objectFit: "contain" }}
                 />
               </span>
             ) : (

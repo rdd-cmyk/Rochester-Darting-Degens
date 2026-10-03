@@ -13,6 +13,8 @@ export const baseConfig = defineConfig([
     "coverage/**",
     "out/**",
     "build/**",
+    ".local/**",
+    ".qa-artifacts/**",
     "next-env.d.ts",
   ]),
 ]);

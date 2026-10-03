@@ -1,11 +1,14 @@
 import type { Metadata } from "next";
 import Observability from "./components/Observability";
 import "./globals.css";
+import "./front-door.css";
 import LayoutShell from "./components/LayoutShell";
+import { AvatarProvider } from '@/components/avatars/PlayerAvatar';
+import '@/components/rivalries/rivalries.css';
 
 export const metadata: Metadata = {
   title: {
-    default: "RDD - Home",
+    default: "RDD - League Night",
     template: "RDD - %s",
   },
   description: "Rochester Darting Degens stats and match tracking",
@@ -18,15 +21,8 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body
-        className="antialiased"
-        style={{
-          minHeight: "100vh",
-          display: "flex",
-          flexDirection: "column",
-        }}
-      >
-        <LayoutShell>{children}</LayoutShell>
+      <body className="antialiased">
+        <AvatarProvider><LayoutShell>{children}</LayoutShell></AvatarProvider>
         {/* Local synthetic acceptance must not load external telemetry scripts. */}
         {process.env.RDD_LOCAL_PREVIEW !== "1" && (
           <Observability />

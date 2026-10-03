@@ -1,16 +1,29 @@
 'use client';
 
-import { useEffect, useState, FormEvent } from 'react';
+import { useCallback, useEffect, useRef, useState, FormEvent } from 'react';
 import Link from 'next/link';
+import { PageHeader } from '@/components/ui/PageHeader';
+import { ActionLink } from '@/components/ui/ActionLink';
+import { ActionButton } from '@/components/ui/ActionButton';
 import { supabase } from '@/lib/supabaseClient';
 import { formatPlayerName } from '@/lib/playerName';
 import { LinkedPlayerName } from '@/components/LinkedPlayerName';
-import { clearMatchesState } from '@/lib/matchState';
+import { useCurrentUser } from '@/lib/league-night/use-current-user';
+import { pendingSaveKey, readPendingSaves, readSavedEntries, type PendingMatchSave } from '@/lib/league-night/recovery';
+import { formatRecordedScore } from '@/lib/matchScore';
 import {
   resolvePlayedAtIso,
   toLocalDateTimeInput,
 } from '@/lib/dateTime';
 import type { User } from '@supabase/supabase-js';
+import { isDefiniteSaveRejection, parseCricketPoints, parseScore, saveErrorMessage, saveMatch, validateMatchWrite } from '@/lib/league-night/match-write';
+import type { MatchWrite } from '@/lib/league-night/types';
+
+import { loadMatchArchive, loadArchiveNights, EMPTY_ARCHIVE_FILTERS, ARCHIVE_PAGE_SIZE, type ArchiveFilters, type ArchiveNight } from '@/lib/matches/archive';
+import { loadMatches } from '@/lib/league-night/api';
+import { previewCorrection } from '@/lib/games/correction';
+import { GameOptions, GameResultDetails } from '@/components/GameOptions';
+import { GAME_TYPES, defaultConfig, gameDefinition, gameUnit, hasCricketPoints, isX01, type GameConfig } from '@/lib/games/catalog';
 
 // Simple types
 type Profile = {
@@ -38,6 +51,7 @@ type MatchPlayer = {
 };
 
 type Match = {
+  game_config?: GameConfig | null;
   id: number;
   played_at: string;
   game_type: string | null;
@@ -45,6 +59,9 @@ type Match = {
   board_type: string | null;
   venue: string | null;
   created_by: string | null;
+  revision: number;
+  night_id: string | null;
+  league_nights?: { title: string; night_date: string } | { title: string; night_date: string }[] | null;
   match_players: MatchPlayer[] | null;
 };
 
@@ -56,7 +73,26 @@ type PlayerEntry = {
 
 type MatchesError = { message?: string };
 
+function MatchesHeader({ user }: { user?: User }) {
+  return <PageHeader
+    eyebrow="League play"
+    title="Matches"
+    description={<>
+      <span>Every result has a story. Find the game, check the details, or correct the record.</span>
+      {user && <span className="rdd-title-context">Signed in as <strong>{user.email}</strong></span>}
+    </>}
+
+  />;
+}
+
 export default function MatchesPage() {
+  const { user, loading } = useCurrentUser();
+  if (loading) return <main className="rdd-page-shell page-shell matches-page"><MatchesHeader /><p className="rdd-state" role="status">Loading matches…</p></main>;
+  if (!user) return <main className="rdd-page-shell page-shell matches-page"><MatchesHeader /><p className="rdd-state">You must be signed in to view and add matches.</p><ActionLink href="/auth" variant="primary">Go to sign in</ActionLink></main>;
+  return <MatchesWorkspace key={user.id} user={user} />;
+}
+
+function MatchesWorkspace({ user }: { user: User }) {
   const createEmptyPlayerEntry = (): PlayerEntry => ({
     playerId: '',
     stat: '',
@@ -69,17 +105,32 @@ export default function MatchesPage() {
     cricketPoints: entry?.cricketPoints ?? '',
   });
 
-  const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [profiles, setProfiles] = useState<Profile[]>([]);
   const [matches, setMatches] = useState<Match[]>([]);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
+  const [correction, setCorrection] = useState<ReturnType<typeof previewCorrection> | null>(null);
+  const [correctionKey, setCorrectionKey] = useState('');
+  const [previewing, setPreviewing] = useState(false);
+  const [pendingSave, setPendingSave] = useState<PendingMatchSave | null>(null);
+  const [duplicateMatch, setDuplicateMatch] = useState(false);
+  const [saveReceipt, setSaveReceipt] = useState('');
+  const [otherRecoveries, setOtherRecoveries] = useState(0);
+  const [savedEntries, setSavedEntries] = useState<PendingMatchSave[]>([]);
+  const [recoveredEntryId, setRecoveredEntryId] = useState<string | null>(null);
+  const saveLock = useRef(false);
+  const mounted = useRef(true);
+  const listRequest = useRef(0);
+  const matchRecoveryKey = (id: string) => `rdd:match-save:${process.env.NEXT_PUBLIC_SUPABASE_URL ?? 'local'}:${id}`;
 
   // Form state
   const [playedAt, setPlayedAt] = useState(() =>
     toLocalDateTimeInput(new Date())
   );
   const [gameType, setGameType] = useState('501');
+  const [gameConfig, setGameConfig] = useState<GameConfig | null>(null);
+  const teamGame = Boolean(gameConfig && gameConfig.format !== 'individual');
   const [notes, setNotes] = useState('');
   const [numPlayers, setNumPlayers] = useState(2);
   const [playerEntries, setPlayerEntries] = useState<PlayerEntry[]>([
@@ -95,52 +146,33 @@ export default function MatchesPage() {
 
   // Edit state
   const [editingMatchId, setEditingMatchId] = useState<number | null>(null);
+  const [editSnapshot, setEditSnapshot] = useState<Pick<Match, 'revision' | 'night_id' | 'played_at' | 'created_by'> | null>(null);
 
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
-  const PAGE_SIZE = 10;
+  const [archiveFilters, setArchiveFilters] = useState<ArchiveFilters>(EMPTY_ARCHIVE_FILTERS);
+  const archiveFiltersRef = useRef<ArchiveFilters>(EMPTY_ARCHIVE_FILTERS);
+  const [archiveLoading, setArchiveLoading] = useState(false);
+  const [archiveError, setArchiveError] = useState('');
+  const [nightOptions, setNightOptions] = useState<ArchiveNight[]>([]);
+  const [nightOptionsError, setNightOptionsError] = useState(false);
+  const [nightOptionsReload, setNightOptionsReload] = useState(0);
+  const [editorOpen, setEditorOpen] = useState(false);
+  const [chooseRecording, setChooseRecording] = useState(false);
+  const PAGE_SIZE = ARCHIVE_PAGE_SIZE;
+  useEffect(() => {
+    let active = true;
+    loadArchiveNights().then(data => { if (active) { setNightOptions(data); setNightOptionsError(false); } }).catch(() => { if (active) setNightOptionsError(true); });
+    return () => { active = false; };
+  }, [nightOptionsReload]);
+  useEffect(() => {
+    if (editorOpen) document.getElementById('match-editor-title')?.focus();
+  }, [editorOpen]);
 
-  const isCricket = gameType === 'Cricket';
+  const isCricket = hasCricketPoints(gameType);
   const isOther = gameType === 'Other';
-  const isO1 = gameType === '501' || gameType === '301';
-
-  const formStyle = {
-    display: 'flex',
-    flexDirection: 'column' as const,
-    gap: '0.75rem',
-    maxWidth: '520px',
-    width: '100%',
-  };
-
-  const fieldRowStyle = {
-    display: 'grid',
-    alignItems: 'center',
-    gap: '0.75rem',
-    gridTemplateColumns: 'var(--form-grid-columns)',
-    width: '100%',
-  } as const;
-
-  const labelTextStyle = {
-    minWidth: '150px',
-    fontWeight: 600,
-  };
-
-  const controlStyle = {
-    width: '100%',
-    maxWidth: 'var(--form-control-max)',
-  } as const;
-
-  const selectStyle = {
-    ...controlStyle,
-    color: 'var(--input-text)',
-    backgroundColor: 'var(--input-bg)',
-  } as const;
-
-  const optionStyle = {
-    color: 'var(--input-text)',
-    backgroundColor: 'var(--input-bg)',
-  } as const;
+  const isO1 = isX01(gameType);
 
   // Helper to resize playerEntries when numPlayers changes
   function ensurePlayerEntriesSize(targetSize: number) {
@@ -174,6 +206,8 @@ export default function MatchesPage() {
   }
 
   function handlePlayerChange(index: number, playerId: string) {
+    const previousId=playerEntries[index]?.playerId;
+    if(previousId && previousId!==playerId) {setGameConfig(config=>config ? {...config,sides:Object.fromEntries(Object.entries(config.sides).filter(([id])=>id!==previousId))} : null);if(winnerPlayerId===previousId)setWinnerPlayerId('');}
     setPlayerEntries((prev) => {
       const copy = prev.map((entry) => normalizePlayerEntry(entry));
       if (!copy[index]) copy[index] = createEmptyPlayerEntry();
@@ -232,75 +266,78 @@ export default function MatchesPage() {
   }
 
   // Helper to load matches list with pagination
-  async function reloadMatches(page = 1) {
-    const from = (page - 1) * PAGE_SIZE;
-    const to = from + PAGE_SIZE - 1;
+  const reloadMatches = useCallback(async (page = 1, filters = archiveFiltersRef.current) => {
+    const request = ++listRequest.current;
+    setArchiveLoading(true); setArchiveError('');
+    try {
+      const result = await loadMatchArchive<Match>(page, filters);
+      if (!mounted.current || request !== listRequest.current) return;
+      setMatches(result.matches);
+      setTotalPages(Math.max(1, Math.ceil(result.count / PAGE_SIZE)));
+      setCurrentPage(page);
+    } catch (cause) {
+      if (mounted.current && request === listRequest.current) {
+        setArchiveError('The match archive could not be loaded. Try again.');
+        setMatches([]);
+      }
+      throw cause;
+    } finally { if (mounted.current && request === listRequest.current) setArchiveLoading(false); }
+  }, [PAGE_SIZE]);
+  function applyFilters(filters: ArchiveFilters) {
+    archiveFiltersRef.current = filters;
+    setArchiveFilters(filters);
+    void reloadMatches(1, filters).catch(() => {});
+  }
 
-    const { data: matchesData, error: matchesError, count } = await supabase
-      .from('matches')
-      .select(
-        `
-        id,
-        played_at,
-        game_type,
-        notes,
-        board_type,
-        venue,
-        created_by,
-        match_players (
-          id,
-          match_id,
-          player_id,
-          score,
-          points_scored,
-          is_winner,
-          profiles (
-            display_name,
-            first_name,
-            include_first_name_in_display
-          )
-        )
-      `,
-        { count: 'exact' }
-      )
-      .order('played_at', { ascending: false })
-      .range(from, to);
+  const restoreSave = useCallback((stored: PendingMatchSave) => {
+    setEditorOpen(true);
+    const payload = validateMatchWrite(stored.payload as MatchWrite);
+    setPendingSave(stored.released ? null : { operationId: stored.operationId, payload, dispatched: stored.dispatched });
+    // Keep the actual entry visible/editable after a definite rejection.
+    setPlayedAt(toLocalDateTimeInput(payload.played_at));
+    setGameType(payload.game_type ?? '');
+    setGameConfig(payload.game_config ?? null);
+    setBoardType(payload.board_type ?? '');
+    setVenue(payload.venue ?? '');
+    setNotes(payload.notes ?? '');
+    setNumPlayers(payload.players.length);
+    setPlayerEntries(payload.players.map(p => ({ playerId: p.player_id, stat: p.score == null ? '' : String(p.score), cricketPoints: p.points_scored == null ? '' : String(p.points_scored) })));
+    setWinnerPlayerId(payload.players.find(p => p.is_winner)?.player_id ?? '');
+    setO1StatInputMode('3da');
+    setEditingMatchId(payload.match_id);
+    setEditSnapshot(payload.match_id === null ? null : { revision: payload.expected_revision!, night_id: payload.night_id, played_at: payload.played_at, created_by: user.id });
+    setRecoveredEntryId(stored.released ? stored.operationId : null);
+    setSaveReceipt('');
+    setDuplicateMatch(false);
+    setErrorMessage(stored.released ? 'Your unsaved entry has been restored. Review it before saving.' : 'An earlier save needs confirmation. Check/retry it before entering another match.');
+  }, [user.id]);
 
-    if (matchesError) {
-      throw matchesError;
-    }
-
-    setMatches((matchesData ?? []) as Match[]);
-
-    if (typeof count === 'number') {
-      const pages = Math.max(1, Math.ceil(count / PAGE_SIZE));
-      setTotalPages(pages);
-    }
-
-    setCurrentPage(page);
+  function releaseSave(pending: PendingMatchSave) {
+    // Definite no-write outcomes become editable drafts, not discarded scores.
+    try {
+      localStorage.setItem(pendingSaveKey(matchRecoveryKey(user.id),pending.operationId),JSON.stringify({...pending,released:true,savedAt:Date.now()}));
+      setRecoveredEntryId(pending.operationId);
+      setSavedEntries(readSavedEntries(localStorage,matchRecoveryKey(user.id)));
+      setOtherRecoveries(readPendingSaves(localStorage,matchRecoveryKey(user.id)).length);
+    } catch { setErrorMessage('Your entry is still here, but recovery storage is unavailable. Copy it before leaving this page.'); }
   }
 
   // Load current user, profiles, and recent matches
   useEffect(() => {
+    mounted.current = true;
+    let active = true;
     async function load() {
       setLoading(true);
       setErrorMessage(null);
-
-      // 1) Get logged-in user
-      const { data: userData, error: userError } = await supabase.auth.getUser();
-      if (userError || !userData.user) {
-        setUser(null);
-        clearMatchesState({
-          setMatches,
-          setProfiles,
-          setCurrentPage,
-          setTotalPages,
-        });
-        setLoading(false);
-        return;
-      }
-
-      setUser(userData.user);
+      try {
+        const recoveries = readPendingSaves(localStorage, matchRecoveryKey(user.id));
+        const stored = recoveries[0];
+        setOtherRecoveries(Math.max(0,recoveries.length-1));
+        setSavedEntries(readSavedEntries(localStorage,matchRecoveryKey(user.id)));
+        if (stored) {
+          restoreSave(stored);
+        }
+      } catch { /* The form still works when recovery storage is unavailable. */ }
 
       // 2) Load profiles (players)
       const { data: profilesData, error: profilesError } = await supabase
@@ -308,6 +345,7 @@ export default function MatchesPage() {
         .select('id, display_name, first_name, include_first_name_in_display')
         .order('display_name', { ascending: true });
 
+      if (!active) return;
       if (profilesError) {
         setErrorMessage('Error loading profiles: ' + profilesError.message);
       } else {
@@ -318,6 +356,7 @@ export default function MatchesPage() {
       try {
         await reloadMatches(1);
       } catch (matchesError: unknown) {
+        if (!active) return;
         setErrorMessage((prev) =>
           (prev ? prev + ' | ' : '') +
           'Error loading matches: ' +
@@ -327,15 +366,17 @@ export default function MatchesPage() {
         );
       }
 
-      setLoading(false);
+      if (active) setLoading(false);
     }
 
     load();
-  }, []);
+    return () => { active = false; mounted.current = false; };
+  }, [user.id, restoreSave, reloadMatches]);
 
   function resetForm() {
     setPlayedAt(toLocalDateTimeInput(new Date()));
     setGameType('501');
+    setGameConfig(null);
     setNotes('');
     setNumPlayers(2);
     setPlayerEntries([
@@ -346,271 +387,92 @@ export default function MatchesPage() {
     setBoardType('');
     setVenue('');
     setO1StatInputMode('3da');
-    setEditingMatchId(null);
+    setEditingMatchId(null); setCorrection(null); setCorrectionKey('');
+    setEditSnapshot(null);
+    setRecoveredEntryId(null);
+  }
+
+  function currentPayload(): MatchWrite {
+        const original = editSnapshot;
+        if (editingMatchId && original?.created_by !== user.id) throw new Error('You can only edit matches you created.');
+        const selected = playerEntries.slice(0, numPlayers);
+    return validateMatchWrite({
+          match_id: editingMatchId, expected_revision: original?.revision ?? null,
+          night_id: original?.night_id ?? null,
+          played_at: resolvePlayedAtIso(playedAt, original?.played_at ?? null),
+          game_type: gameType || null, game_config: gameConfig, board_type: boardType || null, venue: venue || null, notes: notes || null,
+          players: selected.map(p => ({ player_id: p.playerId,
+            score: parseScore(p.stat, gameType, o1StatInputMode),
+            points_scored: isCricket ? parseCricketPoints(p.cricketPoints) : null,
+            is_winner: gameConfig?.status && gameConfig.status !== 'completed' ? false : teamGame ? Boolean(gameConfig?.sides[winnerPlayerId] && gameConfig.sides[p.playerId] === gameConfig.sides[winnerPlayerId]) : p.playerId === winnerPlayerId })),
+          allow_duplicate: false,
+        });
+  }
+  async function previewEdit() {
+    setPreviewing(true); setErrorMessage(null); setCorrection(null); setCorrectionKey('');
+    try {
+      const payload=currentPayload();
+      const history=await loadMatches();
+      setCorrection(previewCorrection(history,payload)); setCorrectionKey(JSON.stringify(payload));
+    } catch(error) {setErrorMessage(saveErrorMessage(error));}
+    finally {setPreviewing(false);}
   }
 
   async function handleSaveMatch(e: FormEvent) {
     e.preventDefault();
+    if (saveLock.current || !user) return;
     setErrorMessage(null);
-
-    if (!user) {
-      setErrorMessage('You must be signed in to add or edit a match.');
-      return;
-    }
-
-    const activePlayers = playerEntries.slice(0, numPlayers);
-
-    if (activePlayers.length < 2) {
-      setErrorMessage('Please select at least 2 players.');
-      return;
-    }
-
-    // Ensure all players are selected
-    if (activePlayers.some((p) => !p.playerId)) {
-      setErrorMessage('Please choose all players.');
-      return;
-    }
-
-    // Ensure players are unique
-    const ids = activePlayers.map((p) => p.playerId);
-    const uniqueIds = new Set(ids);
-    if (uniqueIds.size !== ids.length) {
-      setErrorMessage('Players must be different.');
-      return;
-    }
-
-    // Ensure winner is selected
-    if (!winnerPlayerId) {
-      setErrorMessage('Please select the winner.');
-      return;
-    }
-
-    // Ensure winner is among the selected players
-    if (!ids.includes(winnerPlayerId)) {
-      setErrorMessage('Winner must be one of the selected players.');
-      return;
-    }
-
-    // Validate stats (including caps & no negatives for 501 / 301 / Cricket)
-    let playedAtIso: string;
+    let pending = pendingSave;
+    // Admission or endpoint failures on a retry cannot prove the first dispatch
+    // did not commit. Old recovery records without a marker are conservative.
+    const previouslyDispatched = Boolean(pending) && pending!.dispatched !== false;
     try {
-      const originalPlayedAt =
-        editingMatchId === null
-          ? null
-          : matches.find((match) => match.id === editingMatchId)?.played_at ?? null;
-      playedAtIso = resolvePlayedAtIso(playedAt, originalPlayedAt);
-    } catch (error) {
-      setErrorMessage(
-        error instanceof Error ? error.message : 'Choose a valid match time.'
-      );
-      return;
-    }
-
-    if (new Date(playedAtIso).getTime() > Date.now() + 5 * 60_000) {
-      setErrorMessage('Match time cannot be in the future.');
-      return;
-    }
-
-    const parsedStats: number[] = [];
-    const parsedCricketPoints: (number | null)[] = [];
-    for (let i = 0; i < activePlayers.length; i++) {
-      const statStr = activePlayers[i].stat;
-      let statNum: number;
-
-      if (gameType === 'Other') {
-        statNum = Number(statStr);
-
-        if (Number.isNaN(statNum) || !Number.isInteger(statNum)) {
-          setErrorMessage(
-            'Scores for Other game types must be whole numbers (e.g., 250).'
-          );
-          return;
-        }
-
-        if (statNum < 1 || statNum > 9999) {
-          setErrorMessage(
-            'Scores for Other game types must be between 1 and 9999.'
-          );
-          return;
-        }
-      } else {
-        statNum = parseFloat(statStr);
-        if (Number.isNaN(statNum)) {
-          setErrorMessage(
-            'Stats must be valid numbers (e.g., 101.85, 5.23) for all players.'
-          );
-          return;
-        }
-
-        // Apply caps only for 501, 301, and Cricket
-        let maxStat: number | null = null;
-        if (gameType === '501') {
-          maxStat = 167;
-        } else if (gameType === '301') {
-          maxStat = 150.5;
-        } else if (gameType === 'Cricket') {
-          maxStat = 9;
-        }
-
-        // Convert PPD to 3-dart average when entering 01 games
-        if (isO1 && o1StatInputMode === 'ppd') {
-          statNum = statNum * 3;
-        }
-
-        if (maxStat !== null) {
-          // No negative numbers allowed
-          if (statNum < 0) {
-            setErrorMessage('Stats cannot be negative.');
-            return;
-          }
-          // Over absolute cap
-          if (statNum > maxStat) {
-            setErrorMessage(
-              'Put in the actual score, you lying sack of shit'
-            );
-            return;
-          }
-        }
+      if (!pending) {
+        const payload = currentPayload();
+        const originalGame = matches.find(m => m.id === editingMatchId)?.game_type;
+        if (editingMatchId && originalGame !== gameType && correctionKey !== JSON.stringify(payload)) throw new Error('Preview this classification correction before saving.');
+        pending = { operationId: crypto.randomUUID(), payload, dispatched: false };
       }
-
-      parsedStats.push(statNum);
-
-      if (isCricket) {
-        const rawPoints = activePlayers[i].cricketPoints?.trim() ?? '';
-        if (!rawPoints) {
-          parsedCricketPoints.push(null);
-        } else {
-          const pointsNum = Number(rawPoints);
-
-          if (
-            Number.isNaN(pointsNum) ||
-            !Number.isInteger(pointsNum) ||
-            pointsNum < 0 ||
-            pointsNum > 9999
-          ) {
-            setErrorMessage(
-              'Cricket points scored must be a whole number between 0 and 9999.'
-            );
-            return;
-          }
-
-          parsedCricketPoints.push(pointsNum);
-        }
-      } else {
-        parsedCricketPoints.push(null);
+      pending = { ...pending, dispatched: true };
+      setPendingSave(pending);
+      // Preserve the exact payload/ID for an interrupted response or reload.
+      try {
+        localStorage.setItem(pendingSaveKey(matchRecoveryKey(user.id),pending.operationId), JSON.stringify({ savedAt: Date.now(), ...pending }));
+        // Replace an editable draft only AFTER the new operation is durable.
+        if(recoveredEntryId) localStorage.removeItem(pendingSaveKey(matchRecoveryKey(user.id),recoveredEntryId));
+        setRecoveredEntryId(null);
+        setSavedEntries(readSavedEntries(localStorage,matchRecoveryKey(user.id)));
       }
-    }
-
-    try {
-      if (editingMatchId == null) {
-        // ➕ CREATE a new match
-        const { data: matchInsertData, error: matchInsertError } = await supabase
-          .from('matches')
-          .insert([
-            {
-              game_type: gameType,
-              played_at: playedAtIso,
-              notes,
-              created_by: user.id,
-              board_type: boardType || null,
-              venue: venue || null,
-            },
-          ])
-          .select()
-          .single();
-
-        if (matchInsertError || !matchInsertData) {
-          throw matchInsertError || new Error('No match returned from insert.');
-        }
-
-        const matchId = matchInsertData.id as number;
-
-        const matchPlayersPayload = activePlayers.map((p, index) => ({
-          match_id: matchId,
-          player_id: p.playerId,
-          score: parsedStats[index],
-          points_scored: isCricket ? parsedCricketPoints[index] : null,
-          is_winner: p.playerId === winnerPlayerId,
-        }));
-
-        const { error: mpError } = await supabase
-          .from('match_players')
-          .insert(matchPlayersPayload);
-
-        if (mpError) {
-          throw mpError;
-        }
-      } else {
-        // ✏️ EDIT existing match
-        // 1) Ensure the match belongs to this user (basic front-end check)
-        const matchToEdit = matches.find((m) => m.id === editingMatchId);
-        if (!matchToEdit || matchToEdit.created_by !== user.id) {
-          setErrorMessage('You can only edit matches you created.');
-          return;
-        }
-
-        // 2) Update match row
-        const { error: matchUpdateError } = await supabase
-          .from('matches')
-          .update({
-            game_type: gameType,
-            played_at: playedAtIso,
-            notes,
-            board_type: boardType || null,
-            venue: venue || null,
-          })
-          .eq('id', editingMatchId)
-          .eq('created_by', user.id);
-
-        if (matchUpdateError) {
-          throw matchUpdateError;
-        }
-
-        // 3) Delete existing match_players for this match
-        const { error: deleteMpError } = await supabase
-          .from('match_players')
-          .delete()
-          .eq('match_id', editingMatchId);
-
-        if (deleteMpError) {
-          throw deleteMpError;
-        }
-
-        // 4) Insert new match_players rows
-        const matchPlayersPayload = activePlayers.map((p, index) => ({
-          match_id: editingMatchId,
-          player_id: p.playerId,
-          score: parsedStats[index],
-          points_scored: isCricket ? parsedCricketPoints[index] : null,
-          is_winner: p.playerId === winnerPlayerId,
-        }));
-
-        const { error: insertMpError } = await supabase
-          .from('match_players')
-          .insert(matchPlayersPayload);
-
-        if (insertMpError) {
-          throw insertMpError;
-        }
+      catch { setErrorMessage('Recovery storage is unavailable. Keep this page open until the save is confirmed.'); }
+      saveLock.current = true;
+      setSaving(true);
+      setDuplicateMatch(false);
+      const result = await saveMatch(pending.operationId, pending.payload, user.id);
+      if (!mounted.current) return;
+      if (result.status === 'possible_duplicate') {
+        setErrorMessage('This may already be saved as match ' + result.match_ids.join(', ') + '. Review it below, or confirm another game.');
+        setDuplicateMatch(true);
+        return;
       }
-
-      // Reload matches list to include changes (go to first page)
-      await reloadMatches(1);
-
-      // Reset form back to "new match"
+      setSaveReceipt('Saved match #' + result.match_id + (result.replayed ? ' — previous save confirmed.' : '.'));
+      try { localStorage.removeItem(pendingSaveKey(matchRecoveryKey(user.id),pending.operationId)); setOtherRecoveries(readPendingSaves(localStorage,matchRecoveryKey(user.id)).length); } catch { /* A confirmed save must remain successful. */ }
+      setPendingSave(null);
+      setDuplicateMatch(false);
       resetForm();
-    } catch (err: unknown) {
-      const message =
-        err && typeof err === 'object' && 'message' in err
-          ? String((err as MatchesError).message)
-          : String(err);
-
-      console.error('Error saving match:', err);
-      setErrorMessage('Error saving match: ' + message);
-    }
+      try { await reloadMatches(1); }
+      catch { if (mounted.current) setErrorMessage('Your match is saved, but the list could not refresh. Reload the page to see it.'); }
+    } catch (cause) {
+      if (!mounted.current) return;
+      setErrorMessage(saveErrorMessage(cause));
+      if (isDefiniteSaveRejection(cause, previouslyDispatched)) {
+        setPendingSave(null);
+        if(pending) releaseSave(pending);
+      }
+    } finally { saveLock.current = false; if (mounted.current) setSaving(false); }
   }
 
   function handleEditClick(match: Match) {
+    if (saving || pendingSave) return;
     setErrorMessage(null);
 
     if (!user) {
@@ -629,6 +491,8 @@ export default function MatchesPage() {
     }
 
     const clampedCount = Math.max(2, Math.min(players.length, 10));
+    // Opening an independent saved match does not supersede a released draft.
+    setRecoveredEntryId(null);
     setNumPlayers(clampedCount);
 
     const entries: PlayerEntry[] = players
@@ -649,9 +513,12 @@ export default function MatchesPage() {
     const winnerMp = players.find((mp) => mp.is_winner);
     setWinnerPlayerId(winnerMp ? winnerMp.player_id : '');
 
+    setEditorOpen(true);
     setEditingMatchId(match.id);
+    setEditSnapshot({ revision: match.revision, night_id: match.night_id, played_at: match.played_at, created_by: match.created_by });
     setPlayedAt(toLocalDateTimeInput(match.played_at));
-    setGameType(match.game_type || '501');
+    setGameType(match.game_type || '');
+    setGameConfig(match.game_config ?? null);
     setO1StatInputMode('3da');
     setNotes(match.notes || '');
     setBoardType(match.board_type || '');
@@ -666,117 +533,88 @@ export default function MatchesPage() {
 
   if (loading) {
     return (
-      <main className="page-shell" style={{ maxWidth: '820px' }}>
-        <h1>Matches</h1>
-        <p>Loading...</p>
+      <main className="rdd-page-shell page-shell matches-page">
+        <MatchesHeader />
+        <p className="rdd-state" role="status">Loading matches…</p>
       </main>
     );
   }
 
   if (!user) {
     return (
-      <main className="page-shell" style={{ maxWidth: '820px' }}>
-        <h1>Matches</h1>
-        <p>You must be signed in to view and add matches.</p>
+      <main className="rdd-page-shell page-shell matches-page">
+        <MatchesHeader />
+        <p className="rdd-state">You must be signed in to view and add matches.</p>
         <p>
-          <Link
-            href="/auth"
-            style={{
-              cursor: 'pointer',
-              color: '#0366d6',
-              textDecoration: 'underline',
-              fontWeight: 500,
-            }}
-          >
-            Go to sign in / sign up
-          </Link>
+          <ActionLink href="/auth" variant="primary">Go to sign in</ActionLink>
         </p>
       </main>
     );
   }
 
   return (
-    <main
-      className="page-shell"
-      style={{
-        display: 'flex',
-        flexDirection: 'column',
-        gap: 'var(--section-gap)',
-        maxWidth: '800px',
-      }}
-    >
-      <header>
-        <h1>Darts Matches</h1>
-        <p
-          style={{
-            display: 'flex',
-            flexWrap: 'wrap',
-            alignItems: 'center',
-            gap: '0.5rem',
-          }}
-        >
-          <span>
-            Logged in as <strong>{user.email}</strong>.
-          </span>
-          <Link
-            href="/"
-            style={{
-              cursor: 'pointer',
-              padding: '0.3rem 0.7rem',
-              borderRadius: '0.5rem',
-              border: '1px solid #ccc',
-              backgroundColor: '#0366d6',
-              color: 'white',
-              fontWeight: 500,
-              textDecoration: 'none',
-            }}
-          >
-            Back to home
-          </Link>
-        </p>
-      </header>
+    <main className="rdd-page-shell page-shell matches-page">
+      <MatchesHeader user={user} />
+      <div className="landing-actions matches-archive-actions">
+        <ActionLink href="/" variant="primary">Record through League Night</ActionLink>
+        <ActionButton variant="quiet" onClick={() => setChooseRecording(value => !value)}>Record a standalone match</ActionButton>
+        <ActionLink href="/solo" variant="quiet">Solo practice →</ActionLink>
+      </div>
+      {chooseRecording && <section className="rdd-content-panel recording-choice" aria-labelledby="recording-choice-title">
+        <h2 className="rdd-section-title" id="recording-choice-title">Where did this game happen?</h2>
+        <div className="landing-grid">
+          <div><h3>Part of a league night?</h3><p>Record there to keep attendance, results and the recap together.</p><ActionLink href="/" variant="primary">Choose a league night</ActionLink></div>
+          <div><h3>A competitive game outside a night</h3><p>Use standalone recording for a separate game or an older result.</p><ActionButton onClick={() => { setEditorOpen(true); setChooseRecording(false); }}>Continue with standalone</ActionButton></div>
+        </div>
+      </section>}
 
       {errorMessage && (
-        <div style={{ color: 'red' }}>
+        <div className="rdd-state rdd-state--error" role="alert">
           <strong>Error:</strong> {errorMessage}
         </div>
       )}
+      {saveReceipt && <p role="status">✓ {saveReceipt}</p>}
+      {otherRecoveries>0 && <p>{otherRecoveries} other save{otherRecoveries===1?'':'s'} still need checking on this device. <ActionButton type="button" disabled={saving || Boolean(pendingSave)} onClick={()=>{
+        const waiting=readPendingSaves(localStorage,matchRecoveryKey(user.id));
+        setOtherRecoveries(Math.max(0,waiting.length-1));
+        if(waiting[0]) restoreSave(waiting[0]);
+      }}>Review next pending save</ActionButton></p>}
+      {savedEntries.length>0 && <section><h2 className="rdd-section-title">Saved unsent entries</h2><p>Rejected or released entries stay on this device for 24 hours. Restoring replaces the visible form only after confirmation.</p>{savedEntries.map(entry=><p key={entry.operationId}>
+        {entry.payload.game_type || 'Unknown format'} · {new Date(entry.payload.played_at).toLocaleString()} · {entry.payload.players.length} players{' '}
+        <ActionButton type="button" disabled={saving || Boolean(pendingSave) || otherRecoveries>0 || recoveredEntryId===entry.operationId} onClick={()=>{if(window.confirm('Replace the visible form with this saved entry?')) restoreSave(entry);}}>Restore saved entry</ActionButton>{' '}
+        <ActionButton type="button" disabled={saving || Boolean(pendingSave)} onClick={()=>{if(window.confirm('Discard this saved unsent entry? This does not delete any match.')){localStorage.removeItem(pendingSaveKey(matchRecoveryKey(user.id),entry.operationId));setSavedEntries(readSavedEntries(localStorage,matchRecoveryKey(user.id)));if(recoveredEntryId===entry.operationId)setRecoveredEntryId(null);}}}>Discard saved entry</ActionButton>
+      </p>)}</section>}
+      {pendingSave && <section className="rdd-content-panel matches-pending-panel">
+        <p>{duplicateMatch ? 'Review the matching result before recording another game.' : 'A submitted match is awaiting confirmation. Its details are kept for a safe retry.'}</p>
+        <ActionButton type="button" disabled={saving} onClick={() => {
+          if (duplicateMatch) setPendingSave(current => current ? { ...current, payload: { ...current.payload, allow_duplicate: true } } : null);
+          setDuplicateMatch(false);
+        }}>{duplicateMatch ? 'This is another game — enable save' : 'Keep this submission for retry'}</ActionButton>
+        {duplicateMatch && <ActionButton type="button" disabled={saving} onClick={() => {
+          // A duplicate response is a confirmed no-write outcome, so it is safe
+          // to release this operation while keeping the entered scorecard.
+          setPendingSave(null); setDuplicateMatch(false); setErrorMessage(null);
+          releaseSave(pendingSave);
+          setSaveReceipt('Existing result kept. Your unsaved entry is still here.');
+        }}>Keep existing result / return to draft</ActionButton>}
+      </section>}
 
       {/* Add / Edit Match Form */}
-      <section>
-        <h2
-          style={{
-            fontSize: '1.6rem',
-            fontWeight: 800,
-            marginBottom: '0.75rem',
-            paddingBottom: '0.35rem',
-            borderBottom: '2px solid #e2e8f0',
-          }}
-        >
-          {editingMatchId ? 'Edit Match' : 'Record a New Match'}
+      {(editorOpen || pendingSave || editingMatchId) && <section id="match-editor" className="rdd-content-panel matches-form-panel">
+        <h2 className="rdd-section-title" id="match-editor-title" tabIndex={-1}>
+          {editingMatchId ? 'Edit Match' : 'Record a standalone match'}
         </h2>
         {profiles.length < 2 && (
-          <p style={{ color: 'orange' }}>
-            You currently have fewer than 2 profiles. Ask your friends to sign
-            up on the{' '}
-            <Link
-              href="/auth"
-              style={{
-                cursor: 'pointer',
-                color: '#0366d6',
-                textDecoration: 'underline',
-                fontWeight: 500,
-              }}
-            >
-              auth page
-            </Link>{' '}
-            so they appear here.
+          <p className="rdd-state">
+            You currently have fewer than 2 profiles. <Link href="/invites">Invite a league member</Link> so they can join and appear here.
           </p>
         )}
 
-        <form onSubmit={handleSaveMatch} style={formStyle}>
-          <div style={fieldRowStyle}>
-            <label htmlFor="playedAt" style={labelTextStyle}>
+        <form onSubmit={handleSaveMatch} aria-busy={saving}>
+          <fieldset disabled={saving || Boolean(pendingSave) || otherRecoveries > 0} className="matches-details rdd-form-fields">
+          <legend className="sr-only">Match details</legend>
+          <div className="form-row">
+            <label htmlFor="playedAt" className="form-label">
               Match date and time
             </label>
             <input
@@ -785,57 +623,63 @@ export default function MatchesPage() {
               value={playedAt}
               max={toLocalDateTimeInput(new Date())}
               onChange={(event) => setPlayedAt(event.target.value)}
+              disabled={saving}
               required
-              style={controlStyle}
+              className="form-control"
             />
           </div>
 
           {/* Game type */}
-          <div style={fieldRowStyle}>
-            <span style={labelTextStyle}>Game type</span>
+          <div className="form-row">
+            <label htmlFor="match-game-type" className="form-label">Game type</label>
             <select
+              id="match-game-type" aria-label="Game type"
               value={gameType}
-              onChange={(e) => setGameType(e.target.value)}
-              style={selectStyle}
+              onChange={(e) => {
+                if (playerEntries.some(p => p.stat || p.cricketPoints) && !window.confirm('Changing game clears scores. Original saved values remain in the correction audit. Continue?')) return;
+                setGameType(e.target.value); setGameConfig({ ...(gameConfig ?? defaultConfig()), preset: 'unspecified', teamScores: {}, finish: 'ordinary' });
+                setPlayerEntries(prev => prev.map(p => ({...p, stat: '', cricketPoints: ''}))); setO1StatInputMode('3da');
+              }}
+              className="form-control"
             >
-              <option value="501" style={optionStyle}>
-                501
-              </option>
-              <option value="301" style={optionStyle}>
-                301
-              </option>
-              <option value="Cricket" style={optionStyle}>
-                Cricket
-              </option>
-              <option value="Other" style={optionStyle}>
-                Other
-              </option>
+              {!GAME_TYPES.includes(gameType) && <option value={gameType}>{gameType || 'Unknown recorded format'}</option>}
+              {GAME_TYPES.map(g => <option key={g} value={g}>{g}</option>)}
             </select>
           </div>
 
+          <GameOptions game={gameType} value={gameConfig} onChange={config => {
+            if (config.format !== (gameConfig?.format ?? 'individual')) {
+              setPlayerEntries(prev => prev.map(p => ({ ...p, stat: '', cricketPoints: '' })));
+              if (config.format !== 'individual') handleNumPlayersChange(config.format === '2v2' ? '4' : '6');
+            }
+            setGameConfig(config);
+          }} players={playerEntries.slice(0,numPlayers).map((p,i) => ({id:p.playerId, name:profiles.find(q => q.id === p.playerId)?.display_name ?? `Player ${i+1}`}))} winner={winnerPlayerId} onWinner={setWinnerPlayerId} />
+          {editingMatchId && <section aria-label="Correction preview"><p>Changing the game clears incompatible scores and keeps their original values in the audit.</p><ActionButton type="button" disabled={previewing} onClick={previewEdit}>{previewing ? 'Calculating…' : 'Preview correction'}</ActionButton>{correction && <div role="status"><p>{correction.from} → {correction.to}. Affected overall ratings:</p>{correction.changes.length ? <ul>{correction.changes.map(p => <li key={p.id}>{p.name}: {p.before.toFixed(1)} → {p.after.toFixed(1)}</li>)}</ul> : <p>No overall rating change. Discipline views and score groups will be recalculated.</p>}<p>Save changes applies the correction; the original result remains in the audit.</p></div>}</section>}
           {/* Stat entry mode for 01 games */}
           {isO1 && (
-            <div style={fieldRowStyle}>
-              <span style={labelTextStyle}>Stat entry</span>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
+            <div className="form-row">
+              <label htmlFor="match-stat-entry" className="form-label">Stat entry</label>
+              <div className="matches-stat-mode">
                 <select
+                  id="match-stat-entry" aria-label="Stat entry"
                   value={o1StatInputMode}
                   onChange={(e) => {
                     const nextMode = e.target.value as '3da' | 'ppd';
                     convertO1Stats(o1StatInputMode, nextMode);
                     setO1StatInputMode(nextMode);
                   }}
-                  style={selectStyle}
+                  disabled={saving}
+                  className="form-control"
                 >
-                  <option value="3da" style={optionStyle}>
+                  <option value="3da">
                     3-Dart Average
                   </option>
-                  <option value="ppd" style={optionStyle}>
+                  <option value="ppd">
                     Points Per Dart (PPD)
                   </option>
                 </select>
                 {o1StatInputMode === 'ppd' && (
-                  <span style={{ color: '#555', fontSize: '0.95rem' }}>
+                  <span className="rdd-field-help">
                     PPD values are multiplied by 3 to store a 3-dart average for
                     leaderboards.
                   </span>
@@ -845,27 +689,32 @@ export default function MatchesPage() {
           )}
 
           {/* Notes */}
-          <div style={fieldRowStyle}>
-            <span style={labelTextStyle}>Notes</span>
+          <div className="form-row">
+            <label htmlFor="match-notes" className="form-label">Notes</label>
             <input
+              id="match-notes"
               type="text"
+              aria-label="Notes"
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
-              placeholder="'Other' game type, e.g."
-              style={controlStyle}
+              disabled={saving}
+              placeholder="Anything worth noting about this game"
+              className="form-control"
             />
           </div>
 
           {/* Number of players */}
-          <div style={fieldRowStyle}>
-            <span style={labelTextStyle}>Number of players</span>
+          <div className="form-row">
+            <label htmlFor="match-player-count" className="form-label">Number of players</label>
             <select
+              id="match-player-count" aria-label="Number of players"
+              disabled={saving || teamGame}
               value={numPlayers}
               onChange={(e) => handleNumPlayersChange(e.target.value)}
-              style={selectStyle}
+              className="form-control"
             >
               {Array.from({ length: 9 }, (_, i) => i + 2).map((n) => (
-                <option key={n} value={n} style={optionStyle}>
+                <option key={n} value={n}>
                   {n}
                 </option>
               ))}
@@ -875,39 +724,38 @@ export default function MatchesPage() {
           {/* Dynamic players */}
           {playerEntries.slice(0, numPlayers).map((entry, index) => {
             const playerLabel = `Player ${index + 1}`;
-            const statLabel = isCricket
-              ? `${playerLabel} MPR`
-              : isOther
-              ? `${playerLabel} Score`
-              : isO1 && o1StatInputMode === 'ppd'
-              ? `${playerLabel} PPD`
-              : `${playerLabel} 3-Dart Average`;
+            const statLabel = `${playerLabel} ${isO1 && o1StatInputMode === 'ppd' ? 'PPD' : gameUnit(gameType)}`;
+            const allowPersonal = !teamGame || ['3DA','MPR'].includes(gameUnit(gameType));
 
             return (
-              <div
+              <fieldset
                 key={index}
-                style={{
-                  border: '1px solid #ddd',
-                  borderRadius: '0.5rem',
-                  padding: '0.5rem',
-                  marginTop: '0.25rem',
-                }}
+                className="matches-player-card"
               >
-                <div style={fieldRowStyle}>
-                  <span style={labelTextStyle}>{playerLabel}</span>
+                <legend id={`match-player-group-${index}`}>{playerLabel}</legend>
+                <div className="form-row">
+                  <label
+                    id={`match-player-label-${index}`}
+                    htmlFor={`match-player-${index}`}
+                    className="form-label"
+                  >
+                    Player
+                  </label>
                   <select
+                    id={`match-player-${index}`}
+                    aria-label={playerLabel}
                     value={entry.playerId}
                     onChange={(e) => handlePlayerChange(index, e.target.value)}
-                    style={selectStyle}
+                    disabled={saving}
+                    className="form-control"
                   >
-                    <option value="" style={optionStyle}>
+                    <option value="">
                       -- choose player --
                     </option>
                     {profiles.map((p) => (
                       <option
                         key={p.id}
                         value={p.id}
-                        style={optionStyle}
                       >
                         {formatPlayerName(
                           p.display_name,
@@ -918,15 +766,18 @@ export default function MatchesPage() {
                     ))}
                   </select>
                 </div>
-                <div style={{ ...fieldRowStyle, marginTop: '0.25rem' }}>
-                  <span style={labelTextStyle}>{statLabel}</span>
+                <div hidden={!allowPersonal} className="form-row matches-form-row--stat">
+                  <label htmlFor={`match-stat-${index}`} className="form-label">{statLabel}</label>
                   <input
+                    id={`match-stat-${index}`}
+                    aria-label={statLabel}
                     type="number"
-                    step={isOther ? 1 : 0.01}
-                    min={isOther ? 1 : 0}
+                    step={gameDefinition(gameType)?.whole ? 1 : 'any'}
+                    min={0}
                     max={isOther ? 9999 : undefined}
                     value={entry.stat}
                     onChange={(e) => handleStatChange(index, e.target.value)}
+                    disabled={saving}
                     placeholder={
                       isCricket
                         ? 'e.g. 3.25'
@@ -936,15 +787,17 @@ export default function MatchesPage() {
                         ? 'e.g. 29.17'
                         : 'e.g. 87.50'
                     }
-                    style={controlStyle}
+                    className="form-control"
                   />
                 </div>
                 {isCricket && (
-                  <div style={{ ...fieldRowStyle, marginTop: '0.35rem' }}>
-                    <span style={labelTextStyle}>
-                      {playerLabel} points scored (optional)
-                    </span>
+                  <div className="form-row matches-form-row--points">
+                    <label htmlFor={`match-cricket-points-${index}`} className="form-label">
+                      {playerLabel} {gameType === 'Cut-Throat Cricket' ? 'penalty points' : 'points scored'} (optional)
+                    </label>
                     <input
+                      id={`match-cricket-points-${index}`}
+                      aria-label={`${playerLabel} ${gameType === 'Cut-Throat Cricket' ? 'penalty points' : 'points scored'} (optional)`}
                       type="number"
                       step={1}
                       min={0}
@@ -953,24 +806,27 @@ export default function MatchesPage() {
                       onChange={(e) =>
                         handleCricketPointsChange(index, e.target.value)
                       }
+                      disabled={saving}
                       placeholder="e.g. 120"
-                      style={controlStyle}
+                      className="form-control"
                     />
                   </div>
                 )}
-              </div>
+              </fieldset>
             );
           })}
 
           {/* Winner selection */}
-          <div style={fieldRowStyle}>
-            <span style={labelTextStyle}>Winner</span>
+          <div hidden={teamGame || Boolean(gameConfig && gameConfig.status !== 'completed')} className="form-row">
+            <label htmlFor="match-winner" className="form-label">Winner</label>
             <select
+              id="match-winner" aria-label="Winner"
               value={winnerPlayerId}
               onChange={(e) => setWinnerPlayerId(e.target.value)}
-              style={selectStyle}
+              disabled={saving}
+              className="form-control"
             >
-              <option value="" style={optionStyle}>
+              <option value="">
                 -- select winner --
               </option>
               {playerEntries.slice(0, numPlayers).map((entry, index) => {
@@ -987,10 +843,9 @@ export default function MatchesPage() {
 
                 return (
                   <option
-                    key={entry.playerId || `winner-${index}`}
+                    key={`winner-${index}`}
                     value={entry.playerId}
                     disabled={!entry.playerId}
-                    style={optionStyle}
                   >
                     {label}
                   </option>
@@ -1000,248 +855,105 @@ export default function MatchesPage() {
           </div>
 
           {/* Board type */}
-          <div style={fieldRowStyle}>
-            <span style={labelTextStyle}>Board type</span>
+          <div className="form-row">
+            <label htmlFor="match-board-type" className="form-label">Board type</label>
             <select
+              id="match-board-type" aria-label="Board type"
               value={boardType}
               onChange={(e) => setBoardType(e.target.value)}
-              style={selectStyle}
+              disabled={saving}
+              className="form-control"
             >
-              <option value="" style={optionStyle}>
+              <option value="">
                 -- choose --
               </option>
-              <option value="Soft Tip" style={optionStyle}>
+              <option value="Soft Tip">
                 Soft Tip
               </option>
-              <option value="Steel Tip" style={optionStyle}>
+              <option value="Steel Tip">
                 Steel Tip
               </option>
             </select>
           </div>
 
           {/* Venue */}
-          <div style={fieldRowStyle}>
-            <span style={labelTextStyle}>Venue</span>
+          <div className="form-row">
+            <label htmlFor="match-venue" className="form-label">Venue</label>
             <input
+              id="match-venue"
               type="text"
+              aria-label="Venue"
               value={venue}
               onChange={(e) => setVenue(e.target.value)}
-              placeholder="Radio Social, e.g."
-              style={controlStyle}
+              disabled={saving}
+              placeholder="e.g. Radio Social"
+              className="form-control"
             />
           </div>
 
-          <div className="button-row" style={{ marginTop: '0.5rem' }}>
-            <button
+          </fieldset>
+          <div className="button-row matches-form-actions">
+            {!pendingSave && <ActionButton type="button" disabled={saving} onClick={() => { setEditorOpen(false); if (editingMatchId) resetForm(); }}>Back to archive</ActionButton>}
+            <ActionButton
               type="submit"
-              style={{
-                cursor: 'pointer',
-                padding: '0.6rem 1rem',
-                borderRadius: '0.5rem',
-                border: '1px solid #ccc',
-                backgroundColor: '#0366d6',
-                color: 'white',
-                fontWeight: 500,
-              }}
+              disabled={saving || duplicateMatch || (otherRecoveries > 0 && !pendingSave)}
+              variant="primary"
             >
-              {editingMatchId ? 'Save changes' : 'Save match'}
-              </button>
+              {saving ? 'Checking save…' : pendingSave ? 'Check / retry save' : editingMatchId ? 'Save changes' : 'Save match'}
+              </ActionButton>
 
-            {editingMatchId && (
-              <button
+            {editingMatchId && !pendingSave && (
+              <ActionButton
                 type="button"
-                onClick={resetForm}
-                style={{
-                  cursor: 'pointer',
-                  padding: '0.6rem 1rem',
-                  borderRadius: '0.5rem',
-                  border: '1px solid #ccc',
-                  backgroundColor: '#eee',
-                  color: '#333',
-                  fontWeight: 500,
-                }}
+                onClick={() => { resetForm(); setEditorOpen(false); }}
+                variant="secondary"
+                disabled={saving}
               >
                 Cancel edit
-              </button>
+              </ActionButton>
             )}
           </div>
         </form>
       </section>
 
-      {/* Recent Matches */}
-      <section>
-        <h2
-          style={{
-            fontSize: '1.35rem',
-            fontWeight: 800,
-            borderBottom: '3px solid #0366d6',
-            paddingBottom: '0.35rem',
-            display: 'inline-block',
-            marginBottom: '0.5rem',
-          }}
-        >
-          Recent Matches
-        </h2>
-        {matches.length === 0 ? (
-          <p>No matches recorded yet.</p>
-        ) : (
-          <>
-            <ul
-              style={{
-                listStyle: 'none',
-                padding: 0,
-                display: 'flex',
-                flexDirection: 'column',
-                gap: '1rem',
-              }}
-            >
-              {matches.map((m) => {
-                const metricLabel =
-                  m.game_type === 'Cricket'
-                    ? 'MPR'
-                    : m.game_type === 'Other'
-                      ? 'Score'
-                      : '3-Dart Avg';
-
-                const canEdit = m.created_by === user.id;
-
-                return (
-                  <li
-                    key={m.id}
-                    style={{
-                      border: '1px solid #ccc',
-                      padding: '0.75rem',
-                      borderRadius: '0.5rem',
-                    }}
-                  >
-                    <div
-                      style={{
-                        display: 'flex',
-                        justifyContent: 'space-between',
-                        alignItems: 'center',
-                        gap: '0.5rem',
-                        flexWrap: 'wrap',
-                      }}
-                    >
-                      <div>
-                        <strong>
-                          {m.game_type || 'Unknown game'} –{' '}
-                          {new Date(m.played_at).toLocaleString()}
-                        </strong>
-                        {m.notes && <div>Notes: {m.notes}</div>}
-                        {m.board_type && <div>Board: {m.board_type}</div>}
-                        {m.venue && <div>Venue: {m.venue}</div>}
-                      </div>
-                      {canEdit && (
-                        <button
-                          type="button"
-                          onClick={() => handleEditClick(m)}
-                          style={{
-                            cursor: 'pointer',
-                            padding: '0.3rem 0.7rem',
-                            borderRadius: '0.5rem',
-                            border: '1px solid #ccc',
-                            backgroundColor: '#eee',
-                            color: '#000',
-                            fontWeight: 500,
-                          }}
-                        >
-                          Edit
-                        </button>
-                      )}
-                    </div>
-
-                    <div style={{ marginTop: '0.5rem' }}>
-                      Players:
-                      <ul style={{ margin: '0.25rem 0 0 1rem' }}>
-                        {(m.match_players || []).map((mp) => {
-                          const prof = (Array.isArray(mp.profiles)
-                            ? mp.profiles[0]
-                            : mp.profiles) as {
-                            display_name: string | null;
-                            first_name: string | null;
-                            include_first_name_in_display?: boolean | null;
-                          } | null;
-
-                          return (
-                            <li key={mp.id}>
-                              {prof ? (
-                                <LinkedPlayerName
-                                  playerId={mp.player_id}
-                                  display_name={prof.display_name}
-                                  first_name={prof.first_name}
-                                  includeFirstNameInDisplay={
-                                    prof.include_first_name_in_display
-                                  }
-                                />
-                              ) : (
-                                'Unknown player'
-                              )}{' '}
-                              – {metricLabel}:{' '}
-                              {mp.score != null ? mp.score.toString() : '0'}
-                              {m.game_type === 'Cricket' && mp.points_scored != null
-                                ? ` (Points: ${mp.points_scored})`
-                                : ''}{' '}
-                              {mp.is_winner ? <strong>(winner)</strong> : null}
-                            </li>
-                          );
-                        })}
-                      </ul>
-                    </div>
-                  </li>
-                );
-              })}
-            </ul>
-
-            {/* Pagination controls */}
-            <div
-              style={{
-                marginTop: '1rem',
-                display: 'flex',
-                gap: '0.5rem',
-                alignItems: 'center',
-              }}
-            >
-              <button
-                type="button"
-                onClick={() => reloadMatches(currentPage - 1)}
-                disabled={currentPage <= 1}
-                style={{
-                  cursor: currentPage <= 1 ? 'not-allowed' : 'pointer',
-                  padding: '0.4rem 0.8rem',
-                  borderRadius: '0.5rem',
-                  border: '1px solid #ccc',
-                  backgroundColor:
-                    currentPage <= 1 ? '#8cbce8' : '#0366d6',
-                  color: 'white',
-                  fontWeight: 500,
-                }}
-              >
-                Previous
-              </button>
-              <span>
-                Page {currentPage} of {totalPages}
-              </span>
-              <button
-                type="button"
-                onClick={() => reloadMatches(currentPage + 1)}
-                disabled={currentPage >= totalPages}
-                style={{
-                  cursor: currentPage >= totalPages ? 'not-allowed' : 'pointer',
-                  padding: '0.4rem 0.8rem',
-                  borderRadius: '0.5rem',
-                  border: '1px solid #ccc',
-                  backgroundColor:
-                    currentPage >= totalPages ? '#8cbce8' : '#0366d6',
-                  color: 'white',
-                  fontWeight: 500,
-                }}
-              >
-                Next
-              </button>
+      }
+      {/* Match archive */}
+      <section className="rdd-content-panel archive-filters rdd-form-controls" aria-label="Match archive filters">
+        <label>Player<select aria-label="Archive player" value={archiveFilters.player} onChange={e => applyFilters({ ...archiveFilters, player: e.target.value })}><option value="">All players</option>{profiles.map(p => <option key={p.id} value={p.id}>{formatPlayerName(p.display_name, p.first_name, p.include_first_name_in_display)}</option>)}</select></label>
+        <label>Game<select aria-label="Archive game" value={archiveFilters.game} onChange={e => applyFilters({ ...archiveFilters, game: e.target.value })}><option value="">All games</option>{GAME_TYPES.map(game => <option key={game}>{game}</option>)}</select></label>
+        <label>League night<select aria-label="Archive league night" value={archiveFilters.night} onChange={e => applyFilters({ ...archiveFilters, night: e.target.value })}><option value="">All nights</option><option value="standalone">Standalone matches</option>{nightOptions.map(n => <option value={n.id} key={n.id}>{n.title} · {n.night_date}</option>)}</select></label>
+        <label>From<input type="date" aria-label="Archive from date" value={archiveFilters.from} onChange={e => applyFilters({ ...archiveFilters, from: e.target.value })} /></label>
+        <label>Through<input type="date" aria-label="Archive through date" min={archiveFilters.from || undefined} value={archiveFilters.to} onChange={e => applyFilters({ ...archiveFilters, to: e.target.value })} /></label>
+        <ActionButton disabled={archiveLoading} onClick={() => applyFilters(EMPTY_ARCHIVE_FILTERS)}>Clear filters</ActionButton>
+        {nightOptionsError && <p className="rdd-field-help">Night choices could not be loaded. Refresh to retry; the archive remains available.</p>}
+      </section>
+      <section className="rdd-content-panel matches-archive" aria-labelledby="archive-title" aria-busy={archiveLoading}>
+        <div className="landing-section-heading"><h2 className="rdd-section-title" id="archive-title">Match archive</h2><ActionButton disabled={archiveLoading} onClick={() => { setNightOptionsReload(n => n + 1); void reloadMatches(currentPage).catch(() => {}); }}>Refresh</ActionButton></div>
+        {archiveLoading ? <p role="status">Loading matches…</p> : archiveError ? <p role="alert">{archiveError}</p> : !matches.length ? <p>No matches in this selection. Try another player, game or date.</p> : matches.map(m => {
+          const players = m.match_players ?? [];
+          const winners = players.filter(p => p.is_winner === true), others = players.filter(p => p.is_winner !== true);
+          const name = (p: MatchPlayer) => { const profile = Array.isArray(p.profiles) ? p.profiles[0] : p.profiles; return profile ? formatPlayerName(profile.display_name, profile.first_name, profile.include_first_name_in_display) : 'Unknown player'; };
+          const relation = Array.isArray(m.league_nights) ? m.league_nights[0] : m.league_nights;
+          return <details className="archive-match" key={m.id}>
+            <summary><div><strong>{winners.length && others.length ? winners.map(name).join(' + ') + ' defeated ' + others.map(name).join(' + ') : players.map(name).join(' · ')}</strong>
+              <p className="rdd-field-help">{m.game_type || 'Unknown game'} · {m.game_config?.format ?? 'Individual'} · {new Date(m.played_at).toLocaleString()}</p>
+              <p className="rdd-field-help">{relation?.title ?? (m.night_id ? 'Linked league night' : 'Standalone match')}</p></div><span className="archive-expand">Details</span></summary>
+            <div className="archive-match-details">
+              <GameResultDetails game={m.game_type} config={m.game_config} />
+              {m.notes && <p>Notes: {m.notes}</p>}{m.board_type && <p>Board: {m.board_type}</p>}{m.venue && <p>Venue: {m.venue}</p>}
+              <p className="rdd-field-help">Match #{m.id} · revision {m.revision}</p>
+              <ul>{players.map(mp => { const prof = Array.isArray(mp.profiles) ? mp.profiles[0] : mp.profiles; return <li key={mp.id}>
+                {prof ? <LinkedPlayerName playerId={mp.player_id} display_name={prof.display_name} first_name={prof.first_name} includeFirstNameInDisplay={prof.include_first_name_in_display} /> : 'Unknown player'}
+                {' · '}{gameUnit(m.game_type)}: {formatRecordedScore(mp.score)}
+                {hasCricketPoints(m.game_type) && mp.points_scored != null ? ` · ${m.game_type === 'Cut-Throat Cricket' ? 'Penalty points' : 'Points'}: ${mp.points_scored}` : ''}
+                {m.game_config?.sides[mp.player_id] ? ` · Team ${m.game_config.sides[mp.player_id]}` : ''}{mp.is_winner ? ' · winner' : ''}
+              </li>; })}</ul>
+              <div className="landing-actions">{m.created_by === user.id && <ActionButton disabled={saving || Boolean(pendingSave)} onClick={() => handleEditClick(m)}>Edit result</ActionButton>}
+              {m.night_id && <ActionLink href={`/league-night?night=${encodeURIComponent(m.night_id)}`}>Open league night</ActionLink>}</div>
             </div>
-          </>
-        )}
+          </details>;
+        })}
+        <div className="rdd-pagination"><ActionButton disabled={archiveLoading || currentPage <= 1} onClick={() => void reloadMatches(currentPage - 1).catch(() => {})}>Previous</ActionButton><span>Page {currentPage} of {totalPages}</span><ActionButton disabled={archiveLoading || currentPage >= totalPages} onClick={() => void reloadMatches(currentPage + 1).catch(() => {})}>Next</ActionButton></div>
       </section>
     </main>
   );

@@ -33,7 +33,7 @@ export function LinkedPlayerName(props: LinkedPlayerNameProps) {
   return (
     <Link
       href={`/profiles/${playerId}`}
-      style={{ color: '#0366d6', textDecoration: 'underline' }}
+      className="player-name-link"
     >
       {name}
     </Link>

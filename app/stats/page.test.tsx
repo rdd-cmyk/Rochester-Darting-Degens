@@ -2,6 +2,7 @@ import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { beforeEach, expect, test, vi } from 'vitest';
 
 import AdvancedStatsPage from './page';
+import { defaultConfig } from '@/lib/games/catalog';
 
 const supabaseMock = vi.hoisted(() => ({
   getUser: vi.fn(),
@@ -65,6 +66,7 @@ function mockOtherMatches() {
   query.select.mockReturnValue(query);
   query.order.mockReturnValue(query);
   supabaseMock.from.mockReturnValue(query);
+  return query;
 }
 
 test('shows a sign-in prompt without querying league rows for a guest', async () => {
@@ -75,8 +77,28 @@ test('shows a sign-in prompt without querying league rows for a guest', async ()
   expect(await screen.findByRole('heading', { name: 'Sign in to see league statistics.' }))
     .toBeInTheDocument();
   expect(screen.getByRole('link', { name: 'Go to sign in' })).toHaveAttribute('href', '/auth');
+  expect(screen.getByText('sign in to analyze').parentElement).toHaveTextContent('—sign in to analyze');
   expect(screen.queryByText('No eligible players')).not.toBeInTheDocument();
   expect(supabaseMock.from).not.toHaveBeenCalled();
+});
+
+test('keeps finishing-dart ranges and median markers within the chart track', async () => {
+  supabaseMock.getUser.mockResolvedValue({ data: { user: { id: 'viewer' } }, error: null });
+  const rows = [30, 60, 90].flatMap((score, index) => ['ace', 'bee'].map((id, i) => ({
+    id: index * 2 + i, match_id: index + 1, player_id: id, is_winner: i === 0,
+    score: i === 0 ? score : null,
+    profiles: {id, display_name: id, first_name: null, include_first_name_in_display: false},
+    matches: {played_at: `2026-01-0${index + 1}T20:00:00Z`, game_type: 'Gotcha',
+      game_config: {...defaultConfig(), preset: 'gotcha-301-return-v1'}, board_type: 'Soft Tip', venue: null},
+  })));
+  const query = {select: vi.fn(), order: vi.fn(), range: vi.fn().mockResolvedValue({data: rows, count: rows.length, error: null})};
+  query.select.mockReturnValue(query); query.order.mockReturnValue(query); supabaseMock.from.mockReturnValue(query);
+  const {container} = render(<AdvancedStatsPage />);
+  await screen.findByRole('heading', {name: 'Darts to finish consistency'});
+  const band = container.querySelector<HTMLElement>('.stats-consistency-band')!;
+  const median = container.querySelector<HTMLElement>('.stats-consistency-median')!;
+  expect(parseFloat(band.style.left) + parseFloat(band.style.width)).toBeLessThanOrEqual(100);
+  expect(parseFloat(median.style.left)).toBeLessThanOrEqual(100);
 });
 
 test('makes Other score consistency opt-in and clears league data on sign-out', async () => {
@@ -105,5 +127,28 @@ test('makes Other score consistency opt-in and clears league data on sign-out', 
   await act(async () => authChange?.('SIGNED_OUT', null));
   expect(screen.getByRole('heading', { name: 'Sign in to see league statistics.' }))
     .toBeInTheDocument();
+  expect(screen.getByText('sign in to analyze').parentElement).toHaveTextContent('—sign in to analyze');
   expect(screen.queryByText('Ace')).not.toBeInTheDocument();
+});
+
+test('keeps filters and retries after a statistics request fails', async () => {
+  supabaseMock.getUser.mockResolvedValue({ data: { user: { id: 'viewer' } }, error: null });
+  const query = mockOtherMatches();
+  query.range.mockResolvedValueOnce({ data: null, count: null, error: { message: 'Unavailable' } });
+
+  render(<AdvancedStatsPage />);
+
+  expect(await screen.findByRole('alert')).toHaveTextContent('Advanced statistics could not be loaded.');
+  expect(screen.getByText('matches unavailable').parentElement).toHaveTextContent('—matches unavailable');
+  expect(screen.queryByRole('heading', { name: 'No eligible players' })).not.toBeInTheDocument();
+
+  fireEvent.change(screen.getByLabelText('Game type'), { target: { value: 'Other' } });
+  fireEvent.click(screen.getByRole('button', { name: 'Retry loading stats' }));
+
+  await waitFor(() =>
+    expect(screen.getByText('matches analyzed').parentElement).toHaveTextContent('3matches analyzed')
+  );
+  expect(screen.getByLabelText('Game type')).toHaveValue('Other');
+  expect(screen.queryByText('Advanced statistics could not be loaded.')).not.toBeInTheDocument();
+  expect(query.range).toHaveBeenCalledTimes(2);
 });

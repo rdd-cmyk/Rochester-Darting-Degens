@@ -25,7 +25,7 @@ export function StatsStoryCard({
         <Link className="stats-player-link" href={`/profiles/${playerId}`}>
           {playerName}
         </Link>
-      ) : null}
+      ) : playerName ? <p className="stats-player-link">{playerName}</p> : null}
       <p className="stats-story-detail">{detail}</p>
     </article>
   );

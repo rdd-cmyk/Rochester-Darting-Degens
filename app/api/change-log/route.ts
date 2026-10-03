@@ -24,6 +24,7 @@ type GitHubPullRequest = {
   title: string;
   body: string | null;
   merged_at: string | null;
+  base: { ref: string };
 };
 
 type PullRequestResponse = {
@@ -35,6 +36,48 @@ type PullRequestResponse = {
   }[];
   hasNextPage: boolean;
 };
+
+function visualFixture(page: number): PullRequestResponse {
+  // Invented, fixed records for the opt-in loopback preview only.
+  if (page === 1) {
+    return {
+      pulls: [
+        {
+          id: 9001,
+          title: "Clearer standings and match entry",
+          merged_at: "2026-08-30T15:00:00Z",
+          summary: "### Highlights\n\n- Compare the **overall standings** before opening the detailed `/stats` view.\n- Record a match with clearly labeled player scores and a visible winner.\n\n| Area | Update |\n| --- | --- |\n| Home | Easier table reading |\n| Matches | Clearer form groups |",
+        },
+        {
+          id: 9002,
+          title: "Player directory and history improvements",
+          merged_at: "2026-08-20T15:00:00Z",
+          summary: null,
+        },
+      ],
+      hasNextPage: true,
+    };
+  }
+  if (page === 2) {
+    return {
+      pulls: [{
+        id: 9003,
+        title: "Long-form league release notes for narrow screens",
+        merged_at: "2026-08-10T15:00:00Z",
+        summary: "A longer paragraph checks how release notes wrap when a change needs more than one short sentence. The wording is invented for the local preview and makes no claim about a real league release.\n\n```text\nsynthetic-change-log-example-with-a-long-unbroken-identifier-for-overflow-review\n```\n\n![Untrusted example](https://example.invalid/tracker.png)",
+      }],
+      hasNextPage: false,
+    };
+  }
+  return { pulls: [], hasNextPage: false };
+}
+
+function isLoopbackVisualPreview(request: NextRequest): boolean {
+  return process.env.RDD_VISUAL_FIXTURE === "1" &&
+    process.env.RDD_LOCAL_PREVIEW === "1" &&
+    ["localhost", "127.0.0.1"].includes(request.nextUrl.hostname) &&
+    ["localhost", "127.0.0.1"].includes(new URL(supabaseUrl).hostname);
+}
 
 function parseHasNextPage(linkHeader: string | null): boolean {
   if (!linkHeader) return false;
@@ -74,6 +117,7 @@ async function fetchMergedPullRequests(
 
   const params = new URLSearchParams({
     state: "closed",
+    base: "main",
     sort: "created",
     direction: "desc",
     per_page: String(PER_PAGE),
@@ -103,7 +147,7 @@ async function fetchMergedPullRequests(
   }
 
   const raw = (await response.json()) as GitHubPullRequest[];
-  const mergedOnly = raw.filter((pr) => pr.merged_at);
+  const mergedOnly = raw.filter((pr) => pr.merged_at && pr.base?.ref === "main");
   const hasNextPage = parseHasNextPage(response.headers.get("link"));
 
   return {
@@ -140,6 +184,27 @@ export async function GET(request: NextRequest) {
       { message: "Authentication required." },
       { status: 401 }
     );
+  }
+
+  if (isLoopbackVisualPreview(request)) {
+    return NextResponse.json(visualFixture(page), { status: 200 });
+  }
+
+  // Auth validity alone is not league admission. Check the caller on every
+  // request before consulting shared GitHub caches or returning private notes.
+  const memberClient = createClient(supabaseUrl, supabaseAnonKey, {
+    auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false },
+    global: { headers: { Authorization: `Bearer ${token}` } },
+  });
+  const membership = await memberClient.rpc('league_is_member').then(
+    (result) => result,
+    () => ({ data: null, error: true }),
+  );
+  if (membership.error) {
+    return NextResponse.json({ message: 'Unable to verify league access.' }, { status: 503 });
+  }
+  if (membership.data !== true) {
+    return NextResponse.json({ message: 'League membership required.' }, { status: 403 });
   }
 
   try {

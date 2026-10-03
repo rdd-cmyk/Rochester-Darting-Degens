@@ -274,6 +274,15 @@ it superseded or retired and point to the replacement.
   deployment; refresh the snapshot and approve reconciliation separately.
 - **Related:** supersedes RDD-INFO-010; RDD-INFO-003 remains in force.
 
+W2 follow-up, 2026-09-29: the future statistics storage is now locally verified
+under final member admission and RPC-only permissions, with truthful unknown
+legacy provenance/modification time and a game-aware caller-permission view.
+The new final/profile/validate fixtures remain deferred. Independent review and
+synthetic fresh/upgrade/conflict/refusal checks passed; hosted baseline/history,
+backup/restore and representative timing remain release gates. See the
+[W2 contracts and evidence](release/w2-statistics-foundation-2026-09-29.md).
+The earlier 25/7-assertion results above remain historical, not the new test counts.
+
 ### RDD-INFO-012 — Desktop port proxy needs its own localhost default
 
 - **Status:** active
@@ -439,19 +448,31 @@ it superseded or retired and point to the replacement.
 - **Type:** verified repository delivery constraint and hosted configuration fact
 - **Scope:** Supabase Auth recovery and Vercel preview acceptance
 - **Statement:** The Supabase organization's Vercel connection and Auth URL
-  configuration are independent. On 2026-09-24 the RDD Main Project was linked
-  to `rochester-darting-degens`, with production credential sync enabled only
-  for Production; Preview and Development sync were off. Its Auth Site URL was
-  `https://rocdartdegens.com`, and its three allowed redirects were production
-  root, production `/reset-password`, and `http://localhost:3000`. No preview
-  reset URL was allowed. The organization and project integration views showed
-  no connected GitHub repository. A working preview login does not establish
-  automatic preview credential sync, Supabase branching, or recovery redirects.
+  configuration are independent. Refreshed 2026-09-29: RDD Main Project is linked
+  to `rochester-darting-degens`, with Production credential sync on and
+  Preview/Development sync off. In the earlier snapshot, the Vercel public URL was
+  scoped All Environments and pointed to production; its service-role credential
+  was scoped Production and Preview. The inspected old preview's running client
+  contacts production. Auth Site URL is `https://rocdartdegens.com`, with eight
+  allowed redirects. GitHub is now connected to this repository, branch `main`,
+  Deploy to production on; automatic DB branching is off. A working preview or
+  disabled credential sync does not establish isolation or correct recovery
+  redirects. The linked 2026-09-24 handoff remains historical evidence.
 - **Evidence:** authenticated dashboard inspection of [Auth URL Configuration](https://supabase.com/dashboard/project/hrqsbzmsfichiimtxijj/auth/url-configuration)
   and [project integration settings](https://supabase.com/dashboard/project/hrqsbzmsfichiimtxijj/settings/integrations);
-  `docs/hosted-preview-checks-2026-09-24.md` records the recovery source fix.
-- **Validation:** read-only dashboard observations on 2026-09-24. No connection
-  or Auth settings were changed by this inspection.
+  `docs/hosted-preview-checks-2026-09-24.md` records the recovery source fix;
+  [W1 refresh](release/w1-completion-2026-09-29.md) and
+  [facts](release/w1-environment-facts-2026-09-29.json) record the current targets,
+  settings and the earlier unmet isolation prerequisite. The owner subsequently
+  created RDD Release Testing and scoped its client variables to pre-production
+  and server key to Preview only; production credentials are Production-only.
+  The [W1 isolation completion](release/w1-preview-gate-2026-09-29.md) verifies
+  exact source `25317dc`, its browser target and live client/server keys on that
+  project. W1 passed; this does not establish Auth redirects or email acceptance.
+- **Validation:** read-only authenticated Supabase/Vercel settings and old
+  preview runtime target on 2026-09-29, followed by exact combined Preview
+  isolation/key verification. The owner changed credential scopes; the assistant
+  published the authorized Preview. No Supabase Auth setting or SQL was changed.
 - **Invalidation trigger:** any Supabase Auth URL, organization integration,
   Vercel project environment, or Supabase branching change. Recheck before
   each hosted recovery test or preview database claim.
@@ -498,6 +519,48 @@ it superseded or retired and point to the replacement.
 - **Related:** RDD-INFO-016/017/018. Does not supersede the installed exception.
 
 ## Reviewed host workaround
+
+### RDD-INFO-022 — A Git worktree is not a Supabase stack boundary
+
+- **Status:** active
+- **Type:** verified local procedure and repository constraint
+- **Scope:** League Night local rehearsal, not hosted deployment
+- **Statement:** Worktrees sharing a Supabase project ID share its local stack.
+  League Night deliberately uses `rdd-league-night`, generated workdir
+  `.local/league-night`, loopback API port 55421 and app port 3010. Use
+  `night:local` and the dedicated rehearsal script; never reset the older
+  advanced-statistics stack as part of this feature.
+- **Evidence:** `scripts/league-night-local.mjs`,
+  `scripts/rehearse-league-night.mjs`, `scripts/local-environment.mjs`,
+  `docs/league-night-database-rollout.md`.
+- **Validation:** 2026-09-26 separate healthy stacks, fresh legacy-only pgTAP
+  rehearsal and production-build browser checks; detailed dated outcomes in
+  `docs/league-night-verification-2026-09-26.md`.
+- **Invalidation trigger:** changes to project IDs, workdir/port selection,
+  Docker bindings, bootstrap schema, or CLI behavior; recheck the target before
+  any database action. This does not establish hosted backup or policy safety.
+- **Related:** RDD-INFO-003, RDD-INFO-009, RDD-INFO-021.
+
+### RDD-INFO-023 — Planning has its own local stack and trusted organizer grant
+
+- **Status:** active
+- **Type:** verified local procedure and feature authority boundary
+- **Scope:** `league-night-planning`; no hosted rollout
+- **Statement:** `plan:local` uses `rdd-league-planning`, generated workdir
+  `.local/league-planning`, loopback API 55821 and app 3030. Do not substitute
+  the parent League Night or Board stack. Tests enter the inspected database
+  container's network namespace rather than relying on a shared `db` alias.
+  Planning organizers are assigned in `rdd_private.planning_organizers`, never
+  through editable profile metadata. Only synthetic local grants were applied.
+- **Evidence:** `scripts/planning-local.mjs`, `scripts/rehearse-planning.mjs`,
+  `supabase/tests/fixtures/league_planning.sql`, and
+  `docs/league-night-planning-handoff.md`, plus independent review evidence in
+  `docs/league-night-planning-review-2026-09-27.md`.
+- **Validation:** 2026-09-27 fresh legacy-only database rehearsal, concurrent
+  suggestion checks and multi-account production-build browser acceptance.
+- **Invalidation trigger:** changes to local stack identity, ports, grants,
+  function permissions, membership integration or schema. Recheck before any
+  database action. This entry is not hosted rollout authorization.
 
 ### RDD-INFO-009 — Windows Docker socket recovery must preserve runtime folders
 

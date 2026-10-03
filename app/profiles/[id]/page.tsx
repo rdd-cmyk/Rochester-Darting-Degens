@@ -1,11 +1,19 @@
 'use client';
 
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { ProfileSoloStats } from '@/components/solo/ProfileSoloStats';
+import { GAME_TYPES, gameUnit, ratingExclusion, isLegacyScoreCohort, type GameConfig } from '@/lib/games/catalog';
+import { GameResultDetails } from '@/components/GameOptions';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import { supabase } from '@/lib/supabaseClient';
 import { formatPlayerName } from '@/lib/playerName';
+import { formatRecordedScore } from '@/lib/matchScore';
 import { LinkedPlayerName } from '@/components/LinkedPlayerName';
+import { PlayerAvatar, PlayerAvatarName } from '@/components/avatars/PlayerAvatar';
+import { PageHeader } from '@/components/ui/PageHeader';
+import { ActionLink } from '@/components/ui/ActionLink';
+import { ActionButton } from '@/components/ui/ActionButton';
 
 type Profile = {
   id: string;
@@ -21,6 +29,7 @@ type MatchRowForStats = {
   score: number | null;
   matches: {
     game_type: string | null;
+  game_config?: GameConfig | null;
     played_at: string;
   } | null;
 };
@@ -47,6 +56,7 @@ type MatchSummary = {
   id: number;
   played_at: string;
   game_type: string | null;
+  game_config?: GameConfig | null;
   notes: string | null;
   board_type: string | null;
   venue: string | null;
@@ -116,6 +126,7 @@ function normalizeMatchDetails(matchesData: RawMatchRow[] | null): MatchSummary[
       id: typeof m.id === 'number' ? m.id : 0,
       played_at: typeof m.played_at === 'string' ? m.played_at : '',
       game_type: typeof m.game_type === 'string' ? m.game_type : null,
+      game_config: m.game_config as GameConfig | null,
       notes: typeof m.notes === 'string' ? m.notes : null,
       board_type: typeof m.board_type === 'string' ? m.board_type : null,
       venue: typeof m.venue === 'string' ? m.venue : null,
@@ -140,6 +151,9 @@ export default function ProfilePage() {
 
   const [profile, setProfile] = useState<Profile | null>(null);
   const [stats, setStats] = useState<PlayerStatsSummary | null>(null);
+  const [scopeSelection, setScopeSelection] = useState<{owner:string | undefined;scope:'league'|'solo'|'all'}>({owner:id,scope:'league'});
+  const statsScope = scopeSelection.owner === id ? scopeSelection.scope : 'league';
+  const setStatsScope = (scope:'league'|'solo'|'all') => setScopeSelection({owner:id,scope});
   const [recentMatches, setRecentMatches] = useState<MatchSummary[]>([]);
   const [allMatches, setAllMatches] = useState<MatchSummary[]>([]);
   const [loading, setLoading] = useState<boolean>(() => Boolean(id));
@@ -147,12 +161,14 @@ export default function ProfilePage() {
   const [errorMessage, setErrorMessage] = useState<string | null>(
     id ? null : 'No profile id provided.'
   );
+  const [profileMissing, setProfileMissing] = useState(false);
+  const [signInRequired, setSignInRequired] = useState(false);
   const [allMatchesError, setAllMatchesError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<'recent' | 'all'>('recent');
   const [allMatchesPage, setAllMatchesPage] = useState(1);
   const [allMatchesTotalPages, setAllMatchesTotalPages] = useState(1);
   const [gameTypeFilter, setGameTypeFilter] = useState<
-    'all' | '501' | '301' | 'Cricket' | 'Other'
+    string
   >('all');
   const [resultFilter, setResultFilter] = useState<'all' | 'wins' | 'losses'>(
     'all'
@@ -171,6 +187,27 @@ export default function ProfilePage() {
     async function loadProfileAndStatsAndMatches() {
       setLoading(true);
       setErrorMessage(null);
+      setProfileMissing(false);
+      setSignInRequired(false);
+
+      // Anonymous profile reads are hidden by RLS. Check identity before
+      // interpreting an empty result as a missing player.
+      try {
+        const { data, error } = await supabase.auth.getUser();
+        if (error && error.name !== 'AuthSessionMissingError') throw error;
+        if (!data.user) {
+          setSignInRequired(true);
+          setProfile(null);
+          setStats(null);
+          setRecentMatches([]);
+          setLoading(false);
+          return;
+        }
+      } catch {
+        setErrorMessage('Could not check your account. Please try again later.');
+        setLoading(false);
+        return;
+      }
 
       // 1) Load profile
       const { data: profileData, error: profileError } = await supabase
@@ -179,11 +216,15 @@ export default function ProfilePage() {
           'id, first_name, last_name, display_name, sex, include_first_name_in_display'
         )
         .eq('id', id)
-        .single();
+        .maybeSingle();
 
       if (profileError || !profileData) {
-        console.error('Error loading profile:', profileError);
-        setErrorMessage('Could not load profile.');
+        if (profileError) {
+          console.error('Error loading profile:', profileError);
+          setErrorMessage('Could not load profile. Please try again later.');
+        } else {
+          setProfileMissing(true);
+        }
         setProfile(null);
         setStats(null);
         setRecentMatches([]);
@@ -206,7 +247,7 @@ export default function ProfilePage() {
           is_winner,
           score,
           matches!inner (
-            game_type,
+            game_type, game_config,
             played_at
           )
         `
@@ -254,6 +295,7 @@ export default function ProfilePage() {
       let mprGames = 0;
 
       for (const row of rows) {
+        if (ratingExclusion(row.matches?.game_config)) continue;
         const gameType = row.matches?.game_type || null;
         const playedAt =
           row.matches?.played_at || '1970-01-01T00:00:00.000Z';
@@ -273,13 +315,13 @@ export default function ProfilePage() {
         outcomes.push({ playedAt, isWin });
 
         // 3-dart average (501 / 301 only)
-        if (isX01Game && typeof score === 'number') {
+        if (isX01Game && isLegacyScoreCohort(row.matches?.game_config) && typeof score === 'number') {
           threeTotal += score;
           threeGames += 1;
         }
 
         // MPR (Cricket only)
-        if (isCricket && typeof score === 'number') {
+        if (isCricket && isLegacyScoreCohort(row.matches?.game_config) && typeof score === 'number') {
           mprTotal += score;
           mprGames += 1;
         }
@@ -346,7 +388,7 @@ export default function ProfilePage() {
             `
             id,
             played_at,
-            game_type,
+            game_type, game_config,
             notes,
             board_type,
             venue,
@@ -403,7 +445,7 @@ export default function ProfilePage() {
           `
           id,
           played_at,
-          game_type,
+          game_type, game_config,
           notes,
           board_type,
           venue,
@@ -433,6 +475,8 @@ export default function ProfilePage() {
 
       if (resultFilter !== 'all') {
         query = query.eq('match_players.is_winner', resultFilter === 'wins');
+        // Null configuration is the legacy completed-result cohort.
+        query = query.or('game_config.is.null,game_config->>status.eq.completed');
       }
 
       recordScrollPosition();
@@ -517,7 +561,8 @@ export default function ProfilePage() {
 
       const isWin = playerEntry?.is_winner ?? null;
       const matchesResult =
-        resultFilter === 'wins' ? isWin === true : isWin === false;
+        (match.game_config?.status ?? 'completed') === 'completed' &&
+        (resultFilter === 'wins' ? isWin === true : isWin === false);
 
       return matchesGameType && matchesResult;
     });
@@ -525,37 +570,31 @@ export default function ProfilePage() {
 
   if (loading) {
     return (
-      <main className="page-shell" style={{ maxWidth: '820px' }}>
-        <h1>Player Profile</h1>
-        <p>Loading...</p>
+      <main className="rdd-page-shell page-shell player-page">
+        <PageHeader eyebrow="Player profile" title="Player profile" />
+        <p className="rdd-state" role="status">Loading profile…</p>
       </main>
     );
   }
 
-  if (errorMessage || !profile) {
+  if (signInRequired) {
     return (
-      <main className="page-shell" style={{ maxWidth: '820px' }}>
-        <h1>Player Profile</h1>
-        <p style={{ color: 'red' }}>
-          {errorMessage || 'Profile not found.'}
+      <main className="rdd-page-shell page-shell player-page">
+        <PageHeader eyebrow="Player profile" title="Player profile" />
+        <p className="rdd-state">Sign in to view player profiles.</p>
+        <ActionLink href="/auth" variant="primary">Go to sign in</ActionLink>
+      </main>
+    );
+  }
+
+  if (errorMessage || profileMissing || !profile) {
+    return (
+      <main className="rdd-page-shell page-shell player-page">
+        <PageHeader eyebrow="Player profile" title={profileMissing ? 'Player not found' : 'Player profile'} />
+        <p className={profileMissing ? 'rdd-state' : 'rdd-state rdd-state--error'} role={profileMissing ? 'status' : 'alert'}>
+          {profileMissing ? 'No player profile exists at this link.' : errorMessage || 'Could not load profile.'}
         </p>
-        <p>
-          <Link
-            href="/matches"
-            style={{
-              cursor: 'pointer',
-              padding: '0.3rem 0.7rem',
-              borderRadius: '0.5rem',
-              border: '1px solid #ccc',
-              backgroundColor: '#0366d6',
-              color: 'white',
-              fontWeight: 500,
-              textDecoration: 'none',
-            }}
-          >
-            Back to matches
-          </Link>
-        </p>
+        <div className="rdd-actions"><ActionLink href="/profiles" variant="primary">Browse players</ActionLink></div>
       </main>
     );
   }
@@ -581,57 +620,36 @@ export default function ProfilePage() {
       : filteredAllMatches;
 
   return (
-    <main
-      className="page-shell"
-      style={{
-        maxWidth: '820px',
-        display: 'flex',
-        flexDirection: 'column',
-        gap: 'var(--section-gap)',
-      }}
-    >
-      <header>
-        <h1>{title}</h1>
-        <p style={{ marginTop: '0.5rem' }}>
-          <Link
-            href="/matches"
-            style={{
-              cursor: 'pointer',
-              padding: '0.3rem 0.7rem',
-              borderRadius: '0.5rem',
-              border: '1px solid #ccc',
-              backgroundColor: '#0366d6',
-              color: 'white',
-              fontWeight: 500,
-              textDecoration: 'none',
-            }}
-          >
-            Back to matches
-          </Link>
-        </p>
-      </header>
+    <main className="rdd-page-shell page-shell player-page">
+      <PageHeader
+        eyebrow="Player profile"
+        title={title}
+        description="The record, the recent form, and the next rival to watch."
+        identity={<span className="player-profile-identity"><span aria-hidden="true"><PlayerAvatar playerId={profile.id} name={title} size={64} /></span><PlayerAvatarName playerId={profile.id} /></span>}
+        actions={<><ActionLink href="/profiles">Browse players</ActionLink><ActionLink href="/matches" variant="quiet">Back to matches</ActionLink></>}
+      />
 
       {/* Basic profile details */}
-      <section>
-        <h2 className="section-heading">Player Details</h2>
-        <ul style={{ listStyle: 'none', padding: 0, marginTop: '0.5rem' }}>
+      <section className="rdd-content-panel player-details">
+        <h2 className="section-heading">Player details</h2>
+        <ul className="player-details-list">
           {hasDisplayName && (
-            <li style={{ marginBottom: '0.25rem' }}>
+            <li>
               <strong>Display name:</strong> {profile.display_name}
             </li>
           )}
           {hasFirstName && (
-            <li style={{ marginBottom: '0.25rem' }}>
+            <li>
               <strong>First name:</strong> {profile.first_name}
             </li>
           )}
           {hasLastName && (
-            <li style={{ marginBottom: '0.25rem' }}>
+            <li>
               <strong>Last name:</strong> {profile.last_name}
             </li>
           )}
           {hasSex && (
-            <li style={{ marginBottom: '0.25rem' }}>
+            <li>
               <strong>Sex:</strong> {profile.sex}
             </li>
           )}
@@ -642,15 +660,17 @@ export default function ProfilePage() {
       </section>
 
       {/* Stats summary */}
-      <section>
-        <h2 className="section-heading">Stats Summary</h2>
+      <section className="player-summary">
+        <h2 className="section-heading">The tale of the tape</h2>
+        <ProfileSoloStats key={id} owner={id!} scope={statsScope} onScopeChange={setStatsScope}/>
+        <div className="player-summary-grid" hidden={statsScope!=='league'}>
         {!stats || stats.games === 0 ? (
-          <p>No matches recorded for this player yet.</p>
+          <p className="rdd-content-panel player-summary-empty">No competitive league matches recorded for this player yet.</p>
         ) : (
           <>
-            <div style={{ marginBottom: '1rem' }}>
-              <h3 className="subsection-heading">Overall record (all match types)</h3>
-              <ul style={{ listStyle: 'none', padding: 0 }}>
+            <div className="rdd-content-panel player-summary-card">
+              <h3 className="subsection-heading">League record</h3>
+              <ul>
                 <li>
                   <strong>Games:</strong> {stats.games}
                 </li>
@@ -669,14 +689,15 @@ export default function ProfilePage() {
               </ul>
             </div>
 
-            <div style={{ marginBottom: '1rem' }}>
-              <h3 className="subsection-heading">3-Dart Average (501 / 301)</h3>
+            <div className="rdd-content-panel player-summary-card">
+              <h3 className="subsection-heading">3-dart average (301 / 501)</h3>
+              <p>Individual averages from games with rules unspecified. <Link href="/stats">See Advanced Statistics for preset and team comparisons.</Link></p>
               {stats.threeGames === 0 ? (
-                <p>No 501 or 301 matches recorded.</p>
+                <p>No scored individual 301 or 501 games with rules unspecified.</p>
               ) : (
-                <ul style={{ listStyle: 'none', padding: 0 }}>
+                <ul>
                   <li>
-                    <strong>Average:</strong> {stats.threeAvg.toFixed(2)}
+                    <strong>Average 3DA:</strong> {stats.threeAvg.toFixed(2)}
                   </li>
                   <li>
                     <strong>Games:</strong> {stats.threeGames}
@@ -685,12 +706,12 @@ export default function ProfilePage() {
               )}
             </div>
 
-            <div>
+            <div className="rdd-content-panel player-summary-card">
               <h3 className="subsection-heading">MPR (Cricket)</h3>
               {stats.mprGames === 0 ? (
-                <p>No Cricket matches recorded.</p>
+                <p>No scored individual Cricket games with rules unspecified.</p>
               ) : (
-                <ul style={{ listStyle: 'none', padding: 0 }}>
+                <ul>
                   <li>
                     <strong>Average MPR:</strong> {stats.mprAvg.toFixed(2)}
                   </li>
@@ -702,23 +723,17 @@ export default function ProfilePage() {
             </div>
           </>
         )}
+        </div>
       </section>
 
       {/* Match history tabs */}
-      <section>
-        <h2 className="section-heading">Match History</h2>
+      <section className="rdd-content-panel player-history">
+        <h2 className="section-heading">League match history</h2>
+        {statsScope !== 'league' && <p className="rdd-muted">The history below shows league matches. Private Solo Play history is not shown on profiles.</p>}
 
-        <div
-          style={{
-            display: 'flex',
-            gap: '0.75rem',
-            flexWrap: 'wrap',
-            alignItems: 'flex-end',
-            marginBottom: '0.85rem',
-          }}
-        >
+        <div className="rdd-filter-group player-history-controls">
           <label className="match-filter-control" htmlFor="gameTypeFilter">
-            <span style={{ fontWeight: 600 }}>Game Type</span>
+            <span>Game type</span>
             <select
               id="gameTypeFilter"
               value={gameTypeFilter}
@@ -732,15 +747,12 @@ export default function ProfilePage() {
               }}
             >
               <option value="all">All</option>
-              <option value="501">501</option>
-              <option value="301">301</option>
-              <option value="Cricket">Cricket</option>
-              <option value="Other">Other</option>
+              {GAME_TYPES.map(g => <option key={g} value={g}>{g}</option>)}
             </select>
           </label>
 
           <label className="match-filter-control" htmlFor="resultFilter">
-            <span style={{ fontWeight: 600 }}>Result</span>
+            <span>Result</span>
             <select
               id="resultFilter"
               value={resultFilter}
@@ -760,35 +772,21 @@ export default function ProfilePage() {
           </label>
         </div>
 
-        <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1rem' }}>
-          <button
+        <div className="player-history-tabs" role="group" aria-label="Match history range">
+          <ActionButton
             type="button"
             onClick={() => handleTabChange('recent')}
-            style={{
-              padding: '0.4rem 0.8rem',
-              borderRadius: '0.5rem',
-              border: '1px solid #ccc',
-              backgroundColor: activeTab === 'recent' ? '#0366d6' : 'white',
-              color: activeTab === 'recent' ? 'white' : 'black',
-              cursor: 'pointer',
-            }}
+            aria-pressed={activeTab === 'recent'}
           >
-            Last 5 Matches
-          </button>
-          <button
+            Last 5 matches
+          </ActionButton>
+          <ActionButton
             type="button"
             onClick={() => handleTabChange('all')}
-            style={{
-              padding: '0.4rem 0.8rem',
-              borderRadius: '0.5rem',
-              border: '1px solid #ccc',
-              backgroundColor: activeTab === 'all' ? '#0366d6' : 'white',
-              color: activeTab === 'all' ? 'white' : 'black',
-              cursor: 'pointer',
-            }}
+            aria-pressed={activeTab === 'all'}
           >
-            All Matches
-          </button>
+            All matches
+          </ActionButton>
         </div>
 
         {activeTab === 'recent' ? (
@@ -798,9 +796,9 @@ export default function ProfilePage() {
             <MatchList matches={filteredRecentMatches} />
           )
         ) : (
-          <div style={{ position: 'relative' }}>
+          <div className="player-history-results">
             {allMatchesError ? (
-              <p style={{ color: 'red' }}>{allMatchesError}</p>
+              <p className="rdd-state rdd-state--error" role="alert">{allMatchesError}</p>
             ) :
               filteredAllMatches.length === 0 && !allMatchesLoading ? (
               <p>No matches found for this player.</p>
@@ -809,15 +807,8 @@ export default function ProfilePage() {
             )}
 
             {filteredAllMatches.length > 0 && (
-              <div
-                style={{
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  alignItems: 'center',
-                  marginTop: '1rem',
-                }}
-              >
-                <button
+              <div className="rdd-pagination">
+                <ActionButton
                   type="button"
                   disabled={allMatchesPage === 1 || allMatchesLoading}
                   onClick={() => {
@@ -825,23 +816,13 @@ export default function ProfilePage() {
                     setAllMatchesLoading(true);
                     setAllMatchesPage((p) => Math.max(1, p - 1));
                   }}
-                  style={{
-                    padding: '0.4rem 0.8rem',
-                    borderRadius: '0.5rem',
-                    border: '1px solid #ccc',
-                    backgroundColor:
-                      allMatchesPage === 1 ? '#8cbce8' : '#0366d6',
-                    color: 'white',
-                    fontWeight: 500,
-                    cursor: allMatchesPage === 1 ? 'not-allowed' : 'pointer',
-                  }}
                 >
                   Previous
-                </button>
+                </ActionButton>
                 <span>
                   Page {allMatchesPage} of {allMatchesTotalPages}
                 </span>
-                <button
+                <ActionButton
                   type="button"
                   disabled={allMatchesPage === allMatchesTotalPages || allMatchesLoading}
                   onClick={() => {
@@ -851,39 +832,15 @@ export default function ProfilePage() {
                       p >= allMatchesTotalPages ? allMatchesTotalPages : p + 1
                     );
                   }}
-                  style={{
-                    padding: '0.4rem 0.8rem',
-                    borderRadius: '0.5rem',
-                    border: '1px solid #ccc',
-                    backgroundColor:
-                      allMatchesPage === allMatchesTotalPages ? '#8cbce8' : '#0366d6',
-                    color: 'white',
-                    fontWeight: 500,
-                    cursor:
-                      allMatchesPage === allMatchesTotalPages
-                        ? 'not-allowed'
-                        : 'pointer',
-                  }}
                 >
                   Next
-                </button>
+                </ActionButton>
               </div>
             )}
 
             {allMatchesLoading && (
-              <div
-                style={{
-                  position: 'absolute',
-                  inset: 0,
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  backgroundColor: 'rgba(255, 255, 255, 0.8)',
-                  borderRadius: '0.5rem',
-                  zIndex: 1,
-                }}
-              >
-                <p style={{ margin: 0 }}>Loading matches...</p>
+              <div className="player-history-loading" role="status">
+                <p>Loading match history…</p>
               </div>
             )}
           </div>
@@ -899,60 +856,33 @@ type MatchListProps = {
 
 function MatchList({ matches }: MatchListProps) {
   return (
-    <ul
-      style={{
-        listStyle: 'none',
-        padding: 0,
-        display: 'flex',
-        flexDirection: 'column',
-        gap: '1rem',
-        marginTop: '0.5rem',
-      }}
-    >
+    <ul className="player-match-list">
       {matches.map((m) => {
-        const metricLabel =
-          m.game_type === 'Cricket'
-            ? 'MPR'
-            : m.game_type === 'Other'
-              ? 'Score'
-              : '3-Dart Avg';
+        const metricLabel = gameUnit(m.game_type);
 
         return (
-          <li
-            key={m.id}
-            style={{
-              border: '1px solid #ccc',
-              padding: '0.75rem',
-              borderRadius: '0.5rem',
-            }}
-          >
-            <div
-              style={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-                gap: '0.5rem',
-              }}
-            >
+          <li key={m.id} className="player-match-card">
+            <div className="player-match-header">
               <div>
                 <strong>
                   {m.game_type || 'Unknown game'} –{' '}
                   {new Date(m.played_at).toLocaleString()}
                 </strong>
-                {m.notes && <div>Notes: {m.notes}</div>}
+                <GameResultDetails game={m.game_type} config={m.game_config} />
+                        {m.notes && <div>Notes: {m.notes}</div>}
                 {m.board_type && <div>Board: {m.board_type}</div>}
                 {m.venue && <div>Venue: {m.venue}</div>}
               </div>
             </div>
 
-            <div style={{ marginTop: '0.5rem' }}>
+            <div className="player-match-participants">
               Players:
-              <ul style={{ margin: '0.25rem 0 0 1rem' }}>
+              <ul>
                 {(m.match_players || []).map((mp) => {
                   const prof = mp.profiles;
                   const pointsText =
-                    m.game_type === 'Cricket' && mp.points_scored != null
-                      ? ` (Points: ${mp.points_scored})`
+                    (m.game_type === 'Cricket' || m.game_type === 'Cut-Throat Cricket') && mp.points_scored != null
+                      ? ` (${m.game_type === 'Cut-Throat Cricket' ? 'Penalty points' : 'Points'}: ${mp.points_scored})`
                       : '';
 
                   return (
@@ -970,9 +900,9 @@ function MatchList({ matches }: MatchListProps) {
                         'Unknown player'
                       )}{' '}
                       – {metricLabel}:{' '}
-                      {mp.score != null ? mp.score.toString() : '0'}
+                      {formatRecordedScore(mp.score)}
                       {pointsText}{' '}
-                      {mp.is_winner ? <strong>(winner)</strong> : null}
+                      {m.game_config?.sides?.[mp.player_id] ? ` · Team ${m.game_config.sides[mp.player_id]}` : ''} {mp.is_winner ? <strong>(winner)</strong> : null}
                     </li>
                   );
                 })}

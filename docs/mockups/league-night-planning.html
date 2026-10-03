@@ -1,0 +1,222 @@
+<div id="rdd-planning" aria-label="League Night planning mockup">
+  <style>
+    #rdd-planning { --rdd-page:light-dark(#f4f1eb,#080f1a); --rdd-panel:light-dark(#fff,#111b2b); --rdd-ink:light-dark(#101827,#f4f6f8); --rdd-muted:light-dark(#536074,#aebacd); --rdd-line:light-dark(#d9dfe6,#334157); --rdd-orange:light-dark(#f47c20,#ff9344); --rdd-soft:light-dark(#fff1e4,#31251e); --rdd-green:light-dark(#166847,#84d6b0); color:var(--rdd-ink); background:var(--rdd-page); font:15px/1.5 Arial,Helvetica,sans-serif; overflow-wrap:anywhere; }
+    #rdd-planning * { box-sizing:border-box; }
+    #rdd-planning [hidden] { display:none!important; }
+    #rdd-planning h1,#rdd-planning h2,#rdd-planning h3,#rdd-planning p { margin:0; }
+    #rdd-planning h1 { font-size:clamp(28px,4vw,42px); line-height:1.08; letter-spacing:-1.3px; font-weight:800; }
+    #rdd-planning h2 { font-size:22px; letter-spacing:-.6px; line-height:1.25; }
+    #rdd-planning h3 { font-size:16px; }
+    #rdd-planning button,#rdd-planning input,#rdd-planning select { font:inherit; }
+    #rdd-planning button { min-height:44px; border:1px solid var(--rdd-line); border-radius:9px; padding:9px 14px; background:var(--rdd-panel); color:var(--rdd-ink); font-weight:600; }
+    #rdd-planning button:hover:not(:disabled) { border-color:var(--rdd-orange); }
+    #rdd-planning button:disabled { opacity:.5; }
+    #rdd-planning :is(button,input,select,summary):focus-visible { outline:3px solid var(--rdd-orange); outline-offset:3px; }
+    #rdd-planning .rdd-primary,#rdd-planning button[aria-pressed="true"] { background:var(--rdd-orange); color:#101827; border-color:var(--rdd-orange); }
+    #rdd-planning .rdd-chrome { background:#101827; color:#f4f6f8; padding:17px 26px; display:flex; gap:20px; justify-content:space-between; align-items:center; flex-wrap:wrap; }
+    #rdd-planning .rdd-brand { font-size:13px; font-weight:800; letter-spacing:1.8px; }
+    #rdd-planning .rdd-chrome small { color:#d0d8e3; font-size:12px; }
+    #rdd-planning .rdd-toplinks { display:flex; gap:20px; font-size:13px; }
+    #rdd-planning .rdd-toplinks strong { color:#ff9344; }
+    #rdd-planning .rdd-content { max-width:1060px; margin:auto; padding:26px; display:grid; gap:24px; }
+    #rdd-planning .rdd-hero { display:flex; align-items:end; justify-content:space-between; gap:18px; flex-wrap:wrap; }
+    #rdd-planning .rdd-eyebrow { text-transform:uppercase; letter-spacing:1.8px; font-size:11px; font-weight:700; margin-bottom:8px; color:var(--rdd-muted); }
+    #rdd-planning .rdd-sub { color:var(--rdd-muted); margin-top:9px; }
+    #rdd-planning .rdd-row { display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
+    #rdd-planning .rdd-between { justify-content:space-between; }
+    #rdd-planning .rdd-panel { background:var(--rdd-panel); border:1px solid var(--rdd-line); border-radius:15px; padding:24px; }
+    #rdd-planning .rdd-upcoming { border-top:4px solid var(--rdd-orange); display:grid; grid-template-columns:1.15fr 1fr; gap:24px; }
+    #rdd-planning .rdd-rsvp { border-left:1px solid var(--rdd-line); padding-left:24px; display:grid; gap:9px; align-content:center; }
+    #rdd-planning .rdd-small { font-size:12px; color:var(--rdd-muted); }
+    #rdd-planning .rdd-label { font-size:13px; font-weight:700; }
+    #rdd-planning .rdd-badge { font-size:11px; letter-spacing:.5px; border-radius:5px; padding:4px 8px; background:var(--rdd-soft); color:var(--rdd-ink); font-weight:700; }
+    #rdd-planning .rdd-meta { margin-top:12px; display:grid; gap:3px; }
+    #rdd-planning .rdd-meta b { font-size:18px; }
+    #rdd-planning .rdd-ballots { display:grid; grid-template-columns:1fr 1fr; gap:26px; margin-top:23px; }
+    #rdd-planning .rdd-ballot { min-width:0; border:0; padding:0; margin:0; }
+    #rdd-planning legend { padding:0; margin-bottom:10px; font-size:13px; font-weight:700; letter-spacing:.5px; }
+    #rdd-planning .rdd-option { display:grid; grid-template-columns:20px 1fr auto; gap:10px; align-items:center; padding:12px 0; border-top:1px solid var(--rdd-line); min-height:64px; }
+    #rdd-planning .rdd-option input { width:18px; height:18px; accent-color:var(--rdd-orange); margin:0; }
+    #rdd-planning .rdd-option small { display:block; font-size:12px; color:var(--rdd-muted); }
+    #rdd-planning .rdd-count { font-size:13px; color:var(--rdd-muted); white-space:nowrap; }
+    #rdd-planning .rdd-footer { border-top:1px solid var(--rdd-line); margin-top:20px; padding-top:18px; display:flex; justify-content:space-between; gap:15px; align-items:center; flex-wrap:wrap; }
+    #rdd-planning .rdd-stack { display:grid; gap:12px; }
+    #rdd-planning .rdd-form { padding-top:18px; display:grid; gap:13px; }
+    #rdd-planning .rdd-form label { display:grid; gap:6px; font-size:13px; font-weight:600; }
+    #rdd-planning .rdd-fields { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+    #rdd-planning input:not([type="checkbox"]),#rdd-planning select { width:100%; min-width:0; min-height:44px; border:1px solid var(--rdd-line); border-radius:8px; background:var(--rdd-panel); color:var(--rdd-ink); padding:9px; font-size:16px; }
+    #rdd-planning details { border-top:1px solid var(--rdd-line); padding-top:16px; margin-top:20px; }
+    #rdd-planning summary { font-size:13px; font-weight:600; min-height:32px; }
+    #rdd-planning .rdd-notice { padding:12px 14px; border-left:3px solid var(--rdd-orange); background:var(--rdd-soft); font-size:13px; }
+    #rdd-planning .rdd-status { font-size:13px; color:var(--rdd-green); min-height:20px; }
+    #rdd-planning .rdd-empty { padding:26px 0; }
+    #rdd-planning .rdd-later { padding:16px 0; border-top:1px solid var(--rdd-line); }
+    #rdd-planning .rdd-demo { font-size:11px; color:var(--rdd-muted); }
+    @media(max-width:640px) {
+      #rdd-planning .rdd-content { padding:18px 14px; gap:18px; }
+      #rdd-planning .rdd-panel { padding:18px; }
+      #rdd-planning .rdd-chrome { padding:14px; gap:10px; }
+      #rdd-planning .rdd-toplinks { display:none; }
+      #rdd-planning .rdd-upcoming,#rdd-planning .rdd-ballots,#rdd-planning .rdd-fields { grid-template-columns:1fr; }
+      #rdd-planning .rdd-rsvp { border-left:0; border-top:1px solid var(--rdd-line); padding:16px 0 0; }
+      #rdd-planning .rdd-ballots { gap:18px; }
+      #rdd-planning .rdd-footer { align-items:stretch; }
+      #rdd-planning .rdd-footer>div { width:100%; }
+    }
+  </style>
+  <div class="rdd-chrome">
+    <div><div class="rdd-brand">ROCHESTER DARTING DEGENS</div><small>Good darts. Better company.</small></div>
+    <div class="rdd-toplinks"><span>Matches</span><span>League Lab</span><strong>League Night</strong></div>
+  </div>
+  <main class="rdd-content">
+    <div id="rdd-existing-lobby" hidden><p class="rdd-eyebrow">Rochester Darting Degens</p><h2>Good darts. Better company.</h2><p class="rdd-sub">Open tonight’s night. Bring your game.</p><div class="rdd-row" style="margin-top:18px;padding-bottom:14px;border-bottom:1px solid var(--rdd-line)"><span>Tonight</span><strong>Plan & RSVP</strong><span>Recaps</span></div></div>
+    <header class="rdd-hero">
+      <div><p class="rdd-eyebrow" id="rdd-path">League Night / Plan & RSVP</p><h1 id="rdd-heading">Make the next night happen.</h1><p class="rdd-sub">Pick a night. Find a spot. Know who’s coming.</p></div>
+      <button type="button" id="rdd-direct" data-organizer>Schedule a night</button>
+    </header>
+    <section class="rdd-panel rdd-upcoming" aria-label="Next scheduled night">
+      <div><p class="rdd-eyebrow" id="rdd-event-label">Next on the calendar</p><h2 id="rdd-event-title">Friday night darts</h2><div class="rdd-meta"><b id="rdd-event-date">Fri, Oct 2 · 7:00 PM</b><span id="rdd-event-venue">The Double Bull · Rochester</span><span class="rdd-small">Times shown in Rochester time (ET)</span></div></div>
+      <div class="rdd-rsvp"><span class="rdd-label">Will you be there?</span><div class="rdd-row"><button type="button" id="rdd-going" aria-pressed="false">✓ Going</button><button type="button" id="rdd-not-going" aria-pressed="false">Not going</button></div><span class="rdd-small" id="rdd-rsvp-count">8 going · 2 not going</span><p id="rdd-rsvp-status" class="rdd-small" aria-live="polite">You haven’t responded · Changes close Oct 2 at 7 PM</p></div>
+    </section>
+    <section class="rdd-panel" id="rdd-schedule-panel" hidden aria-label="Schedule a league night">
+      <div class="rdd-row rdd-between"><h2>Put it on the calendar</h2><button type="button" id="rdd-cancel-schedule">Cancel</button></div>
+      <form id="rdd-schedule-form" class="rdd-form">
+        <label>Night name<input id="rdd-schedule-title" maxlength="60" value="Next league night" required></label>
+        <div class="rdd-fields"><label>Date & time<select id="rdd-schedule-date"></select></label><label>Venue<select id="rdd-schedule-venue"></select></label></div>
+        <div id="rdd-custom-schedule" class="rdd-stack" hidden><div class="rdd-fields"><label>Date<input type="date" id="rdd-custom-date" value="2026-10-23"></label><label>Start time · Rochester<input type="time" id="rdd-custom-time" value="19:00"></label></div><label>Venue<input id="rdd-custom-venue" value="The Double Bull" maxlength="60"></label></div>
+        <p class="rdd-small" id="rdd-overlap"></p>
+        <p class="rdd-notice">This confirms the plan. Everyone will answer Going or Not going separately.</p>
+        <div class="rdd-row"><button class="rdd-primary" type="submit">Confirm & schedule</button><span class="rdd-small">RSVPs close at start time · Rochester time</span></div>
+      </form>
+    </section>
+    <section class="rdd-panel" aria-label="Planning poll" id="rdd-poll">
+      <div class="rdd-row rdd-between"><div class="rdd-row"><span class="rdd-badge" id="rdd-poll-state">VOTING OPEN</span><span class="rdd-small" id="rdd-deadline">Closes Wed, Sep 30 · 8 PM ET</span></div><span class="rdd-small">12 profiles voted</span></div>
+      <h2 style="margin-top:15px">Let’s line up the next one.</h2>
+      <p class="rdd-sub" id="rdd-poll-help">Select every date and place that works for you.</p>
+      <div class="rdd-ballots">
+        <fieldset class="rdd-ballot" id="rdd-dates"><legend>WHEN · DATE & TIME</legend><div id="rdd-date-options"></div></fieldset>
+        <fieldset class="rdd-ballot" id="rdd-venues"><legend>WHERE · VENUE</legend><div id="rdd-venue-options"></div></fieldset>
+      </div>
+      <div class="rdd-footer" id="rdd-vote-actions"><div class="rdd-row"><button class="rdd-primary" type="button" id="rdd-save">Save my votes</button><span class="rdd-small" id="rdd-selection">No options selected</span></div><div class="rdd-row"><button type="button" id="rdd-add">+ Suggest an option</button><span class="rdd-small" id="rdd-allowance">0 of 2 suggestions used</span></div></div>
+      <p class="rdd-status" id="rdd-poll-status" aria-live="polite" style="margin-top:10px"></p>
+      <form id="rdd-suggestion" class="rdd-form" hidden>
+        <div class="rdd-fields"><label>Suggest a<select id="rdd-suggest-type"><option value="date">Date & time</option><option value="venue">Venue</option></select></label><label id="rdd-venue-field" hidden>Venue name<input id="rdd-new-venue" maxlength="60" placeholder="Where should we meet?"></label></div>
+        <div class="rdd-fields" id="rdd-date-fields"><label>Date<input id="rdd-new-date" type="date" value="2026-10-11"></label><label>Start time · Rochester<input id="rdd-new-time" type="time" value="19:00"></label></div>
+        <div class="rdd-row"><button type="submit">Add suggestion</button><button type="button" id="rdd-cancel-suggestion">Cancel</button><span class="rdd-small">Two total across dates and venues.</span></div><p class="rdd-small" id="rdd-suggestion-error" role="alert"></p>
+      </form>
+      <div id="rdd-closed" class="rdd-notice" hidden>Voting is closed. The organizer will confirm the date and venue.</div>
+      <details data-organizer id="rdd-organizer"><summary>Organizer controls</summary><div class="rdd-stack" style="margin-top:12px"><p class="rdd-small">Close early when everyone has had their say, or let the deadline close it.</p><div class="rdd-row"><button type="button" id="rdd-close">Close voting now</button><button type="button" id="rdd-from-poll" hidden>Review results & schedule</button></div><div id="rdd-close-confirm" class="rdd-notice" hidden><p>Close this poll? No more votes or suggestions can be added.</p><div class="rdd-row" style="margin-top:10px"><button type="button" id="rdd-confirm-close">Yes, close voting</button><button type="button" id="rdd-keep-open">Keep open</button></div></div></div></details>
+    </section>
+    <section aria-label="More upcoming nights"><div class="rdd-row rdd-between"><h3>Also on the calendar</h3><span class="rdd-small">Plan ahead. Play more.</span></div><div id="rdd-later-list"><div class="rdd-later rdd-row rdd-between"><div><b>Autumn doubles</b><p class="rdd-small">Fri, Oct 16 · 7 PM · Flight Clubhouse</p></div><div class="rdd-row"><button type="button" id="rdd-later-going" aria-pressed="false">Going</button><button type="button" id="rdd-later-no" aria-pressed="false">Not going</button></div></div></div><p id="rdd-later-status" class="rdd-small" aria-live="polite"></p></section>
+    <p class="rdd-demo">DESIGN PREVIEW · Fictional venues, dates, profiles and totals. Interactions only change this preview.</p>
+  </main>
+</div>
+<script>
+(() => {
+  const root = document.getElementById('rdd-planning');
+  const el = id => root.querySelector('#rdd-' + id);
+  const design = { placement:'Dedicated planning page', scope:'Both', organizer:true, pollState:'Open' };
+  const state = { selected:[], saved:[], suggestions:0, rsvp:null, scheduled:false, baseYes:8, baseNo:2 };
+  const dates = [
+    { id:'d1', label:'Fri, Oct 9 · 7:00 PM', detail:'Rochester time', votes:9 },
+    { id:'d2', label:'Sat, Oct 10 · 6:30 PM', detail:'Rochester time', votes:7 },
+    { id:'d3', label:'Sun, Oct 11 · 5:00 PM', detail:'Suggested by Avery', votes:4 }
+  ];
+  const venues = [
+    { id:'v1', label:'The Double Bull', detail:'Rochester · 4 boards', votes:8 },
+    { id:'v2', label:'Flight Clubhouse', detail:'Rochester · 6 boards', votes:6 }
+  ];
+  const visibleOptions = () => [...(design.scope !== 'Venue only' ? dates : []), ...(design.scope !== 'Date only' ? venues : [])];
+  const closed = () => design.pollState !== 'Open' || state.scheduled;
+  function remember() {
+    if (window.openai?.setWidgetState) window.openai.setWidgetState({modelContent:{placement:design.placement,pollScope:design.scope},privateContent:{design:{...design}}}).catch(()=>{});
+  }
+  function restore(value) {
+    const saved = value?.privateContent?.design;
+    if (!saved) return;
+    if (['Dedicated planning page','Section in League Night'].includes(saved.placement)) design.placement=saved.placement;
+    if (['Both','Date only','Venue only'].includes(saved.scope)) design.scope=saved.scope;
+    if (typeof saved.organizer === 'boolean') design.organizer=saved.organizer;
+    if (['Open','Deadline reached'].includes(saved.pollState)) design.pollState=saved.pollState;
+  }
+  restore(window.openai?.widgetState);
+  window.addEventListener('openai:set_globals',event=>{restore(event.detail?.globals?.widgetState);render();});
+  function renderOptions(target,options) {
+    target.replaceChildren();
+    options.forEach(option=>{
+      const label=document.createElement('label');label.className='rdd-option cursor-interaction';
+      const input=document.createElement('input');input.type='checkbox';input.value=option.id;input.checked=state.selected.includes(option.id);input.disabled=closed();
+      input.addEventListener('change',()=>{state.selected=state.selected.filter(id=>id!==option.id);if(input.checked)state.selected.push(option.id);el('poll-status').textContent='Unsaved changes';selection();});
+      const text=document.createElement('span');text.textContent=option.label;
+      const detail=document.createElement('small');detail.textContent=option.detail;text.append(detail);
+      const count=document.createElement('span');count.className='rdd-count';count.textContent=(option.votes+(state.saved.includes(option.id)?1:0))+' votes';
+      label.append(input,text,count);target.append(label);
+    });
+  }
+  function selection() {
+    const n=visibleOptions().filter(o=>state.selected.includes(o.id)).length;
+    el('selection').textContent=n ? n+' selected · change until close' : 'No options selected';
+  }
+  function render() {
+    root.querySelectorAll('[data-organizer]').forEach(node=>node.hidden=!design.organizer);
+    el('existing-lobby').hidden=design.placement!=='Section in League Night';
+    el('path').textContent=design.placement==='Dedicated planning page'?'League Night / Plan & RSVP':'League Night';
+    el('heading').textContent=design.placement==='Dedicated planning page'?'Make the next night happen.':'Plan the next league night.';
+    el('dates').hidden=design.scope==='Venue only';el('venues').hidden=design.scope==='Date only';
+    el('poll-help').textContent=design.scope==='Both'?'Select every date and place that works for you.':design.scope==='Date only'?'Select every date that works. Venue: The Double Bull.':'Select every place that works. Date: Fri, Oct 9 at 7 PM ET.';
+    el('poll-state').textContent=state.scheduled?'NIGHT SCHEDULED':closed()?'VOTING CLOSED':'VOTING OPEN';
+    el('deadline').textContent=design.pollState==='Deadline reached'?'Deadline reached · Sep 30, 8 PM ET':design.pollState==='Closed early'?'Closed early by organizer':'Closes Wed, Sep 30 · 8 PM ET';
+    el('vote-actions').hidden=closed();el('closed').hidden=!closed();
+    el('closed').textContent=state.scheduled?'The night is on the calendar. RSVP above to let everyone know you’re coming.':'Voting is closed. The organizer will confirm the date and venue.';
+    el('close').hidden=closed();el('from-poll').hidden=!closed()||state.scheduled;
+    if(closed()){el('suggestion').hidden=true;el('close-confirm').hidden=true;}
+    el('allowance').textContent=state.suggestions+' of 2 suggestions used';el('add').disabled=state.suggestions>=2;
+    const type=el('suggest-type');type.querySelector('[value="date"]').disabled=design.scope==='Venue only';type.querySelector('[value="venue"]').disabled=design.scope==='Date only';
+    if(design.scope==='Date only')type.value='date';if(design.scope==='Venue only')type.value='venue';suggestionFields();
+    renderOptions(el('date-options'),dates);renderOptions(el('venue-options'),venues);selection();
+    root.querySelectorAll('button,summary').forEach(node=>node.classList.add('cursor-interaction'));
+  }
+  function suggestionFields(){const venue=el('suggest-type').value==='venue';el('venue-field').hidden=!venue;el('date-fields').hidden=venue;el('new-venue').required=venue;el('new-date').required=!venue;el('new-time').required=!venue;}
+  function rsvp(answer){state.rsvp=answer;el('going').setAttribute('aria-pressed',String(answer==='yes'));el('not-going').setAttribute('aria-pressed',String(answer==='no'));el('rsvp-count').textContent=(state.baseYes+(answer==='yes'?1:0))+' going · '+(state.baseNo+(answer==='no'?1:0))+' not going';el('rsvp-status').textContent=answer==='yes'?'You’re going · Response saved in preview':'You’re not going · Response saved in preview';}
+  el('going').onclick=()=>rsvp('yes');el('not-going').onclick=()=>rsvp('no');
+  el('save').onclick=()=>{if(closed())return;const visible=new Set(visibleOptions().map(o=>o.id));state.saved=state.selected.filter(id=>visible.has(id));render();el('poll-status').textContent=state.saved.length?'Your votes are saved. You can change them until voting closes.':'Your votes have been cleared.';};
+  el('add').onclick=()=>{el('suggestion').hidden=false;el('suggest-type').focus();};
+  el('cancel-suggestion').onclick=()=>{el('suggestion').hidden=true;};el('suggest-type').onchange=suggestionFields;
+  el('suggestion').onsubmit=event=>{
+    event.preventDefault();if(closed()||state.suggestions>=2)return;
+    const venue=el('suggest-type').value==='venue';const list=venue?venues:dates;
+    let label=el('new-venue').value.trim();
+    if(!venue){const raw=el('new-date').value+'T'+el('new-time').value;if(!el('new-date').value||!el('new-time').value)return;label=new Date(raw).toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'})+' · '+new Date(raw).toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'});}
+    if(!label)return;
+    if(list.some(o=>o.label.toLowerCase()===label.toLowerCase())){el('suggestion-error').textContent='That option is already here. Vote for it instead.';return;}
+    list.push({id:(venue?'v':'d')+Date.now(),label,detail:'Suggested by you',votes:0});state.suggestions++;el('suggestion-error').textContent='';el('suggestion').hidden=true;render();el('poll-status').textContent='Suggestion added. Select it if you want to vote for it.';
+  };
+  el('close').onclick=()=>{el('close-confirm').hidden=false;};el('keep-open').onclick=()=>{el('close-confirm').hidden=true;};
+  el('confirm-close').onclick=()=>{design.pollState='Closed early';state.selected=[...state.saved];render();el('poll-status').textContent='Poll closed. Review the results before confirming a night.';};
+  let scheduleFromPoll=false;
+  function showSchedule(fromPoll){
+    scheduleFromPoll=fromPoll;el('schedule-panel').hidden=false;
+    el('schedule-date').closest('.rdd-fields').hidden=!fromPoll;el('custom-schedule').hidden=fromPoll;
+    ['custom-date','custom-time','custom-venue'].forEach(id=>el(id).required=!fromPoll);
+    [[el('schedule-date'),design.scope==='Venue only'?[dates[0]]:dates],[el('schedule-venue'),design.scope==='Date only'?[venues[0]]:venues]].forEach(([select,list])=>{select.replaceChildren();list.forEach(item=>{const option=document.createElement('option');option.value=item.id;option.textContent=item.label;select.append(option);});});
+    el('overlap').textContent=fromPoll&&design.scope==='Both'?'5 profiles selected both leading options. Votes express preferences; RSVPs confirm attendance.':'Confirm the date, time and venue, then open RSVPs.';
+    el('schedule-title').focus();
+  }
+  el('from-poll').onclick=()=>showSchedule(true);el('direct').onclick=()=>showSchedule(false);el('cancel-schedule').onclick=()=>{el('schedule-panel').hidden=true;};
+  function updateOverlap(){el('overlap').textContent=scheduleFromPoll&&design.scope==='Both'?(el('schedule-date').value==='d1'&&el('schedule-venue').value==='v1'?'5 profiles selected both options.':'Combined support would be shown here for these options.')+' RSVPs are still needed.':'Confirm these details before opening RSVPs.';}
+  el('schedule-date').onchange=updateOverlap;el('schedule-venue').onchange=updateOverlap;
+  el('schedule-form').onsubmit=event=>{
+    event.preventDefault();const title=el('schedule-title').value.trim();if(!title)return;
+    let date=dates.find(o=>o.id===el('schedule-date').value);let venue=venues.find(o=>o.id===el('schedule-venue').value);
+    if(!scheduleFromPoll){const moment=new Date(el('custom-date').value+'T'+el('custom-time').value);date={label:moment.toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'})+' · '+moment.toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'})};venue={label:el('custom-venue').value.trim()};if(!venue.label)return;}
+    const previous=document.createElement('div');previous.className='rdd-later';previous.textContent=el('event-title').textContent+' · '+el('event-date').textContent+' · '+el('event-venue').textContent;el('later-list').prepend(previous);
+    el('event-title').textContent=title;el('event-date').textContent=date.label;el('event-venue').textContent=venue.label;
+    el('event-label').textContent='Just scheduled';
+    state.rsvp=null;state.baseYes=0;state.baseNo=0;el('going').setAttribute('aria-pressed','false');el('not-going').setAttribute('aria-pressed','false');el('rsvp-count').textContent='0 going · 0 not going';el('rsvp-status').textContent='New night scheduled · You haven’t responded';
+    if(scheduleFromPoll)state.scheduled=true;el('schedule-panel').hidden=true;render();el('poll-status').textContent='Night scheduled in preview. Voting did not submit anyone’s RSVP.';
+  };
+  ['later-going','later-no'].forEach(id=>el(id).onclick=()=>{el('later-going').setAttribute('aria-pressed',String(id==='later-going'));el('later-no').setAttribute('aria-pressed',String(id==='later-no'));el('later-status').textContent=(id==='later-going'?'You’re going to':'You’re not going to')+' Autumn doubles · Response saved in preview';});
+  render();
+  if(globalThis.Tweak){const tweak=new Tweak({container:root,onChange:()=>{render();remember();}});tweak.addSelect(design,'placement',{label:'Placement',options:['Dedicated planning page','Section in League Night']});tweak.addSelect(design,'scope',{label:'Poll asks for',options:['Both','Date only','Venue only']});tweak.addToggle(design,'organizer',{label:'Organizer controls'});tweak.addSelect(design,'pollState',{label:'Deadline preview',options:['Open','Deadline reached']});}
+})();
+</script>

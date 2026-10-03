@@ -1,6 +1,29 @@
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
+## Website design
+
+Use the [style and design standards](docs/design-standards.md) before planning,
+implementing or reviewing interface work: palette and semantic tokens,
+consistent buttons, page-title headers and WCAG 2.2 AA accessibility targets.
+The [release source audit](docs/style-guide-release-next-audit.md) records
+current drift; the [interactive comparison](docs/mockups/style-guide-preview.html)
+preserves the explored header options. The owner selected Plain heading with
+an orange terminal period; other Version 2 additions remain proposals.
+The [site-wide upgrade plan](docs/sitewide-design-upgrade-plan.md)
+tracks implementation separately; preparing the guide does not start it.
+
 ## Configuration
+
+The combined next-version branch is `release/next` (formerly `league-night-mode`).
+Follow the [release readiness plan](docs/release-next-readiness.md) for the full
+testing, backup, restore rehearsal and hosted cutover gates before deployment.
+
+This branch implements invitation-only registration. See the
+[invitation handoff](docs/invite-only-registration-handoff.md) for isolated local
+preview commands, server email configuration, verification, and the hosted release
+gate. Use `npm run invites:start:local`, `npm run invites:setup:local`, and
+`npm run invites:preview:local` for this feature; its stricter admission policies
+belong in the isolated invitation stack.
 
 This project relies on Supabase for authentication and data. Create a `.env.local` file in the project root and add the following environment variables before running the app:
 

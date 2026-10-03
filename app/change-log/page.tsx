@@ -1,3 +1,4 @@
+import { PageHeader } from '@/components/ui/PageHeader';
 import type { Metadata } from "next";
 import { Suspense } from "react";
 import ChangeLogClient from "./ChangeLogClient";
@@ -10,17 +11,9 @@ export default function ChangeLogPage() {
   return (
     <Suspense
       fallback={
-        <main className="page-shell" aria-labelledby="change-log-heading">
-          <div className="section-stack">
-            <div>
-              <h1 className="leaderboard-title change-log-heading" id="change-log-heading">
-                Change Log
-              </h1>
-              <p style={{ color: "var(--muted-foreground)", marginTop: "0.35rem" }}>
-                Loading change log...
-              </p>
-            </div>
-          </div>
+        <main className="rdd-page-shell page-shell change-log-page change-log-consistent" aria-label="Change log">
+          <PageHeader title="Change Log" eyebrow="Site updates" description="The latest updates merged into main. See what’s new around the league." />
+          <div className="rdd-state" role="status">Loading change log...</div>
         </main>
       }
     >

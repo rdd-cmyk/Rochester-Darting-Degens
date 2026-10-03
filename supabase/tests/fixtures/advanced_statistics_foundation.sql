@@ -7,6 +7,22 @@
 
 begin;
 
+-- A previously installed *old* deferred fixture already fabricated manual
+-- provenance/timestamps and imposed a double-out limit. Do not silently retain
+-- those contracts or guess which values were real. Preserve it for inspection;
+-- the hosted W1 baseline has none of these columns. Reconcile separately before
+-- replaying this legacy-baseline preparation over an older experimental stack.
+do $$ begin
+  if exists (select 1 from pg_attribute where attrelid='public.matches'::regclass
+      and attname='updated_at' and attnotnull and not attisdropped)
+    or exists (select 1 from pg_constraint where conrelid='public.matches'::regclass
+      and conname='matches_entry_source_valid' and position('unknown' in pg_get_constraintdef(oid))=0)
+    or exists (select 1 from pg_constraint where conrelid='public.match_players'::regclass
+      and conname='match_players_advanced_counts_nonnegative' and position('170' in pg_get_constraintdef(oid))>0) then
+    raise exception 'Old statistics foundation detected; inspect provenance/timestamps/constraints before replay';
+  end if;
+end $$;
+
 create table if not exists public.seasons (
   id uuid primary key default gen_random_uuid(),
   name text not null,
@@ -24,18 +40,26 @@ create unique index if not exists seasons_single_active_idx
 
 alter table public.seasons enable row level security;
 
+-- Default grants differ between projects. Close the new surface explicitly;
+-- final member reads are installed only after invitations and game modes exist.
+revoke all on public.seasons from public, anon, authenticated;
+grant select on public.seasons to authenticated;
+grant all on public.seasons to service_role;
 drop policy if exists "seasons are publicly readable" on public.seasons;
-create policy "seasons are publicly readable"
-  on public.seasons
-  for select
-  using (true);
+drop policy if exists seasons_member_read on public.seasons;
+create policy seasons_member_read on public.seasons for select to authenticated using (false);
 
 alter table public.matches
   add column if not exists season_id uuid references public.seasons(id),
   add column if not exists detail_level text not null default 'summary',
-  add column if not exists entry_source text not null default 'manual',
+  add column if not exists entry_source text not null default 'unknown',
   add column if not exists format_best_of smallint,
-  add column if not exists updated_at timestamptz not null default now();
+  add column if not exists updated_at timestamptz;
+
+-- Existing provenance/modification time is unknown. Defaults below affect only
+-- subsequent inserts; neither played_at nor migration time is an edit history.
+alter table public.matches alter column entry_source set default 'manual';
+alter table public.matches alter column updated_at set default now();
 
 alter table public.match_players
   add column if not exists throw_order smallint,
@@ -76,7 +100,7 @@ begin
       and conrelid = 'public.matches'::regclass
   ) then
     alter table public.matches add constraint matches_entry_source_valid
-      check (entry_source in ('manual', 'csv', 'scoreboard_image', 'integration')) not valid;
+      check (entry_source in ('unknown', 'manual', 'csv', 'scoreboard_image', 'integration')) not valid;
   end if;
 
   if not exists (
@@ -111,7 +135,9 @@ begin
           or checkout_attempts is null
           or checkouts_made <= checkout_attempts
         )
-        and (highest_checkout is null or highest_checkout between 0 and 170)
+        -- Finish rules vary (open/master/double out). Do not impose a
+        -- double-out 170 ceiling on unidentified or open-out records.
+        and (highest_checkout is null or highest_checkout >= 0)
         and (scores_100_plus is null or scores_100_plus >= 0)
         and (scores_140_plus is null or scores_140_plus >= 0)
         and (scores_180 is null or scores_180 >= 0)
@@ -128,13 +154,14 @@ $$;
 create or replace function public.set_matches_updated_at()
 returns trigger
 language plpgsql
-set search_path = public
+set search_path = ''
 as $$
 begin
   new.updated_at = now();
   return new;
 end;
 $$;
+revoke all on function public.set_matches_updated_at() from public, anon, authenticated;
 
 drop trigger if exists matches_set_updated_at on public.matches;
 create trigger matches_set_updated_at
@@ -147,7 +174,9 @@ create index if not exists matches_season_played_at_idx
 comment on column public.matches.detail_level is
   'Completeness of the captured match: summary, enhanced, or turn.';
 comment on column public.matches.entry_source is
-  'How the record entered the system: manual, csv, scoreboard_image, or integration.';
+  'Record provenance; unknown for legacy records without evidence. New league recorder inserts default to manual.';
+comment on column public.matches.updated_at is
+  'Unknown (NULL) for untouched pre-foundation matches; capture time for new inserts, then last database match update. Not a historical backfill.';
 comment on column public.match_players.darts_thrown is
   'Raw denominator for exact X01 3DA or Cricket MPR calculations.';
 comment on column public.match_players.x01_points_scored is
@@ -182,6 +211,10 @@ from public.match_players mp
 join public.matches m on m.id = mp.match_id
 left join public.profiles p on p.id = mp.player_id;
 
-grant select on public.stats_match_facts to anon, authenticated;
+-- Stage-one compatibility shape only. No client can read this view until the
+-- final game-aware fixture is installed. CREATE OR REPLACE preserves old ACLs,
+-- so explicitly remove them even on a previously installed local foundation.
+revoke all on public.stats_match_facts from public, anon, authenticated;
+grant select on public.stats_match_facts to service_role;
 
 commit;

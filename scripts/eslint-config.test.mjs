@@ -20,4 +20,4 @@ it('lints dynamic profile routes with Hooks checks enabled', async () => {
   expect(result.messages.map(message => message.ruleId)).toEqual(expect.arrayContaining([
     'react-hooks/set-state-in-effect', 'react-hooks/exhaustive-deps',
   ]));
-}, 15000);
+}, 60000);

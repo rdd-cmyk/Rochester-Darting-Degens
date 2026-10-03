@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>RDD style guide · header comparison</title>
+<style>
+:root { color-scheme:light; --page:#f4f1eb; --panel:#fff; --ink:#101827; --muted:#5b6472; --line:#d8dce3; --control:#858c98; --focus:#0366d6; --orange:#f47c20; --danger:#b42318; --danger-hover:#fff0ee; --danger-active:#ffe0dc; --secondary-active:#e6e9ee; }
+:root[data-theme="dark"] { color-scheme:dark; --page:#080f1a; --panel:#111b2b; --ink:#f4f6f8; --muted:#b9c2ce; --line:#2b3b52; --control:#76869b; --focus:#60a5fa; --orange:#ff9344; --danger:#ffb4ab; --danger-hover:#352125; --danger-active:#45292d; --secondary-active:#24364e; }
+* { box-sizing:border-box; } body { margin:0; background:var(--page); color:var(--ink); font:16px/1.6 Arial,Helvetica,sans-serif; }
+main { max-width:1280px; margin:auto; padding:clamp(16px,3vw,40px); }
+.masthead { display:flex; flex-wrap:wrap; justify-content:space-between; align-items:start; gap:20px; margin-bottom:28px; }
+.kicker { color:var(--muted); font-size:12px; font-weight:800; letter-spacing:.16em; text-transform:uppercase; margin:0 0 8px; }
+h1 { font-size:clamp(26px,4vw,44px); line-height:1.12; letter-spacing:-.04em; margin:0 0 12px; }
+h2 { margin:0 0 10px; font-size:22px; line-height:1.3; } p { margin:0 0 12px; } .intro { max-width:70ch; color:var(--muted); }
+.tag { display:inline-block; border:1px solid var(--control); border-radius:999px; padding:5px 12px; font-size:12px; white-space:nowrap; }
+.panel { background:var(--panel); border:1px solid var(--line); border-radius:16px; padding:clamp(16px,2vw,24px); margin-bottom:24px; box-shadow:0 10px 26px rgba(8,38,77,.05); }
+.controls { display:grid; grid-template-columns:2fr 1.5fr 1fr 1fr; gap:16px; }
+label { display:grid; gap:6px; font-size:14px; font-weight:700; } select { font:inherit; width:100%; min-width:0; min-height:44px; padding:9px 12px; border:1px solid var(--control); border-radius:9px; background:var(--panel); color:var(--ink); }
+button:focus-visible, select:focus-visible, a:focus-visible, summary:focus-visible { outline:3px solid var(--focus); outline-offset:3px; }
+.caption { font-size:14px; color:var(--muted); } .preview-top { display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:12px; margin-bottom:16px; }
+.preview-viewport { max-width:100%; width:1160px; margin:auto; border:1px solid var(--control); border-radius:12px; overflow:hidden; }
+.sample-nav { background:#08264d; color:#fffaf0; padding:12px 20px; font-size:13px; font-weight:700; }
+iframe { display:block; width:100%; min-height:200px; border:0; background:var(--page); }
+.notes { margin:16px 0 0; color:var(--muted); font-size:14px; max-width:90ch; }
+.choices { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:12px; }
+.choice { text-align:left; padding:16px; min-height:150px; color:var(--ink); background:var(--panel); border:1px solid var(--control); border-radius:12px; font:inherit; cursor:pointer; }
+.choice strong { display:block; margin-bottom:8px; font-size:17px; } .choice span { font-size:14px; color:var(--muted); }
+.choice[aria-pressed="true"] { border:2px solid var(--focus); padding:15px; } .choice[aria-pressed="true"] strong::after { content:' · Previewing'; font-size:12px; }
+.gallery { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:16px; }
+.swatch { border:1px solid var(--line); border-radius:12px; padding:20px; } .swatch.hero { background:#08264d; color:#fffaf0; border-color:#173b65; }
+.swatch h3 { font-size:14px; margin:0 0 14px; font-weight:800; } .row { display:flex; flex-wrap:wrap; align-items:center; gap:12px; margin-bottom:14px; }
+.action { display:inline-flex; justify-content:center; align-items:center; gap:.5rem; min-height:44px; min-width:44px; padding:.625rem 1rem; border:1px solid var(--control); border-radius:.55rem; background:var(--panel); color:var(--ink); font:700 1rem/1.25 Arial,Helvetica,sans-serif; cursor:pointer; text-decoration:none; }
+.action:hover:enabled { background:var(--page); } .action:active:enabled { background:var(--secondary-active); }
+.action.primary { background:var(--orange); color:#08264d; } .action.primary:hover:enabled { background:#ffc28f; } .action.primary:active:enabled { background:#ffac6d; }
+.action.quiet { background:transparent; border:0; text-decoration:underline; text-underline-offset:4px; color:var(--focus); } .action.quiet:hover:enabled { text-decoration-thickness:2px; }
+.action.danger { color:var(--danger); border-color:var(--danger); } .action.danger:hover:enabled { background:var(--danger-hover); } .action.danger:active:enabled { background:var(--danger-active); }
+.action.compact { font-size:.875rem; padding:.5rem .75rem; }
+.action:disabled { color:var(--muted); background:var(--page); cursor:not-allowed; }
+.hero .action:focus-visible { outline-color:#fffaf0; } .hero .action.secondary { color:#fffaf0; border-color:#b8c2d2; background:transparent; } .hero .action.secondary:hover:enabled { background:#123d73; } .hero .action.secondary:active:enabled { background:#164b80; } .hero .action.quiet { color:#fffaf0; } .hero .action.quiet:hover:enabled { background:#123d73; }
+.foot { color:var(--muted); font-size:13px; } details { margin-top:14px; } summary { cursor:pointer; padding:8px 0; font-weight:700; } a { color:var(--focus); }
+@media(max-width:800px) { .controls { grid-template-columns:1fr 1fr; } .choices { grid-template-columns:1fr 1fr; } .gallery { grid-template-columns:1fr; } }
+@media(max-width:440px) { .controls,.choices { grid-template-columns:1fr; } .masthead { margin-bottom:20px; } .swatch { padding:16px; } }
+</style>
+</head>
+<body>
+<main>
+<div class="masthead"><div><p class="kicker">Rochester Darting Degens · Design review</p><h1>One website. One visual language.</h1><p class="intro">Compare the current header families with the same content. Explore a consistent button family below. These are documentation mockups; the site is unchanged.</p></div><span class="tag">Draft · Header choice open</span></div>
+<section class="panel" aria-labelledby="controls-title"><h2 id="controls-title">Compare page-title treatments</h2>
+<div class="controls">
+<label>Header family<select id="family"><option value="a">A · Compact gradient</option><option value="b">B · Statistics hero</option><option value="c">C · Solo hero</option><option value="d">D · Plain heading</option></select></label>
+<label>Sample content<select id="sample"><option value="matches">Matches</option><option value="stats">Advanced Statistics</option><option value="solo">Solo Play</option><option value="rivalry">The Rivalry Room</option><option value="long">Long title stress case</option></select></label>
+<label>Preview width<select id="width"><option value="1160">Desktop · 1160px</option><option value="768">Tablet · 768px</option><option value="390">Mobile · 390px</option><option value="320">Narrow · 320px</option></select></label>
+<label>Appearance<select id="theme"><option value="light">Light</option><option value="dark">Dark</option></select></label>
+</div><p class="notes">Header geometry is reconstructed from the fetched release source. Copy and proposed actions are held consistent for comparison. This is not a screenshot or an exact rendering of any route. Width is capped to the available window.</p>
+</section>
+<section class="panel" aria-labelledby="preview-title"><div class="preview-top"><h2 id="preview-title">A · Compact gradient</h2><span class="tag" id="size-label">Desktop · 1160px</span></div>
+<div class="preview-viewport" id="viewport"><div class="sample-nav">RDD / Site navigation context</div><iframe id="preview" title="Page-title header comparison"></iframe></div>
+<p class="notes" id="family-note"></p><p class="caption">Switching an option changes this local preview only. It does not record approval.</p>
+</section>
+<section class="panel" aria-labelledby="choose-title"><h2 id="choose-title">Which direction feels right?</h2><div class="choices">
+<button class="choice" type="button" data-family="a" aria-pressed="true"><strong>A · Compact gradient</strong><span>Current shared family. Recognizable navy with room for the task below.</span></button>
+<button class="choice" type="button" data-family="b" aria-pressed="false"><strong>B · Statistics hero</strong><span>Bold uppercase introduction, large title and a cropped dartboard ring.</span></button>
+<button class="choice" type="button" data-family="c" aria-pressed="false"><strong>C · Solo hero</strong><span>Large display title with a softer ring and contextual tags.</span></button>
+<button class="choice" type="button" data-family="d" aria-pressed="false"><strong>D · Plain heading</strong><span>Rivalry-style typography with immediate access to the content.</span></button>
+</div><p class="notes">Recommendation to review: one shared structure with compact, standard and feature sizes. The selected appearance would carry across those sizes. A hybrid is possible; feature art can remain in the content below.</p></section>
+<section class="panel" aria-labelledby="actions-title"><h2 id="actions-title">Proposed shared action family</h2><p class="caption">All actions use the same geometry: 44px minimum target, .55rem radius, weight 700. Keyboard Tab shows surface-specific focus. Hover and press show proposed states. Sample actions never save or navigate.</p>
+<div class="gallery">
+<div class="swatch"><h3>On an ordinary panel</h3><div class="row"><button type="button" class="action primary demo">Save result</button><button type="button" class="action secondary demo">Cancel</button><button type="button" class="action quiet demo">View history</button><button type="button" class="action danger demo">Delete result</button></div><div class="row"><button type="button" class="action primary compact demo">Compact action</button><button type="button" class="action" disabled>Unavailable</button><button type="button" class="action" id="pending-demo">Preview pending</button></div><p class="caption" id="demo-status" role="status">Choose a sample action to see its label here.</p></div>
+<div class="swatch hero"><h3>On a navy header</h3><div class="row"><button type="button" class="action primary demo">Start a night</button><button type="button" class="action secondary demo">View schedule</button><button type="button" class="action quiet demo">How it works</button></div><p>Dark navy labels on orange. Light text and a strong border for secondary actions. Light focus on navy.</p></div>
+</div><details><summary>Why these contrast rules?</summary><p class="caption">Current orange with navy text: 5.56:1 light / 6.82:1 dark. White on light orange: 2.71:1, below the 4.5:1 ordinary-text target. Subtle panel borders are decorative; essential control boundaries use a stronger role. Calculations concern selected solid pairs and do not establish site compliance.</p><p class="caption">Use <a href="https://www.w3.org/WAI/WCAG22/Understanding/contrast-minimum.html">WCAG 2.2 text contrast</a> and <a href="https://www.w3.org/WAI/WCAG22/Understanding/non-text-contrast.html">non-text contrast</a> as the source standards.</p></details></section>
+<p class="foot">Source: release/next · 5061360 · fetched 2026-09-30. Open decisions: header family, uppercase treatment and feature title size. Full guide: <a href="../design-standards.md">design-standards.md</a>. Source inventory: <a href="../style-guide-release-next-audit.md">style audit</a>.</p>
+</main>
+<script>
+const samples = {
+ matches:['League play','Darts Matches','Record a result or review recent games.','Record a match','View history'],
+ stats:['RDD League Lab','Advanced Statistics','Opponent-adjusted ratings, current form, schedule difficulty, and consistency — built from recorded league matches.','Record a match','How ratings work'],
+ solo:['Your own lane','Solo Play','Practice at your pace. Keep your progress in one place.','Record practice','View progress'],
+ rivalry:['Rochester Darting Degens','The Rivalry Room','Your history. Your rivals. Your next chapter.','Create challenge','View history'],
+ long:['League directory','Alexandra Montgomery-Williams and the Wednesday Night Darting Degens','A long title and action label should wrap without shrinking, hiding text, or pushing controls outside the page.','Record a result for this league night','Return to the league directory']
+};
+const names={a:'A · Compact gradient',b:'B · Statistics hero',c:'C · Solo hero',d:'D · Plain heading'};
+const notes={a:'Based on .rdd-page-header--compact: 1rem radius, fluid compact padding, title up to 2.5rem. Home uses a lighter eyebrow. Shared identity without a large hero.',b:'Based on .stats-hero: 1.25rem radius, fluid padding, title up to 5.5rem, line-height .92, 260px desktop minimum height. Actions stack at desktop and move below copy on mobile.',c:'Based on .solo-hero: 18px radius, 36px desktop padding, title up to 76px, line-height 1.05, ring and context tags. The existing 48px mobile title is retained in this reconstruction.',d:'Based on .rr-page-head: a plain surface, title up to 52px, line-height 1.1 and fixed orange eyebrow. The guide flags its small light-theme eyebrow as a contrast concern. Board uses a related plain style with smaller type.'};
+const escapeHTML = text => text.replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const headerCSS = `
+*{box-sizing:border-box}body{margin:0;font:16px/1.6 Arial,Helvetica,sans-serif;background:var(--page);color:var(--ink)}
+.shell{padding:clamp(16px,3vw,40px);max-width:1240px;margin:auto}h1,p{margin:0}h1{font-weight:800;overflow-wrap:anywhere} .eyebrow{font-size:.75rem;letter-spacing:.15em;font-weight:800;text-transform:uppercase}.actions{display:flex;gap:.65rem;flex-wrap:wrap}.action{display:inline-flex;align-items:center;justify-content:center;min-height:44px;min-width:44px;padding:.625rem 1rem;border-radius:.55rem;border:1px solid var(--control);font:700 1rem/1.25 Arial;text-decoration:none;overflow-wrap:anywhere;background:var(--panel);color:var(--ink)}.primary{background:var(--orange);color:#08264d}.secondary{border-color:#b8c2d2;color:#fffaf0;background:transparent} .tags{display:flex;flex-wrap:wrap;gap:8px;margin-top:20px;font-size:12px}.tags span{border:1px solid #45607e;border-radius:24px;padding:5px 12px}
+.header{position:relative}.header>*{position:relative;z-index:1}.copy{max-width:68ch}.text{min-width:0}
+.a .header{display:grid;gap:.55rem;padding:clamp(1rem,2.5vw,1.5rem);border-radius:1rem;color:#fff;background:linear-gradient(120deg,#08264d,#164b80)}.a h1{font-size:clamp(1.65rem,3vw,2.5rem);line-height:1.14;letter-spacing:-.025em}.a .eyebrow{color:#ffbd88}.a .copy{color:#e2eaf4;line-height:1.55}.a .text{display:grid;gap:.55rem}
+.b .header{overflow:hidden;display:flex;align-items:flex-end;justify-content:space-between;gap:2rem;min-height:260px;padding:clamp(1.5rem,4vw,3.5rem);border:1px solid #173b65;border-radius:1.25rem;background:var(--navy);color:#fffaf0;box-shadow:0 18px 48px rgba(8,38,77,.18)}.b .header:after{content:'';position:absolute;width:18rem;height:18rem;right:-6rem;top:-7rem;border:2.5rem solid rgba(244,124,32,.18);border-radius:50%;box-shadow:inset 0 0 0 2.5rem rgba(255,243,220,.06)}.b h1{font-size:clamp(2.4rem,7vw,5.5rem);line-height:.92;letter-spacing:-.055em;text-transform:uppercase;margin:.2rem 0 .75rem;max-width:760px}.b .eyebrow{color:var(--orange)}.b .copy{color:#dbe7f4;font-size:clamp(1rem,2vw,1.15rem)}.b .actions{flex-direction:column;min-width:170px}
+.c .header{overflow:hidden;padding:36px;background:var(--navy);color:var(--cream);border:1px solid #173b65;border-radius:18px}.c .header:after{content:'';position:absolute;width:190px;height:190px;right:30px;top:30px;border:22px solid #f47c2033;border-radius:50%;box-shadow:0 0 0 1px #fff3dc33,inset 0 0 0 20px #fff3dc0d}.c h1{font-size:clamp(44px,7vw,76px);line-height:1.05;letter-spacing:-.055em;text-transform:uppercase;margin:8px 0 16px}.c .eyebrow{color:#ffac6d}.c .copy{max-width:500px}.c .actions{margin-top:20px}
+.d .header{display:flex;align-items:end;justify-content:space-between;gap:20px;margin-bottom:18px}.d h1{font-size:clamp(32px,4vw,52px);letter-spacing:-2px;line-height:1.1;margin:9px 0}.d .eyebrow{font-size:11px;letter-spacing:2.2px;font-weight:900;color:#d55320}.d .copy{color:var(--muted)}.d .secondary{color:var(--ink);border-color:var(--control)}
+.content{margin-top:24px;background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:24px}.content h2{font-size:20px;margin:0 0 12px}.placeholder{height:12px;background:var(--line);border-radius:6px;margin:14px 0;width:85%}.placeholder:last-child{width:60%}
+@media(max-width:640px){.b .header{min-height:0;flex-direction:column;align-items:flex-start}.b .actions{flex-direction:row}.d .header{flex-direction:column;align-items:flex-start}.actions{width:100%}.actions>*{flex:1 1 140px}}
+@media(max-width:900px){.c .header:after{right:-70px;opacity:.5}}@media(max-width:540px){.c .header{padding:26px 20px}.c h1{font-size:48px}.c .copy{font-size:13px;max-width:260px}.c .header:after{top:-60px}}
+`;
+const frame=document.getElementById('preview');
+function resizeFrame(){const shell=frame.contentDocument?.querySelector('.shell');if(shell)frame.style.height=Math.ceil(shell.getBoundingClientRect().height)+'px';}
+function render(){
+ const family=document.getElementById('family').value, theme=document.getElementById('theme').value, width=document.getElementById('width').value;
+ document.documentElement.dataset.theme=theme;
+ const sample=samples[document.getElementById('sample').value].map(escapeHTML), dark=theme==='dark';
+ const variables=dark?'--page:#080f1a;--panel:#111b2b;--ink:#f4f6f8;--muted:#b9c2ce;--line:#2b3b52;--navy:#0b2342;--orange:#ff9344;--cream:#f7e3be;--control:#76869b;':'--page:#f4f1eb;--panel:#fff;--ink:#101827;--muted:#5b6472;--line:#d8dce3;--navy:#08264d;--orange:#f47c20;--cream:#fff3dc;--control:#858c98;';
+ document.getElementById('viewport').style.width=width+'px';
+ document.getElementById('preview-title').textContent=names[family];
+ document.getElementById('family-note').textContent=notes[family];
+ document.getElementById('size-label').textContent=document.getElementById('width').selectedOptions[0].textContent;
+ document.querySelectorAll('.choice').forEach(button=>button.setAttribute('aria-pressed',String(button.dataset.family===family)));
+ frame.style.height='200px';
+ frame.srcdoc=`<!doctype html><html lang="en"><head><meta name="viewport" content="width=device-width,initial-scale=1"><style>:root{${variables}color-scheme:${theme}}${headerCSS}</style></head><body><main class="shell ${family}"><header class="header"><div class="text"><p class="eyebrow">${sample[0]}</p><h1>${sample[1]}</h1><p class="copy">${sample[2]}</p>${family==='c'?'<div class="tags"><span>Private practice</span><span>Your progress</span></div>':''}</div><div class="actions"><span class="action primary">${sample[3]}</span><span class="action secondary">${sample[4]}</span></div></header><section class="content"><h2>Page content starts here</h2><p>Compare how quickly the page gets to its main task.</p><div class="placeholder"></div><div class="placeholder"></div><div class="placeholder"></div></section></main></body></html>`;
+}
+frame.addEventListener('load',resizeFrame);
+new ResizeObserver(resizeFrame).observe(document.getElementById('viewport'));
+document.querySelectorAll('select').forEach(select=>select.addEventListener('change',render));
+document.querySelectorAll('.choice').forEach(button=>button.addEventListener('click',()=>{document.getElementById('family').value=button.dataset.family;render();}));
+document.querySelectorAll('.demo').forEach(button=>button.addEventListener('click',()=>document.getElementById('demo-status').textContent='Preview only: '+button.textContent+'.'));
+document.getElementById('pending-demo').addEventListener('click',function(){const button=this;button.disabled=true;button.setAttribute('aria-busy','true');button.textContent='Saving result…';document.getElementById('demo-status').textContent='Simulated pending state; no result is sent.';setTimeout(()=>{button.disabled=false;button.removeAttribute('aria-busy');button.textContent='Preview pending';document.getElementById('demo-status').textContent='Preview complete. No data was saved.';},1500);});
+render();
+</script>
+</body>
+</html>

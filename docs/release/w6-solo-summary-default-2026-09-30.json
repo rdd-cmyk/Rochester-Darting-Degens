@@ -1,0 +1,48 @@
+{
+  "package": "W6 final acceptance follow-up",
+  "recorded_at_utc": "2026-09-30",
+  "requires": "Full W5 chain, then w6_poll_privacy_solo_701.sql",
+  "production_status": "deferred; append to W7 staged manifest and compatible rollback rehearsal",
+  "files": [
+    {
+      "path": "supabase/tests/fixtures/w6_solo_summary_default.sql",
+      "sha256_lf": "31c01ed5f15779320db7ccde79b67b768743e1e12144566785381a4fc451e7fe"
+    },
+    {
+      "path": "supabase/tests/fixtures/w6_solo_summary_default.test.sql",
+      "sha256_lf": "03de25083b777f2937e7555e04b8d4b0a339e4036155572e29071c46184691ed"
+    }
+  ],
+  "targets": [
+    {
+      "observedAtUtc": "2026-09-30T19:33:04.224Z",
+      "target": "synthetic",
+      "patchPath": "supabase/tests/fixtures/w6_solo_summary_default.sql",
+      "sha256": "31c01ed5f15779320db7ccde79b67b768743e1e12144566785381a4fc451e7fe",
+      "tests": "passed",
+      "existingRows": "unchanged",
+      "functionGrants": "unchanged",
+      "productionChanged": false
+    },
+    {
+      "observedAtUtc": "2026-09-30T19:33:05.040Z",
+      "target": "protected",
+      "patchPath": "supabase/tests/fixtures/w6_solo_summary_default.sql",
+      "sha256": "31c01ed5f15779320db7ccde79b67b768743e1e12144566785381a4fc451e7fe",
+      "tests": "passed",
+      "existingRows": "unchanged",
+      "functionGrants": "unchanged",
+      "productionChanged": false
+    },
+    {
+      "observedAtUtc": "2026-09-30T19:35:26.536Z",
+      "target": "hosted-testing",
+      "patchPath": "supabase/tests/fixtures/w6_solo_summary_default.sql",
+      "sha256": "31c01ed5f15779320db7ccde79b67b768743e1e12144566785381a4fc451e7fe",
+      "tests": "passed",
+      "existingRows": "unchanged",
+      "functionGrants": "unchanged",
+      "productionChanged": false
+    }
+  ]
+}

@@ -1,0 +1,674 @@
+[
+  {
+    "id": "raccoon",
+    "label": "Bandit",
+    "version": 1,
+    "review_status": "locally inspected; owner final acceptance pending",
+    "tool": "Built-in image_gen",
+    "generation_date": "2026-09-28",
+    "dimensions": {
+      "hero": [
+        512,
+        512
+      ],
+      "medium": [
+        256,
+        256
+      ],
+      "thumbnail": [
+        96,
+        96
+      ]
+    },
+    "source": "pilot.png",
+    "cell": 0,
+    "image": "/avatars/raccoon.webp",
+    "thumbnail": "/avatars/raccoon-96.webp",
+    "medium": "/avatars/raccoon-256.webp",
+    "selectable": true
+  },
+  {
+    "id": "fox",
+    "label": "Hustler",
+    "version": 1,
+    "review_status": "locally inspected; owner final acceptance pending",
+    "tool": "Built-in image_gen",
+    "generation_date": "2026-09-28",
+    "dimensions": {
+      "hero": [
+        512,
+        512
+      ],
+      "medium": [
+        256,
+        256
+      ],
+      "thumbnail": [
+        96,
+        96
+      ]
+    },
+    "source": "pilot.png",
+    "cell": 1,
+    "image": "/avatars/fox.webp",
+    "thumbnail": "/avatars/fox-96.webp",
+    "medium": "/avatars/fox-256.webp",
+    "selectable": true
+  },
+  {
+    "id": "bull",
+    "label": "Bullseye",
+    "version": 1,
+    "review_status": "locally inspected; owner final acceptance pending",
+    "tool": "Built-in image_gen",
+    "generation_date": "2026-09-28",
+    "dimensions": {
+      "hero": [
+        512,
+        512
+      ],
+      "medium": [
+        256,
+        256
+      ],
+      "thumbnail": [
+        96,
+        96
+      ]
+    },
+    "source": "pilot.png",
+    "cell": 2,
+    "image": "/avatars/bull.webp",
+    "thumbnail": "/avatars/bull-96.webp",
+    "medium": "/avatars/bull-256.webp",
+    "selectable": true
+  },
+  {
+    "id": "owl",
+    "label": "Night Shift",
+    "version": 1,
+    "review_status": "locally inspected; owner final acceptance pending",
+    "tool": "Built-in image_gen",
+    "generation_date": "2026-09-28",
+    "dimensions": {
+      "hero": [
+        512,
+        512
+      ],
+      "medium": [
+        256,
+        256
+      ],
+      "thumbnail": [
+        96,
+        96
+      ]
+    },
+    "source": "pilot.png",
+    "cell": 3,
+    "image": "/avatars/owl.webp",
+    "thumbnail": "/avatars/owl-96.webp",
+    "medium": "/avatars/owl-256.webp",
+    "selectable": true
+  },
+  {
+    "id": "robot",
+    "label": "Machine",
+    "version": 2,
+    "review_status": "locally inspected; owner final acceptance pending",
+    "tool": "Built-in image_gen",
+    "generation_date": "2026-10-01",
+    "dimensions": {
+      "hero": [
+        512,
+        512
+      ],
+      "medium": [
+        256,
+        256
+      ],
+      "thumbnail": [
+        96,
+        96
+      ]
+    },
+    "source": "robot-v2.png",
+    "cell": null,
+    "image": "/avatars/robot.webp",
+    "thumbnail": "/avatars/robot-96.webp",
+    "medium": "/avatars/robot-256.webp",
+    "selectable": true
+  },
+  {
+    "id": "skeleton",
+    "label": "Deadeye",
+    "version": 1,
+    "review_status": "locally inspected; owner final acceptance pending",
+    "tool": "Built-in image_gen",
+    "generation_date": "2026-09-28",
+    "dimensions": {
+      "hero": [
+        512,
+        512
+      ],
+      "medium": [
+        256,
+        256
+      ],
+      "thumbnail": [
+        96,
+        96
+      ]
+    },
+    "source": "pilot.png",
+    "cell": 5,
+    "image": "/avatars/skeleton.webp",
+    "thumbnail": "/avatars/skeleton-96.webp",
+    "medium": "/avatars/skeleton-256.webp",
+    "selectable": true
+  },
+  {
+    "id": "badger",
+    "label": "Scrapper",
+    "version": 1,
+    "review_status": "locally inspected; owner final acceptance pending",
+    "tool": "Built-in image_gen",
+    "generation_date": "2026-09-28",
+    "dimensions": {
+      "hero": [
+        512,
+        512
+      ],
+      "medium": [
+        256,
+        256
+      ],
+      "thumbnail": [
+        96,
+        96
+      ]
+    },
+    "source": "pack-b.png",
+    "cell": 0,
+    "image": "/avatars/badger.webp",
+    "thumbnail": "/avatars/badger-96.webp",
+    "medium": "/avatars/badger-256.webp",
+    "selectable": true
+  },
+  {
+    "id": "panther",
+    "label": "Closer",
+    "version": 1,
+    "review_status": "locally inspected; owner final acceptance pending",
+    "tool": "Built-in image_gen",
+    "generation_date": "2026-09-28",
+    "dimensions": {
+      "hero": [
+        512,
+        512
+      ],
+      "medium": [
+        256,
+        256
+      ],
+      "thumbnail": [
+        96,
+        96
+      ]
+    },
+    "source": "pack-b.png",
+    "cell": 1,
+    "image": "/avatars/panther.webp",
+    "thumbnail": "/avatars/panther-96.webp",
+    "medium": "/avatars/panther-256.webp",
+    "selectable": true
+  },
+  {
+    "id": "bear",
+    "label": "Heavy Hitter",
+    "version": 1,
+    "review_status": "locally inspected; owner final acceptance pending",
+    "tool": "Built-in image_gen",
+    "generation_date": "2026-09-28",
+    "dimensions": {
+      "hero": [
+        512,
+        512
+      ],
+      "medium": [
+        256,
+        256
+      ],
+      "thumbnail": [
+        96,
+        96
+      ]
+    },
+    "source": "pack-b.png",
+    "cell": 2,
+    "image": "/avatars/bear.webp",
+    "thumbnail": "/avatars/bear-96.webp",
+    "medium": "/avatars/bear-256.webp",
+    "selectable": true
+  },
+  {
+    "id": "crocodile",
+    "label": "Snap",
+    "version": 1,
+    "review_status": "locally inspected; owner final acceptance pending",
+    "tool": "Built-in image_gen",
+    "generation_date": "2026-09-28",
+    "dimensions": {
+      "hero": [
+        512,
+        512
+      ],
+      "medium": [
+        256,
+        256
+      ],
+      "thumbnail": [
+        96,
+        96
+      ]
+    },
+    "source": "pack-b.png",
+    "cell": 3,
+    "image": "/avatars/crocodile.webp",
+    "thumbnail": "/avatars/crocodile-96.webp",
+    "medium": "/avatars/crocodile-256.webp",
+    "selectable": true
+  },
+  {
+    "id": "octopus",
+    "label": "Eight Arms",
+    "version": 1,
+    "review_status": "locally inspected; owner final acceptance pending",
+    "tool": "Built-in image_gen",
+    "generation_date": "2026-09-28",
+    "dimensions": {
+      "hero": [
+        512,
+        512
+      ],
+      "medium": [
+        256,
+        256
+      ],
+      "thumbnail": [
+        96,
+        96
+      ]
+    },
+    "source": "pack-b.png",
+    "cell": 4,
+    "image": "/avatars/octopus.webp",
+    "thumbnail": "/avatars/octopus-96.webp",
+    "medium": "/avatars/octopus-256.webp",
+    "selectable": true
+  },
+  {
+    "id": "rabbit",
+    "label": "Quickdraw",
+    "version": 1,
+    "review_status": "locally inspected; owner final acceptance pending",
+    "tool": "Built-in image_gen",
+    "generation_date": "2026-09-28",
+    "dimensions": {
+      "hero": [
+        512,
+        512
+      ],
+      "medium": [
+        256,
+        256
+      ],
+      "thumbnail": [
+        96,
+        96
+      ]
+    },
+    "source": "pack-b.png",
+    "cell": 5,
+    "image": "/avatars/rabbit.webp",
+    "thumbnail": "/avatars/rabbit-96.webp",
+    "medium": "/avatars/rabbit-256.webp",
+    "selectable": true
+  },
+  {
+    "id": "wolf",
+    "label": "Fang",
+    "version": 2,
+    "review_status": "locally inspected; owner final acceptance pending",
+    "tool": "Built-in image_gen",
+    "generation_date": "2026-09-30",
+    "dimensions": {
+      "hero": [
+        512,
+        512
+      ],
+      "medium": [
+        256,
+        256
+      ],
+      "thumbnail": [
+        96,
+        96
+      ]
+    },
+    "source": "wolf-v2.png",
+    "cell": null,
+    "image": "/avatars/wolf.webp",
+    "thumbnail": "/avatars/wolf-96.webp",
+    "medium": "/avatars/wolf-256.webp",
+    "selectable": true
+  },
+  {
+    "id": "red-panda",
+    "label": "Wildcard",
+    "version": 2,
+    "review_status": "locally inspected; owner final acceptance pending",
+    "tool": "Built-in image_gen",
+    "generation_date": "2026-10-01",
+    "dimensions": {
+      "hero": [
+        512,
+        512
+      ],
+      "medium": [
+        256,
+        256
+      ],
+      "thumbnail": [
+        96,
+        96
+      ]
+    },
+    "source": "red-panda-v2.png",
+    "cell": null,
+    "image": "/avatars/red-panda.webp",
+    "thumbnail": "/avatars/red-panda-96.webp",
+    "medium": "/avatars/red-panda-256.webp",
+    "selectable": true
+  },
+  {
+    "id": "eagle",
+    "label": "High Flyer",
+    "version": 1,
+    "review_status": "locally inspected; owner final acceptance pending",
+    "tool": "Built-in image_gen",
+    "generation_date": "2026-09-28",
+    "dimensions": {
+      "hero": [
+        512,
+        512
+      ],
+      "medium": [
+        256,
+        256
+      ],
+      "thumbnail": [
+        96,
+        96
+      ]
+    },
+    "source": "pack-c.png",
+    "cell": 2,
+    "image": "/avatars/eagle.webp",
+    "thumbnail": "/avatars/eagle-96.webp",
+    "medium": "/avatars/eagle-256.webp",
+    "selectable": true
+  },
+  {
+    "id": "pig",
+    "label": "Road Hog",
+    "version": 1,
+    "review_status": "locally inspected; owner final acceptance pending",
+    "tool": "Built-in image_gen",
+    "generation_date": "2026-09-28",
+    "dimensions": {
+      "hero": [
+        512,
+        512
+      ],
+      "medium": [
+        256,
+        256
+      ],
+      "thumbnail": [
+        96,
+        96
+      ]
+    },
+    "source": "pack-c.png",
+    "cell": 3,
+    "image": "/avatars/pig.webp",
+    "thumbnail": "/avatars/pig-96.webp",
+    "medium": "/avatars/pig-256.webp",
+    "selectable": true
+  },
+  {
+    "id": "alien",
+    "label": "Anomaly",
+    "version": 2,
+    "review_status": "locally inspected; owner final acceptance pending",
+    "tool": "Built-in image_gen",
+    "generation_date": "2026-10-01",
+    "dimensions": {
+      "hero": [
+        512,
+        512
+      ],
+      "medium": [
+        256,
+        256
+      ],
+      "thumbnail": [
+        96,
+        96
+      ]
+    },
+    "source": "alien-v2.png",
+    "cell": null,
+    "image": "/avatars/alien.webp",
+    "thumbnail": "/avatars/alien-96.webp",
+    "medium": "/avatars/alien-256.webp",
+    "selectable": true
+  },
+  {
+    "id": "shark",
+    "label": "Finisher",
+    "version": 1,
+    "review_status": "locally inspected; owner final acceptance pending",
+    "tool": "Built-in image_gen",
+    "generation_date": "2026-09-28",
+    "dimensions": {
+      "hero": [
+        512,
+        512
+      ],
+      "medium": [
+        256,
+        256
+      ],
+      "thumbnail": [
+        96,
+        96
+      ]
+    },
+    "source": "pack-c.png",
+    "cell": 5,
+    "image": "/avatars/shark.webp",
+    "thumbnail": "/avatars/shark-96.webp",
+    "medium": "/avatars/shark-256.webp",
+    "selectable": true
+  },
+  {
+    "id": "tiger",
+    "label": "Triple Threat",
+    "version": 1,
+    "review_status": "locally inspected; owner final acceptance pending",
+    "tool": "Built-in image_gen",
+    "generation_date": "2026-09-28",
+    "dimensions": {
+      "hero": [
+        512,
+        512
+      ],
+      "medium": [
+        256,
+        256
+      ],
+      "thumbnail": [
+        96,
+        96
+      ]
+    },
+    "source": "pack-d.png",
+    "cell": 0,
+    "image": "/avatars/tiger.webp",
+    "thumbnail": "/avatars/tiger-96.webp",
+    "medium": "/avatars/tiger-256.webp",
+    "selectable": true
+  },
+  {
+    "id": "bulldog",
+    "label": "Brawler",
+    "version": 1,
+    "review_status": "locally inspected; owner final acceptance pending",
+    "tool": "Built-in image_gen",
+    "generation_date": "2026-09-28",
+    "dimensions": {
+      "hero": [
+        512,
+        512
+      ],
+      "medium": [
+        256,
+        256
+      ],
+      "thumbnail": [
+        96,
+        96
+      ]
+    },
+    "source": "pack-d.png",
+    "cell": 1,
+    "image": "/avatars/bulldog.webp",
+    "thumbnail": "/avatars/bulldog-96.webp",
+    "medium": "/avatars/bulldog-256.webp",
+    "selectable": true
+  },
+  {
+    "id": "penguin",
+    "label": "Ice Cold",
+    "version": 1,
+    "review_status": "locally inspected; owner final acceptance pending",
+    "tool": "Built-in image_gen",
+    "generation_date": "2026-09-28",
+    "dimensions": {
+      "hero": [
+        512,
+        512
+      ],
+      "medium": [
+        256,
+        256
+      ],
+      "thumbnail": [
+        96,
+        96
+      ]
+    },
+    "source": "pack-d.png",
+    "cell": 2,
+    "image": "/avatars/penguin.webp",
+    "thumbnail": "/avatars/penguin-96.webp",
+    "medium": "/avatars/penguin-256.webp",
+    "selectable": true
+  },
+  {
+    "id": "lion",
+    "label": "King",
+    "version": 1,
+    "review_status": "locally inspected; owner final acceptance pending",
+    "tool": "Built-in image_gen",
+    "generation_date": "2026-09-28",
+    "dimensions": {
+      "hero": [
+        512,
+        512
+      ],
+      "medium": [
+        256,
+        256
+      ],
+      "thumbnail": [
+        96,
+        96
+      ]
+    },
+    "source": "pack-d.png",
+    "cell": 3,
+    "image": "/avatars/lion.webp",
+    "thumbnail": "/avatars/lion-96.webp",
+    "medium": "/avatars/lion-256.webp",
+    "selectable": true
+  },
+  {
+    "id": "tortoise",
+    "label": "Slow Burn",
+    "version": 1,
+    "review_status": "locally inspected; owner final acceptance pending",
+    "tool": "Built-in image_gen",
+    "generation_date": "2026-09-28",
+    "dimensions": {
+      "hero": [
+        512,
+        512
+      ],
+      "medium": [
+        256,
+        256
+      ],
+      "thumbnail": [
+        96,
+        96
+      ]
+    },
+    "source": "pack-d.png",
+    "cell": 4,
+    "image": "/avatars/tortoise.webp",
+    "thumbnail": "/avatars/tortoise-96.webp",
+    "medium": "/avatars/tortoise-256.webp",
+    "selectable": true
+  },
+  {
+    "id": "cat",
+    "label": "Nine Lives",
+    "version": 1,
+    "review_status": "locally inspected; owner final acceptance pending",
+    "tool": "Built-in image_gen",
+    "generation_date": "2026-09-28",
+    "dimensions": {
+      "hero": [
+        512,
+        512
+      ],
+      "medium": [
+        256,
+        256
+      ],
+      "thumbnail": [
+        96,
+        96
+      ]
+    },
+    "source": "pack-d.png",
+    "cell": 5,
+    "image": "/avatars/cat.webp",
+    "thumbnail": "/avatars/cat-96.webp",
+    "medium": "/avatars/cat-256.webp",
+    "selectable": true
+  }
+]

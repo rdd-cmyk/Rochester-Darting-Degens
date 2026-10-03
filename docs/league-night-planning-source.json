@@ -1,0 +1,156 @@
+{
+  "source": "league-night-mode",
+  "base": "690a01b84d96c55b8ec455a6e298c17ec6093b50",
+  "captured_at": "2026-09-27T14:33:20.9224148-04:00",
+  "note": "Uncommitted source snapshot copied without altering source or index. Ignored files and environment files excluded.",
+  "files": [
+    {
+      "path": ".gitignore",
+      "sha256": "1E852AC007B1C7B2D817DAE96BEB04DD072B0EF4B4755030EDF245C2E15280B7"
+    },
+    {
+      "path": "app/components/Navbar.tsx",
+      "sha256": "BA96FF912EBFCE04CD27C3EF1A74DF9B9F6DBA63219F1287597570DDEF77A87F"
+    },
+    {
+      "path": "app/league-night/night.css",
+      "sha256": "58FDDD19AB416DDCFB48ACA539C3A8B95ECC5DB19F43F630E98691A159DA6522"
+    },
+    {
+      "path": "app/league-night/page.test.tsx",
+      "sha256": "901C3EEEEBE264B6F25F2820B0236060F2599E28BCE7F4241B7287426ED86DFF"
+    },
+    {
+      "path": "app/league-night/page.tsx",
+      "sha256": "8D4DA6D5260E39D26296675DE4CF1125D2CD18EC576BD7F0D02510B137ED7794"
+    },
+    {
+      "path": "app/matches/page.tsx",
+      "sha256": "07EDE941191B67978EF4029C1BC771ED84EE9B4992B89A651A68530CF4FE905D"
+    },
+    {
+      "path": "components/league-night/NightRecapPanel.tsx",
+      "sha256": "D7BD113A698F2C1E6705F37C8A281A995C1F349C42BF28397EF03F17D70BAA5F"
+    },
+    {
+      "path": "docs/advanced-statistics-roadmap.md",
+      "sha256": "C801FAB2F728B74552EB2F1B545ECA8E1C52904DF2BDF88C370039AFEAB46503"
+    },
+    {
+      "path": "docs/info-registry.md",
+      "sha256": "CD113BACB21E31149B5043CBB97F995F8DF4E1E36CB0AEE049B2E551162C9980"
+    },
+    {
+      "path": "docs/league-night-database-rollout.md",
+      "sha256": "D16CF90991E5EB39DE6B5A4E04D152B0C19F4E3BB381151F157839DAD9315727"
+    },
+    {
+      "path": "docs/league-night-hosted-audit-2026-09-27.md",
+      "sha256": "D5DB2403F3456FA2E5DC804216E4ABBE7B269832B77FBEDAC1889731D714D73E"
+    },
+    {
+      "path": "docs/league-night-mode-plan.md",
+      "sha256": "002502AC03D962BAFE83B42E6EBE5FB9F7D3BF6CB31F368022EC281D91A11E55"
+    },
+    {
+      "path": "docs/league-night-verification-2026-09-26.md",
+      "sha256": "6D4605AF3F0CA8BA7FEEC5C4C3E4DF8A8D97642EEE1F77E9B532E971DC905730"
+    },
+    {
+      "path": "lib/league-night/api.ts",
+      "sha256": "BD079499EF3D881AFA0A0B78437322434ADC0D09DEC338DFDF09B09B5D938223"
+    },
+    {
+      "path": "lib/league-night/draft.test.ts",
+      "sha256": "AF5D8013BC402A6039C8BB24A6BE1A720BE3079637C2BD35476E5E41BD00CDC8"
+    },
+    {
+      "path": "lib/league-night/draft.ts",
+      "sha256": "075ECFA086849E38FF5A249647058E2DA2F66337828FB3D8B7D30146C411E0A7"
+    },
+    {
+      "path": "lib/league-night/match-write.test.ts",
+      "sha256": "654F36D2AA609EE5C9C7E2BFACAFC9EFDE67C35225036745DC692AB94A12C198"
+    },
+    {
+      "path": "lib/league-night/match-write.ts",
+      "sha256": "9826145691744957E539DBF15FD5608137FDE3AED4A641244825F1893DDFA68F"
+    },
+    {
+      "path": "lib/league-night/recap.test.ts",
+      "sha256": "7137F7E0D32BFC19EDF934D3C29F99D835F6D22993BCA1252FAF0E35E90A0A38"
+    },
+    {
+      "path": "lib/league-night/recap.ts",
+      "sha256": "D17B2581FB316320DA0FEE20971E001AE8978963972C395323E63CE9BB696592"
+    },
+    {
+      "path": "lib/league-night/recovery.test.ts",
+      "sha256": "61D3A159FA6168F2A2EA858A769EFED31007D800DBCB80C2BDB4F623FF332FC6"
+    },
+    {
+      "path": "lib/league-night/recovery.ts",
+      "sha256": "329B3936F3CDF708907408AA7F07088EB52D6EEAFA2DB1FEC3AD60A9E88A2A78"
+    },
+    {
+      "path": "lib/league-night/share-card.test.ts",
+      "sha256": "73A748848967ACC84D9EB5D2A79F2E83D7009986D86E061B0A8044239AC65D4B"
+    },
+    {
+      "path": "lib/league-night/share-card.ts",
+      "sha256": "CDBD43366E7792D18C94C6BD7B304E6E5A6508B1EF5869A0306EF598A0C9C873"
+    },
+    {
+      "path": "lib/league-night/types.ts",
+      "sha256": "47E6D9FF32A7879ED300865FBA83FFA5339B1BFBA106C59C89970D58B427025D"
+    },
+    {
+      "path": "lib/league-night/use-current-user.ts",
+      "sha256": "97259C1E1A6BA2C842E7595ACCB088EF8D5962007309086B9BCF56290493DD2A"
+    },
+    {
+      "path": "package.json",
+      "sha256": "CB5CA73B88079D657C4B1D85DFF3662EFF3E3435CDC8EB15F0CA59EFA8DA669E"
+    },
+    {
+      "path": "scripts/league-night-local.mjs",
+      "sha256": "12B35C1F08CE43FC49EADE7557C89242CED6986D943578820901B44A1D38586C"
+    },
+    {
+      "path": "scripts/local-environment.mjs",
+      "sha256": "663A3EF09F0562B879AEB39435322504A357DE7F1EF1150C42C4800712BAB164"
+    },
+    {
+      "path": "scripts/qa/league-night.config.mjs",
+      "sha256": "5858F0207FA6B093C22E1ECC19B20588E02992D670E212F4B77896F3A5FFB7CC"
+    },
+    {
+      "path": "scripts/qa/league-night.spec.mjs",
+      "sha256": "6DA45CB25CB27289DE1F7AAE68E02AE562CF98C1BFB1F520B5552A8F1D8F2C97"
+    },
+    {
+      "path": "scripts/rehearse-league-night.mjs",
+      "sha256": "5B701CF167A49ABE0CBE96D951FF0A1F23C9B8BFE7625D0E1F6F0DAE0C3101E1"
+    },
+    {
+      "path": "scripts/supabase-local.mjs",
+      "sha256": "99D75E9B9064E47E58A7F295B654C17DAF3941D6844990C240E1436F96767EB3"
+    },
+    {
+      "path": "supabase/pending/league_night_enforce.sql",
+      "sha256": "B162EE8ECFAFCE0FF83D9FC242791B14C1ED7D45331BADE935E2918E6C01ED81"
+    },
+    {
+      "path": "supabase/pending/league_night.sql",
+      "sha256": "E94BA4BD37B11F76FC1486C4B4C498BEE2FEAB84E303CBDBE2BD134E7790FC82"
+    },
+    {
+      "path": "supabase/tests/league-night/league-night.test.sql",
+      "sha256": "9A66E6FD1C95DC87B7E76DE1F55770E81A2FF3BD6EB0A24BBCE2E7964931A25D"
+    },
+    {
+      "path": "vitest.config.mts",
+      "sha256": "B37E0E35CD2E106EAD5EAC2454BCE27740A06282218BCAE1B99EA6CE6017B1D1"
+    }
+  ]
+}

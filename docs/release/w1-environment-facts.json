@@ -1,0 +1,856 @@
+{
+  "package": "W1",
+  "status": "assessment_complete_exit_gate_open",
+  "recorded_at_utc": "2026-09-28T21:55:28Z",
+  "source_sha": "31cf034e98d49e3569eab34e42509110dec998af",
+  "implementation_sha": "42df060fdf7d26a63e00d00ccf0152a37f4abccb",
+  "remote_main_sha": "690a01b84d96c55b8ec455a6e298c17ec6093b50",
+  "remote_release_sha": "42df060fdf7d26a63e00d00ccf0152a37f4abccb",
+  "evidence_scope": "SELECT-only catalog/aggregate inspection, authenticated dashboard reads, GitHub deployment metadata, public production bundle hostname. No hosted write acceptance or backup/restore proof.",
+  "query_sha256": "f23b1ef2431535e39a322c7c205344318c6f30299eea67a780776e9ed43bdf04",
+  "supabase": {
+    "ref": "hrqsbzmsfichiimtxijj",
+    "name": "RDD Main Project",
+    "region": "us-west-2",
+    "status": "ACTIVE_HEALTHY",
+    "plan": "Free",
+    "postgres_version": "17.6",
+    "platform_version": "17.6.1.054",
+    "db_host": "db.hrqsbzmsfichiimtxijj.supabase.co",
+    "branches": [
+      "main"
+    ],
+    "migration_namespace_exists": false,
+    "migration_table_exists": false,
+    "backup_list": null,
+    "pitr_enabled": false,
+    "dashboard_backup_result": "Free Plan does not include project backups."
+  },
+  "integration": {
+    "repository": "rdd-cmyk/Rochester-Darting-Degens",
+    "workdir": ".",
+    "supabase_production_branch": "main",
+    "supabase_deploy_to_production": true,
+    "supabase_automatic_branching": false,
+    "vercel_project": "rochester-darting-degens",
+    "vercel_team_slug": "tims-projects-b7b7f743",
+    "vercel_sync_production": true,
+    "vercel_sync_preview": false,
+    "vercel_sync_development": false,
+    "variable_prefix": "NEXT_PUBLIC_",
+    "tracked_migration_files": 0,
+    "tracked_edge_function_files": 0,
+    "tracked_seed_or_roles_files": 0,
+    "vercel_production_branch_setting": "unverified_owner_access_required"
+  },
+  "auth": {
+    "site_url": "https://rocdartdegens.com",
+    "redirect_urls": [
+      "http://localhost:3000",
+      "https://rocdartdegens.com",
+      "https://rocdartdegens.com/reset-password",
+      "https://rochester-darting-degens-1gjt0mepe-tims-projects-b7b7f743.vercel.app/reset-password",
+      "https://rochester-darting-degens-tims-projects-b7b7f743.vercel.app/",
+      "https://rochester-darting-degens-tims-projects-b7b7f743.vercel.app/**",
+      "https://rochester-*-darting-degens-tims-projects-b7b7f743.vercel.app",
+      "https://rochester-*-darting-degens-tims-projects-b7b7f743.vercel.app/**"
+    ],
+    "public_signup_enabled": true,
+    "email_provider_enabled": true,
+    "confirm_email": true,
+    "anonymous_sign_in": false,
+    "manual_linking": false,
+    "other_displayed_providers_enabled": false,
+    "secure_email_change": true,
+    "secure_password_change": true,
+    "require_current_password": false,
+    "leaked_password_protection": false,
+    "minimum_password_length": 16,
+    "password_requirements": "none",
+    "email_otp_seconds": 3600,
+    "email_otp_digits": 8,
+    "custom_smtp_enabled": false,
+    "delivery_test_performed": false
+  },
+  "deployments": {
+    "production": {
+      "github_deployment_id": 6670280076,
+      "sha": "690a01b84d96c55b8ec455a6e298c17ec6093b50",
+      "state": "success",
+      "created_at_utc": "2026-09-25T21:15:45Z",
+      "url": "https://rochester-darting-degens-csw61mqh1-tims-projects-b7b7f743.vercel.app",
+      "public_site": "https://rocdartdegens.com",
+      "bundle_host_evidence": {
+        "site": "https://rocdartdegens.com/",
+        "status": 200,
+        "script_count": 9,
+        "host_evidence": [
+          {
+            "asset_path": "/_next/static/immutable/chunks/1uqlkb2oi7kf7.js",
+            "supabase_hosts": [
+              "hrqsbzmsfichiimtxijj.supabase.co"
+            ]
+          }
+        ]
+      },
+      "server_configuration_verified": false
+    },
+    "preview": {
+      "github_deployment_id": 6719765660,
+      "sha": "42df060fdf7d26a63e00d00ccf0152a37f4abccb",
+      "state": "success",
+      "created_at_utc": "2026-09-28T20:24:24Z",
+      "url": "https://rochester-darting-degens-6mv1s2los-tims-projects-b7b7f743.vercel.app",
+      "access": "Vercel login required",
+      "db_target_verified": false,
+      "save_tests_allowed": false
+    },
+    "development": {
+      "supabase_target": "unverified_owner_access_required",
+      "root_env_file_exists": false
+    },
+    "ci": {
+      "run_id": 36480187732,
+      "sha": "42df060fdf7d26a63e00d00ccf0152a37f4abccb",
+      "conclusion": "success"
+    }
+  },
+  "catalog": {
+    "recorded_at": "2026-09-28T17:53:45.442335-04:00",
+    "schemas": [
+      {
+        "acl": "{pg_database_owner=UC/pg_database_owner,=U/pg_database_owner,postgres=U/pg_database_owner,anon=U/pg_database_owner,authenticated=U/pg_database_owner,service_role=U/pg_database_owner}",
+        "name": "public",
+        "owner": "pg_database_owner"
+      }
+    ],
+    "relations": [
+      {
+        "acl": "{postgres=arwdDxtm/postgres,anon=arwdDxtm/postgres,authenticated=arwdDxtm/postgres,service_role=arwdDxtm/postgres}",
+        "force_rls": false,
+        "kind": "r",
+        "name": "match_players",
+        "options": null,
+        "owner": "postgres",
+        "rls": true,
+        "schema": "public"
+      },
+      {
+        "acl": "{postgres=rwU/postgres,anon=rwU/postgres,authenticated=rwU/postgres,service_role=rwU/postgres}",
+        "force_rls": false,
+        "kind": "S",
+        "name": "match_players_id_seq",
+        "options": null,
+        "owner": "postgres",
+        "rls": false,
+        "schema": "public"
+      },
+      {
+        "acl": "{postgres=arwdDxtm/postgres,anon=arwdDxtm/postgres,authenticated=arwdDxtm/postgres,service_role=arwdDxtm/postgres}",
+        "force_rls": false,
+        "kind": "r",
+        "name": "matches",
+        "options": null,
+        "owner": "postgres",
+        "rls": true,
+        "schema": "public"
+      },
+      {
+        "acl": "{postgres=rwU/postgres,anon=rwU/postgres,authenticated=rwU/postgres,service_role=rwU/postgres}",
+        "force_rls": false,
+        "kind": "S",
+        "name": "matches_id_seq",
+        "options": null,
+        "owner": "postgres",
+        "rls": false,
+        "schema": "public"
+      },
+      {
+        "acl": "{postgres=arwdDxtm/postgres,anon=arwdDxtm/postgres,authenticated=arwdDxtm/postgres,service_role=arwdDxtm/postgres}",
+        "force_rls": false,
+        "kind": "r",
+        "name": "profiles",
+        "options": null,
+        "owner": "postgres",
+        "rls": true,
+        "schema": "public"
+      }
+    ],
+    "columns": [
+      {
+        "default": "nextval('match_players_id_seq'::regclass)",
+        "name": "id",
+        "nullable": "NO",
+        "position": 1,
+        "schema": "public",
+        "table": "match_players",
+        "type": "bigint",
+        "udt": "int8"
+      },
+      {
+        "default": null,
+        "name": "match_id",
+        "nullable": "YES",
+        "position": 2,
+        "schema": "public",
+        "table": "match_players",
+        "type": "bigint",
+        "udt": "int8"
+      },
+      {
+        "default": null,
+        "name": "player_id",
+        "nullable": "YES",
+        "position": 3,
+        "schema": "public",
+        "table": "match_players",
+        "type": "uuid",
+        "udt": "uuid"
+      },
+      {
+        "default": null,
+        "name": "score",
+        "nullable": "YES",
+        "position": 4,
+        "schema": "public",
+        "table": "match_players",
+        "type": "numeric",
+        "udt": "numeric"
+      },
+      {
+        "default": null,
+        "name": "is_winner",
+        "nullable": "YES",
+        "position": 5,
+        "schema": "public",
+        "table": "match_players",
+        "type": "boolean",
+        "udt": "bool"
+      },
+      {
+        "default": "timezone('utc'::text, now())",
+        "name": "created_at",
+        "nullable": "YES",
+        "position": 6,
+        "schema": "public",
+        "table": "match_players",
+        "type": "timestamp with time zone",
+        "udt": "timestamptz"
+      },
+      {
+        "default": null,
+        "name": "points_scored",
+        "nullable": "YES",
+        "position": 7,
+        "schema": "public",
+        "table": "match_players",
+        "type": "numeric",
+        "udt": "numeric"
+      },
+      {
+        "default": "nextval('matches_id_seq'::regclass)",
+        "name": "id",
+        "nullable": "NO",
+        "position": 1,
+        "schema": "public",
+        "table": "matches",
+        "type": "bigint",
+        "udt": "int8"
+      },
+      {
+        "default": "timezone('utc'::text, now())",
+        "name": "played_at",
+        "nullable": "YES",
+        "position": 2,
+        "schema": "public",
+        "table": "matches",
+        "type": "timestamp with time zone",
+        "udt": "timestamptz"
+      },
+      {
+        "default": null,
+        "name": "game_type",
+        "nullable": "YES",
+        "position": 3,
+        "schema": "public",
+        "table": "matches",
+        "type": "text",
+        "udt": "text"
+      },
+      {
+        "default": null,
+        "name": "created_by",
+        "nullable": "YES",
+        "position": 4,
+        "schema": "public",
+        "table": "matches",
+        "type": "uuid",
+        "udt": "uuid"
+      },
+      {
+        "default": null,
+        "name": "notes",
+        "nullable": "YES",
+        "position": 5,
+        "schema": "public",
+        "table": "matches",
+        "type": "text",
+        "udt": "text"
+      },
+      {
+        "default": null,
+        "name": "board_type",
+        "nullable": "YES",
+        "position": 6,
+        "schema": "public",
+        "table": "matches",
+        "type": "text",
+        "udt": "text"
+      },
+      {
+        "default": null,
+        "name": "venue",
+        "nullable": "YES",
+        "position": 7,
+        "schema": "public",
+        "table": "matches",
+        "type": "text",
+        "udt": "text"
+      },
+      {
+        "default": null,
+        "name": "id",
+        "nullable": "NO",
+        "position": 1,
+        "schema": "public",
+        "table": "profiles",
+        "type": "uuid",
+        "udt": "uuid"
+      },
+      {
+        "default": null,
+        "name": "display_name",
+        "nullable": "YES",
+        "position": 2,
+        "schema": "public",
+        "table": "profiles",
+        "type": "text",
+        "udt": "text"
+      },
+      {
+        "default": null,
+        "name": "favorite_checkout",
+        "nullable": "YES",
+        "position": 3,
+        "schema": "public",
+        "table": "profiles",
+        "type": "text",
+        "udt": "text"
+      },
+      {
+        "default": "timezone('utc'::text, now())",
+        "name": "created_at",
+        "nullable": "YES",
+        "position": 4,
+        "schema": "public",
+        "table": "profiles",
+        "type": "timestamp with time zone",
+        "udt": "timestamptz"
+      },
+      {
+        "default": null,
+        "name": "first_name",
+        "nullable": "YES",
+        "position": 5,
+        "schema": "public",
+        "table": "profiles",
+        "type": "text",
+        "udt": "text"
+      },
+      {
+        "default": null,
+        "name": "last_name",
+        "nullable": "YES",
+        "position": 6,
+        "schema": "public",
+        "table": "profiles",
+        "type": "text",
+        "udt": "text"
+      },
+      {
+        "default": null,
+        "name": "sex",
+        "nullable": "YES",
+        "position": 7,
+        "schema": "public",
+        "table": "profiles",
+        "type": "text",
+        "udt": "text"
+      },
+      {
+        "default": null,
+        "name": "include_first_name_in_display",
+        "nullable": "YES",
+        "position": 8,
+        "schema": "public",
+        "table": "profiles",
+        "type": "boolean",
+        "udt": "bool"
+      }
+    ],
+    "constraints": [
+      {
+        "definition": "FOREIGN KEY (match_id) REFERENCES matches(id) ON DELETE CASCADE",
+        "name": "match_players_match_id_fkey",
+        "schema": "public",
+        "table": "match_players",
+        "type": "f",
+        "validated": true
+      },
+      {
+        "definition": "PRIMARY KEY (id)",
+        "name": "match_players_pkey",
+        "schema": "public",
+        "table": "match_players",
+        "type": "p",
+        "validated": true
+      },
+      {
+        "definition": "FOREIGN KEY (player_id) REFERENCES profiles(id) ON DELETE CASCADE",
+        "name": "match_players_player_id_fkey",
+        "schema": "public",
+        "table": "match_players",
+        "type": "f",
+        "validated": true
+      },
+      {
+        "definition": "CHECK ((points_scored > (0)::numeric))",
+        "name": "match_players_points_scored_check",
+        "schema": "public",
+        "table": "match_players",
+        "type": "c",
+        "validated": true
+      },
+      {
+        "definition": "CHECK ((score > (0)::numeric))",
+        "name": "match_players_score_check",
+        "schema": "public",
+        "table": "match_players",
+        "type": "c",
+        "validated": true
+      },
+      {
+        "definition": "FOREIGN KEY (created_by) REFERENCES profiles(id)",
+        "name": "matches_created_by_fkey",
+        "schema": "public",
+        "table": "matches",
+        "type": "f",
+        "validated": true
+      },
+      {
+        "definition": "CHECK ((length(notes) < 100))",
+        "name": "matches_notes_check",
+        "schema": "public",
+        "table": "matches",
+        "type": "c",
+        "validated": true
+      },
+      {
+        "definition": "PRIMARY KEY (id)",
+        "name": "matches_pkey",
+        "schema": "public",
+        "table": "matches",
+        "type": "p",
+        "validated": true
+      },
+      {
+        "definition": "CHECK ((length(venue) < 50))",
+        "name": "matches_venue_check",
+        "schema": "public",
+        "table": "matches",
+        "type": "c",
+        "validated": true
+      },
+      {
+        "definition": "CHECK ((length(display_name) < 35))",
+        "name": "profiles_display_name_check",
+        "schema": "public",
+        "table": "profiles",
+        "type": "c",
+        "validated": true
+      },
+      {
+        "definition": "CHECK ((length(first_name) < 30))",
+        "name": "profiles_first_name_check",
+        "schema": "public",
+        "table": "profiles",
+        "type": "c",
+        "validated": true
+      },
+      {
+        "definition": "FOREIGN KEY (id) REFERENCES auth.users(id) ON DELETE CASCADE",
+        "name": "profiles_id_fkey",
+        "schema": "public",
+        "table": "profiles",
+        "type": "f",
+        "validated": true
+      },
+      {
+        "definition": "CHECK ((length(last_name) < 30))",
+        "name": "profiles_last_name_check",
+        "schema": "public",
+        "table": "profiles",
+        "type": "c",
+        "validated": true
+      },
+      {
+        "definition": "PRIMARY KEY (id)",
+        "name": "profiles_pkey",
+        "schema": "public",
+        "table": "profiles",
+        "type": "p",
+        "validated": true
+      }
+    ],
+    "indexes": [
+      {
+        "definition": "CREATE UNIQUE INDEX match_players_pkey ON public.match_players USING btree (id)",
+        "name": "match_players_pkey",
+        "schema": "public",
+        "table": "match_players"
+      },
+      {
+        "definition": "CREATE UNIQUE INDEX matches_pkey ON public.matches USING btree (id)",
+        "name": "matches_pkey",
+        "schema": "public",
+        "table": "matches"
+      },
+      {
+        "definition": "CREATE UNIQUE INDEX profiles_pkey ON public.profiles USING btree (id)",
+        "name": "profiles_pkey",
+        "schema": "public",
+        "table": "profiles"
+      }
+    ],
+    "policies": [
+      {
+        "check": null,
+        "command": "SELECT",
+        "name": "Authenticated can read match_players",
+        "permissive": "PERMISSIVE",
+        "roles": [
+          "public"
+        ],
+        "schema": "public",
+        "table": "match_players",
+        "using": "(( SELECT auth.role() AS role) = 'authenticated'::text)"
+      },
+      {
+        "check": null,
+        "command": "DELETE",
+        "name": "Match creator can delete match_players",
+        "permissive": "PERMISSIVE",
+        "roles": [
+          "public"
+        ],
+        "schema": "public",
+        "table": "match_players",
+        "using": "(EXISTS ( SELECT 1\n   FROM matches\n  WHERE ((matches.id = match_players.match_id) AND (matches.created_by = ( SELECT auth.uid() AS uid)))))"
+      },
+      {
+        "check": "(EXISTS ( SELECT 1\n   FROM matches\n  WHERE ((matches.id = match_players.match_id) AND (matches.created_by = ( SELECT auth.uid() AS uid)))))",
+        "command": "INSERT",
+        "name": "Match creator can insert match_players",
+        "permissive": "PERMISSIVE",
+        "roles": [
+          "public"
+        ],
+        "schema": "public",
+        "table": "match_players",
+        "using": null
+      },
+      {
+        "check": "(EXISTS ( SELECT 1\n   FROM matches\n  WHERE ((matches.id = match_players.match_id) AND (matches.created_by = ( SELECT auth.uid() AS uid)))))",
+        "command": "UPDATE",
+        "name": "Match creator can update match_players",
+        "permissive": "PERMISSIVE",
+        "roles": [
+          "public"
+        ],
+        "schema": "public",
+        "table": "match_players",
+        "using": "(EXISTS ( SELECT 1\n   FROM matches\n  WHERE ((matches.id = match_players.match_id) AND (matches.created_by = ( SELECT auth.uid() AS uid)))))"
+      },
+      {
+        "check": null,
+        "command": "SELECT",
+        "name": "Authenticated can read matches",
+        "permissive": "PERMISSIVE",
+        "roles": [
+          "public"
+        ],
+        "schema": "public",
+        "table": "matches",
+        "using": "(( SELECT auth.role() AS role) = 'authenticated'::text)"
+      },
+      {
+        "check": "(created_by = ( SELECT auth.uid() AS uid))",
+        "command": "INSERT",
+        "name": "User can insert own matches",
+        "permissive": "PERMISSIVE",
+        "roles": [
+          "public"
+        ],
+        "schema": "public",
+        "table": "matches",
+        "using": null
+      },
+      {
+        "check": "(created_by = ( SELECT auth.uid() AS uid))",
+        "command": "UPDATE",
+        "name": "User can update own matches",
+        "permissive": "PERMISSIVE",
+        "roles": [
+          "public"
+        ],
+        "schema": "public",
+        "table": "matches",
+        "using": "(created_by = ( SELECT auth.uid() AS uid))"
+      },
+      {
+        "check": null,
+        "command": "SELECT",
+        "name": "Authenticated can read profiles",
+        "permissive": "PERMISSIVE",
+        "roles": [
+          "public"
+        ],
+        "schema": "public",
+        "table": "profiles",
+        "using": "(( SELECT auth.role() AS role) = 'authenticated'::text)"
+      },
+      {
+        "check": "(id = ( SELECT auth.uid() AS uid))",
+        "command": "INSERT",
+        "name": "User can insert own profile",
+        "permissive": "PERMISSIVE",
+        "roles": [
+          "public"
+        ],
+        "schema": "public",
+        "table": "profiles",
+        "using": null
+      },
+      {
+        "check": "(id = ( SELECT auth.uid() AS uid))",
+        "command": "UPDATE",
+        "name": "User can update own profile",
+        "permissive": "PERMISSIVE",
+        "roles": [
+          "public"
+        ],
+        "schema": "public",
+        "table": "profiles",
+        "using": "(id = ( SELECT auth.uid() AS uid))"
+      }
+    ],
+    "functions": [],
+    "triggers": [
+      {
+        "definition": "CREATE TRIGGER enforce_bucket_name_length_trigger BEFORE INSERT OR UPDATE OF name ON storage.buckets FOR EACH ROW EXECUTE FUNCTION storage.enforce_bucket_name_length()",
+        "enabled": "O",
+        "name": "enforce_bucket_name_length_trigger",
+        "schema": "storage",
+        "table": "buckets"
+      },
+      {
+        "definition": "CREATE TRIGGER protect_bucket_control_insert BEFORE INSERT ON storage.buckets FOR EACH ROW EXECUTE FUNCTION storage.protect_bucket_control_columns('service_role')",
+        "enabled": "O",
+        "name": "protect_bucket_control_insert",
+        "schema": "storage",
+        "table": "buckets"
+      },
+      {
+        "definition": "CREATE TRIGGER protect_bucket_control_update BEFORE UPDATE OF lifecycle_configuration, lifecycle_configuration_generation ON storage.buckets FOR EACH ROW EXECUTE FUNCTION storage.protect_bucket_control_columns()",
+        "enabled": "O",
+        "name": "protect_bucket_control_update",
+        "schema": "storage",
+        "table": "buckets"
+      },
+      {
+        "definition": "CREATE TRIGGER protect_bucket_control_update_role AFTER UPDATE OF lifecycle_configuration, lifecycle_configuration_generation ON storage.buckets FOR EACH ROW EXECUTE FUNCTION storage.enforce_bucket_lifecycle_service_role('service_role')",
+        "enabled": "O",
+        "name": "protect_bucket_control_update_role",
+        "schema": "storage",
+        "table": "buckets"
+      },
+      {
+        "definition": "CREATE TRIGGER protect_buckets_delete BEFORE DELETE ON storage.buckets FOR EACH STATEMENT EXECUTE FUNCTION storage.protect_delete()",
+        "enabled": "O",
+        "name": "protect_buckets_delete",
+        "schema": "storage",
+        "table": "buckets"
+      },
+      {
+        "definition": "CREATE TRIGGER protect_objects_delete BEFORE DELETE ON storage.objects FOR EACH STATEMENT EXECUTE FUNCTION storage.protect_delete()",
+        "enabled": "O",
+        "name": "protect_objects_delete",
+        "schema": "storage",
+        "table": "objects"
+      },
+      {
+        "definition": "CREATE TRIGGER update_objects_updated_at BEFORE UPDATE ON storage.objects FOR EACH ROW EXECUTE FUNCTION storage.update_updated_at_column()",
+        "enabled": "O",
+        "name": "update_objects_updated_at",
+        "schema": "storage",
+        "table": "objects"
+      }
+    ],
+    "sequences": [
+      {
+        "cache": 1,
+        "cycle": false,
+        "increment": 1,
+        "max": "9223372036854775807",
+        "min": "1",
+        "name": "match_players_id_seq",
+        "schema": "public",
+        "start": "1",
+        "type": "bigint"
+      },
+      {
+        "cache": 1,
+        "cycle": false,
+        "increment": 1,
+        "max": "9223372036854775807",
+        "min": "1",
+        "name": "matches_id_seq",
+        "schema": "public",
+        "start": "1",
+        "type": "bigint"
+      }
+    ],
+    "default_grants": [
+      {
+        "acl": "{postgres=rwU/postgres,anon=rwU/postgres,authenticated=rwU/postgres,service_role=rwU/postgres}",
+        "object_type": "S",
+        "owner": "postgres",
+        "schema": "public"
+      },
+      {
+        "acl": "{postgres=rwU/supabase_admin,anon=rwU/supabase_admin,authenticated=rwU/supabase_admin,service_role=rwU/supabase_admin}",
+        "object_type": "S",
+        "owner": "supabase_admin",
+        "schema": "public"
+      },
+      {
+        "acl": "{postgres=X/postgres,anon=X/postgres,authenticated=X/postgres,service_role=X/postgres}",
+        "object_type": "f",
+        "owner": "postgres",
+        "schema": "public"
+      },
+      {
+        "acl": "{postgres=X/supabase_admin,anon=X/supabase_admin,authenticated=X/supabase_admin,service_role=X/supabase_admin}",
+        "object_type": "f",
+        "owner": "supabase_admin",
+        "schema": "public"
+      },
+      {
+        "acl": "{postgres=arwdDxtm/postgres,anon=arwdDxtm/postgres,authenticated=arwdDxtm/postgres,service_role=arwdDxtm/postgres}",
+        "object_type": "r",
+        "owner": "postgres",
+        "schema": "public"
+      },
+      {
+        "acl": "{postgres=arwdDxtm/supabase_admin,anon=arwdDxtm/supabase_admin,authenticated=arwdDxtm/supabase_admin,service_role=arwdDxtm/supabase_admin}",
+        "object_type": "r",
+        "owner": "supabase_admin",
+        "schema": "public"
+      }
+    ],
+    "extensions": [
+      {
+        "name": "pg_stat_statements",
+        "schema": "extensions",
+        "version": "1.11"
+      },
+      {
+        "name": "pgcrypto",
+        "schema": "extensions",
+        "version": "1.3"
+      },
+      {
+        "name": "plpgsql",
+        "schema": "pg_catalog",
+        "version": "1.0"
+      },
+      {
+        "name": "supabase_vault",
+        "schema": "vault",
+        "version": "0.3.1"
+      },
+      {
+        "name": "uuid-ossp",
+        "schema": "extensions",
+        "version": "1.1"
+      }
+    ],
+    "client_roles": [
+      {
+        "bypass_rls": false,
+        "create_db": false,
+        "create_role": false,
+        "inherit": true,
+        "name": "anon",
+        "superuser": false
+      },
+      {
+        "bypass_rls": false,
+        "create_db": false,
+        "create_role": false,
+        "inherit": true,
+        "name": "authenticated",
+        "superuser": false
+      },
+      {
+        "bypass_rls": true,
+        "create_db": false,
+        "create_role": false,
+        "inherit": true,
+        "name": "service_role",
+        "superuser": false
+      }
+    ],
+    "client_role_memberships": [],
+    "counts": {
+      "auth_users": 5,
+      "matches": 10,
+      "participants": 22,
+      "profiles": 5,
+      "storage_buckets": 0,
+      "storage_objects": 0
+    },
+    "integrity": {
+      "bad_rosters": 0,
+      "bad_summary_values": 0,
+      "bad_times": 0,
+      "missing_creators": 0,
+      "orphan_participants": 0,
+      "unsupported_labels": 0
+    }
+  },
+  "open_w1_items": [
+    "Vercel production branch and automatic deployment setting",
+    "Preview/development public and server DB targets and environment scoping",
+    "Preview access plus actual isolated database evidence before hosted tests"
+  ],
+  "later_release_gates": [
+    "W2 statistics SQL integration",
+    "W3 combined synthetic rehearsal and permissions review",
+    "W4 protected backup and isolated restore",
+    "W5 exact migration-history and upgrade rehearsal",
+    "W6 Auth/signup/email/provider/member configuration",
+    "W7 owner release authorization",
+    "W8 production cutover"
+  ]
+}

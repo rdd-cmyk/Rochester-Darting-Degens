@@ -1,0 +1,42 @@
+// Fixed-target synthetic connection-loss and bounded-lock rehearsal.
+import assert from 'node:assert/strict';
+import { readFileSync, writeFileSync } from 'node:fs';
+import { spawn } from 'node:child_process';
+import path from 'node:path';
+import { root, localWorkdir, projectId, docker, dockerHost, localDockerEnv, sql, localStatus } from './release-environment.mjs';
+localStatus();
+const staged=JSON.parse(readFileSync(path.join(localWorkdir,'combined-sql.json'),'utf8')).database;
+assert.match(staged,/^rdd_w3_staged_\d+$/);
+const db='rdd_w3_resilience_'+Date.now(),container='supabase_db_'+projectId;
+docker(['exec',container,'createdb','-U','postgres','--template='+staged,db]);
+const psql=()=>spawn('docker',['--host',dockerHost,'exec','-i',container,'psql','-X','-U','postgres','-d',db,'-At','-v','ON_ERROR_STOP=1','-f','-'],{cwd:root,env:localDockerEnv(),windowsHide:true,stdio:['pipe','pipe','pipe']});
+const waitLine=(child,match,timeout=7000)=>new Promise((resolve,reject)=>{
+ let data='';const timer=setTimeout(()=>reject(Error('Timed out waiting for synthetic SQL marker')),timeout);
+ child.stdout.on('data',chunk=>{data+=chunk.toString(); const found=data.match(match);if(found){clearTimeout(timer);resolve(found[1]??found[0]);}});
+ child.once('exit',code=>{clearTimeout(timer);reject(Error('SQL helper exited '+code));});
+});
+const baseline=sql("select conname||'='||convalidated from pg_constraint where conname in ('matches_detail_level_valid','matches_entry_source_valid','matches_format_best_of_positive','match_players_advanced_counts_nonnegative') order by conname;",db).trim();
+assert.equal((baseline.match(/=f/g)??[]).length,4);
+const blocker=psql();const locked=waitLine(blocker,/LOCK TABLE/);
+blocker.stdin.end('BEGIN; LOCK TABLE public.matches IN ACCESS EXCLUSIVE MODE; SELECT pg_sleep(4); ROLLBACK;');
+await locked;
+const started=Date.now();let refused=false;
+try{sql(readFileSync(path.join(root,'supabase/tests/fixtures/advanced_statistics_validate.sql'),'utf8'),db);}catch(error){refused=String(error.stderr).includes('lock timeout');}
+const elapsed=Date.now()-started;
+assert(refused&&elapsed>=1800&&elapsed<5000,'Validation must fail with its bounded 2s lock timeout');
+assert.equal(sql("select conname||'='||convalidated from pg_constraint where conname in ('matches_detail_level_valid','matches_entry_source_valid','matches_format_best_of_positive','match_players_advanced_counts_nonnegative') order by conname;",db).trim(),baseline);
+await new Promise(resolve=>blocker.once('exit',resolve));
+sql(readFileSync(path.join(root,'supabase/tests/fixtures/advanced_statistics_validate.sql'),'utf8'),db);
+assert.equal(sql("select count(*) from pg_constraint where conname in ('matches_detail_level_valid','matches_entry_source_valid','matches_format_best_of_positive','match_players_advanced_counts_nonnegative') and convalidated;",db).trim(),'4');
+sql('CREATE TABLE rdd_rehearsal.disconnect_probe(operation_id uuid primary key);',db);
+const worker=psql();const pidPromise=waitLine(worker,/\b(\d{2,8})\b/);
+worker.stdin.end("BEGIN; INSERT INTO rdd_rehearsal.disconnect_probe VALUES('00000000-0000-4000-8000-000000000077'); SELECT pg_backend_pid(); SELECT pg_sleep(30); COMMIT;");
+const pid=await pidPromise;
+assert(/^\d+$/.test(pid));
+sql(`select pg_terminate_backend(${pid});`,db);
+await new Promise(resolve=>worker.once('exit',resolve));
+assert.equal(sql('SELECT count(*) FROM rdd_rehearsal.disconnect_probe;',db).trim(),'0');
+sql("INSERT INTO rdd_rehearsal.disconnect_probe VALUES('00000000-0000-4000-8000-000000000077');",db);
+assert.equal(sql('SELECT count(*) FROM rdd_rehearsal.disconnect_probe;',db).trim(),'1');
+writeFileSync(path.join(localWorkdir,'resilience.json'),JSON.stringify({date:new Date().toISOString(),database:db,validation_lock_timeout_ms:elapsed,validated_constraints:4,backend_terminated_before_commit:true,uncommitted_row_rolled_back:true,replayed_operation_count:1},null,2));
+console.log('2s validation lock bound, retry, backend termination and uncommitted transaction recovery passed.');

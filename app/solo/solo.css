@@ -1,0 +1,296 @@
+/* Solo owns layout; shared primitives own headers, actions, panels and fields. */
+.solo-shell {
+  display: grid;
+  color: var(--rdd-text);
+  font-variant-numeric: tabular-nums;
+  min-width: 0;
+}
+.solo-shell * { box-sizing: border-box; }
+.solo-shell :is(h1, h2, h3, p) { margin: 0; }
+.solo-shell h3 { font-size: var(--rdd-action-font-size); }
+.solo-tag {
+  background: var(--rdd-panel-inset-bg);
+  border: 1px solid var(--rdd-border);
+  border-radius: var(--rdd-radius-pill);
+  padding: var(--rdd-space-1) var(--rdd-space-3);
+  color: var(--rdd-text-muted);
+  font-size: smaller;
+}
+.solo-tabs {
+  display: flex;
+  gap: var(--rdd-space-4);
+  border-bottom: 1px solid var(--rdd-border);
+  flex-wrap: wrap;
+}
+.solo-tabs .rdd-page-action {
+  border-radius: 0;
+  border-width: 0 0 var(--rdd-space-1);
+  border-color: transparent;
+  padding-inline: var(--rdd-space-2);
+  background: transparent;
+}
+.solo-tabs .rdd-page-action[aria-pressed="true"] {
+  border-bottom-color: var(--rdd-accent-text);
+  text-decoration: underline;
+  text-underline-offset: var(--rdd-space-1);
+}
+.solo-tabs .solo-refresh { margin-left: auto; }
+.solo-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.5fr) minmax(260px, 1fr);
+  gap: var(--rdd-space-6);
+  align-items: start;
+}
+.solo-panel { min-width: 0; }
+.solo-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--rdd-space-3);
+  margin-bottom: var(--rdd-space-6);
+}
+.solo-muted, .solo-small { color: var(--rdd-text-muted); }
+.solo-small { font-size: smaller; }
+.solo-panel p + p { margin-top: var(--rdd-space-3); }
+.solo-fields {
+  border: 0;
+  padding: 0;
+  margin: 0;
+  min-width: 0;
+  display: grid;
+  gap: var(--rdd-space-5);
+}
+.solo-shell label {
+  display: grid;
+  gap: var(--rdd-space-2);
+  font-weight: var(--rdd-action-weight);
+  min-width: 0;
+}
+.solo-shell label small {
+  font-weight: 400;
+  color: var(--rdd-text-muted);
+}
+.solo-shell textarea { resize: vertical; }
+.solo-form-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: var(--rdd-space-4);
+  margin: var(--rdd-space-3) 0;
+}
+.solo-fields .solo-form-row { margin: 0; }
+.solo-games, .solo-scope, .solo-actions {
+  display: flex;
+  gap: var(--rdd-space-2);
+  flex-wrap: wrap;
+}
+.solo-games .rdd-page-action { flex: 1; }
+:is(.solo-games, .solo-scope) .rdd-page-action[aria-pressed="true"] {
+  border-color: var(--rdd-accent-text);
+  text-decoration: underline;
+  text-underline-offset: var(--rdd-space-1);
+  background: var(--rdd-action-secondary-hover-bg);
+}
+.solo-score-field { position: relative; }
+.solo-shell .solo-score-field input {
+  padding-right: calc(var(--rdd-space-8) * 2 + var(--rdd-space-4));
+  font-size: var(--rdd-title-compact-size);
+  min-height: calc(var(--rdd-control-min-height) + var(--rdd-space-6));
+}
+.solo-score-field > span {
+  position: absolute;
+  right: var(--rdd-space-4);
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--rdd-text-muted);
+}
+.solo-shell .solo-inline {
+  display: flex;
+  gap: var(--rdd-space-3);
+  align-items: center;
+}
+.solo-shell .solo-inline select { width: auto; }
+.solo-context {
+  background: var(--rdd-panel-inset-bg);
+  border-radius: var(--rdd-radius-panel);
+  padding: var(--rdd-space-4);
+  display: grid;
+  gap: var(--rdd-space-3);
+}
+.solo-shell label.solo-check {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--rdd-space-3);
+  min-height: var(--rdd-control-min-height);
+  padding: var(--rdd-space-2) 0;
+  font-weight: 400;
+}
+.solo-check input {
+  accent-color: var(--rdd-accent-text);
+  width: var(--rdd-space-4);
+  height: var(--rdd-space-4);
+  flex-shrink: 0;
+  margin: var(--rdd-space-1) 0;
+}
+.solo-check small { display: block; margin-top: var(--rdd-space-1); }
+.solo-shell details {
+  border-top: 1px solid var(--rdd-border);
+  padding-top: var(--rdd-space-2);
+}
+.solo-shell details label { margin-top: var(--rdd-space-4); }
+.solo-shell summary {
+  padding: var(--rdd-space-3) 0;
+  min-height: var(--rdd-control-min-height);
+  cursor: pointer;
+  font-weight: var(--rdd-action-weight);
+}
+.solo-shell summary:focus-visible {
+  outline: 3px solid var(--rdd-focus-on-panel);
+  outline-offset: 3px;
+}
+.solo-destinations {
+  border-top: 1px solid var(--rdd-border);
+  padding-top: var(--rdd-space-4);
+  font-size: smaller;
+  color: var(--rdd-text-muted);
+}
+.solo-sidebar { display: grid; gap: var(--rdd-space-5); }
+.solo-best { background: var(--rdd-panel-inset-bg); }
+.solo-best > strong {
+  display: block;
+  font-size: var(--rdd-title-feature-size);
+  letter-spacing: -.025em;
+  margin: var(--rdd-space-3) 0;
+}
+.solo-best > strong span, .solo-metrics strong span {
+  font-size: var(--rdd-action-font-size);
+  letter-spacing: 0;
+}
+.solo-best p { margin-top: var(--rdd-space-4); }
+.solo-history-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--rdd-space-4);
+  border-bottom: 1px solid var(--rdd-border);
+  padding: var(--rdd-space-4) 0;
+  overflow-wrap: anywhere;
+}
+.solo-history-row:last-child { border-bottom: 0; }
+.solo-history-row small {
+  display: block;
+  color: var(--rdd-text-muted);
+  font-weight: 400;
+}
+.solo-history-row > div { min-width: 0; }
+.solo-alert, .solo-receipt, .solo-insight {
+  padding: var(--rdd-panel-padding);
+  border-radius: var(--rdd-radius-panel);
+  border: 1px solid var(--rdd-border);
+  background: var(--rdd-panel);
+  overflow-wrap: anywhere;
+}
+.solo-alert, .solo-insight { border-left: var(--rdd-space-1) solid var(--rdd-accent-text); }
+.solo-receipt { border-color: var(--rdd-accent-text); }
+.solo-insight {
+  background: var(--rdd-panel-inset-bg);
+  margin: var(--rdd-space-5) 0;
+}
+.solo-insight p { margin-top: var(--rdd-space-2); }
+.solo-scope { margin: var(--rdd-space-5) 0; }
+.solo-metrics {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--rdd-space-5);
+  margin: var(--rdd-space-5) 0;
+}
+.solo-metrics > div {
+  border-top: 2px solid var(--rdd-accent-text);
+  padding-top: var(--rdd-space-4);
+}
+.solo-metrics strong { display: block; font-size: var(--rdd-title-compact-size); }
+.solo-metrics small { display: block; color: var(--rdd-text-muted); }
+.solo-performance h3 { margin-top: var(--rdd-space-6); }
+.solo-legend { display: flex; gap: var(--rdd-space-5); margin: var(--rdd-space-4) 0; }
+.solo-legend span { display: flex; gap: var(--rdd-space-2); align-items: center; }
+/* Chart series, mark shapes and axis geometry intentionally keep statistical roles. */
+.solo-swatch {
+  width: 10px;
+  height: 10px;
+  background: var(--stats-series-1);
+  border-radius: 50%;
+}
+.solo-swatch.league {
+  background: var(--stats-series-2);
+  border-radius: 0;
+}
+.solo-chart {
+  min-width: 0;
+}
+.solo-chart svg text {
+  fill: var(--stats-muted);
+  font-size: 12px;
+}
+.solo-gridline {
+  stroke: var(--stats-border);
+  stroke-width: 1;
+}
+.solo-line {
+  fill: none;
+  stroke: var(--stats-series-1);
+  stroke-width: 2;
+}
+.solo-line.league {
+  stroke: var(--stats-series-2);
+  stroke-dasharray: 5 3;
+}
+.solo-dot {
+  fill: var(--stats-series-1);
+}
+.solo-dot.league {
+  fill: var(--stats-series-2);
+}
+.solo-table-scroll { overflow-x: auto; width: 100%; }
+.solo-shell table { border-collapse: collapse; width: 100%; margin: var(--rdd-space-3) 0; }
+.solo-shell th, .solo-shell td {
+  padding: var(--rdd-space-3) var(--rdd-space-2);
+  text-align: right;
+  border-bottom: 1px solid var(--rdd-border);
+  overflow-wrap: anywhere;
+}
+.solo-shell th:first-child, .solo-shell td:first-child { text-align: left; }
+.solo-shell td small { display: block; color: var(--rdd-text-muted); }
+/* Separate League Night consumer is outside P09. */
+.solo-night-activity {
+  margin: 16px 0;
+}
+.solo-night-activity p {
+  margin-top: 8px;
+}
+.solo-night-activity ul {
+  padding-left: 20px;
+}
+@media (max-width: 850px) {
+  .solo-layout { grid-template-columns: 1fr; }
+  .solo-sidebar { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+  .solo-sidebar > p { grid-column: 1/-1; }
+}
+@media (max-width: 640px) {
+  .solo-form-row, .solo-sidebar, .solo-metrics { grid-template-columns: minmax(0, 1fr); }
+  .solo-tabs {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--rdd-space-2);
+  }
+  .solo-tabs .solo-refresh {
+    margin-left: 0;
+    border: 1px solid var(--rdd-border-control);
+    border-radius: var(--rdd-radius-control);
+    background: var(--rdd-action-secondary-bg);
+  }
+  .solo-history-row { align-items: flex-start; flex-wrap: wrap; }
+  .solo-shell th, .solo-shell td { padding: var(--rdd-space-3) var(--rdd-space-1); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .solo-shell * { scroll-behavior: auto; transition: none; animation: none; }
+}

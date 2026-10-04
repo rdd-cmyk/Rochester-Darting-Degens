@@ -192,3 +192,24 @@ downloaded DTEND on Home and planning, plus RSVP, recovery and download feedback
 in both themes at 1440/390/320 pixels. Actual Google navigation remains
 intercepted in these checks; the owner confirmed the previous link handoff, while
 the newly defaulted end time still needs owner review in the actual draft.
+
+## Stable Home calendar action row, 2026-10-04
+
+The owner accepted the calendar update and reported that expanding the chooser
+on mobile moved Add to calendar below View plan & RSVP. Reproduced the same
+reflow in the production build: the calendar wrapper grew to the chooser's
+width, making the action-row flex items wrap. The next-night action rows now
+keep the calendar trigger as a flex item alongside the planning link, while the
+expanded chooser and calendar errors occupy their own full-width row below.
+The change is scoped to next-night actions; shared calendar behavior and the
+planning-card layout remain unchanged. At very narrow widths, the buttons can
+still wrap naturally, but opening or closing no longer changes their positions.
+
+Locked install, 661 tests in 85 files, coverage, lint, typecheck and production
+build passed. The added local browser regression assertion failed before the
+fix and passed afterward: both buttons' document coordinates and dimensions
+stay identical before opening, while open and after closing, at widths
+1440/448/390/320 in both themes. Screenshots at phone widths were inspected.
+Existing RSVP, two-hour calendar fields, downloads and recovery controls also
+passed synthetic browser checks. No page errors or horizontal overflow were
+observed. No calendar provider, hosted data or schema changes were made.

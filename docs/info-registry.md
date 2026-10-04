@@ -624,4 +624,3 @@ The earlier 25/7-assertion results above remain historical, not the new test cou
 - **Invalidation trigger:** changed extraction/rendering/caching, branch naming,
   skill discovery rules or owner-approved tone. Skill use grants no additional
   publishing, merge, deployment or hosted-data authority.
-

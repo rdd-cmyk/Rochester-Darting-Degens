@@ -1,6 +1,9 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 vi.mock("@/lib/supabaseClient", () => ({ supabase: { rpc: vi.fn() } }));
 import {
+  ballotConfirmed,
+  reconcileBallot,
+  type PendingPlanning,
   isPlanningRejection,
   compareDateSupport,
   hasLowerDateSupport,
@@ -16,6 +19,18 @@ import {
   type ScheduledNight,
 } from "./planning";
 describe("planning contracts", () => {
+  it("only acknowledges the submitted draft and never overwrites a newer ballot on replay", () => {
+    const poll = { id: "poll", ballot_revision: 0, availability_enabled: true, mine: [], date_responses: {},
+      options: [{ id: "date", kind: "date", withdrawn: false }, { id: "venue", kind: "venue", withdrawn: false }] } as unknown as Poll;
+    const receipt: PendingPlanning = { id: "operation", actor: "member", action: "vote", payload: {
+      poll_id: "poll", revision: 0, options: ["venue"], date_responses: { date: "preferred" } } };
+    expect(ballotConfirmed(poll, 0, ["venue"], { date: "preferred" }, receipt)).toBe(true);
+    expect(ballotConfirmed(poll, 0, ["venue"], { date: "maybe" }, receipt)).toBe(false);
+    expect(ballotConfirmed(poll, 1, ["venue"], { date: "preferred" }, receipt)).toBe(false);
+    expect(reconcileBallot(poll, receipt)).toMatchObject({ ballot_revision: 1, mine: ["venue", "date"], date_responses: { date: "preferred" } });
+    const newer = { ...poll, ballot_revision: 2, date_responses: { date: "cannot" as const } };
+    expect(reconcileBallot(newer, receipt)).toBe(newer);
+  });
   it("prioritizes attendance, uses preference for ties, and treats chronology as a display order", () => {
     const a = { votes: 6, starts_at: "2090-10-16", availability: { preferred: 5 } } as PlanningOption;
     const b = { votes: 9, starts_at: "2090-10-17", availability: { preferred: 3 } } as PlanningOption;

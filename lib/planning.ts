@@ -93,6 +93,41 @@ export type PendingPlanning = {
   payload: Record<string, unknown>;
   actor: string;
 };
+/** Use the same filtered snapshot for submission and confirmation matching. */
+export function ballotSnapshot(poll: Poll, selected: string[], dates: Record<string, DateResponse>) {
+  return {
+    options: selected.filter((id) => poll.options.some((o) => o.id === id && !o.withdrawn && (!poll.availability_enabled || o.kind === "venue"))),
+    ...(poll.availability_enabled ? { date_responses: Object.fromEntries(Object.entries(dates).filter(([id]) => poll.options.some((o) => o.id === id && o.kind === "date" && !o.withdrawn))) } : {}),
+  };
+}
+export function ballotConfirmed(poll: Poll, revision: number, selected: string[], dates: Record<string, DateResponse>, receipt?: PendingPlanning): boolean {
+  if (receipt?.action !== "vote" || receipt.payload.poll_id !== poll.id || receipt.payload.revision !== revision) return false;
+  const snapshot = ballotSnapshot(poll, selected, dates);
+  const options = receipt.payload.options as string[];
+  if (!Array.isArray(options) || JSON.stringify([...snapshot.options].sort()) !== JSON.stringify([...options].sort())) return false;
+  const entries = (values: Record<string, DateResponse>) => JSON.stringify(Object.entries(values).sort(([a], [b]) => a.localeCompare(b)));
+  return !poll.availability_enabled || entries(snapshot.date_responses ?? {}) === entries((receipt.payload.date_responses as Record<string, DateResponse>) ?? {});
+}
+/** A confirmed write supplies own state even when the next read is interrupted.
+ * Never replace a ballot already read at a later revision, including old replays. */
+export function reconcileBallot(poll: Poll, request: PendingPlanning): Poll {
+  const expected = request.payload.revision;
+  if (request.action !== "vote" || request.payload.poll_id !== poll.id || typeof expected !== "number" || poll.ballot_revision > expected) return poll;
+  const options = request.payload.options as string[];
+  if (request.payload.date_responses) {
+    const dates = request.payload.date_responses as Record<string, DateResponse>;
+    return { ...poll, ballot_revision: expected + 1, date_responses: { ...dates },
+      mine: [...options, ...Object.keys(dates).filter((id) => dates[id] === "can" || dates[id] === "preferred")] };
+  }
+  // Legacy checkbox confirmations keep states that their controls cannot express.
+  const dates: Record<string, DateResponse> = {};
+  for (const option of poll.options.filter((o) => o.kind === "date" && !o.withdrawn)) {
+    const previous = poll.date_responses?.[option.id];
+    if (options.includes(option.id)) dates[option.id] = previous === "preferred" ? "preferred" : "can";
+    else if (previous === "maybe" || previous === "cannot") dates[option.id] = previous;
+  }
+  return { ...poll, ballot_revision: expected + 1, mine: [...options], date_responses: dates };
+}
 export async function loadPlanning(
   pollOffset = 0,
   eventOffset = 0,

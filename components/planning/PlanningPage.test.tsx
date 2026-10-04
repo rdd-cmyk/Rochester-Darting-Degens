@@ -133,6 +133,34 @@ describe("planning page", () => {
     await waitFor(() => expect(mocks.write).toHaveBeenCalled());
     expect(mocks.write.mock.calls[0][0].payload).toMatchObject({ options: ["venue"], date_responses: {} });
   });
+  it("retains confirmed availability when the feed refresh after saving fails", async () => {
+    mocks.read.mockResolvedValueOnce(availabilityFixture()).mockRejectedValue(new Error("read interrupted"));
+    render(<PlanningPage userId="member" />);
+    fireEvent.click((await screen.findAllByRole("radio", { name: "Preferred" }))[0]);
+    fireEvent.click(screen.getByRole("button", { name: "Save my responses" }));
+    await screen.findByText("Saved.");
+    await waitFor(() => expect(screen.getByRole("button", { name: "Save my responses" })).toBeEnabled());
+    expect(screen.getAllByRole("radio", { name: "Preferred" })[0]).toBeChecked();
+  });
+  it("reconciles a confirmed retry without falsely marking its draft stale", async () => {
+    mocks.read.mockResolvedValue(availabilityFixture());
+    mocks.write.mockRejectedValueOnce(new Error("response lost"));
+    render(<PlanningPage userId="member" />);
+    fireEvent.click((await screen.findAllByRole("radio", { name: "Preferred" }))[0]);
+    fireEvent.click(screen.getByRole("checkbox", { name: /Local hall/ }));
+    fireEvent.click(screen.getByRole("button", { name: "Save my responses" }));
+    const retry = await screen.findByRole("button", { name: "Check / retry saved request" });
+    const next = availabilityFixture();
+    Object.assign(next.polls[0], { ballot_revision: 1, date_responses: { date: "preferred" }, mine: ["date", "venue"] });
+    mocks.read.mockResolvedValue(next);
+    fireEvent.click(retry);
+    await screen.findByText("Saved.");
+    await waitFor(() => expect(screen.getByRole("button", { name: "Save my responses" })).toBeEnabled());
+    expect(screen.queryByText(/Your ballot changed on another device/)).not.toBeInTheDocument();
+    expect(screen.getAllByRole("radio", { name: "Preferred" })[0]).toBeChecked();
+    expect(screen.getByRole("checkbox", { name: /Local hall/ })).toBeChecked();
+    expect(mocks.write.mock.calls[1][0]).toEqual(mocks.write.mock.calls[0][0]);
+  });
   it("keeps unsaved date choices and reloads the saved ballot after a revision conflict", async () => {
     const data = availabilityFixture(); mocks.read.mockResolvedValue(data); render(<PlanningPage userId="member" />);
     fireEvent.click((await screen.findAllByRole("radio", { name: "Preferred" }))[0]);

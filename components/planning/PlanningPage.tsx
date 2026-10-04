@@ -8,6 +8,9 @@ import {
   isPlanningRejection,
   DATE_RESPONSES,
   compareDateSupport,
+  ballotSnapshot,
+  ballotConfirmed,
+  reconcileBallot,
   type DateResponse,
   loadPlanning,
   optionLabel,
@@ -31,6 +34,7 @@ export function PlanningPage({ userId }: { userId: string }) {
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
   const [pending, setPending] = useState<PendingPlanning | null>(null);
+  const [confirmedBallots, setConfirmedBallots] = useState<Record<string, PendingPlanning>>({});
   const [busy, setBusy] = useState(false);
   const [ready, setReady] = useState(false);
   const [storageError, setStorageError] = useState("");
@@ -154,6 +158,11 @@ export function PlanningPage({ userId }: { userId: string }) {
       await writePlanning(request);
       // A successful write is still confirmed if the subsequent feed refresh fails.
       if (active.current) {
+        if (request.action === "vote" && typeof request.payload.poll_id === "string") {
+          const pollId = request.payload.poll_id;
+          setFeed((current) => current ? { ...current, polls: current.polls.map((poll) => reconcileBallot(poll, request)) } : current);
+          setConfirmedBallots((current) => ({ ...current, [pollId]: request }));
+        }
         await release(request);
         setNotice("Saved.");
         const submitted = submittedEditor.current;
@@ -361,6 +370,7 @@ export function PlanningPage({ userId }: { userId: string }) {
               now={now}
               userId={userId}
               organizer={feed.organizer}
+              confirmedBallot={confirmedBallots[p.id]?.actor === userId ? confirmedBallots[p.id] : undefined}
               change={change}
               edit={(duplicate) =>
                 setEditor({ kind: "poll", poll: p, duplicate })
@@ -602,6 +612,7 @@ function PollCard({
   change,
   edit,
   schedule,
+  confirmedBallot,
 }: {
   poll: Poll;
   now: number;
@@ -610,6 +621,7 @@ function PollCard({
   change: ChangePlanning;
   edit: (duplicate: boolean) => void;
   schedule: () => void;
+  confirmedBallot?: PendingPlanning;
 }) {
   const [selected, setSelected] = useState(poll.mine);
   const [dateResponses, setDateResponses] = useState(poll.date_responses ?? {});
@@ -626,15 +638,18 @@ function PollCard({
     null,
   );
   const closed = pollClosed(poll, now);
-  const shown = closed ? poll.mine : dirty ? selected : poll.mine;
-  const shownDates = closed || !dirty ? (poll.date_responses ?? {}) : dateResponses;
+  // A recovered save does not return through this card's submit callback.
+  // Match its exact snapshot so other tabs' unrelated drafts remain untouched.
+  const draftDirty = dirty && !ballotConfirmed(poll, ballotRevision, selected, dateResponses, confirmedBallot);
+  const shown = closed ? poll.mine : draftDirty ? selected : poll.mine;
+  const shownDates = closed || !draftDirty ? (poll.date_responses ?? {}) : dateResponses;
   const reveal = organizer || closed;
   const bestDate = reveal && poll.availability_enabled
     ? poll.options.filter((o) => o.kind === "date" && !o.withdrawn && (o.votes ?? 0) > 0).sort(compareDateSupport)[0]
     : undefined;
-  const stale = dirty && ballotRevision !== poll.ballot_revision;
+  const stale = draftDirty && ballotRevision !== poll.ballot_revision;
   function select(id: string, checked: boolean) {
-    if (!dirty) {
+    if (!draftDirty) {
       setDateResponses(poll.date_responses ?? {});
       setBallotRevision(poll.ballot_revision);
       setSelected(
@@ -647,12 +662,12 @@ function PollCard({
     setDirty(true);
   }
   function respond(id: string, response?: DateResponse) {
-    if (!dirty) {
+    if (!draftDirty) {
       setBallotRevision(poll.ballot_revision);
       setSelected(poll.mine);
     }
     setDateResponses((current) => {
-      const next = { ...(dirty ? current : poll.date_responses ?? {}) };
+      const next = { ...(draftDirty ? current : poll.date_responses ?? {}) };
       if (response) next[id] = response;
       else delete next[id];
       return next;
@@ -780,11 +795,8 @@ function PollCard({
                 if (
                   await change("vote", {
                     poll_id: poll.id,
-                    revision: dirty ? ballotRevision : poll.ballot_revision,
-                    options: shown.filter((id) =>
-                      poll.options.some((o) => o.id === id && !o.withdrawn && (!poll.availability_enabled || o.kind === "venue")),
-                    ),
-                    ...(poll.availability_enabled ? { date_responses: Object.fromEntries(Object.entries(shownDates).filter(([id]) => poll.options.some((o) => o.id === id && o.kind === "date" && !o.withdrawn))) } : {}),
+                    revision: draftDirty ? ballotRevision : poll.ballot_revision,
+                    ...ballotSnapshot(poll, shown, shownDates),
                   })
                 ) {
                   setDirty(false);
@@ -794,7 +806,7 @@ function PollCard({
               {poll.availability_enabled ? "Save my responses" : "Save my votes"}
             </ActionButton>
             <span className="plan-muted">
-              {dirty
+              {draftDirty
                 ? "Unsaved choices"
                 : poll.ballot_revision > 0
                   ? "Your responses are saved"

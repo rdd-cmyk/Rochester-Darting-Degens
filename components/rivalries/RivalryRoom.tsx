@@ -4,7 +4,7 @@ import { ActionLink } from '@/components/ui/ActionLink';
 import { ActionButton } from '@/components/ui/ActionButton';
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useCurrentUser } from "@/lib/league-night/use-current-user";
 import { loadMatches, loadProfiles } from "@/lib/league-night/api";
 import type { NightMatch, PlayerProfile } from "@/lib/league-night/types";
@@ -16,6 +16,8 @@ import {
   scoreCohorts,
 } from "@/lib/rivalries/engine";
 import { repairCandidates } from "@/lib/rivalries/repair";
+import { buildRivalryPowerRatings } from "@/lib/rivalries/power-ratings";
+import { STARTING_RATING } from "@/lib/stats/engine";
 import { loadRivalryFeed, rivalryError } from "@/lib/rivalries/api";
 import type { RivalryFeed } from "@/lib/rivalries/types";
 import { useRivalryOperation } from "@/lib/rivalries/use-operation";
@@ -101,6 +103,17 @@ function Room({
   const generation = useRef(0);
   const dialog = useRef<HTMLDialogElement>(null);
   const poster = useRef<HTMLDivElement>(null);
+  const powerRatings = useMemo(
+    () => buildRivalryPowerRatings(data?.matches ?? []),
+    [data?.matches],
+  );
+  function ratingOf(playerId: string) {
+    return powerRatings.get(playerId) ?? { rating: STARTING_RATING, provisional: true };
+  }
+  function ratingLabel(playerId: string) {
+    const player = ratingOf(playerId);
+    return `Power Rating ${Math.round(player.rating).toLocaleString("en-US")}${player.provisional ? " (Provisional)" : ""}`;
+  }
   const refresh = useCallback(async () => {
     const current = ++generation.current;
     setRefreshing(true);
@@ -765,12 +778,16 @@ function Room({
                   )
                   .map((p) => (
                     <option key={p.id} value={p.id}>
-                      {nameOf(p)}
+                      {nameOf(p)} · {ratingLabel(p.id)}
                     </option>
                   ))}
               </select>
             </label>
           </div>
+          <p className="rr-muted">
+            Current Power Rating across all games and boards. Provisional until
+            10 evidence games; players without rated matches start at 1,500.
+          </p>
           <div className="rr-rival-grid">
             {rivals.slice(0, 6).map((r) => (
               <ActionButton
@@ -778,6 +795,7 @@ function Room({
                 key={r.opponent}
                 onClick={() => setOpponent(r.opponent)}
                 aria-pressed={actualRight === r.opponent}
+                aria-label={`${nameOf(data.profiles.find((p) => p.id === r.opponent))} · ${ratingLabel(r.opponent)} · ${r.wins[0]} to ${r.wins[1]} recorded singles wins`}
               >
                 <PlayerAvatar
                   playerId={r.opponent}
@@ -787,6 +805,10 @@ function Room({
                 <strong>
                   {nameOf(data.profiles.find((p) => p.id === r.opponent))}
                 </strong>
+                <span className="rr-rival-rating">
+                  Power Rating <b>{Math.round(ratingOf(r.opponent).rating).toLocaleString("en-US")}</b>
+                  {ratingOf(r.opponent).provisional && <small>Provisional</small>}
+                </span>
                 <span>
                   {r.wins[0]} : {r.wins[1]} <small>recorded singles wins</small>
                 </span>

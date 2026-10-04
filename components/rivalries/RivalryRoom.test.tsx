@@ -111,6 +111,33 @@ it("keeps all pair game choices available after changing game and board filters"
   expect(game).toHaveValue("Cricket");
   expect(screen.getByRole("option", { name: "501" })).toBeInTheDocument();
 });
+it("shows the all-history Power Rating in cards and options regardless of rivalry filters", async () => {
+  render(<RivalryRoom />);
+  const rival = await screen.findByRole("button", { name: /Bravo · Power Rating 1,469 \(Provisional\)/ });
+  expect(screen.getByRole("option", { name: "Bravo · Power Rating 1,469 (Provisional)" })).toBeInTheDocument();
+  fireEvent.change(screen.getByLabelText("Game"), { target: { value: "Cricket" } });
+  fireEvent.change(screen.getByLabelText("Board"), { target: { value: "Steel Tip" } });
+  expect(rival).toHaveTextContent("Power Rating 1,469");
+  expect(screen.getByRole("option", { name: "Bravo · Power Rating 1,469 (Provisional)" })).toBeInTheDocument();
+  fireEvent.click(rival);
+  expect(screen.getByRole("combobox", { name: "Choose rival" })).toHaveValue("b");
+});
+it("shows the provisional starting rating for a player without rated matches", async () => {
+  mocks.matches.mockResolvedValue([]);
+  render(<RivalryRoom />);
+  expect(await screen.findByRole("option", { name: "Bravo · Power Rating 1,500 (Provisional)" })).toBeInTheDocument();
+  expect(screen.getByRole("button", { name: /Bravo · Power Rating 1,500 \(Provisional\)/ })).toBeInTheDocument();
+});
+it("removes the provisional label after ten evidence games", async () => {
+  mocks.matches.mockResolvedValue(Array.from({ length: 10 }, (_, i) => ({
+    id: i + 1, played_at: "2026-09-28T12:00:00Z", game_type: "501", board_type: "Steel Tip",
+    match_players: [{ player_id: "a", is_winner: true }, { player_id: "b", is_winner: false }],
+  })));
+  render(<RivalryRoom />);
+  const rival = await screen.findByRole("button", { name: /Bravo · Power Rating/ });
+  expect(rival).not.toHaveTextContent("Provisional");
+  expect(screen.getByRole("option", { name: /Bravo · Power Rating/ })).not.toHaveTextContent("Provisional");
+});
 it.each(["a", "b", "spectator"])(
   "uses an accurate completed headline on the page and poster for viewer %s",
   async (viewer) => {

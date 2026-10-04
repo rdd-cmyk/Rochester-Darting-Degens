@@ -1,9 +1,11 @@
 import { beforeEach, afterEach, it, expect, vi } from "vitest";
-import { render, screen, fireEvent, cleanup } from "@testing-library/react";
+import { render, screen, fireEvent, cleanup, within } from "@testing-library/react";
 import type { Challenge, RivalryFeed } from "@/lib/rivalries/types";
 const mocks = vi.hoisted(() => ({
   feed: vi.fn(),
   matches: vi.fn(),
+  submit: vi.fn(),
+  profiles: vi.fn(),
   userId: "a",
 }));
 vi.mock("next/navigation", () => ({ useRouter: () => ({ push: vi.fn() }) }));
@@ -12,10 +14,7 @@ vi.mock("@/lib/league-night/use-current-user", () => ({
 }));
 vi.mock("@/lib/league-night/api", () => ({
   loadMatches: mocks.matches,
-  loadProfiles: async () => [
-    { id: "a", display_name: "Alpha" },
-    { id: "b", display_name: "Bravo" },
-  ],
+  loadProfiles: mocks.profiles,
 }));
 vi.mock("@/lib/rivalries/api", () => ({
   loadRivalryFeed: mocks.feed,
@@ -26,7 +25,7 @@ vi.mock("@/lib/rivalries/use-operation", () => ({
     ready: true,
     pending: null,
     busy: false,
-    submit: vi.fn(),
+    submit: mocks.submit,
   }),
 }));
 vi.mock("@/components/avatars/PlayerAvatar", async (importOriginal) => ({
@@ -49,6 +48,8 @@ const baseFeed: RivalryFeed = {
 };
 beforeEach(() => {
   mocks.userId = "a";
+  mocks.submit.mockReset();
+  mocks.profiles.mockResolvedValue([{ id: 'a', display_name: 'Alpha' }, { id: 'b', display_name: 'Bravo' }]);
   mocks.feed.mockResolvedValue(baseFeed);
   mocks.matches.mockResolvedValue(
     ["501", "Cricket"].map((game, i) => ({
@@ -178,3 +179,58 @@ it.each(["a", "b", "spectator"])(
     );
   },
 );
+
+it.each(['a', 'b'])('creates a fresh rematch with the original terms for participant %s', async viewer => {
+  mocks.userId = viewer;
+  const old = { id: 'completed-series', sender: 'a', recipient: 'b', night_id: 'old-night',
+    game: '301', preset: '301-double-v1', board: 'Soft Tip', best_of: 7, state: 'completed',
+    stored_state: 'accepted', wins: [4, 0], target: 4, winner: 'a', games: [],
+    schedule: { title: 'Original night', starts_at: '2026-10-01T12:00:00Z', status: 'scheduled', event_revision: 1 },
+  } as unknown as Challenge;
+  const before = JSON.stringify(old);
+  mocks.feed.mockResolvedValue({ ...baseFeed, challenges: [old], nights: [
+    { night_id: 'old-night', title: 'Original night', starts_at: '2026-10-01T12:00:00Z' },
+    { night_id: 'past-night', title: 'Past night', starts_at: '2026-09-01T12:00:00Z' },
+    { night_id: 'next-night', title: 'Next night', starts_at: '2026-10-02T12:00:00Z' },
+  ] });
+  render(<RivalryRoom challengeId={old.id} />);
+  fireEvent.click(await screen.findByRole('button', { name: 'Run it back' }));
+  const dialog = within(screen.getByRole('dialog'));
+  expect(dialog.getByLabelText('Game')).toHaveValue('301');
+  expect(dialog.getByLabelText('Rules')).toHaveValue('301-double-v1');
+  expect(dialog.getByLabelText('Board')).toHaveValue('Soft Tip');
+  expect(dialog.getByLabelText('Series')).toHaveValue('7');
+  expect(dialog.getByLabelText('Scheduled League Night')).toHaveValue('');
+  expect(dialog.queryByRole('option', { name: /Original night|Past night/ })).not.toBeInTheDocument();
+  const send = dialog.getByRole('button', { name: /Send challenge/ });
+  expect(send).toBeDisabled();
+  fireEvent.change(dialog.getByLabelText('Scheduled League Night'), { target: { value: 'next-night' } });
+  fireEvent.click(send);
+  expect(mocks.submit).toHaveBeenCalledTimes(1);
+  expect(mocks.submit.mock.calls[0][0]).toEqual({ action: 'create', id: expect.any(String), recipient: viewer === 'a' ? 'b' : 'a', night_id: 'next-night', game: '301', preset: '301-double-v1', board: 'Soft Tip', best_of: 7 });
+  expect(mocks.submit.mock.calls[0][0].id).not.toBe(old.id);
+  expect(JSON.stringify(old)).toBe(before);
+});
+it('does not offer a rematch to a spectator', async () => {
+  mocks.userId = 'spectator';
+  const challenge = { id: 'series', sender: 'a', recipient: 'b', night_id: 'old', game: '501', preset: '501-double-v1', board: 'Steel Tip', best_of: 3, state: 'completed', wins: [2, 0], target: 2, winner: 'a', games: [], schedule: { starts_at: '2026-10-01T12:00:00Z', status: 'scheduled' } } as unknown as Challenge;
+  mocks.feed.mockResolvedValue({ ...baseFeed, challenges: [challenge] });
+  render(<RivalryRoom challengeId="series" />);
+  await screen.findByRole('heading', { name: 'THE CHAPTER IS WON.' });
+  expect(screen.queryByRole('button', { name: 'Run it back' })).not.toBeInTheDocument();
+});
+it('keeps the selected rival when sorting and filtering the available opponents', async () => {
+  mocks.profiles.mockResolvedValue([{ id: 'a', display_name: 'Alpha' }, { id: 'b', display_name: 'Bravo' }, { id: 'c', display_name: 'Charlie' }]);
+  mocks.feed.mockResolvedValue({ ...baseFeed, active_users: ['a', 'b', 'c'] });
+  render(<RivalryRoom />);
+  const chooser = await screen.findByRole('combobox', { name: 'Choose rival' });
+  fireEvent.change(chooser, { target: { value: 'b' } });
+  fireEvent.change(screen.getByLabelText('Sort opponents'), { target: { value: 'never-played' } });
+  expect(chooser).toHaveValue('b');
+  expect(screen.getByRole('option', { name: /Current selection · Bravo/ })).toBeInTheDocument();
+  expect(screen.queryByRole('button', { name: /^Bravo · Power Rating/ })).not.toBeInTheDocument();
+  fireEvent.click(screen.getByRole('button', { name: /^Charlie · Power Rating/ }));
+  fireEvent.change(screen.getByLabelText('Sort opponents'), { target: { value: 'most-played' } });
+  expect(chooser).toHaveValue('c');
+  expect(screen.getAllByRole('button', { name: /recorded singles wins$/ })[0]).toHaveAccessibleName(/^Bravo/);
+});

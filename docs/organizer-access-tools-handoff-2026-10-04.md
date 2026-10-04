@@ -2,6 +2,11 @@
 
 Prepared on `feat/rivalry-power-rating`, 2026-10-04.
 
+Follow-on invitation search is documented in the
+[convenience features plan and verification](league-convenience-features-plan-2026-10-04.md).
+Its additive `invitation_search.sql` fixture follows this document's organizer
+fixture and remains subject to the same hosted release gate.
+
 ## Behavior
 
 League Board → Organizer tools now offers a league-member chooser and Grant

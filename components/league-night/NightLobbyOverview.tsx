@@ -3,6 +3,7 @@ import { ActionButton } from '@/components/ui/ActionButton';
 import { ActionLink } from '@/components/ui/ActionLink';
 import { NextPlannedNight } from '@/components/planning/NextPlannedNight';
 import BoardPreview from '@/components/board/BoardPreview';
+import { ChallengesWaiting } from '@/components/rivalries/ChallengesWaiting';
 import { PowerSnapshot } from './PowerSnapshot';
 import type { LeagueNight } from '@/lib/league-night/types';
 import { nightDate } from './NightRecapPanel';
@@ -13,6 +14,7 @@ export function NightLobbyOverview({ nights, loading, unavailable = false, open 
   const latest = nights.filter(n => n.night_date < today && n.planning_status !== 'cancelled')
     .sort((a, b) => b.night_date.localeCompare(a.night_date))[0];
   return <>
+    <ChallengesWaiting />
     <div className="landing-grid">
       <div className="landing-stack">
         {loading ? <section className="rdd-content-panel" role="status">Finding your league nights…</section>

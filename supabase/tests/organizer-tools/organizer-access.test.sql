@@ -23,11 +23,13 @@ select case when n=1 then 'ca000000-0000-4000-8000-000000000001'::uuid else 'ca0
   case when n=2 then now()-interval '1 day' else now()+interval '7 days' end from generate_series(1,25) n;
 
 set local role anon;
+select throws_ok($$select public.invite_search('ca000000-0000-4000-8000-000000000001',0,'all','invite')$$,'42501',null,'Anonymous cannot impersonate an organizer for search');
 select throws_ok($$select public.board_access_candidates()$$,'42501',null,'Anonymous cannot read grant candidates');
 select throws_ok($$select public.board_grant_access('ca000000-0000-4000-8000-000000000003')$$,'42501',null,'Anonymous cannot grant access');
 select throws_ok($$select public.invite_list('ca000000-0000-4000-8000-000000000001')$$,'42501',null,'Anonymous cannot impersonate an organizer for invite history');
 reset role;
 set local role authenticated;
+select throws_ok($$select public.invite_search('ca000000-0000-4000-8000-000000000001',0,'all','invite')$$,'42501',null,'Browser cannot choose a privileged search actor');
 select set_config('request.jwt.claims','{"role":"authenticated","sub":"ca000000-0000-4000-8000-000000000002"}',true);
 select throws_ok($$select public.board_access_candidates()$$,'42501',null,'Ordinary member cannot read grant candidates');
 select throws_ok($$select public.board_grant_access('ca000000-0000-4000-8000-000000000003')$$,'42501',null,'Ordinary member cannot grant access');
@@ -59,6 +61,17 @@ select throws_ok($$insert into public.board_members(user_id,status,role) values(
 
 reset role;
 set local role service_role;
+select is((public.invite_search('ca000000-0000-4000-8000-000000000001',0,'all','INVITE-25@')->>'total')::int,1,'Search includes invitations beyond the first unfiltered page');
+select is((public.invite_search('ca000000-0000-4000-8000-000000000001',0,'all','Player 2')->>'total')::int,24,'Organizer can search all invitations by displayed sender');
+select is(jsonb_array_length(public.invite_search('ca000000-0000-4000-8000-000000000001',1,'all','Player 2')->'items'),4,'Search pagination follows filtering over full history');
+select is((public.invite_search('ca000000-0000-4000-8000-000000000001',0,'expired','Player 2')->>'total')::int,1,'Status and sender search combine');
+select is((public.invite_search('ca000000-0000-4000-8000-000000000001',0,'all','Private')->>'total')::int,0,'Hidden first names do not match searches');
+select is((public.invite_search('ca000000-0000-4000-8000-000000000001',0,'all','%')->>'total')::int,0,'Percent is searched literally');
+select is((public.invite_search('ca000000-0000-4000-8000-000000000001',0,'all','_')->>'total')::int,0,'Underscore is searched literally');
+select is((public.invite_search('ca000000-0000-4000-8000-000000000002',0,'all','invite-1@')->>'total')::int,0,'Ordinary search cannot disclose another senders invitation');
+select is(public.invite_search('ca000000-0000-4000-8000-000000000007',0,'all','invite')->>'error','membership_required','Banned account cannot search history');
+select is(public.invite_search('ca000000-0000-4000-8000-000000000006',0,'all','invite')->>'error','membership_required','Revoked member cannot search history');
+select is(public.invite_search('ca000000-0000-4000-8000-000000000001',0,'all',repeat('x',121))->>'error','invalid_request','Oversized search is rejected');
 select is(public.invite_list('ca000000-0000-4000-8000-000000000001')->>'scope','league','Organizer receives league-wide scope');
 select is((public.invite_list('ca000000-0000-4000-8000-000000000001')->>'total')::int,25,'Organizer sees everyone including their own invitations');
 select is(jsonb_array_length(public.invite_list('ca000000-0000-4000-8000-000000000001')->'items'),20,'Organizer history is paginated');
@@ -80,6 +93,7 @@ select ok(public.invite_list('ca000000-0000-4000-8000-000000000001')::text not l
 reset role;
 update public.board_members set status='revoked' where user_id='ca000000-0000-4000-8000-000000000001';
 set local role service_role;
+select is((public.invite_search('ca000000-0000-4000-8000-000000000001',0,'all','Player 2')->>'total')::int,0,'Revoked organizer loses expanded search scope');
 select is(public.invite_list('ca000000-0000-4000-8000-000000000001')->>'scope','own','Revoked Board organizer loses league-wide invitation visibility immediately');
 reset role;
 select * from finish();

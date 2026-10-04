@@ -84,6 +84,7 @@ async function main() {
       inviteSql(readFileSync(path.join(root, 'supabase/tests/fixtures/invite_parent_admission.sql'), 'utf8'));
     }
     inviteSql(readFileSync(path.join(root, 'supabase/tests/fixtures/organizer_access_tools.sql'), 'utf8'));
+    inviteSql(readFileSync(path.join(root, 'supabase/tests/fixtures/invitation_search.sql'), 'utf8'));
     console.log('Combined invitation/League Night/planning/Board fixtures ready in isolated local database. No accounts grandfathered automatically.');
   } else {
     const status = inviteStatus();

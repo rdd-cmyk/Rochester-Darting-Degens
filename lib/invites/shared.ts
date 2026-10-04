@@ -20,6 +20,7 @@ export const inviteMessages: Record<string, string> = {
   password_rejected: 'That password does not meet the account policy. Choose a longer, stronger password and try again.',
   disabled: 'Invitations are not available yet. Please try again later.',
   service_error: 'We could not confirm the result. Retry with the same details, or refresh your invitation history.',
+  search_unavailable: 'Invitation search is not available on this site yet. Clear your search to view invitation history.',
   mail_failed: 'The email could not be sent. Wait a minute, then choose Resend.',
   mail_unknown: 'Email delivery could not be confirmed. Check your inbox or invitation history before resending.',
 };

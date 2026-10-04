@@ -1,0 +1,24 @@
+import { expect, it } from 'vitest';
+import type { ScheduledNight } from './planning';
+import { leagueNightCalendar } from './planning-calendar';
+const night = { night_id: 'night-1', title: 'Darts, friends; fun', venue: 'A\\B hall', notes: 'Hello\r\nBEGIN:BAD', starts_at: '2026-11-01T18:30:00-05:00', status: 'scheduled', event_revision: 3, responses: [{ user_id: 'private-user' }] } as unknown as ScheduledNight;
+it('exports the actual UTC instant with stable identity and no guessed end time or attendee data', () => {
+  const value = leagueNightCalendar(night, 'https://league.example.test', new Date('2026-10-04T12:00:00Z'));
+  expect(value).toContain('DTSTART:20261101T233000Z\r\n');
+  expect(value).toContain('UID:night-1@rdd-league-night\r\n');
+  expect(value).toContain('SEQUENCE:3\r\n'); expect(value).not.toContain('DTEND');
+  expect(value).not.toContain('private-user'); expect(value).toContain('URL:https://league.example.test/league-night/plan\r\n');
+});
+it('escapes text injection and folds Unicode at 75 UTF-8 octets without splitting characters', () => {
+  const value = leagueNightCalendar({ ...night, title: 'é🎯'.repeat(50) }, 'https://league.example.test');
+  for (const line of value.split('\r\n')) expect(new TextEncoder().encode(line).length).toBeLessThanOrEqual(75);
+  const unfolded = value.replace(/\r\n /g, '');
+  expect(unfolded).toContain(`SUMMARY:${'é🎯'.repeat(50)}`);
+  expect(unfolded).toContain('LOCATION:A\\\\B hall');
+  expect(unfolded).toContain('DESCRIPTION:Hello\\nBEGIN:BAD');
+  expect(value).not.toContain('\r\nBEGIN:BAD');
+});
+it('rejects cancelled nights and invalid dates', () => {
+  expect(() => leagueNightCalendar({ ...night, status: 'cancelled' }, 'https://league.example.test')).toThrow();
+  expect(() => leagueNightCalendar({ ...night, starts_at: 'invalid' }, 'https://league.example.test')).toThrow();
+});

@@ -13,6 +13,33 @@ vi.mock('@/lib/supabaseClient', () => ({ supabase: { auth: { onAuthStateChange: 
 } } } }));
 const empty = { items: [], total: 0, pending: 0, accepted: 0 };
 beforeEach(() => { request.mockReset(); request.mockResolvedValue(empty); auth.change = undefined; });
+it('searches across history, resets pagination and clears the query', async () => {
+  request.mockResolvedValue({ ...empty, total: 21 });
+  render(<InvitesPage />);
+  await screen.findByText('Invite someone to join your next league night.');
+  fireEvent.click(screen.getByRole('button', { name: 'Next' }));
+  await screen.findByText('Page 2');
+  await waitFor(() => expect(screen.getByRole('button', { name: 'Search' })).not.toBeDisabled());
+  request.mockResolvedValue(empty);
+  fireEvent.change(screen.getByLabelText('Search by email or sender'), { target: { value: ' Alpha ' } });
+  fireEvent.click(screen.getByRole('button', { name: 'Search' }));
+  await screen.findByText('No invitations match your search. Try another email or sender, or clear the search.');
+  expect(request).toHaveBeenLastCalledWith({ action: 'list', filter: 'all', page: 0, search: 'Alpha' });
+  fireEvent.click(screen.getByRole('button', { name: 'Clear search' }));
+  await screen.findByText('Invite someone to join your next league night.');
+  expect(screen.getByLabelText('Search by email or sender')).toHaveValue('');
+  expect(request).toHaveBeenLastCalledWith({ action: 'list', filter: 'all', page: 0, search: '' });
+});
+it('keeps search controls available after a failed search', async () => {
+  render(<InvitesPage />); await screen.findByText('Invite someone to join your next league night.');
+  request.mockRejectedValueOnce(new Error('Search unavailable.'));
+  fireEvent.change(screen.getByLabelText('Search by email or sender'), { target: { value: 'Alpha' } });
+  fireEvent.click(screen.getByRole('button', { name: 'Search' }));
+  await screen.findByText('Search unavailable.');
+  expect(screen.getByLabelText('Search by email or sender')).toHaveValue('Alpha');
+  fireEvent.click(screen.getByRole('button', { name: 'Clear search' }));
+  await screen.findByText('Invite someone to join your next league night.');
+});
 it('shows all organizer-visible invites and sender names, with controls only on owned invites', async () => {
   const invite = { status: 'pending', delivery: 'sent', created_at: '2026-09-27', expires_at: '2026-10-04' };
   request.mockResolvedValue({ ...empty, scope: 'league', total: 2, pending: 2, items: [

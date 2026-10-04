@@ -604,3 +604,24 @@ The earlier 25/7-assertion results above remain historical, not the new test cou
   names or layout, redirected installation paths, or a failed safety test.
   Re-review before adapting this workaround to a changed installation/layout.
 - **Related:** RDD-INFO-003; no dependency package was started by this work.
+
+### RDD-INFO-025 — Main PR descriptions are player-facing release notes
+
+- **Status:** active
+- **Type:** authoring workflow / project skill pointer
+- **Scope:** PR titles and descriptions for base `main`, including merged PR edits.
+- **Statement:** the website Change Log displays the current merged PR title
+  and body before its first newline-prefixed Markdown `Testing` heading and
+  removes lines containing `codex`. Write player-facing benefits and clear
+  feature guidance above the cutoff; preserve technical validation and release
+  gates below it. Other destination branches keep engineering PR descriptions.
+- **Skill:** [RDD player release notes](../.agents/skills/rdd-player-release-notes/SKILL.md).
+  `AGENTS.md` routes relevant work to it; the repo-local skill travels with the
+  checkout for Ben, Tim and agents that follow repository instructions.
+- **Evidence / validation date:** 2026-10-04 source review of
+  `app/api/change-log/route.ts`, corrected merged PRs #75/#76 and the September 25
+  PR #69 example; creation/validation dossier in `docs/skill-governance.md`.
+- **Invalidation trigger:** changed extraction/rendering/caching, branch naming,
+  skill discovery rules or owner-approved tone. Skill use grants no additional
+  publishing, merge, deployment or hosted-data authority.
+

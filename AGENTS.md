@@ -22,6 +22,13 @@ Before planning or changing this repository:
    and Head to Head (owner accepted 2026-10-01). Summer decorations remain optional and
    restrained. Design-only requests stay documentation/mockup-only.
 
+When preparing, creating or revising a PR whose **base is `main`**, read and use
+[RDD player release notes](.agents/skills/rdd-player-release-notes/SKILL.md).
+It keeps player-facing notes above the Change Log's `## Testing` cutoff and
+technical validation and release gates below it. Confirm the destination;
+PRs to other branches use ordinary engineering descriptions. This also applies
+to post-merge metadata corrections and agents without automatic skill discovery.
+
 Use npm with the checked-in `package-lock.json`. Preserve useful point-of-use
 comments and avoid duplicating them in the registry. Never place credentials,
 tokens, private personal data, or environment-file contents in tracked files.

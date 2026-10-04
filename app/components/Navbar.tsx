@@ -156,7 +156,6 @@ export default function Navbar({ summerEnabled, onToggleSummer }: NavbarProps) {
             </div>
           ))}
           <div className="navbar-utilities">
-            {user && <Link className="navbar-mobile-profile" href="/profile" aria-current={pathname === "/profile" ? "page" : undefined} onClick={handleNavSelection}>My Profile</Link>}
             {user && memberId === user.id && <Link href="/invites" aria-current={pathname === "/invites" ? "page" : undefined} onClick={handleNavSelection}>Invites</Link>}
             <Link
               href="/change-log"
@@ -194,13 +193,13 @@ export default function Navbar({ summerEnabled, onToggleSummer }: NavbarProps) {
               </div>
             </div>
           </div>
-          {user && (
-            <Link href="/profile" className="navbar-profile-avatar" aria-label="My Profile" title="My Profile"
-              aria-current={pathname === "/profile" ? "page" : undefined} onClick={handleNavSelection}>
-              <PlayerAvatar playerId={user.id} name={user.user_metadata?.display_name || user.user_metadata?.first_name || "Player"} size={32} />
-            </Link>
-          )}
         </div>
+        {user && (
+          <Link href="/profile" className="navbar-profile-avatar" aria-label="My Profile" title="My Profile"
+            aria-current={pathname === "/profile" ? "page" : undefined} onClick={handleNavSelection}>
+            <PlayerAvatar playerId={user.id} name={user.user_metadata?.display_name || user.user_metadata?.first_name || "Player"} size={32} />
+          </Link>
+        )}
       </div>
     </nav>
   );

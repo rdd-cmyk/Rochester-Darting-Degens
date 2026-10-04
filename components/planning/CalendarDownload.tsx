@@ -1,7 +1,6 @@
 'use client';
 import { useId, useState } from 'react';
 import { ActionButton } from '@/components/ui/ActionButton';
-import { ActionLink } from '@/components/ui/ActionLink';
 import { leagueNightCalendar, leagueNightGoogleCalendar } from '@/lib/planning-calendar';
 import type { ScheduledNight } from '@/lib/planning';
 
@@ -13,7 +12,7 @@ export function CalendarDownload({ night }: { night: ScheduledNight }) {
   const panelId = useId();
   function toggle() {
     try {
-      setGoogleUrl(leagueNightGoogleCalendar(night, window.location.origin));
+      setGoogleUrl(leagueNightGoogleCalendar(night, window.location.origin, navigator.userAgent));
       setOpened(!opened); setError('');
     } catch { setError('This calendar entry is unavailable. Please refresh the schedule.'); }
   }
@@ -38,10 +37,10 @@ export function CalendarDownload({ night }: { night: ScheduledNight }) {
     {opened && <div id={panelId} className="calendar-options">
       <p>Choose how to add this night.</p>
       <div className="landing-actions">
-        <ActionLink variant="primary" href={googleUrl} target="_blank" rel="noopener noreferrer">Open Google Calendar ↗</ActionLink>
+        <a className="rdd-page-action rdd-page-action--primary" href={googleUrl}>Open Google Calendar in browser</a>
         <ActionButton onClick={download}>{requested ? 'Download .ics again' : 'Download .ics file'}</ActionButton>
       </div>
-      <p className="rdd-field-help">Google opens a new tab with the event filled in. Review the details, choose an end time, then save.</p>
+      <p className="rdd-field-help">Open Google’s event editor in your browser. Review the details, choose an end time, then save. On Android Chrome, this opens in Chrome rather than the Calendar app.</p>
       <details>
         <summary>Apple Calendar and other apps</summary>
         <p className="rdd-field-help">Download the .ics file. On a Mac, open Calendar and choose File → Import. On iPhone, email the downloaded file to yourself and open the attachment in Apple Mail to import it. Other calendar apps may offer their own import option.</p>

@@ -11,14 +11,22 @@ it('opens the calendar chooser without silently downloading, with a prefilled Go
   fireEvent.click(opener);
   expect(opener).toHaveAttribute('aria-expanded', 'true');
   expect(click).not.toHaveBeenCalled();
-  const google = screen.getByRole('link', { name: 'Open Google Calendar ↗' });
+  const google = screen.getByRole('link', { name: 'Open Google Calendar in browser' });
   const url = new URL(google.getAttribute('href')!);
   expect(url.hostname).toBe('calendar.google.com');
   expect(url.searchParams.get('text')).toBe(night.title);
   expect(url.searchParams.get('dates')).toBe('20261101T233000Z/20261101T233000Z');
-  expect(google).toHaveAttribute('target', '_blank');
+  expect(google).not.toHaveAttribute('target');
   fireEvent.click(opener);
-  expect(screen.queryByRole('link', { name: 'Open Google Calendar ↗' })).not.toBeInTheDocument();
+  expect(screen.queryByRole('link', { name: 'Open Google Calendar in browser' })).not.toBeInTheDocument();
+});
+it('routes the Android Chrome action explicitly to Chrome without opening a popup', () => {
+  vi.spyOn(navigator, 'userAgent', 'get').mockReturnValue('Mozilla/5.0 (Linux; Android 15) AppleWebKit/537.36 Chrome/140.0.0.0 Mobile Safari/537.36');
+  render(<CalendarDownload night={night} />);
+  fireEvent.click(screen.getByRole('button', { name: 'Add to calendar' }));
+  const google = screen.getByRole('link', { name: 'Open Google Calendar in browser' });
+  expect(google.getAttribute('href')).toContain('#Intent;scheme=https;package=com.android.chrome;');
+  expect(google).not.toHaveAttribute('target');
 });
 it('announces a requested file download and makes a repeat action explicit', () => {
   vi.useFakeTimers();

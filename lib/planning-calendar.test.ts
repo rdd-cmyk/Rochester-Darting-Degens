@@ -9,6 +9,16 @@ it('exports the actual UTC instant with stable identity and no guessed end time 
   expect(value).toContain('SEQUENCE:3\r\n'); expect(value).not.toContain('DTEND');
   expect(value).not.toContain('private-user'); expect(value).toContain('URL:https://league.example.test/league-night/plan\r\n');
 });
+it('preserves every template field in a Chrome intent and its HTTPS fallback on Android', () => {
+  const normal = leagueNightGoogleCalendar(night, 'https://league.example.test');
+  const android = leagueNightGoogleCalendar(night, 'https://league.example.test', 'Mozilla/5.0 (Linux; Android 15) Chrome/140.0.0.0 Mobile Safari/537.36');
+  const [destination, options] = android.split('#Intent;');
+  expect(destination.replace('intent:', 'https:')).toBe(normal);
+  expect(options).toBe(`scheme=https;package=com.android.chrome;S.browser_fallback_url=${encodeURIComponent(normal)};end`);
+  for (const userAgent of ['iPhone Safari/604.1', 'Windows Chrome/140.0.0.0', 'Android Chrome/140.0.0.0 EdgA/140.0.0.0', 'Android Chrome/140.0.0.0 SamsungBrowser/28.0', 'Android Chrome/140.0.0.0 OPR/90.0']) {
+    expect(leagueNightGoogleCalendar(night, 'https://league.example.test', userAgent)).toBe(normal);
+  }
+});
 it('escapes text injection and folds Unicode at 75 UTF-8 octets without splitting characters', () => {
   const value = leagueNightCalendar({ ...night, title: 'é🎯'.repeat(50) }, 'https://league.example.test');
   for (const line of value.split('\r\n')) expect(new TextEncoder().encode(line).length).toBeLessThanOrEqual(75);

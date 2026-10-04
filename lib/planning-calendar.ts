@@ -17,7 +17,7 @@ function fold(line: string) {
   return lines.join('\r\n');
 }
 /** Open Google's event editor; the user reviews and saves the event there. */
-export function leagueNightGoogleCalendar(night: ScheduledNight, origin: string) {
+export function leagueNightGoogleCalendar(night: ScheduledNight, origin: string, userAgent = '') {
   if (night.status !== 'scheduled') throw Error('This league night was cancelled.');
   const start = timestamp(night.starts_at);
   const link = new URL('/league-night/plan', origin).href;
@@ -27,6 +27,11 @@ export function leagueNightGoogleCalendar(night: ScheduledNight, origin: string)
     dates: `${start}/${start}`, stz: 'America/New_York', etz: 'America/New_York',
     details: [night.notes, 'No end time is recorded. Choose an end time before saving. Calendar copies do not update automatically if plans change.', link].filter(Boolean).join('\n\n'),
   }).toString();
+  // Android can route HTTPS Calendar links to the app, which drops template fields.
+  // A user-clicked Chrome intent keeps the web editor in Chrome; other browsers use HTTPS.
+  if (/Android/i.test(userAgent) && /Chrome\//.test(userAgent) && !/EdgA\/|OPR\/|SamsungBrowser\//.test(userAgent)) {
+    return `intent://${url.host}${url.pathname}${url.search}#Intent;scheme=https;package=com.android.chrome;S.browser_fallback_url=${encodeURIComponent(url.href)};end`;
+  }
   return url.href;
 }
 /** RFC 5545: export the real instant; no guessed duration or participant data. */

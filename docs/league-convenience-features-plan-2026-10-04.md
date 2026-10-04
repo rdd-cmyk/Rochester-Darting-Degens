@@ -90,7 +90,7 @@ inspected. No database, dependency, or calendar-file-format changes were made.
 The owner reported that Add to calendar silently downloaded a file and confirmed
 Google Calendar is the primary league preference, with some Apple Calendar users.
 The shared action now opens an inline chooser instead of starting a download.
-Google Calendar is the primary option and opens its prefilled event editor in a
+Google Calendar is the primary option and initially opened its prefilled event editor in a
 new tab for the user to review and save. The secondary Download .ics file action
 shows a live Download requested message and changes its repeat label to
 Download .ics again. A browser does not expose reliable file-save completion;
@@ -117,3 +117,23 @@ No browser errors or horizontal overflow were observed; narrow layouts were
 visually inspected. External provider navigation was intercepted for these
 synthetic checks; actual Google save and physical iPhone import remain owner
 acceptance. No hosted data or schema changed.
+
+## Android Chrome handoff follow-up, 2026-10-04
+
+The owner observed a brief popup followed by the Google Calendar app opening
+without an event draft, and confirmed Android Chrome. This is consistent with
+Android routing the HTTPS editor link to the installed app; the exact device
+handoff has not been instrumented. Android Chrome now receives a user-clicked
+[Chrome intent](https://developer.chrome.com/docs/android/intents) targeting
+`com.android.chrome`, with the complete editor URL and an encoded HTTPS fallback.
+Other browsers retain the ordinary HTTPS link. The action uses a native anchor
+and the shared primary-action appearance, without a new-tab target or scripted
+popup. Event fields, calendar-file contents and schedule duration are unchanged.
+
+Locked install, 660 tests in 85 files, coverage, lint, typecheck and production
+build passed. Synthetic browser checks covered same-tab HTTPS navigation, the
+Android Chrome intent and fallback fields, RSVP and file feedback, both themes
+and widths 1440/390/320. Narrow layouts were visually inspected. These checks
+intercept provider navigation and simulate the Android user agent; they do not
+verify OS dispatch or a real Google save. Owner Android Chrome retesting remains
+required. No hosted data or schema changed.

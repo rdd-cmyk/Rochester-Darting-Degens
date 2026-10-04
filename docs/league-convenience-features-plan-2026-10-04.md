@@ -137,3 +137,30 @@ and widths 1440/390/320. Narrow layouts were visually inspected. These checks
 intercept provider navigation and simulate the Android user agent; they do not
 verify OS dispatch or a real Google save. Owner Android Chrome retesting remains
 required. No hosted data or schema changed.
+
+## Repeated Pixel Chrome handoff failure, 2026-10-04
+
+The owner confirmed that the Chrome-targeted intent still focused the Calendar
+app without an event on their Pixel using Chrome. The previous simulated
+user-agent and URL checks did not verify actual OS behavior and are superseded
+as acceptance evidence. Remove the intent and user-agent branch. Use the HTTPS
+`https://www.google.com/calendar/render?action=TEMPLATE` endpoint shown in
+[Google-hosted event-link support examples](https://support.google.com/calendar/thread/107797661/url-to-add-event-to-calendar?hl=en),
+preserving all event fields. This alternative is not a guarantee against Android
+app-link interception. Rename the action Add to Google Calendar and remove the
+claim that it always opens in Chrome.
+
+The chooser now includes recovery help: copy the event link, paste it into
+Chrome's address bar, and, if interception continues, disable Calendar's Open
+supported links setting. Android documents this user-controlled setting in its
+[app-link verification guide](https://developer.android.com/training/app-links/verify-applinks).
+Copy success is announced only after clipboard completion; failure exposes a
+labeled selectable link, without a success message. Calendar permissions,
+OAuth, hosted data and schema are unchanged.
+
+Locked install, 660 tests in 85 files, coverage, lint, typecheck and build passed.
+Synthetic browser checks passed in both themes on Home and the RSVP destination
+at 1440/390/320 pixels, including HTTPS navigation, file feedback, clipboard
+success and failure, selectable-link recovery and narrow-screen layout. Actual
+Google navigation remains intercepted in local QA. The Pixel handoff and real
+event save remain unverified until the owner tests the refreshed Preview.

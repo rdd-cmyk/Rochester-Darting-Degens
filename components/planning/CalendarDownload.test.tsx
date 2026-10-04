@@ -1,5 +1,5 @@
 import { afterEach, expect, it, vi } from 'vitest';
-import { cleanup, fireEvent, render, screen } from '@testing-library/react';
+import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import type { ScheduledNight } from '@/lib/planning';
 import { CalendarDownload } from './CalendarDownload';
 const night = { night_id: 'calendar-test', title: 'Darts & friends', venue: 'Local hall', starts_at: '2026-11-01T18:30:00-05:00', status: 'scheduled', event_revision: 1, revision: 1, notes: 'Illustrative only' } as ScheduledNight;
@@ -11,22 +11,37 @@ it('opens the calendar chooser without silently downloading, with a prefilled Go
   fireEvent.click(opener);
   expect(opener).toHaveAttribute('aria-expanded', 'true');
   expect(click).not.toHaveBeenCalled();
-  const google = screen.getByRole('link', { name: 'Open Google Calendar in browser' });
+  const google = screen.getByRole('link', { name: 'Add to Google Calendar' });
   const url = new URL(google.getAttribute('href')!);
-  expect(url.hostname).toBe('calendar.google.com');
+  expect(url.hostname).toBe('www.google.com');
+  expect(url.pathname).toBe('/calendar/render');
   expect(url.searchParams.get('text')).toBe(night.title);
   expect(url.searchParams.get('dates')).toBe('20261101T233000Z/20261101T233000Z');
   expect(google).not.toHaveAttribute('target');
   fireEvent.click(opener);
-  expect(screen.queryByRole('link', { name: 'Open Google Calendar in browser' })).not.toBeInTheDocument();
+  expect(screen.queryByRole('link', { name: 'Add to Google Calendar' })).not.toBeInTheDocument();
 });
-it('routes the Android Chrome action explicitly to Chrome without opening a popup', () => {
-  vi.spyOn(navigator, 'userAgent', 'get').mockReturnValue('Mozilla/5.0 (Linux; Android 15) AppleWebKit/537.36 Chrome/140.0.0.0 Mobile Safari/537.36');
+it('copies the actual event link and announces the recovery step only after copying succeeds', async () => {
+  const writeText = vi.fn().mockResolvedValue(undefined);
+  vi.stubGlobal('navigator', { clipboard: { writeText } });
   render(<CalendarDownload night={night} />);
   fireEvent.click(screen.getByRole('button', { name: 'Add to calendar' }));
-  const google = screen.getByRole('link', { name: 'Open Google Calendar in browser' });
-  expect(google.getAttribute('href')).toContain('#Intent;scheme=https;package=com.android.chrome;');
-  expect(google).not.toHaveAttribute('target');
+  fireEvent.click(screen.getByRole('button', { name: 'Copy Google Calendar link' }));
+  await waitFor(() => expect(screen.getByRole('status')).toHaveTextContent('Link copied. Paste it into Chrome'));
+  expect(writeText).toHaveBeenCalledWith(screen.getByRole('link', { name: 'Add to Google Calendar' }).getAttribute('href'));
+});
+it('offers a selectable event link when clipboard access fails without announcing success', async () => {
+  const writeText = vi.fn().mockRejectedValue(Error('permission denied'));
+  vi.stubGlobal('navigator', { clipboard: { writeText } });
+  render(<CalendarDownload night={night} />);
+  fireEvent.click(screen.getByRole('button', { name: 'Add to calendar' }));
+  fireEvent.click(screen.getByRole('button', { name: 'Copy Google Calendar link' }));
+  await waitFor(() => expect(screen.getByRole('alert')).toHaveTextContent('Could not copy'));
+  const field = screen.getByRole('textbox', { name: 'Google Calendar event link' });
+  expect(field).toHaveValue(screen.getByRole('link', { name: 'Add to Google Calendar' }).getAttribute('href'));
+  fireEvent.focus(field);
+  expect((field as HTMLInputElement).selectionEnd).toBe((field as HTMLInputElement).value.length);
+  expect(screen.queryByRole('status')).not.toBeInTheDocument();
 });
 it('announces a requested file download and makes a repeat action explicit', () => {
   vi.useFakeTimers();

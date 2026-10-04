@@ -213,3 +213,11 @@ stay identical before opening, while open and after closing, at widths
 Existing RSVP, two-hour calendar fields, downloads and recovery controls also
 passed synthetic browser checks. No page errors or horizontal overflow were
 observed. No calendar provider, hosted data or schema changes were made.
+
+## Independent review, 2026-10-04
+
+The owner requested independent review of all five features. Three reviewers
+found one actionable slow-read issue in Challenges waiting. The primary
+reproduced and fixed it, and the reviewer checked the fix. All 663 tests,
+coverage, lint, typecheck, build and the combined synthetic browser flows passed.
+See the [review and verification report](league-convenience-review-2026-10-04.md).

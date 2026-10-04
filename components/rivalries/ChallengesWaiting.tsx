@@ -11,8 +11,12 @@ function WaitingForUser({ userId }: { userId: string }) {
   const [error, setError] = useState(false);
   const [busy, setBusy] = useState(false);
   const generation = useRef(0);
+  const inFlight = useRef<number | null>(null);
   const refresh = useCallback(async () => {
+    // A slow read must finish before polling or focus can start another one.
+    if (inFlight.current !== null) return;
     const current = ++generation.current;
+    inFlight.current = current;
     setBusy(true);
     try {
       const feed = await loadRivalryFeed();
@@ -21,10 +25,14 @@ function WaitingForUser({ userId }: { userId: string }) {
       setError(false);
     } catch {
       if (current === generation.current) { setIncoming(null); setError(true); }
-    } finally { if (current === generation.current) setBusy(false); }
+    } finally {
+      if (inFlight.current === current) inFlight.current = null;
+      if (current === generation.current) setBusy(false);
+    }
   }, [userId]);
   useEffect(() => {
     const guard = generation;
+    const flight = inFlight;
     // Read completion supplies the visible state; account identity remounts it.
     // eslint-disable-next-line react-hooks/set-state-in-effect
     void refresh();
@@ -32,7 +40,7 @@ function WaitingForUser({ userId }: { userId: string }) {
     const timer = window.setInterval(visible, 20000);
     window.addEventListener('focus', visible);
     document.addEventListener('visibilitychange', visible);
-    return () => { guard.current++; window.clearInterval(timer); window.removeEventListener('focus', visible); document.removeEventListener('visibilitychange', visible); };
+    return () => { guard.current++; flight.current = null; window.clearInterval(timer); window.removeEventListener('focus', visible); document.removeEventListener('visibilitychange', visible); };
   }, [refresh]);
   if (!error && incoming?.length === 0) return null;
   return <section className="rdd-content-panel challenges-waiting" aria-label="Challenges waiting">

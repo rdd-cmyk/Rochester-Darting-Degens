@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, expect, it, vi } from 'vitest';
 import { cleanup, fireEvent, render, screen, act, waitFor } from '@testing-library/react';
+import { StrictMode } from 'react';
 import type { Challenge, RivalryFeed } from '@/lib/rivalries/types';
 const mocks = vi.hoisted(() => ({ userId: 'a' as string | null, feed: vi.fn() }));
 vi.mock('@/lib/league-night/use-current-user', () => ({ useCurrentUser: () => ({ user: mocks.userId ? { id: mocks.userId } : null }) }));
@@ -7,7 +8,7 @@ vi.mock('@/lib/rivalries/api', () => ({ loadRivalryFeed: mocks.feed }));
 import { ChallengesWaiting } from './ChallengesWaiting';
 const feed = (challenges: Partial<Challenge>[] = []) => ({ challenges } as RivalryFeed);
 beforeEach(() => { mocks.userId = 'a'; mocks.feed.mockReset(); });
-afterEach(cleanup);
+afterEach(() => { cleanup(); vi.useRealTimers(); });
 it('counts only pending incoming challenges and links directly to the single challenge', async () => {
   mocks.feed.mockResolvedValue(feed([
     { id: 'incoming', recipient: 'a', sender: 'b', state: 'pending' },
@@ -54,4 +55,31 @@ it('discards an old account response after switching accounts', async () => {
   expect(screen.getByRole('link', { name: 'Review challenge' })).toHaveAttribute('href', '/rivalries/challenges/new-account');
   mocks.userId = null; view.rerender(<ChallengesWaiting />);
   expect(screen.queryByRole('region')).not.toBeInTheDocument();
+});
+it('shows a slow successful read without a polling tick discarding it, then resumes polling', async () => {
+  vi.useFakeTimers();
+  const reads: ((value: RivalryFeed) => void)[] = [];
+  mocks.feed.mockImplementation(() => new Promise<RivalryFeed>(resolve => reads.push(resolve)));
+  render(<ChallengesWaiting />);
+  await act(async () => { vi.advanceTimersByTime(25000); });
+  await act(async () => reads[0](feed([{ id: 'slow-read', recipient: 'a', state: 'pending' }])));
+  expect(screen.getByRole('link', { name: 'Review challenge' })).toHaveAttribute('href', '/rivalries/challenges/slow-read');
+  expect(mocks.feed).toHaveBeenCalledTimes(1);
+  await act(async () => { vi.advanceTimersByTime(15000); });
+  expect(mocks.feed).toHaveBeenCalledTimes(2);
+  await act(async () => reads[1](feed()));
+  expect(screen.queryByRole('region', { name: 'Challenges waiting' })).not.toBeInTheDocument();
+});
+it('starts a fresh read after Strict Mode cleanup and ignores the abandoned read', async () => {
+  let resolveOld!: (value: RivalryFeed) => void;
+  let resolveCurrent!: (value: RivalryFeed) => void;
+  mocks.feed.mockReturnValueOnce(new Promise<RivalryFeed>(resolve => { resolveOld = resolve; }))
+    .mockReturnValueOnce(new Promise<RivalryFeed>(resolve => { resolveCurrent = resolve; }));
+  render(<StrictMode><ChallengesWaiting /></StrictMode>);
+  expect(mocks.feed).toHaveBeenCalledTimes(2);
+  await act(async () => resolveOld(feed([{ id: 'abandoned', recipient: 'a', state: 'pending' }])));
+  fireEvent.focus(window);
+  expect(mocks.feed).toHaveBeenCalledTimes(2);
+  await act(async () => resolveCurrent(feed([{ id: 'current', recipient: 'a', state: 'pending' }])));
+  expect(screen.getByRole('link', { name: 'Review challenge' })).toHaveAttribute('href', '/rivalries/challenges/current');
 });

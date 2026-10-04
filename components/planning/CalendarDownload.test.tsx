@@ -1,0 +1,42 @@
+import { afterEach, expect, it, vi } from 'vitest';
+import { cleanup, fireEvent, render, screen } from '@testing-library/react';
+import type { ScheduledNight } from '@/lib/planning';
+import { CalendarDownload } from './CalendarDownload';
+const night = { night_id: 'calendar-test', title: 'Darts & friends', venue: 'Local hall', starts_at: '2026-11-01T18:30:00-05:00', status: 'scheduled', event_revision: 1, revision: 1, notes: 'Illustrative only' } as ScheduledNight;
+afterEach(() => { cleanup(); if (vi.isFakeTimers()) vi.runOnlyPendingTimers(); vi.useRealTimers(); vi.restoreAllMocks(); vi.unstubAllGlobals(); });
+it('opens the calendar chooser without silently downloading, with a prefilled Google event', () => {
+  const click = vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {});
+  render(<CalendarDownload night={night} />);
+  const opener = screen.getByRole('button', { name: 'Add to calendar' });
+  fireEvent.click(opener);
+  expect(opener).toHaveAttribute('aria-expanded', 'true');
+  expect(click).not.toHaveBeenCalled();
+  const google = screen.getByRole('link', { name: 'Open Google Calendar ↗' });
+  const url = new URL(google.getAttribute('href')!);
+  expect(url.hostname).toBe('calendar.google.com');
+  expect(url.searchParams.get('text')).toBe(night.title);
+  expect(url.searchParams.get('dates')).toBe('20261101T233000Z/20261101T233000Z');
+  expect(google).toHaveAttribute('target', '_blank');
+  fireEvent.click(opener);
+  expect(screen.queryByRole('link', { name: 'Open Google Calendar ↗' })).not.toBeInTheDocument();
+});
+it('announces a requested file download and makes a repeat action explicit', () => {
+  vi.useFakeTimers();
+  vi.stubGlobal('URL', class extends URL { static createObjectURL = vi.fn(() => 'blob:calendar'); static revokeObjectURL = vi.fn(); });
+  const click = vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {});
+  render(<CalendarDownload night={night} />);
+  fireEvent.click(screen.getByRole('button', { name: 'Add to calendar' }));
+  fireEvent.click(screen.getByRole('button', { name: 'Download .ics file' }));
+  expect(click).toHaveBeenCalledOnce();
+  expect(screen.getByRole('status')).toHaveTextContent('Download requested. Check your browser’s downloads');
+  expect(screen.getByRole('button', { name: 'Download .ics again' })).toBeInTheDocument();
+  expect(screen.getByRole('status')).not.toHaveTextContent('finished');
+});
+it('shows download failure without reporting success', () => {
+  vi.stubGlobal('URL', class extends URL { static createObjectURL = vi.fn(() => { throw Error('unavailable'); }); static revokeObjectURL = vi.fn(); });
+  render(<CalendarDownload night={night} />);
+  fireEvent.click(screen.getByRole('button', { name: 'Add to calendar' }));
+  fireEvent.click(screen.getByRole('button', { name: 'Download .ics file' }));
+  expect(screen.getByRole('alert')).toHaveTextContent('Could not download');
+  expect(screen.queryByRole('status')).not.toBeInTheDocument();
+});

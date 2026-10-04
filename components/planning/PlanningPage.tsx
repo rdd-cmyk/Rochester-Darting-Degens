@@ -522,10 +522,7 @@ function NightCard({
               : "You haven’t responded."}
         </p>
         {night.status === "scheduled" && Date.parse(night.starts_at) > now && (
-          <div className="plan-stack">
-            <div className="plan-row"><CalendarDownload night={night} /></div>
-            <p className="plan-muted">Downloaded calendar entries do not update automatically if plans change.</p>
-          </div>
+          <CalendarDownload key={`${night.night_id}:${night.revision}`} night={night} />
         )}
         <details>
           <summary>See responses</summary>

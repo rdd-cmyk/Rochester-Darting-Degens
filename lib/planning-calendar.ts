@@ -16,6 +16,19 @@ function fold(line: string) {
   lines.push(current);
   return lines.join('\r\n');
 }
+/** Open Google's event editor; the user reviews and saves the event there. */
+export function leagueNightGoogleCalendar(night: ScheduledNight, origin: string) {
+  if (night.status !== 'scheduled') throw Error('This league night was cancelled.');
+  const start = timestamp(night.starts_at);
+  const link = new URL('/league-night/plan', origin).href;
+  const url = new URL('https://calendar.google.com/calendar/r/eventedit');
+  url.search = new URLSearchParams({
+    action: 'TEMPLATE', text: night.title, location: night.venue,
+    dates: `${start}/${start}`, stz: 'America/New_York', etz: 'America/New_York',
+    details: [night.notes, 'No end time is recorded. Choose an end time before saving. Calendar copies do not update automatically if plans change.', link].filter(Boolean).join('\n\n'),
+  }).toString();
+  return url.href;
+}
 /** RFC 5545: export the real instant; no guessed duration or participant data. */
 export function leagueNightCalendar(night: ScheduledNight, origin: string, now = new Date()) {
   if (night.status !== 'scheduled') throw Error('This league night was cancelled.');

@@ -79,6 +79,9 @@
 .invite-heading, .invite-row-main { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem; }
 .invite-search { display: grid; gap: var(--rdd-space-3); }
 .invite-search label { font-weight: 700; }
+.calendar-actions { min-width: 0; max-width: 100%; }
+.calendar-options { display: grid; gap: var(--rdd-space-3); margin-top: var(--rdd-space-3); max-width: 44rem; }
+.calendar-options p { margin: 0; }
 .challenges-waiting { display: grid; gap: var(--rdd-space-3); }
 .challenges-waiting > a { justify-self: start; }
 .invite-send { display: grid; grid-template-columns: 1fr auto; gap: 1rem; align-items: end; }

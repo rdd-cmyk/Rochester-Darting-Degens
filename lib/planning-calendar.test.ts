@@ -1,6 +1,6 @@
 import { expect, it } from 'vitest';
 import type { ScheduledNight } from './planning';
-import { leagueNightCalendar } from './planning-calendar';
+import { leagueNightCalendar, leagueNightGoogleCalendar } from './planning-calendar';
 const night = { night_id: 'night-1', title: 'Darts, friends; fun', venue: 'A\\B hall', notes: 'Hello\r\nBEGIN:BAD', starts_at: '2026-11-01T18:30:00-05:00', status: 'scheduled', event_revision: 3, responses: [{ user_id: 'private-user' }] } as unknown as ScheduledNight;
 it('exports the actual UTC instant with stable identity and no guessed end time or attendee data', () => {
   const value = leagueNightCalendar(night, 'https://league.example.test', new Date('2026-10-04T12:00:00Z'));
@@ -21,4 +21,16 @@ it('escapes text injection and folds Unicode at 75 UTF-8 octets without splittin
 it('rejects cancelled nights and invalid dates', () => {
   expect(() => leagueNightCalendar({ ...night, status: 'cancelled' }, 'https://league.example.test')).toThrow();
   expect(() => leagueNightCalendar({ ...night, starts_at: 'invalid' }, 'https://league.example.test')).toThrow();
+});
+it('encodes the Google editor link with the real instant, disclosed event fields and no participants', () => {
+  const url = new URL(leagueNightGoogleCalendar(night, 'https://league.example.test'));
+  expect(url.origin).toBe('https://calendar.google.com');
+  expect(url.searchParams.get('action')).toBe('TEMPLATE');
+  expect(url.searchParams.get('text')).toBe(night.title);
+  expect(url.searchParams.get('location')).toBe(night.venue);
+  expect(url.searchParams.get('dates')).toBe('20261101T233000Z/20261101T233000Z');
+  expect(url.searchParams.get('stz')).toBe('America/New_York');
+  expect(url.searchParams.get('details')).toContain('Choose an end time before saving');
+  expect(url.href).not.toContain('private-user');
+  expect(() => leagueNightGoogleCalendar({ ...night, status: 'cancelled' }, 'https://league.example.test')).toThrow();
 });

@@ -84,3 +84,36 @@ at 1440, 390, and 320 pixels confirmed Going → saved response → calendar
 download with the correct event and UTC timestamp, plus cancelled/past exclusion.
 No page errors or horizontal overflow were observed; mobile layout was visually
 inspected. No database, dependency, or calendar-file-format changes were made.
+
+## Calendar workflow feedback, 2026-10-04
+
+The owner reported that Add to calendar silently downloaded a file and confirmed
+Google Calendar is the primary league preference, with some Apple Calendar users.
+The shared action now opens an inline chooser instead of starting a download.
+Google Calendar is the primary option and opens its prefilled event editor in a
+new tab for the user to review and save. The secondary Download .ics file action
+shows a live Download requested message and changes its repeat label to
+Download .ics again. A browser does not expose reliable file-save completion;
+the UI makes no claim that a download finished or that an event was saved.
+
+The Google link follows [Google's supported event-editor template](https://developers.google.com/workspace/calendar/api/concepts/inviting-attendees-to-events#provide_a_link_for_users_to_add_the_event).
+It encodes the real start, title, venue, notes and plan link, without attendee
+data. No end time is recorded, so the draft uses the same start/end instant and
+explicitly tells the user to choose an end time before saving. No guessed
+duration is stored. Calendar copies still do not synchronize future changes.
+
+Apple instructions distinguish [Mac Calendar file import](https://support.apple.com/guide/calendar/import-or-export-calendars-icl1023/mac)
+from [iPhone's documented import from Mail](https://support.apple.com/guide/iphone/ipha0d932e96/ios).
+The UI does not promise a universal native-app launch from a browser download.
+No calendar permissions, OAuth integration or automatic email was added.
+
+Locked install, 658 tests in 85 files, coverage, lint, typecheck, build and diff
+checks passed. Component tests exercise no automatic download when opening the
+chooser, Google encoding, visible download feedback, explicit repeat action and
+failure without a success message. Synthetic production-build browser checks
+passed on Home and planning in both themes at 1440, 390 and 320 pixels, including
+RSVP, Google new-tab navigation, ICS contents, feedback and import-help expansion.
+No browser errors or horizontal overflow were observed; narrow layouts were
+visually inspected. External provider navigation was intercepted for these
+synthetic checks; actual Google save and physical iPhone import remain owner
+acceptance. No hosted data or schema changed.

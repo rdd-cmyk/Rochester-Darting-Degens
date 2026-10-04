@@ -2,6 +2,9 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 vi.mock("@/lib/supabaseClient", () => ({ supabase: { rpc: vi.fn() } }));
 import {
   isPlanningRejection,
+  compareDateSupport,
+  hasLowerDateSupport,
+  type PlanningOption,
   pendingKey,
   planningMessage,
   pollClosed,
@@ -13,6 +16,16 @@ import {
   type ScheduledNight,
 } from "./planning";
 describe("planning contracts", () => {
+  it("prioritizes attendance, uses preference for ties, and treats chronology as a display order", () => {
+    const a = { votes: 6, starts_at: "2090-10-16", availability: { preferred: 5 } } as PlanningOption;
+    const b = { votes: 9, starts_at: "2090-10-17", availability: { preferred: 3 } } as PlanningOption;
+    expect(compareDateSupport(a, b)).toBeGreaterThan(0);
+    expect(hasLowerDateSupport(a, b)).toBe(true);
+    expect(hasLowerDateSupport({ ...a, votes: 9 }, b)).toBe(false);
+    expect(compareDateSupport({ ...a, votes: 9 }, b)).toBeLessThan(0);
+    expect(hasLowerDateSupport({ ...b, starts_at: "2090-10-18" }, b)).toBe(false);
+    expect(compareDateSupport({ ...a, votes: null, availability: null }, { ...b, votes: null, availability: null })).toBeLessThan(0);
+  });
   beforeEach(() => localStorage.clear());
   it("renders and edits Rochester wall time independent of browser zone", () => {
     expect(rochesterInput("2027-07-01T23:00:00Z")).toBe("2027-07-01T19:00");

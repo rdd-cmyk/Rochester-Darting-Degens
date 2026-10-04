@@ -6,6 +6,9 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { formatPlayerName } from "@/lib/playerName";
 import {
   isPlanningRejection,
+  DATE_RESPONSES,
+  compareDateSupport,
+  type DateResponse,
   loadPlanning,
   optionLabel,
   pendingKey,
@@ -609,6 +612,7 @@ function PollCard({
   schedule: () => void;
 }) {
   const [selected, setSelected] = useState(poll.mine);
+  const [dateResponses, setDateResponses] = useState(poll.date_responses ?? {});
   const [ballotRevision, setBallotRevision] = useState(poll.ballot_revision);
   const [dirty, setDirty] = useState(false);
   const [suggest, setSuggest] = useState(false);
@@ -623,9 +627,15 @@ function PollCard({
   );
   const closed = pollClosed(poll, now);
   const shown = closed ? poll.mine : dirty ? selected : poll.mine;
+  const shownDates = closed || !dirty ? (poll.date_responses ?? {}) : dateResponses;
+  const reveal = organizer || closed;
+  const bestDate = reveal && poll.availability_enabled
+    ? poll.options.filter((o) => o.kind === "date" && !o.withdrawn && (o.votes ?? 0) > 0).sort(compareDateSupport)[0]
+    : undefined;
   const stale = dirty && ballotRevision !== poll.ballot_revision;
   function select(id: string, checked: boolean) {
     if (!dirty) {
+      setDateResponses(poll.date_responses ?? {});
       setBallotRevision(poll.ballot_revision);
       setSelected(
         checked ? [...poll.mine, id] : poll.mine.filter((v) => v !== id),
@@ -634,6 +644,19 @@ function PollCard({
       setSelected((values) =>
         checked ? [...values, id] : values.filter((v) => v !== id),
       );
+    setDirty(true);
+  }
+  function respond(id: string, response?: DateResponse) {
+    if (!dirty) {
+      setBallotRevision(poll.ballot_revision);
+      setSelected(poll.mine);
+    }
+    setDateResponses((current) => {
+      const next = { ...(dirty ? current : poll.date_responses ?? {}) };
+      if (response) next[id] = response;
+      else delete next[id];
+      return next;
+    });
     setDirty(true);
   }
   return (
@@ -648,7 +671,7 @@ function PollCard({
           {poll.closes_at
             ? `${closed ? "Deadline" : "Closes"} ${rochesterTime(poll.closes_at)}`
             : "Manual close only"}{" "}
-          · {poll.voters} {poll.voters === 1 ? "person" : "people"} voted
+          {reveal && poll.voters !== null && <> · {poll.voters} {poll.voters === 1 ? "person" : "people"} {poll.availability_enabled ? "responded" : "voted"}</>}
         </span>
       </div>
       <h3>{poll.title}</h3>
@@ -657,8 +680,11 @@ function PollCard({
       <p className="plan-muted">
         {closed
           ? "Voting and suggestions are closed."
-          : "Select every option that works for you. Votes can change until closing."}
+          : poll.availability_enabled && poll.scope !== "venue"
+            ? "Choose your availability for each date. Preferred also means you can attend. Leave dates unanswered if you don’t know yet."
+            : "Select every option that works for you. Votes can change until closing."}
       </p>
+      {!closed && !organizer && <p className="plan-muted">Results stay hidden until voting closes.</p>}
       <div className="plan-grid">
         {(["date", "venue"] as const)
           .filter((k) => poll.scope === "both" || poll.scope === k)
@@ -667,11 +693,41 @@ function PollCard({
               <legend>
                 {k === "date" ? "When · Date & time" : "Where · Venue"}
               </legend>
+              {k === "venue" && poll.availability_enabled && <p className="plan-muted">Select every venue that works for you.</p>}
               {poll.options
                 .filter((o) => o.kind === k)
                 .map((o) => (
                   <div key={o.id}>
-                    <label className="plan-option">
+                    {k === "date" && poll.availability_enabled ? (
+                      <div className="plan-date-option">
+                        <div className="plan-head">
+                          <strong id={`date-label-${o.id}`}>{optionLabel(o)}</strong>
+                          {bestDate?.id === o.id && <span className="plan-badge">Best availability</span>}
+                        </div>
+                        <p className="plan-muted">{o.withdrawn ? "Withdrawn" : !organizer && !closed
+                          ? (o.suggestion ? "Member suggestion" : "Organizer option")
+                          : o.suggested_by ? `Suggested by ${o.suggested_by === userId ? "you" : formatPlayerName(o.author?.display_name, o.author?.first_name, o.author?.include_first_name_in_display)}` : "Organizer option"}{o.detail ? ` · ${o.detail}` : ""}</p>
+                        <div className="plan-date-choices" role="group" aria-labelledby={`date-label-${o.id}`}>
+                          {DATE_RESPONSES.map(({ value, label }) => (
+                            <label key={value} className="plan-date-choice">
+                              <input type="radio" name={`availability-${poll.id}-${o.id}`} value={value}
+                                checked={shownDates[o.id] === value} disabled={closed || o.withdrawn}
+                                onChange={() => respond(o.id, value)} />
+                              {label}
+                            </label>
+                          ))}
+                        </div>
+                        {!closed && !o.withdrawn && <ActionButton variant="quiet" onClick={() => respond(o.id)} aria-label={`Clear response for ${optionLabel(o)}`}>Clear response</ActionButton>}
+                        {reveal && (o.availability ? (
+                          <div className="plan-availability-results">
+                            <span><strong>{o.availability.can}</strong> can attend ({o.availability.preferred} preferred)</span>
+                            <span><strong>{o.availability.maybe}</strong> maybe</span>
+                            <span><strong>{o.availability.cannot}</strong> can’t attend</span>
+                            <span><strong>{o.availability.unknown}</strong> unanswered</span>
+                          </div>
+                        ) : <p className="plan-muted">Refresh to see results</p>)}
+                      </div>
+                    ) : <label className="plan-option">
                       <input
                         type="checkbox"
                         checked={!o.withdrawn && shown.includes(o.id)}
@@ -694,7 +750,7 @@ function PollCard({
                       <span className="plan-option-actions">
                         {organizer || closed ? (o.votes === null ? "Refresh to see results" : `${o.votes} ${o.votes === 1 ? "vote" : "votes"}`) : "Results after voting closes"}
                       </span>
-                    </label>
+                    </label>}
                     {!closed && !o.withdrawn && (o.is_mine ?? o.suggested_by === userId) && (
                       <ActionButton
                         onClick={() =>
@@ -712,6 +768,8 @@ function PollCard({
             </fieldset>
           ))}
       </div>
+      {bestDate && <p className="plan-notice">Best availability: {optionLabel(bestDate)}. Attendance comes first; preferences break ties. The organizer makes the final choice.</p>}
+      {reveal && poll.availability_enabled && poll.scope !== "venue" && <p className="plan-muted">Unanswered counts are among people who saved a ballot. Members who haven’t responded are not included. Everyone will RSVP after a night is scheduled.</p>}
       {!closed && (
         <div className="plan-head plan-divider">
           <div className="plan-row">
@@ -724,22 +782,23 @@ function PollCard({
                     poll_id: poll.id,
                     revision: dirty ? ballotRevision : poll.ballot_revision,
                     options: shown.filter((id) =>
-                      poll.options.some((o) => o.id === id && !o.withdrawn),
+                      poll.options.some((o) => o.id === id && !o.withdrawn && (!poll.availability_enabled || o.kind === "venue")),
                     ),
+                    ...(poll.availability_enabled ? { date_responses: Object.fromEntries(Object.entries(shownDates).filter(([id]) => poll.options.some((o) => o.id === id && o.kind === "date" && !o.withdrawn))) } : {}),
                   })
                 ) {
                   setDirty(false);
                 }
               }}
             >
-              Save my votes
+              {poll.availability_enabled ? "Save my responses" : "Save my votes"}
             </ActionButton>
             <span className="plan-muted">
               {dirty
                 ? "Unsaved choices"
-                : poll.mine.length
-                  ? "Your votes are saved"
-                  : "No vote saved"}
+                : poll.ballot_revision > 0
+                  ? "Your responses are saved"
+                  : "No response saved"}
             </span>
           </div>
           <div className="plan-row">
@@ -761,6 +820,7 @@ function PollCard({
           <ActionButton
             onClick={() => {
               setSelected(poll.mine);
+              setDateResponses(poll.date_responses ?? {});
               setBallotRevision(poll.ballot_revision);
               setDirty(false);
             }}

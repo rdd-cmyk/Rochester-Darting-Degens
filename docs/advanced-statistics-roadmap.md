@@ -8,6 +8,10 @@ The five follow-on convenience features are prepared on the same branch;
 see the [2026-10-04 plan and verification](league-convenience-features-plan-2026-10-04.md).
 Invitation search adds one more deferred service-only function; the remaining
 features use existing APIs.
+The date-availability poll update is prepared on that Preview branch; see
+[behavior, verification and activation gate](league-poll-availability-2026-10-04.md).
+Venue voting remains checkboxes. Its additive database fixture is deferred
+until the Preview recovery-backup gate is satisfied.
 `release/next` now contains League Night, planning, Board, invitations, game modes,
 team ratings, Solo Play, the PR #75 interface and Rivalry Room/player avatars.
 Prior feature results below remain dated evidence;

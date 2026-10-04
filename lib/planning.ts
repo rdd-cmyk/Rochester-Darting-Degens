@@ -2,6 +2,20 @@ import { supabase } from "@/lib/supabaseClient";
 import type { PlayerProfile } from "@/lib/league-night/types";
 
 export type Scope = "date" | "venue" | "both";
+export type DateResponse = "preferred" | "can" | "maybe" | "cannot";
+export const DATE_RESPONSES: { value: DateResponse; label: string }[] = [
+  { value: "preferred", label: "Preferred" },
+  { value: "can", label: "Can attend" },
+  { value: "maybe", label: "Maybe" },
+  { value: "cannot", label: "Can’t attend" },
+];
+export type DateAvailability = {
+  can: number;
+  preferred: number;
+  maybe: number;
+  cannot: number;
+  unknown: number;
+};
 export type PlanningOption = {
   id: string;
   kind: "date" | "venue";
@@ -11,6 +25,7 @@ export type PlanningOption = {
   suggested_by: string | null;
   withdrawn: boolean;
   votes: number | null;
+  availability?: DateAvailability | null;
   is_mine?: boolean;
   suggestion?: boolean;
   author: Omit<PlayerProfile, "id"> | null;
@@ -26,8 +41,10 @@ export type Poll = {
   revision: number;
   ballot_revision: number;
   mine: string[];
+  date_responses?: Record<string, DateResponse>;
+  availability_enabled?: boolean;
   suggestions_used: number;
-  voters: number;
+  voters: number | null;
   options: PlanningOption[];
   pairs: { date_id: string; venue_id: string; support: number }[];
   night_id: string | null;
@@ -152,6 +169,17 @@ export function optionLabel(option: PlanningOption): string {
   return option.starts_at
     ? rochesterTime(option.starts_at)
     : (option.venue ?? "");
+}
+/** Attendance first; preferences break ties. Stable chronology never reveals hidden results. */
+export function compareDateSupport(a: PlanningOption, b: PlanningOption): number {
+  return (b.votes ?? 0) - (a.votes ?? 0) ||
+    (b.availability?.preferred ?? 0) - (a.availability?.preferred ?? 0) ||
+    (a.starts_at ?? "").localeCompare(b.starts_at ?? "");
+}
+export function hasLowerDateSupport(selected: PlanningOption, best: PlanningOption): boolean {
+  return (selected.votes ?? 0) < (best.votes ?? 0) ||
+    (selected.votes === best.votes &&
+      (selected.availability?.preferred ?? 0) < (best.availability?.preferred ?? 0));
 }
 export function pollClosed(poll: Poll, now: number): boolean {
   return (

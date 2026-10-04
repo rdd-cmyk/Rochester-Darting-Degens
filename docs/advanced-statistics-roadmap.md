@@ -1,6 +1,9 @@
 # Rochester Darting Degens Advanced Statistics Roadmap
 
 Current combined-release coordination: [Next release readiness](release-next-readiness.md).
+Upcoming organizer access additions are prepared on `feat/rivalry-power-rating`;
+see the [2026-10-04 local handoff](organizer-access-tools-handoff-2026-10-04.md).
+This additive database update remains a separate hosted release gate.
 `release/next` now contains League Night, planning, Board, invitations, game modes,
 team ratings, Solo Play, the PR #75 interface and Rivalry Room/player avatars.
 Prior feature results below remain dated evidence;

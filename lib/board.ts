@@ -7,6 +7,7 @@ export type BoardReply = { id: string; post_id: string; author_id: string | null
 export type BoardPost = Omit<BoardReply, 'post_id'> & { topic: string; last_activity: string; pinned: boolean; locked: boolean; reply_count: number; reaction_count: number; reacted: boolean };
 export type BoardReport = { id: string; post_id: string; reply_id: string | null; reason: string; body: string; created_at: string };
 export type BoardAdmin = { members: BoardMember[]; reports: BoardReport[]; hidden: { id: string; body: string; kind: 'post' | 'reply' }[] };
+export type BoardAccessCandidates = { items: { user_id: string; status: 'none' | 'pending' | 'revoked'; profile: BoardProfile }[]; total: number };
 export const BOARD_PAGE_SIZE = 20;
 export const REPLY_PAGE_SIZE = 30;
 export const boardTopics: Record<string, string> = { conversation: 'Conversation', sub: 'Sub needed', practice: 'Practice', highlight: 'Highlight', announcement: 'Announcement' };
@@ -58,6 +59,8 @@ export async function boardReply(id: string): Promise<BoardReply> {
   return { ...data, profile: Array.isArray(data.profile) ? data.profile[0] ?? null : data.profile };
 }
 export const boardAdmin = (offset = 0) => rpc<BoardAdmin>('board_admin', { p_offset: offset });
+export const boardAccessCandidates = (offset = 0) => rpc<BoardAccessCandidates>('board_access_candidates', { p_offset: offset });
+export const boardGrantAccess = (userId: string) => rpc<string>('board_grant_access', { p_target: userId });
 export function boardWrite(action: string, target?: string, body?: string, topic?: string, id?: string) {
   return rpc<string>('board_write', { p_action: action, p_target: target ?? null, p_body: body ?? null, p_topic: topic ?? 'conversation', p_id: id ?? null });
 }

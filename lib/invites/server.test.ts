@@ -45,7 +45,25 @@ it('rejects cross-origin and oversized bodies before privileged work', async () 
 it('requires an authenticated member and never trusts body actor IDs', async () => {
   expect((await handleInvite(request({ action: 'create', actor: id }))).status).toBe(403);
   await handleInvite(request({ action: 'list', actor: 'forged' }, { authorization: 'Bearer synthetic-session' }));
-  expect(mocks.rpc).toHaveBeenCalledWith('invite_service', expect.objectContaining({ p_actor: id }));
+  expect(mocks.rpc).toHaveBeenCalledWith('invite_list', expect.objectContaining({ p_actor: id }));
+});
+it('uses organizer listing only with the authenticated actor and server-selected pagination', async () => {
+  mocks.rpc.mockResolvedValue({ data: { scope: 'league', items: [], total: 0, pending: 0, accepted: 0 }, error: null });
+  const result = await handleInvite(request({ action: 'list', actor: 'forged', organizer: true, page: 2, filter: 'expired' }, { authorization: 'Bearer synthetic-session' }));
+  expect(await result.json()).toMatchObject({ scope: 'league' });
+  expect(mocks.rpc).toHaveBeenCalledWith('invite_list', { p_actor: id, p_page: 2, p_filter: 'expired' });
+});
+it('keeps own invitation history available before the additive database function is installed', async () => {
+  mocks.rpc.mockResolvedValueOnce({ data: null, error: { code: 'PGRST202' } });
+  mocks.rpc.mockResolvedValueOnce({ data: { items: [], total: 0, pending: 0, accepted: 0 }, error: null });
+  const result = await handleInvite(request({ action: 'list' }, { authorization: 'Bearer synthetic-session' }));
+  expect(result.status).toBe(200);
+  expect(mocks.rpc).toHaveBeenLastCalledWith('invite_service', { p_action: 'list', p_actor: id, p_data: { page: 0, filter: 'all' } });
+});
+it('does not fall back after a permission or network failure in the organizer listing', async () => {
+  mocks.rpc.mockResolvedValueOnce({ data: null, error: { code: '42501' } });
+  expect((await handleInvite(request({ action: 'list' }, { authorization: 'Bearer synthetic-session' }))).status).toBe(503);
+  expect(mocks.rpc).toHaveBeenCalledTimes(1);
 });
 it('sends only once after a recorded request and hides private SQL fields', async () => {
   const fetchMock = vi.fn(); vi.stubGlobal('fetch', fetchMock);

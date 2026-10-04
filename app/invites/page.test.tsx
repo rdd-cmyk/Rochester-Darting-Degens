@@ -13,6 +13,19 @@ vi.mock('@/lib/supabaseClient', () => ({ supabase: { auth: { onAuthStateChange: 
 } } } }));
 const empty = { items: [], total: 0, pending: 0, accepted: 0 };
 beforeEach(() => { request.mockReset(); request.mockResolvedValue(empty); auth.change = undefined; });
+it('shows all organizer-visible invites and sender names, with controls only on owned invites', async () => {
+  const invite = { status: 'pending', delivery: 'sent', created_at: '2026-09-27', expires_at: '2026-10-04' };
+  request.mockResolvedValue({ ...empty, scope: 'league', total: 2, pending: 2, items: [
+    { ...invite, id: 'mine', email: 'mine@example.test', can_manage: true, inviter: { display_name: 'Organizer', first_name: 'Private', include_first_name_in_display: false } },
+    { ...invite, id: 'other', email: 'other@example.test', can_manage: false, inviter: { display_name: 'Another sender', first_name: 'Private', include_first_name_in_display: false } },
+  ] });
+  render(<InvitesPage />);
+  await screen.findByRole('heading', { name: 'All league invitations' });
+  expect(screen.getByText('Invited by Another sender')).toBeInTheDocument();
+  expect(screen.queryByText(/Private/)).not.toBeInTheDocument();
+  expect(screen.getAllByRole('button', { name: 'Resend' })).toHaveLength(1);
+  expect(screen.getAllByRole('button', { name: 'Revoke' })).toHaveLength(1);
+});
 it('shows a useful empty state and sends the entered address', async () => {
   render(<InvitesPage />);
   await screen.findByText('Invite someone to join your next league night.');

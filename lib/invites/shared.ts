@@ -2,8 +2,10 @@ export type InviteStatus = 'pending' | 'accepted' | 'expired' | 'revoked';
 export type InviteItem = {
   id: string; email: string; status: InviteStatus; delivery: 'sending' | 'sent' | 'failed' | 'unknown';
   created_at: string; sent_at: string | null; accepted_at: string | null; expires_at: string;
+  can_manage?: boolean;
+  inviter?: { display_name: string | null; first_name: string | null; include_first_name_in_display: boolean | null } | null;
 };
-export type InviteList = { items: InviteItem[]; total: number; pending: number; accepted: number };
+export type InviteList = { items: InviteItem[]; total: number; pending: number; accepted: number; scope?: 'own' | 'league' };
 export const inviteMessages: Record<string, string> = {
   membership_required: 'An active league account is required to send and view invitations.',
   sign_in_required: 'This address already has an account. Sign in with that account, then return to this invitation.',

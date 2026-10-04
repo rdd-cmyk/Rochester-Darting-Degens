@@ -562,6 +562,27 @@ The earlier 25/7-assertion results above remain historical, not the new test cou
   function permissions, membership integration or schema. Recheck before any
   database action. This entry is not hosted rollout authorization.
 
+### RDD-INFO-024 — Organizer Board grants and league-wide invitation history
+
+- **Status:** locally verified; hosted rollout deferred
+- **Type:** feature authority and release boundary
+- **Scope:** `feat/rivalry-power-rating`, upcoming organizer tools
+- **Statement:** Active, non-banned league members with approved Board organizer
+  membership may grant Board member access without a prior request and see all
+  league invitation history. Invite resend/revoke ownership remains with the
+  sender. Editable metadata cannot grant authority. The additive fixture stays
+  outside automatic migrations; absent new RPCs retain prior application flows.
+- **Evidence:** `supabase/tests/fixtures/organizer_access_tools.sql`,
+  `supabase/tests/organizer-tools/organizer-access.test.sql`,
+  `scripts/rehearse-organizer-tools.mjs`, and
+  `docs/organizer-access-tools-handoff-2026-10-04.md`.
+- **Validation:** 2026-10-04: 44 local pgTAP checks, 633 application tests,
+  coverage/lint/typecheck/build, and synthetic organizer/member browser checks
+  in both themes at desktop and mobile widths. Hosted SQL was not applied.
+- **Invalidation trigger:** Changes to organizer/admission authority, invitation
+  ownership or RPC permissions; refresh schema/RLS and backup/rollback evidence
+  before separately approved hosted rollout.
+
 ### RDD-INFO-009 — Windows Docker socket recovery must preserve runtime folders
 
 - **Status:** active (narrow, opt-in local workaround)

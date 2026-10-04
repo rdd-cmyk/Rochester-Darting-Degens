@@ -114,6 +114,16 @@ function Room({
     const player = ratingOf(playerId);
     return `Power Rating ${Math.round(player.rating).toLocaleString("en-US")}${player.provisional ? " (Provisional)" : ""}`;
   }
+  function fightRating(playerId: string) {
+    const player = ratingOf(playerId);
+    return (
+      <span className="rr-fight-rating" title={`Current ${ratingLabel(playerId)}`}>
+        <span className="sr-only">Current Power Rating </span>
+        <b>{Math.round(player.rating).toLocaleString("en-US")}</b>
+        {player.provisional && <span className="rr-rating-provisional">Provisional</span>}
+      </span>
+    );
+  }
   const refresh = useCallback(async () => {
     const current = ++generation.current;
     setRefreshing(true);
@@ -362,6 +372,7 @@ function Room({
                 <div className="rr-player-name">
                   <small>{left === userId ? "YOU" : "CONTENDER"}</small>
                   <Link href={`/profiles/${left}`}>{names[0]}</Link>
+                  {fightRating(left)}
                   <PlayerAvatarName avatarId={avatarIds[0]} className="rr-avatar-name" />
                 </div>
               </div>
@@ -386,6 +397,7 @@ function Room({
                 <div className="rr-player-name">
                   <small>{actualRight === userId ? "YOU" : "THE RIVAL"}</small>
                   <Link href={`/profiles/${actualRight}`}>{names[1]}</Link>
+                  {fightRating(actualRight)}
                   <PlayerAvatarName avatarId={avatarIds[1]} className="rr-avatar-name" />
                 </div>
               </div>

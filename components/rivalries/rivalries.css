@@ -217,6 +217,20 @@ a.rr-primary,
   letter-spacing: .08em;
   text-transform: uppercase;
 }
+.rr-player-name .rr-fight-rating {
+  display: block;
+  margin-top: var(--rdd-space-2);
+  color: var(--rdd-showcase-text);
+  font-size: 1rem;
+  line-height: 1.4;
+  font-variant-numeric: tabular-nums;
+}
+.rr-fight-rating b { font-weight: 700; }
+.rr-fight-rating .rr-rating-provisional {
+  display: block;
+  font-size: .75rem;
+  color: var(--rdd-showcase-focus);
+}
 .rr-score {
   text-align: center;
   align-self: start;

@@ -114,6 +114,8 @@ it("keeps all pair game choices available after changing game and board filters"
 it("shows the all-history Power Rating in cards and options regardless of rivalry filters", async () => {
   render(<RivalryRoom />);
   const rival = await screen.findByRole("button", { name: /Bravo · Power Rating 1,469 \(Provisional\)/ });
+  expect(screen.getByTitle("Current Power Rating 1,531 (Provisional)").querySelector("b")).toHaveTextContent("1,531");
+  expect(screen.getByTitle("Current Power Rating 1,469 (Provisional)").querySelector("b")).toHaveTextContent("1,469");
   expect(screen.getByRole("option", { name: "Bravo · Power Rating 1,469 (Provisional)" })).toBeInTheDocument();
   fireEvent.change(screen.getByLabelText("Game"), { target: { value: "Cricket" } });
   fireEvent.change(screen.getByLabelText("Board"), { target: { value: "Steel Tip" } });
@@ -166,6 +168,8 @@ it.each(["a", "b", "spectator"])(
     mocks.feed.mockResolvedValue({ ...baseFeed, challenges: [challenge] });
     render(<RivalryRoom challengeId="series" />);
     await screen.findByRole("heading", { name: "THE CHAPTER IS WON." });
+    expect(screen.getByTitle("Current Power Rating 1,531 (Provisional)")).toBeInTheDocument();
+    expect(screen.getByTitle("Current Power Rating 1,469 (Provisional)")).toBeInTheDocument();
     fireEvent.click(
       screen.getByRole("button", { name: "Make a fight poster" }),
     );

@@ -1,5 +1,6 @@
 "use client";
 import { ActionLink } from "@/components/ui/ActionLink";
+import { CalendarDownload } from './CalendarDownload';
 import { useEffect, useState } from "react";
 import {
   loadPlanning,
@@ -69,7 +70,7 @@ export function NextPlannedNight({ featured = false }: { featured?: boolean }) {
       <p>{rochesterTime(night.starts_at)}{night.venue ? ` · ${night.venue}` : ''}</p>
       <p className="rdd-field-help">{night.responses.filter(r => r.going).length} going
         {night.mine ? ` · You’re ${night.mine.going ? 'going' : 'not going'}` : ' · No RSVP recorded'}</p>
-      <div className="landing-actions"><ActionLink href="/league-night/plan" variant="primary">View plan & RSVP</ActionLink></div>
+      <div className="landing-actions next-night-actions"><ActionLink href="/league-night/plan" variant="primary">View plan & RSVP</ActionLink><CalendarDownload key={`${night.night_id}:${night.revision}`} night={night} /></div>
     </> : <>
       <h2 className="rdd-section-title">The next night is yours to call.</h2>
       <p>Vote on a date or venue, or check the planning page for open polls.</p>
@@ -87,7 +88,7 @@ export function NextPlannedNight({ featured = false }: { featured?: boolean }) {
               : "Vote on a date or venue and RSVP for upcoming league nights."}
           </p>
         </div>
-        <ActionLink href="/league-night/plan">Plan & RSVP</ActionLink>
+        <div className="landing-actions next-night-actions"><ActionLink href="/league-night/plan">Plan & RSVP</ActionLink>{night && !readError && <CalendarDownload key={`${night.night_id}:${night.revision}`} night={night} />}</div>
       </div>
     </section>
   );

@@ -92,6 +92,47 @@
   align-items: center;
   flex-wrap: wrap;
 }
+.planning-page .plan-date-option {
+  display: grid;
+  gap: var(--rdd-space-3);
+  padding: var(--rdd-space-4) 0;
+  border-top: 1px solid var(--rdd-border);
+}
+.planning-page .plan-date-choices {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--rdd-space-2);
+}
+.planning-page .plan-date-choice {
+  display: flex;
+  align-items: center;
+  gap: var(--rdd-space-2);
+  min-height: var(--rdd-control-min-height);
+  padding: var(--rdd-space-2) var(--rdd-space-3);
+  border: 1px solid var(--rdd-border-control);
+  border-radius: var(--rdd-radius-control);
+  cursor: pointer;
+  font-size: .875rem;
+}
+.planning-page .plan-date-choice:has(input:checked) {
+  background: color-mix(in srgb, var(--rdd-orange) 15%, var(--rdd-panel));
+}
+.planning-page .plan-date-choice input {
+  width: 19px;
+  height: 19px;
+  flex-shrink: 0;
+  accent-color: var(--rdd-orange);
+}
+.planning-page .plan-date-choice input:focus-visible {
+  outline: 3px solid var(--rdd-focus-on-panel);
+  outline-offset: 3px;
+}
+.planning-page .plan-availability-results {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--rdd-space-2) var(--rdd-space-4);
+  font-size: .875rem;
+}
 .planning-page .plan-badge {
   padding: var(--rdd-space-1) var(--rdd-space-2);
   border-radius: var(--rdd-radius-pill);

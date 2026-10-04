@@ -97,7 +97,19 @@ export async function handleInvite(request: NextRequest) {
       if (!actor) throw new Error('membership_required');
       const page = typeof body.page === 'number' && Number.isSafeInteger(body.page) && body.page >= 0 ? body.page : 0;
       const filter = required(body.filter || 'all', /^(all|pending|accepted|expired|revoked)$/);
-      return response(await rpc('list', { page, filter }, actor));
+      const search = typeof body.search === 'undefined' ? '' : required(body.search, /^[^\u0000-\u001f]{0,120}$/).trim();
+      let listing = await admin.rpc('invite_search', { p_actor: actor, p_page: page, p_filter: filter, p_search: search });
+      if (listing.error?.code === 'PGRST202') {
+        if (search) throw new Error('search_unavailable');
+        listing = await admin.rpc('invite_list', { p_actor: actor, p_page: page, p_filter: filter });
+      }
+      // Compatible app rollout before the additive organizer database update:
+      // the original RPC returns only this actor's history. Never widen scope
+      // on an authorization or network failure.
+      if (listing.error?.code === 'PGRST202') return response(await rpc('list', { page, filter }, actor));
+      if (listing.error || !listing.data) throw new Error('service_error');
+      if (listing.data.error) throw new Error(listing.data.error);
+      return response(listing.data);
     }
     if (['create', 'resend', 'revoke'].includes(action)) {
       if (!actor) throw new Error('membership_required');

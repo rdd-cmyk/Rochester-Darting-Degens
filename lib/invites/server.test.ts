@@ -45,7 +45,40 @@ it('rejects cross-origin and oversized bodies before privileged work', async () 
 it('requires an authenticated member and never trusts body actor IDs', async () => {
   expect((await handleInvite(request({ action: 'create', actor: id }))).status).toBe(403);
   await handleInvite(request({ action: 'list', actor: 'forged' }, { authorization: 'Bearer synthetic-session' }));
-  expect(mocks.rpc).toHaveBeenCalledWith('invite_service', expect.objectContaining({ p_actor: id }));
+  expect(mocks.rpc).toHaveBeenCalledWith('invite_search', expect.objectContaining({ p_actor: id }));
+});
+it('uses organizer listing only with the authenticated actor and server-selected pagination', async () => {
+  mocks.rpc.mockResolvedValue({ data: { scope: 'league', items: [], total: 0, pending: 0, accepted: 0 }, error: null });
+  const result = await handleInvite(request({ action: 'list', actor: 'forged', organizer: true, page: 2, filter: 'expired' }, { authorization: 'Bearer synthetic-session' }));
+  expect(await result.json()).toMatchObject({ scope: 'league' });
+  expect(mocks.rpc).toHaveBeenCalledWith('invite_search', { p_actor: id, p_page: 2, p_filter: 'expired', p_search: '' });
+});
+it('keeps own invitation history available before the additive database function is installed', async () => {
+  mocks.rpc.mockResolvedValueOnce({ data: null, error: { code: 'PGRST202' } });
+  mocks.rpc.mockResolvedValueOnce({ data: null, error: { code: 'PGRST202' } });
+  mocks.rpc.mockResolvedValueOnce({ data: { items: [], total: 0, pending: 0, accepted: 0 }, error: null });
+  const result = await handleInvite(request({ action: 'list' }, { authorization: 'Bearer synthetic-session' }));
+  expect(result.status).toBe(200);
+  expect(mocks.rpc).toHaveBeenLastCalledWith('invite_service', { p_action: 'list', p_actor: id, p_data: { page: 0, filter: 'all' } });
+});
+it('searches with a verified actor, literal query and server-selected pagination', async () => {
+  await handleInvite(request({ action: 'list', actor: 'forged', search: ' PLAYER 2 ', filter: 'pending', page: 1 }, { authorization: 'Bearer synthetic-session' }));
+  expect(mocks.rpc).toHaveBeenCalledWith('invite_search', { p_actor: id, p_page: 1, p_filter: 'pending', p_search: 'PLAYER 2' });
+});
+it('reports unavailable search rather than returning unfiltered legacy history', async () => {
+  mocks.rpc.mockResolvedValueOnce({ data: null, error: { code: 'PGRST202' } });
+  const result = await handleInvite(request({ action: 'list', search: 'someone' }, { authorization: 'Bearer synthetic-session' }));
+  expect(await result.json()).toMatchObject({ error: 'search_unavailable' });
+  expect(mocks.rpc).toHaveBeenCalledTimes(1);
+});
+it.each(['x'.repeat(121), 'line\nbreak', 123])('rejects invalid invitation search %j', async search => {
+  const result = await handleInvite(request({ action: 'list', search }, { authorization: 'Bearer synthetic-session' }));
+  expect(result.status).toBe(400); expect(mocks.rpc).not.toHaveBeenCalled();
+});
+it('does not fall back after a permission or network failure in the organizer listing', async () => {
+  mocks.rpc.mockResolvedValueOnce({ data: null, error: { code: '42501' } });
+  expect((await handleInvite(request({ action: 'list' }, { authorization: 'Bearer synthetic-session' }))).status).toBe(503);
+  expect(mocks.rpc).toHaveBeenCalledTimes(1);
 });
 it('sends only once after a recorded request and hides private SQL fields', async () => {
   const fetchMock = vi.fn(); vi.stubGlobal('fetch', fetchMock);

@@ -2,6 +2,20 @@ import { supabase } from "@/lib/supabaseClient";
 import type { PlayerProfile } from "@/lib/league-night/types";
 
 export type Scope = "date" | "venue" | "both";
+export type DateResponse = "preferred" | "can" | "maybe" | "cannot";
+export const DATE_RESPONSES: { value: DateResponse; label: string }[] = [
+  { value: "preferred", label: "Preferred" },
+  { value: "can", label: "Can attend" },
+  { value: "maybe", label: "Maybe" },
+  { value: "cannot", label: "Can’t attend" },
+];
+export type DateAvailability = {
+  can: number;
+  preferred: number;
+  maybe: number;
+  cannot: number;
+  unknown: number;
+};
 export type PlanningOption = {
   id: string;
   kind: "date" | "venue";
@@ -11,6 +25,7 @@ export type PlanningOption = {
   suggested_by: string | null;
   withdrawn: boolean;
   votes: number | null;
+  availability?: DateAvailability | null;
   is_mine?: boolean;
   suggestion?: boolean;
   author: Omit<PlayerProfile, "id"> | null;
@@ -26,8 +41,10 @@ export type Poll = {
   revision: number;
   ballot_revision: number;
   mine: string[];
+  date_responses?: Record<string, DateResponse>;
+  availability_enabled?: boolean;
   suggestions_used: number;
-  voters: number;
+  voters: number | null;
   options: PlanningOption[];
   pairs: { date_id: string; venue_id: string; support: number }[];
   night_id: string | null;
@@ -76,6 +93,41 @@ export type PendingPlanning = {
   payload: Record<string, unknown>;
   actor: string;
 };
+/** Use the same filtered snapshot for submission and confirmation matching. */
+export function ballotSnapshot(poll: Poll, selected: string[], dates: Record<string, DateResponse>) {
+  return {
+    options: selected.filter((id) => poll.options.some((o) => o.id === id && !o.withdrawn && (!poll.availability_enabled || o.kind === "venue"))),
+    ...(poll.availability_enabled ? { date_responses: Object.fromEntries(Object.entries(dates).filter(([id]) => poll.options.some((o) => o.id === id && o.kind === "date" && !o.withdrawn))) } : {}),
+  };
+}
+export function ballotConfirmed(poll: Poll, revision: number, selected: string[], dates: Record<string, DateResponse>, receipt?: PendingPlanning): boolean {
+  if (receipt?.action !== "vote" || receipt.payload.poll_id !== poll.id || receipt.payload.revision !== revision) return false;
+  const snapshot = ballotSnapshot(poll, selected, dates);
+  const options = receipt.payload.options as string[];
+  if (!Array.isArray(options) || JSON.stringify([...snapshot.options].sort()) !== JSON.stringify([...options].sort())) return false;
+  const entries = (values: Record<string, DateResponse>) => JSON.stringify(Object.entries(values).sort(([a], [b]) => a.localeCompare(b)));
+  return !poll.availability_enabled || entries(snapshot.date_responses ?? {}) === entries((receipt.payload.date_responses as Record<string, DateResponse>) ?? {});
+}
+/** A confirmed write supplies own state even when the next read is interrupted.
+ * Never replace a ballot already read at a later revision, including old replays. */
+export function reconcileBallot(poll: Poll, request: PendingPlanning): Poll {
+  const expected = request.payload.revision;
+  if (request.action !== "vote" || request.payload.poll_id !== poll.id || typeof expected !== "number" || poll.ballot_revision > expected) return poll;
+  const options = request.payload.options as string[];
+  if (request.payload.date_responses) {
+    const dates = request.payload.date_responses as Record<string, DateResponse>;
+    return { ...poll, ballot_revision: expected + 1, date_responses: { ...dates },
+      mine: [...options, ...Object.keys(dates).filter((id) => dates[id] === "can" || dates[id] === "preferred")] };
+  }
+  // Legacy checkbox confirmations keep states that their controls cannot express.
+  const dates: Record<string, DateResponse> = {};
+  for (const option of poll.options.filter((o) => o.kind === "date" && !o.withdrawn)) {
+    const previous = poll.date_responses?.[option.id];
+    if (options.includes(option.id)) dates[option.id] = previous === "preferred" ? "preferred" : "can";
+    else if (previous === "maybe" || previous === "cannot") dates[option.id] = previous;
+  }
+  return { ...poll, ballot_revision: expected + 1, mine: [...options], date_responses: dates };
+}
 export async function loadPlanning(
   pollOffset = 0,
   eventOffset = 0,
@@ -152,6 +204,17 @@ export function optionLabel(option: PlanningOption): string {
   return option.starts_at
     ? rochesterTime(option.starts_at)
     : (option.venue ?? "");
+}
+/** Attendance first; preferences break ties. Stable chronology never reveals hidden results. */
+export function compareDateSupport(a: PlanningOption, b: PlanningOption): number {
+  return (b.votes ?? 0) - (a.votes ?? 0) ||
+    (b.availability?.preferred ?? 0) - (a.availability?.preferred ?? 0) ||
+    (a.starts_at ?? "").localeCompare(b.starts_at ?? "");
+}
+export function hasLowerDateSupport(selected: PlanningOption, best: PlanningOption): boolean {
+  return (selected.votes ?? 0) < (best.votes ?? 0) ||
+    (selected.votes === best.votes &&
+      (selected.availability?.preferred ?? 0) < (best.availability?.preferred ?? 0));
 }
 export function pollClosed(poll: Poll, now: number): boolean {
   return (

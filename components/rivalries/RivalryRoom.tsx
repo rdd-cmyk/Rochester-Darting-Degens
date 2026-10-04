@@ -4,7 +4,7 @@ import { ActionLink } from '@/components/ui/ActionLink';
 import { ActionButton } from '@/components/ui/ActionButton';
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useCurrentUser } from "@/lib/league-night/use-current-user";
 import { loadMatches, loadProfiles } from "@/lib/league-night/api";
 import type { NightMatch, PlayerProfile } from "@/lib/league-night/types";
@@ -16,6 +16,9 @@ import {
   scoreCohorts,
 } from "@/lib/rivalries/engine";
 import { repairCandidates } from "@/lib/rivalries/repair";
+import { buildRivalryPowerRatings } from "@/lib/rivalries/power-ratings";
+import { sortOpponents, type OpponentSort } from "@/lib/rivalries/opponent-sort";
+import { STARTING_RATING } from "@/lib/stats/engine";
 import { loadRivalryFeed, rivalryError } from "@/lib/rivalries/api";
 import type { RivalryFeed } from "@/lib/rivalries/types";
 import { useRivalryOperation } from "@/lib/rivalries/use-operation";
@@ -86,6 +89,8 @@ function Room({
   const [refreshing, setRefreshing] = useState(false);
   const [loadedAt, setLoadedAt] = useState("");
   const [opponent, setOpponent] = useState("");
+  const [opponentSort, setOpponentSort] = useState<OpponentSort>('recommended');
+  const [runBackFrom, setRunBackFrom] = useState('');
   const [gameFilter, setGameFilter] = useState("");
   const [boardFilter, setBoardFilter] = useState("");
   const [modal, setModal] = useState<"challenge" | "poster" | null>(null);
@@ -101,6 +106,27 @@ function Room({
   const generation = useRef(0);
   const dialog = useRef<HTMLDialogElement>(null);
   const poster = useRef<HTMLDivElement>(null);
+  const powerRatings = useMemo(
+    () => buildRivalryPowerRatings(data?.matches ?? []),
+    [data?.matches],
+  );
+  function ratingOf(playerId: string) {
+    return powerRatings.get(playerId) ?? { rating: STARTING_RATING, provisional: true };
+  }
+  function ratingLabel(playerId: string) {
+    const player = ratingOf(playerId);
+    return `Power Rating ${Math.round(player.rating).toLocaleString("en-US")}${player.provisional ? " (Provisional)" : ""}`;
+  }
+  function fightRating(playerId: string) {
+    const player = ratingOf(playerId);
+    return (
+      <span className="rr-fight-rating" title={`Current ${ratingLabel(playerId)}`}>
+        <span className="sr-only">Current Power Rating </span>
+        <b>{Math.round(player.rating).toLocaleString("en-US")}</b>
+        {player.provisional && <span className="rr-rating-provisional">Provisional</span>}
+      </span>
+    );
+  }
   const refresh = useCallback(async () => {
     const current = ++generation.current;
     setRefreshing(true);
@@ -208,6 +234,10 @@ function Room({
     : [];
   const right = selectedChallenge?.recipient ?? pair?.[1] ?? opponent ?? "";
   const actualRight = right || rivals[0]?.opponent || "";
+  const sortedRivals = sortOpponents(rivals, opponentSort, left, powerRatings,
+    new Map(data?.profiles.map(profile => [profile.id, nameOf(profile)])));
+  const upcomingNights = data?.feed.nights.filter(n =>
+    n.night_id !== runBackFrom && Date.parse(n.starts_at) > Date.parse(data.feed.server_time)) ?? [];
   const pairHistory = buildRivalry(data?.matches ?? [], left, actualRight);
   const rivalry = buildRivalry(
     data?.matches ?? [],
@@ -349,6 +379,7 @@ function Room({
                 <div className="rr-player-name">
                   <small>{left === userId ? "YOU" : "CONTENDER"}</small>
                   <Link href={`/profiles/${left}`}>{names[0]}</Link>
+                  {fightRating(left)}
                   <PlayerAvatarName avatarId={avatarIds[0]} className="rr-avatar-name" />
                 </div>
               </div>
@@ -373,6 +404,7 @@ function Room({
                 <div className="rr-player-name">
                   <small>{actualRight === userId ? "YOU" : "THE RIVAL"}</small>
                   <Link href={`/profiles/${actualRight}`}>{names[1]}</Link>
+                  {fightRating(actualRight)}
                   <PlayerAvatarName avatarId={avatarIds[1]} className="rr-avatar-name" />
                 </div>
               </div>
@@ -384,7 +416,7 @@ function Room({
                   <ActionButton
                     variant="primary"
                     disabled={locked}
-                    onClick={() => setModal("challenge")}
+                    onClick={() => { setRunBackFrom(''); setModal("challenge"); }}
                   >
                     Challenge {left === userId ? names[1] : names[0]}{" "}
                     <span>↗</span>
@@ -423,6 +455,13 @@ function Room({
                 </p>
               </div>
               <div className="rr-actions">
+                {personal && selectedChallenge.state === 'completed' && (
+                  <ActionButton variant="primary" disabled={locked || !data.feed.active_users.includes(challengeRecipient)} onClick={() => {
+                    setGame(selectedChallenge.game); setPreset(selectedChallenge.preset);
+                    setBoard(selectedChallenge.board); setBestOf(selectedChallenge.best_of);
+                    setNight(''); setRunBackFrom(selectedChallenge.night_id); setModal('challenge');
+                  }}>Run it back</ActionButton>
+                )}
                 {personal &&
                   selectedChallenge.state === "pending" &&
                   (userId === selectedChallenge.recipient ? (
@@ -751,6 +790,11 @@ function Room({
               <span className="rr-eyebrow">Who’s next?</span>
               <h2 className="rdd-section-title">Your cast of rivals</h2>
             </div>
+            <div className="rr-actions">
+            <label>Sort opponents<select value={opponentSort} onChange={event => setOpponentSort(event.target.value as OpponentSort)}>
+              <option value="recommended">Recommended</option><option value="closest">Closest Power Rating</option>
+              <option value="most-played">Most played</option><option value="never-played">Never played</option>
+            </select></label>
             <label>
               Find a player
               <select
@@ -758,26 +802,28 @@ function Room({
                 value={actualRight}
                 onChange={(e) => setOpponent(e.target.value)}
               >
-                {data.profiles
-                  .filter(
-                    (p) =>
-                      p.id !== left && data.feed.active_users.includes(p.id),
-                  )
-                  .map((p) => (
-                    <option key={p.id} value={p.id}>
-                      {nameOf(p)}
+                {!sortedRivals.some(rival => rival.opponent === actualRight) && actualRight && <option value={actualRight}>Current selection · {names[1]} · {ratingLabel(actualRight)}</option>}
+                {sortedRivals.map(rival => (
+                    <option key={rival.opponent} value={rival.opponent}>
+                      {nameOf(data.profiles.find(profile => profile.id === rival.opponent))} · {ratingLabel(rival.opponent)}
                     </option>
                   ))}
               </select>
             </label>
+            </div>
           </div>
+          <p className="rr-muted">
+            Current Power Rating across all games and boards. Provisional until
+            10 evidence games; players without rated matches start at 1,500.
+          </p>
           <div className="rr-rival-grid">
-            {rivals.slice(0, 6).map((r) => (
+            {sortedRivals.slice(0, 6).map((r) => (
               <ActionButton
                 className={`rr-rival ${actualRight === r.opponent ? "rr-selected" : ""}`}
                 key={r.opponent}
                 onClick={() => setOpponent(r.opponent)}
                 aria-pressed={actualRight === r.opponent}
+                aria-label={`${nameOf(data.profiles.find((p) => p.id === r.opponent))} · ${ratingLabel(r.opponent)} · ${r.wins[0]} to ${r.wins[1]} recorded singles wins`}
               >
                 <PlayerAvatar
                   playerId={r.opponent}
@@ -787,12 +833,17 @@ function Room({
                 <strong>
                   {nameOf(data.profiles.find((p) => p.id === r.opponent))}
                 </strong>
+                <span className="rr-rival-rating">
+                  Power Rating <b>{Math.round(ratingOf(r.opponent).rating).toLocaleString("en-US")}</b>
+                  {ratingOf(r.opponent).provisional && <small>Provisional</small>}
+                </span>
                 <span>
                   {r.wins[0]} : {r.wins[1]} <small>recorded singles wins</small>
                 </span>
               </ActionButton>
             ))}
           </div>
+          {sortedRivals.length === 0 && <p className="rr-muted">{opponentSort === 'never-played' && rivals.length > 0 ? 'You have recorded competitive singles against every available rival. Choose another sorting option to find a rematch.' : 'No rivals are available yet.'}</p>}
         </section>
       )}
       <section className="rr-panel">
@@ -896,6 +947,7 @@ function Room({
             <form
               onSubmit={(e) => {
                 e.preventDefault();
+                if (locked || !upcomingNights.some(option => option.night_id === night)) return;
                 void op.submit({
                   action: "create",
                   id: crypto.randomUUID(),
@@ -909,6 +961,7 @@ function Room({
               }}
             >
               <p>{names.join(" vs ")} · Competitive singles</p>
+              {runBackFrom && <p className="rr-muted">Same rivals, fresh challenge. Choose a different upcoming night. Your opponent will need to accept again.</p>}
               <div className="rr-form-grid">
                 <label>
                   Game
@@ -973,7 +1026,7 @@ function Room({
                     onChange={(e) => setNight(e.target.value)}
                   >
                     <option value="">Choose an upcoming night</option>
-                    {data.feed.nights.map((n) => (
+                    {upcomingNights.map((n) => (
                       <option key={n.night_id} value={n.night_id}>
                         {n.title} · {new Date(n.starts_at).toLocaleString()}
                       </option>
@@ -985,10 +1038,10 @@ function Room({
                 The invitation expires in seven days or when the night starts.
                 Acceptance keeps RSVP and attendance separate.
               </p>
-              <ActionButton type="submit" variant="primary" disabled={locked || !night}>
+              <ActionButton type="submit" variant="primary" disabled={locked || !upcomingNights.some(option => option.night_id === night)}>
                 Send challenge ↗
               </ActionButton>
-              {!data.feed.nights.length && (
+              {!upcomingNights.length && (
                 <p>
                   No upcoming scheduled nights.{" "}
                   <Link href="/league-night/plan">Plan one first</Link>.

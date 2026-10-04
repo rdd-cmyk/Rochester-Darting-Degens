@@ -4,6 +4,8 @@ import { ActionButton } from "@/components/ui/ActionButton";
 import { useState } from "react";
 import {
   optionLabel,
+  compareDateSupport,
+  hasLowerDateSupport,
   rochesterInput,
   type PlanningAction,
   type Poll,
@@ -267,7 +269,7 @@ export function ScheduleForm({
   const dates =
     poll?.options
       .filter((o) => o.kind === "date" && !o.withdrawn)
-      .sort((a, b) => (b.votes ?? 0) - (a.votes ?? 0)) ?? [];
+      .sort(compareDateSupport) ?? [];
   const venues =
     poll?.options
       .filter((o) => o.kind === "venue" && !o.withdrawn)
@@ -298,7 +300,8 @@ export function ScheduleForm({
   );
   const lowerSupport = Boolean(
     (dates.length &&
-      dates.find((o) => o.id === dateId)?.votes !== dates[0]?.votes) ||
+      dates.find((o) => o.id === dateId) &&
+      hasLowerDateSupport(dates.find((o) => o.id === dateId)!, dates[0])) ||
       (venues.length &&
         venues.find((o) => o.id === venueId)?.votes !== venues[0]?.votes),
   );
@@ -355,7 +358,8 @@ export function ScheduleForm({
                 <option value="">Choose a date</option>
                 {dates.map((o) => (
                   <option key={o.id} value={o.id}>
-                    {optionLabel(o)} · {o.votes} {o.votes === 1 ? "vote" : "votes"}
+                    {optionLabel(o)} · {o.votes} {poll.availability_enabled ? "can attend" : o.votes === 1 ? "vote" : "votes"}
+                    {o.availability ? ` (${o.availability.preferred} preferred)` : ""}
                   </option>
                 ))}
               </select>
@@ -403,13 +407,13 @@ export function ScheduleForm({
         </div>
         {poll?.scope === "both" && (
           <p className="plan-notice">
-            {overlap} people voted for both of these options. Everyone will
+            {overlap} people {poll.availability_enabled ? "can attend this date and selected this venue" : "voted for both of these options"}. Everyone will
             RSVP separately.
           </p>
         )}
         {lowerSupport && (
           <label>
-            Why choose an option with fewer votes?
+            {poll?.availability_enabled ? "Why choose a date with lower attendance or preference, or a venue with fewer votes?" : "Why choose an option with fewer votes?"}
             <input
               required
               maxLength={300}

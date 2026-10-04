@@ -92,3 +92,35 @@ The following are only candidates to revisit after real use:
   scoreboard format and representative fixtures exist.
 
 Candidate status does not authorize implementation or hosted access.
+
+## RDD player release notes — owner-requested project skill
+
+- **Name / owner:** `rdd-player-release-notes`; RDD maintainers Ben and Tim.
+  Requested by Ben on 2026-10-04 after player-facing corrections to PRs #75/#76.
+- **Purpose:** reusable PR title/body authoring for the website Change Log,
+  limited to PRs targeting `main`, including post-merge metadata corrections.
+- **Triggers:** "Create the combined release PR to main"; "Rewrite the merged
+  main PR description for players." **Non-triggers:** feature PR to
+  `release/next`; implementation work without a PR-description task. Unknown
+  destination permits a draft, not an assumed `main` metadata update.
+- **Inputs / outputs:** actual base branch, final diff, verification evidence
+  and current public names; a player-facing title/body followed by technical
+  material under `## Testing`, plus saved-metadata verification when authorized.
+- **Permissions / stopping conditions:** author locally by default; honor
+  existing user authorization for PR publication. Never infer merge, deployment
+  or hosted-data permission. Reconcile uncertain writes before retrying.
+- **Authorities:** RDD-INFO-025, `AGENTS.md`, `app/api/change-log/route.ts`,
+  `app/change-log/ChangeLogClient.tsx`; PRs #69/#75/#76 are tone examples.
+- **Resources:** instruction-only skill; no executable helper, dependencies or
+  per-user installation. `AGENTS.md` links it for other AI tools.
+- **Discovery:** `.agents/skills/rdd-player-release-notes/SKILL.md` at repo root,
+  verified against [official Codex skill documentation](https://learn.chatgpt.com/docs/build-skills)
+  on 2026-10-04. Codex scans `.agents/skills` from CWD through the repo root.
+- **Validation:** frontmatter validator, repository-relative link checks and
+  source contract review; reversible local cases cover a main PR, non-main PR,
+  unknown destination and preservation of a merged PR's original maintainer
+  evidence. No live metadata mutation is required to validate this skill.
+- **Rollback / maintenance:** remove the discovery folder and AGENTS pointer
+  to retire the skill. Revalidate when the Change Log extraction/rendering,
+  supported discovery path or owner wording direction changes. Removing the
+  skill does not alter already published PR descriptions.

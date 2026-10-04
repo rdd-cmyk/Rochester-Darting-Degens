@@ -562,6 +562,27 @@ The earlier 25/7-assertion results above remain historical, not the new test cou
   function permissions, membership integration or schema. Recheck before any
   database action. This entry is not hosted rollout authorization.
 
+### RDD-INFO-024 — Organizer Board grants and league-wide invitation history
+
+- **Status:** locally verified; hosted rollout deferred
+- **Type:** feature authority and release boundary
+- **Scope:** `feat/rivalry-power-rating`, upcoming organizer tools
+- **Statement:** Active, non-banned league members with approved Board organizer
+  membership may grant Board member access without a prior request and see all
+  league invitation history. Invite resend/revoke ownership remains with the
+  sender. Editable metadata cannot grant authority. The additive fixture stays
+  outside automatic migrations; absent new RPCs retain prior application flows.
+- **Evidence:** `supabase/tests/fixtures/organizer_access_tools.sql`,
+  `supabase/tests/organizer-tools/organizer-access.test.sql`,
+  `scripts/rehearse-organizer-tools.mjs`, and
+  `docs/organizer-access-tools-handoff-2026-10-04.md`.
+- **Validation:** 2026-10-04: 44 local pgTAP checks, 633 application tests,
+  coverage/lint/typecheck/build, and synthetic organizer/member browser checks
+  in both themes at desktop and mobile widths. Hosted SQL was not applied.
+- **Invalidation trigger:** Changes to organizer/admission authority, invitation
+  ownership or RPC permissions; refresh schema/RLS and backup/rollback evidence
+  before separately approved hosted rollout.
+
 ### RDD-INFO-009 — Windows Docker socket recovery must preserve runtime folders
 
 - **Status:** active (narrow, opt-in local workaround)
@@ -583,3 +604,23 @@ The earlier 25/7-assertion results above remain historical, not the new test cou
   names or layout, redirected installation paths, or a failed safety test.
   Re-review before adapting this workaround to a changed installation/layout.
 - **Related:** RDD-INFO-003; no dependency package was started by this work.
+
+### RDD-INFO-025 — Main PR descriptions are player-facing release notes
+
+- **Status:** active
+- **Type:** authoring workflow / project skill pointer
+- **Scope:** PR titles and descriptions for base `main`, including merged PR edits.
+- **Statement:** the website Change Log displays the current merged PR title
+  and body before its first newline-prefixed Markdown `Testing` heading and
+  removes lines containing `codex`. Write player-facing benefits and clear
+  feature guidance above the cutoff; preserve technical validation and release
+  gates below it. Other destination branches keep engineering PR descriptions.
+- **Skill:** [RDD player release notes](../.agents/skills/rdd-player-release-notes/SKILL.md).
+  `AGENTS.md` routes relevant work to it; the repo-local skill travels with the
+  checkout for Ben, Tim and agents that follow repository instructions.
+- **Evidence / validation date:** 2026-10-04 source review of
+  `app/api/change-log/route.ts`, corrected merged PRs #75/#76 and the September 25
+  PR #69 example; creation/validation dossier in `docs/skill-governance.md`.
+- **Invalidation trigger:** changed extraction/rendering/caching, branch naming,
+  skill discovery rules or owner-approved tone. Skill use grants no additional
+  publishing, merge, deployment or hosted-data authority.

@@ -217,6 +217,20 @@ a.rr-primary,
   letter-spacing: .08em;
   text-transform: uppercase;
 }
+.rr-player-name .rr-fight-rating {
+  display: block;
+  margin-top: var(--rdd-space-2);
+  color: var(--rdd-showcase-text);
+  font-size: 1rem;
+  line-height: 1.4;
+  font-variant-numeric: tabular-nums;
+}
+.rr-fight-rating b { font-weight: 700; }
+.rr-fight-rating .rr-rating-provisional {
+  display: block;
+  font-size: .75rem;
+  color: var(--rdd-showcase-focus);
+}
 .rr-score {
   text-align: center;
   align-self: start;
@@ -754,6 +768,8 @@ a.rr-primary,
 .rr-consistent .rr-section-heading a { font-size: .875rem; }
 .rr-consistent .rr-rival-grid { gap: var(--rdd-space-3); }
 .rr-consistent .rr-rival { flex-direction: column; gap: var(--rdd-space-3); padding: var(--rdd-space-5) var(--rdd-space-3); border-radius: var(--rdd-radius-panel); min-width: 0; }
+.rr-consistent .rr-rival-rating { font-size: .875rem; line-height: 1.4; font-weight: 400; color: var(--rdd-text-muted); font-variant-numeric: tabular-nums; }
+.rr-consistent .rr-rival-rating b { color: var(--rdd-text); font-weight: 700; }
 .rr-consistent .rr-selected { box-shadow: inset 0 -3px 0 var(--rdd-accent-text); }
 .rr-consistent .rr-challenge-row { flex-wrap: wrap; gap: var(--rdd-space-3); font-size: 1rem; }
 .rr-consistent .rr-challenge-row > span { color: var(--rdd-accent-text); font-size: .875rem; white-space: normal; }

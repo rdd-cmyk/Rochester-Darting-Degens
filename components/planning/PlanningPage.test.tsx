@@ -91,6 +91,97 @@ describe("planning page", () => {
     mocks.write.mockReset().mockResolvedValue({ replayed: false });
   });
   afterEach(cleanup);
+  function availabilityFixture() {
+    const data = fixture();
+    Object.assign(data.polls[0], { availability_enabled: true, date_responses: {}, voters: 9 });
+    Object.assign(data.polls[0].options[0], { votes: 6, availability: { can: 6, preferred: 5, maybe: 0, cannot: 3, unknown: 0 } });
+    data.polls[0].options.push({ ...data.polls[0].options[0], id: "date2", starts_at: "2090-10-10T23:00:00Z", votes: 9,
+      availability: { can: 9, preferred: 3, maybe: 0, cannot: 0, unknown: 0 } });
+    return data;
+  }
+  it.each([[false, "open", false], [true, "open", true], [false, "closed", true]] as const)(
+    "only reveals availability when authorized (organizer %s, status %s)", async (organizer, status, reveal) => {
+      const data = availabilityFixture(); data.organizer = organizer; data.polls[0].status = status;
+      mocks.read.mockResolvedValue(data);
+      render(<PlanningPage userId="member" />);
+      await screen.findByText("Choose a plan");
+      expect(!!screen.queryByText((_, node) => node?.tagName === "SPAN" && node.textContent === "6 can attend (5 preferred)")).toBe(reveal);
+      expect(!!screen.queryByText("Best availability")).toBe(reveal);
+      expect(!!screen.queryByText(/9 people responded/)).toBe(reveal);
+      expect(screen.getAllByRole("radio")).toHaveLength(8);
+      screen.getAllByRole("radio").forEach((radio) => expect(radio.hasAttribute("disabled")).toBe(status === "closed"));
+    });
+  it("saves one availability response per date alongside venue checkboxes", async () => {
+    const data = availabilityFixture(); mocks.read.mockResolvedValue(data);
+    render(<PlanningPage userId="member" />);
+    const preferred = (await screen.findAllByRole("radio", { name: "Preferred" }))[0];
+    expect(preferred).not.toBeChecked();
+    fireEvent.click(preferred);
+    fireEvent.click(screen.getAllByRole("radio", { name: "Maybe" })[1]);
+    fireEvent.click(screen.getByRole("checkbox", { name: /Local hall/ }));
+    fireEvent.click(screen.getByRole("button", { name: "Save my responses" }));
+    await waitFor(() => expect(mocks.write).toHaveBeenCalled());
+    expect(mocks.write.mock.calls[0][0]).toMatchObject({ action: "vote", payload: { revision: 0, options: ["venue"], date_responses: { date: "preferred", date2: "maybe" } } });
+  });
+  it("clears a date to unknown without clearing venue choices", async () => {
+    const data = availabilityFixture(); data.polls[0].date_responses = { date: "cannot" }; data.polls[0].mine = ["venue"];
+    mocks.read.mockResolvedValue(data); render(<PlanningPage userId="member" />);
+    expect((await screen.findAllByRole("radio", { name: "Can’t attend" }))[0]).toBeChecked();
+    fireEvent.click(screen.getAllByRole("button", { name: /Clear response for/ })[0]);
+    expect(screen.getAllByRole("radio").every((e) => !(e as HTMLInputElement).checked)).toBe(true);
+    fireEvent.click(screen.getByRole("button", { name: "Save my responses" }));
+    await waitFor(() => expect(mocks.write).toHaveBeenCalled());
+    expect(mocks.write.mock.calls[0][0].payload).toMatchObject({ options: ["venue"], date_responses: {} });
+  });
+  it("retains confirmed availability when the feed refresh after saving fails", async () => {
+    mocks.read.mockResolvedValueOnce(availabilityFixture()).mockRejectedValue(new Error("read interrupted"));
+    render(<PlanningPage userId="member" />);
+    fireEvent.click((await screen.findAllByRole("radio", { name: "Preferred" }))[0]);
+    fireEvent.click(screen.getByRole("button", { name: "Save my responses" }));
+    await screen.findByText("Saved.");
+    await waitFor(() => expect(screen.getByRole("button", { name: "Save my responses" })).toBeEnabled());
+    expect(screen.getAllByRole("radio", { name: "Preferred" })[0]).toBeChecked();
+  });
+  it("reconciles a confirmed retry without falsely marking its draft stale", async () => {
+    mocks.read.mockResolvedValue(availabilityFixture());
+    mocks.write.mockRejectedValueOnce(new Error("response lost"));
+    render(<PlanningPage userId="member" />);
+    fireEvent.click((await screen.findAllByRole("radio", { name: "Preferred" }))[0]);
+    fireEvent.click(screen.getByRole("checkbox", { name: /Local hall/ }));
+    fireEvent.click(screen.getByRole("button", { name: "Save my responses" }));
+    const retry = await screen.findByRole("button", { name: "Check / retry saved request" });
+    const next = availabilityFixture();
+    Object.assign(next.polls[0], { ballot_revision: 1, date_responses: { date: "preferred" }, mine: ["date", "venue"] });
+    mocks.read.mockResolvedValue(next);
+    fireEvent.click(retry);
+    await screen.findByText("Saved.");
+    await waitFor(() => expect(screen.getByRole("button", { name: "Save my responses" })).toBeEnabled());
+    expect(screen.queryByText(/Your ballot changed on another device/)).not.toBeInTheDocument();
+    expect(screen.getAllByRole("radio", { name: "Preferred" })[0]).toBeChecked();
+    expect(screen.getByRole("checkbox", { name: /Local hall/ })).toBeChecked();
+    expect(mocks.write.mock.calls[1][0]).toEqual(mocks.write.mock.calls[0][0]);
+  });
+  it("keeps unsaved date choices and reloads the saved ballot after a revision conflict", async () => {
+    const data = availabilityFixture(); mocks.read.mockResolvedValue(data); render(<PlanningPage userId="member" />);
+    fireEvent.click((await screen.findAllByRole("radio", { name: "Preferred" }))[0]);
+    const next = availabilityFixture(); next.polls[0].ballot_revision = 1; next.polls[0].date_responses = { date: "maybe" };
+    mocks.read.mockResolvedValue(next); fireEvent.focus(window);
+    await screen.findByText(/Your ballot changed on another device/);
+    expect(screen.getAllByRole("radio", { name: "Preferred" })[0]).toBeChecked();
+    expect(screen.getByRole("button", { name: "Save my responses" })).toBeDisabled();
+    fireEvent.click(screen.getByRole("button", { name: "Load my saved ballot" }));
+    expect(screen.getAllByRole("radio", { name: "Maybe" })[0]).toBeChecked();
+    expect(screen.getByRole("button", { name: "Save my responses" })).toBeEnabled();
+  });
+  it("schedules by attendance before preference and requires a reason for lower support", async () => {
+    const data = availabilityFixture(); data.organizer = true; data.polls[0].status = "closed";
+    mocks.read.mockResolvedValue(data); render(<PlanningPage userId="organizer" />);
+    fireEvent.click(await screen.findByRole("button", { name: "Review results & schedule" }));
+    expect(screen.getByLabelText("Confirmed date & time")).toHaveValue("date2");
+    expect(screen.queryByLabelText(/Why choose a date/)).not.toBeInTheDocument();
+    fireEvent.change(screen.getByLabelText("Confirmed date & time"), { target: { value: "date" } });
+    expect(screen.getByLabelText(/Why choose a date/)).toBeRequired();
+  });
   it.each([false, true])("hides open poll results and authors from members (organizer=%s)", async (organizer) => {
     const data = fixture(); data.organizer = organizer;
     Object.assign(data.polls[0].options[0], { votes: 42, suggested_by: "other", suggestion: true,

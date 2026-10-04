@@ -5,6 +5,10 @@
 .landing-feature { border-top: 4px solid var(--rdd-orange); display: grid; align-content: start; gap: var(--rdd-space-3); }
 .landing-section-heading { display: flex; align-items: center; justify-content: space-between; gap: var(--rdd-space-4); flex-wrap: wrap; }
 .landing-actions { display: flex; align-items: center; gap: var(--rdd-space-3); flex-wrap: wrap; margin-top: var(--rdd-space-4); }
+/* Keep the calendar trigger in place when its full-width chooser is expanded. */
+.next-night-actions > .calendar-actions { display: contents; }
+.next-night-actions > .calendar-actions > :is(.calendar-options, [role="alert"]) { flex: 0 0 100%; max-width: 100%; }
+.next-night-actions > .calendar-actions > .calendar-options { margin-top: 0; }
 .landing-night-choice { display: flex; align-items: center; justify-content: space-between; gap: var(--rdd-space-4); flex-wrap: wrap; }
 .landing-power-list { margin: var(--rdd-space-4) 0; padding-left: var(--rdd-space-6); }
 .landing-power-list li { padding: var(--rdd-space-3) 0; border-bottom: 1px solid var(--rdd-border); }

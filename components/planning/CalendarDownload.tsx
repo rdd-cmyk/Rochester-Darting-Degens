@@ -48,7 +48,7 @@ export function CalendarDownload({ night }: { night: ScheduledNight }) {
         <a className="rdd-page-action rdd-page-action--primary" href={googleUrl}>Add to Google Calendar</a>
         <ActionButton onClick={download}>{requested ? 'Download .ics again' : 'Download .ics file'}</ActionButton>
       </div>
-      <p className="rdd-field-help">Review the event details in Google Calendar, choose an end time, then save.</p>
+      <p className="rdd-field-help">The calendar entry defaults to two hours. Review the details and reminder in Google Calendar, then save.</p>
       <details>
         <summary>Google Calendar opened without an event?</summary>
         <p className="rdd-field-help">Copy the event link and paste it into Chrome’s address bar. If your phone still switches to the Calendar app, open Android Settings → Apps → Calendar → Open by default and turn off Open supported links, then try again.</p>

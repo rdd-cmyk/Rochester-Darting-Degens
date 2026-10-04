@@ -164,3 +164,31 @@ at 1440/390/320 pixels, including HTTPS navigation, file feedback, clipboard
 success and failure, selectable-link recovery and narrow-screen layout. Actual
 Google navigation remains intercepted in local QA. The Pixel handoff and real
 event save remain unverified until the owner tests the refreshed Preview.
+
+## Two-hour calendar default and reminder question, 2026-10-04
+
+The owner confirmed that the replacement Google approach worked on their phone
+and requested an end time two hours after the start. Both the Google template
+and downloaded ICS now use that editable calendar default. This supersedes the
+earlier no-end-time export decision; it does not store an end time on the league
+schedule. Calculate two elapsed hours from the real start instant, including
+across midnight and daylight-saving changes. The chooser and event description
+explain the default and allow review before saving.
+
+The owner also asked whether the one-day email reminder can default to a
+notification. Google's [supported template fields](https://developers.google.com/workspace/calendar/api/concepts/inviting-attendees-to-events#provide_a_link_for_users_to_add_the_event)
+do not expose a reminder override. New events use the user's calendar-level
+settings unless the user edits the event reminder, as documented in
+[Google's notification settings guide](https://support.google.com/calendar/answer/37242).
+Programmatic per-event overrides require authenticated Calendar API access
+([reminder API guide](https://developers.google.com/workspace/calendar/api/concepts/reminders)).
+No unsupported reminder URL parameter, calendar-account setting change or new
+OAuth integration was added.
+
+Locked install, 661 tests in 85 files, coverage, lint, typecheck and production
+build passed. Tests include midnight rollover and both daylight-saving
+transitions. Synthetic browser checks confirmed the two-hour Google dates and
+downloaded DTEND on Home and planning, plus RSVP, recovery and download feedback,
+in both themes at 1440/390/320 pixels. Actual Google navigation remains
+intercepted in these checks; the owner confirmed the previous link handoff, while
+the newly defaulted end time still needs owner review in the actual draft.

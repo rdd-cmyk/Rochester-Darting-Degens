@@ -16,7 +16,7 @@ it('opens the calendar chooser without silently downloading, with a prefilled Go
   expect(url.hostname).toBe('www.google.com');
   expect(url.pathname).toBe('/calendar/render');
   expect(url.searchParams.get('text')).toBe(night.title);
-  expect(url.searchParams.get('dates')).toBe('20261101T233000Z/20261101T233000Z');
+  expect(url.searchParams.get('dates')).toBe('20261101T233000Z/20261102T013000Z');
   expect(google).not.toHaveAttribute('target');
   fireEvent.click(opener);
   expect(screen.queryByRole('link', { name: 'Add to Google Calendar' })).not.toBeInTheDocument();

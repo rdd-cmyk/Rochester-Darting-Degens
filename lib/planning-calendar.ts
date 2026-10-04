@@ -6,6 +6,11 @@ function timestamp(value: string | Date) {
   if (!Number.isFinite(date.getTime())) throw Error('The scheduled date is unavailable.');
   return date.toISOString().replace(/[-:]/g, '').replace(/\.\d{3}/, '');
 }
+// Owner-selected calendar default; personal calendar copies remain editable.
+function calendarEnd(startsAt: string) {
+  return timestamp(new Date(new Date(startsAt).getTime() + 2 * 60 * 60 * 1000));
+}
+const calendarNote = 'Calendar entries default to two hours; adjust the end time if needed. Calendar copies do not update automatically if plans change.';
 function fold(line: string) {
   const lines: string[] = []; let current = ''; let bytes = 0;
   for (const character of line) {
@@ -24,20 +29,20 @@ export function leagueNightGoogleCalendar(night: ScheduledNight, origin: string)
   const url = new URL('https://www.google.com/calendar/render');
   url.search = new URLSearchParams({
     action: 'TEMPLATE', text: night.title, location: night.venue,
-    dates: `${start}/${start}`, stz: 'America/New_York', etz: 'America/New_York',
-    details: [night.notes, 'No end time is recorded. Choose an end time before saving. Calendar copies do not update automatically if plans change.', link].filter(Boolean).join('\n\n'),
+    dates: `${start}/${calendarEnd(night.starts_at)}`, stz: 'America/New_York', etz: 'America/New_York',
+    details: [night.notes, calendarNote, link].filter(Boolean).join('\n\n'),
   }).toString();
   return url.href;
 }
-/** RFC 5545: export the real instant; no guessed duration or participant data. */
+/** RFC 5545: real start, owner-selected two-hour default, no participant data. */
 export function leagueNightCalendar(night: ScheduledNight, origin: string, now = new Date()) {
   if (night.status !== 'scheduled') throw Error('This league night was cancelled.');
   const link = new URL('/league-night/plan', origin).href;
   const lines = ['BEGIN:VCALENDAR','VERSION:2.0','PRODID:-//RDD//League Night//EN','CALSCALE:GREGORIAN',
     'BEGIN:VEVENT',`UID:${text(night.night_id)}@rdd-league-night`, `DTSTAMP:${timestamp(now)}`,
-    `DTSTART:${timestamp(night.starts_at)}`, `SEQUENCE:${night.event_revision}`,
+    `DTSTART:${timestamp(night.starts_at)}`, `DTEND:${calendarEnd(night.starts_at)}`, `SEQUENCE:${night.event_revision}`,
     `SUMMARY:${text(night.title)}`, `LOCATION:${text(night.venue)}`,
-    `DESCRIPTION:${text([night.notes, 'Check the league plan for updates. Downloaded calendar entries do not update automatically.', link].filter(Boolean).join('\n\n'))}`,
+    `DESCRIPTION:${text([night.notes, calendarNote, link].filter(Boolean).join('\n\n'))}`,
     `URL:${link}`, 'STATUS:CONFIRMED','END:VEVENT','END:VCALENDAR'];
   return lines.map(fold).join('\r\n') + '\r\n';
 }

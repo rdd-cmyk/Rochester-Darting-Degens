@@ -21,6 +21,7 @@ import {
   type ScheduledNight,
 } from "@/lib/planning";
 import { PollForm, ScheduleForm, type ChangePlanning } from "./PlanningForms";
+import { CalendarDownload } from "./CalendarDownload";
 
 export function PlanningPage({ userId }: { userId: string }) {
   const [feed, setFeed] = useState<PlanningFeed | null>(null);
@@ -520,6 +521,12 @@ function NightCard({
               ? `Your response: ${night.mine?.going ? "Going" : "Not going"}`
               : "You haven’t responded."}
         </p>
+        {night.status === "scheduled" && Date.parse(night.starts_at) > now && (
+          <div className="plan-stack">
+            <div className="plan-row"><CalendarDownload night={night} /></div>
+            <p className="plan-muted">Downloaded calendar entries do not update automatically if plans change.</p>
+          </div>
+        )}
         <details>
           <summary>See responses</summary>
           <h3>Going</h3>

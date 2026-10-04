@@ -69,3 +69,18 @@ function is compatible with older applications and can remain installed. If
 removal is required through the reviewed database process, remove only
 `public.invite_search(uuid,integer,text,text)`. Existing invitations and
 completed challenges are retained.
+
+## RSVP calendar follow-up, 2026-10-04
+
+The owner requested the calendar action on the destination of View plan & RSVP.
+Each upcoming scheduled planning card now offers the shared Add to calendar
+action directly below the recorded RSVP response, with the same download-update
+disclosure. It is available before and after responding, including after the
+RSVP cutoff; cancelled and already-started nights do not offer it.
+
+Locked installation, all 654 tests, coverage, lint, typecheck, build, and diff
+checks passed again. Synthetic production-build browser checks in both themes
+at 1440, 390, and 320 pixels confirmed Going → saved response → calendar
+download with the correct event and UTC timestamp, plus cancelled/past exclusion.
+No page errors or horizontal overflow were observed; mobile layout was visually
+inspected. No database, dependency, or calendar-file-format changes were made.

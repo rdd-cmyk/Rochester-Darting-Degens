@@ -73,13 +73,25 @@ Read-only inspection confirmed the existing admission wrappers, original private
 functions, private-table RLS/grants, three ballot columns, and the two existing
 ballots/four votes. An affected-data/function snapshot was prepared in session.
 
-**Hosted SQL has not been applied.** Automatic approval review rejected writing
-that private snapshot to `F:\DB backups` and `D:\DB BackupsHD`, requiring explicit
-approval of payload and destinations. No files were written by that rejected
-command. The recovery-backup gate therefore remains open. Obtain that approval,
-save/read/hash-check both copies, then prove recovery in an isolated database
-before applying the additive fixture to Release Testing and verifying live RPCs.
-The application changes alone retain checkbox voting until that update is active.
+**Active on isolated Preview, 2026-10-04.** The owner explicitly declined the
+Preview-only backup and instructed activation because these are testing records.
+This waives the backup gate for Release Testing only. The earlier backup-copy
+attempt was rejected by automatic approval review; no backup files were written
+and that rejected action was not retried. Production was inspected read-only:
+zero polls, and no production mutation was performed.
+
+Applied the reviewed fixture as hosted migration `planning_date_availability` to
+`uepayhdrgzrxhkqbwebo`. All 46 pgTAP assertions passed against the hosted public
+RPCs under authenticated/anonymous roles, using fictional records in a rolled-back
+transaction. Original ballot fields, all four votes and public admission-wrapper
+definitions have exactly matching before/after hashes. Private access tests pass;
+security advisors report the expected private-table/no-policy and public-definer
+RPC notices, plus the existing Auth password-protection warning. No new public
+function or table grant was added.
+
+Application commit `39b7c2d` passed GitHub CI `37218799112`; its Vercel deployment
+`dpl_8adjwkyxjTFqbE99uQnv9E97WV97` is READY on `feat/rivalry-power-rating`.
+Refresh Plan & RSVP on the branch Preview to load the new controls.
 
 For application rollback, deploy `7c1dcfb` and retain the additive database
 column/functions: tested old checkbox clients remain supported. Do not drop

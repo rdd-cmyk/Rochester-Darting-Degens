@@ -10,8 +10,9 @@ Invitation search adds one more deferred service-only function; the remaining
 features use existing APIs.
 The date-availability poll update is prepared on that Preview branch; see
 [behavior, verification and activation gate](league-poll-availability-2026-10-04.md).
-Venue voting remains checkboxes. Its additive database fixture is deferred
-until the Preview recovery-backup gate is satisfied.
+Venue voting remains checkboxes. The additive database fixture is active on
+isolated Release Testing with the owner's Preview-only backup waiver;
+production activation remains separately gated.
 `release/next` now contains League Night, planning, Board, invitations, game modes,
 team ratings, Solo Play, the PR #75 interface and Rivalry Room/player avatars.
 Prior feature results below remain dated evidence;

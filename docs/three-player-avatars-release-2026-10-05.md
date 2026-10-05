@@ -8,6 +8,14 @@ All three portraits have transparent 512px, 256px and 96px WebP exports.
 
 ## Release order
 
+Production catalog activation completed with explicit owner authorization on
+2026-10-05. The three-row insert committed in a transaction with preservation
+checks for all existing catalog rows and player selections. A separate read
+confirmed 27 entries with all three additions selectable and the original 24
+rows unchanged. Before/after catalog snapshots are retained locally outside
+version control. The application PR remains unmerged; post-deploy saving and
+owner acceptance remain pending. Step 2 below is complete for production.
+
 1. Review the PR and require passing CI/Vercel checks.
 2. Through the reviewed production release process, run only
    `supabase/tests/fixtures/three_player_avatars.sql` against RDD Main Project.
@@ -21,7 +29,8 @@ All three portraits have transparent 512px, 256px and 96px WebP exports.
 The production read-only inspection on 2026-10-05 found 24 selectable original
 IDs and none of the three additions. Merging the PR alone does not insert rows:
 fixtures are not automatically deployed. The RPC rejects IDs absent from the
-database catalog. No hosted writes were performed for this PR.
+database catalog. That was the pre-insert state; the authorized catalog insert
+above now completes this prerequisite.
 
 Do not rerun the full `rivalry_room.sql` fixture on an existing installation;
 it is a one-time fresh-install input. Its list was updated only for new local

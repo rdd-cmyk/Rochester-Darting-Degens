@@ -21,6 +21,15 @@ Prompt: Edit target: the provided avatar. Replace the raccoon-like animal with a
 
 ## Production prompts
 
+### Three approved additions — 2026-10-05
+
+The owner approved Sharp Shooter (cactus, cream jersey), Big Finish (gorilla,
+navy jersey), and Hot Streak (dragon, orange jersey). The local roster now has
+27 choices. Selected masters, built-in image_gen provenance and prompts are
+recorded in [the artwork handoff](three-player-avatars-2026-10-05.md).
+See [release steps and verification](../../three-player-avatars-release-2026-10-05.md)
+for the required existing-database catalog insert before application deployment.
+
 ### Machine expression correction — 2026-10-01
 
 `robot-v2.png` is the selected standalone transparent master from built-in

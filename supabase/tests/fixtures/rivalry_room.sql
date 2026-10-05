@@ -4,7 +4,7 @@ BEGIN;
 CREATE SCHEMA IF NOT EXISTS rivalry_private;
 REVOKE ALL ON SCHEMA rivalry_private FROM PUBLIC, anon, authenticated;
 CREATE TABLE rivalry_private.avatar_catalog(id text PRIMARY KEY, selectable boolean NOT NULL DEFAULT true);
-INSERT INTO rivalry_private.avatar_catalog(id) SELECT unnest(ARRAY['raccoon','fox','bull','owl','robot','skeleton','badger','panther','bear','crocodile','octopus','rabbit','wolf','red-panda','eagle','pig','alien','shark','tiger','bulldog','penguin','lion','tortoise','cat']);
+INSERT INTO rivalry_private.avatar_catalog(id) SELECT unnest(ARRAY['raccoon','fox','bull','owl','robot','skeleton','badger','panther','bear','crocodile','octopus','rabbit','wolf','red-panda','eagle','pig','alien','shark','tiger','bulldog','penguin','lion','tortoise','cat','cactus','gorilla','dragon']);
 CREATE TABLE rivalry_private.avatars (
   user_id uuid PRIMARY KEY REFERENCES public.profiles(id) ON DELETE CASCADE,
   avatar_id text REFERENCES rivalry_private.avatar_catalog(id), revision integer NOT NULL DEFAULT 1

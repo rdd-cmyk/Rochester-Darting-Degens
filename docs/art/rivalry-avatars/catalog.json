@@ -670,5 +670,89 @@
     "thumbnail": "/avatars/cat-96.webp",
     "medium": "/avatars/cat-256.webp",
     "selectable": true
+  },
+  {
+    "id": "cactus",
+    "label": "Sharp Shooter",
+    "version": 2,
+    "review_status": "owner artwork and name accepted 2026-10-05; publication pending",
+    "tool": "Built-in image_gen",
+    "generation_date": "2026-10-05",
+    "dimensions": {
+      "hero": [
+        512,
+        512
+      ],
+      "medium": [
+        256,
+        256
+      ],
+      "thumbnail": [
+        96,
+        96
+      ]
+    },
+    "source": "cactus-alt-focused.png",
+    "cell": null,
+    "image": "/avatars/cactus.webp",
+    "thumbnail": "/avatars/cactus-96.webp",
+    "medium": "/avatars/cactus-256.webp",
+    "selectable": true
+  },
+  {
+    "id": "gorilla",
+    "label": "Big Finish",
+    "version": 1,
+    "review_status": "owner artwork and name accepted 2026-10-05; publication pending",
+    "tool": "Built-in image_gen",
+    "generation_date": "2026-10-05",
+    "dimensions": {
+      "hero": [
+        512,
+        512
+      ],
+      "medium": [
+        256,
+        256
+      ],
+      "thumbnail": [
+        96,
+        96
+      ]
+    },
+    "source": "gorilla.png",
+    "cell": null,
+    "image": "/avatars/gorilla.webp",
+    "thumbnail": "/avatars/gorilla-96.webp",
+    "medium": "/avatars/gorilla-256.webp",
+    "selectable": true
+  },
+  {
+    "id": "dragon",
+    "label": "Hot Streak",
+    "version": 2,
+    "review_status": "owner artwork and name accepted 2026-10-05; publication pending",
+    "tool": "Built-in image_gen",
+    "generation_date": "2026-10-05",
+    "dimensions": {
+      "hero": [
+        512,
+        512
+      ],
+      "medium": [
+        256,
+        256
+      ],
+      "thumbnail": [
+        96,
+        96
+      ]
+    },
+    "source": "dragon-alt-fierce-near-smoke.png",
+    "cell": null,
+    "image": "/avatars/dragon.webp",
+    "thumbnail": "/avatars/dragon-96.webp",
+    "medium": "/avatars/dragon-256.webp",
+    "selectable": true
   }
 ]

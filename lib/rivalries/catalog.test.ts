@@ -8,7 +8,7 @@ it("keeps the shipped catalog, server whitelist and optimized files in sync", ()
     .split(",")
     .map((id) => id.trim().slice(1, -1));
   expect(AVATARS.map((a) => a.id)).toEqual(roster);
-  expect(new Set(roster).size).toBe(24);
+  expect(new Set(roster).size).toBe(27);
   for (const a of AVATARS) {
     expect(existsSync(`public${a.image}`)).toBe(true);
     expect(existsSync(`public${a.thumbnail}`)).toBe(true);

@@ -23,6 +23,9 @@ export const AVATARS = [
   ["lion", "King"],
   ["tortoise", "Slow Burn"],
   ["cat", "Nine Lives"],
+  ["cactus", "Sharp Shooter"],
+  ["gorilla", "Big Finish"],
+  ["dragon", "Hot Streak"],
 ].map(([id, label]) => ({
   id,
   label,

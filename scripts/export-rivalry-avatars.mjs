@@ -32,6 +32,18 @@ const labels = new Map(
     ),
   ].map((m) => [m[1], m[2]]),
 );
+async function exportPortrait(cell, name) {
+  for (const [size, suffix, quality] of [
+    [512, "", 85],
+    [256, "-256", 82],
+    [96, "-96", 80],
+  ]) {
+    await cell.clone()
+      .resize(size, size, { fit: "contain", background: "#00000000" })
+      .webp({ quality })
+      .toFile(`${output}/${name}${suffix}.webp`);
+  }
+}
 for (const sheet of sheets) {
   const source = path.join(sources, `${sheet.id}.png`);
   const meta = await sharp(source).metadata();
@@ -53,21 +65,7 @@ for (const sheet of sheets) {
       width: 512,
       height: 500,
     });
-    await cell
-      .clone()
-      .resize(512, 512, { fit: "contain", background: "#00000000" })
-      .webp({ quality: 85 })
-      .toFile(`${output}/${name}.webp`);
-    await cell
-      .clone()
-      .resize(256, 256, { fit: "contain", background: "#00000000" })
-      .webp({ quality: 82 })
-      .toFile(`${output}/${name}-256.webp`);
-    await cell
-      .clone()
-      .resize(96, 96, { fit: "contain", background: "#00000000" })
-      .webp({ quality: 80 })
-      .toFile(`${output}/${name}-96.webp`);
+    await exportPortrait(cell, name);
     manifest.push({
       id: name,
       label: labels.get(name),
@@ -89,8 +87,32 @@ for (const sheet of sheets) {
     `${sheet.id}: ${meta.width}x${meta.height}, alpha minimum ${stats.channels[3]?.min ?? "none"}`,
   );
 }
+// New standalone portraits do not need a six-character source sheet.
+for (const name of ["cactus", "gorilla", "dragon"]) {
+  const source = ({
+    cactus: "cactus-alt-focused.png",
+    gorilla: "gorilla.png",
+    dragon: "dragon-alt-fierce-near-smoke.png",
+  })[name];
+  await exportPortrait(sharp(path.join(sources, source)), name);
+  manifest.push({
+    id: name,
+    label: labels.get(name),
+    version: name === "gorilla" ? 1 : 2,
+    review_status: "owner artwork and name accepted 2026-10-05; publication pending",
+    tool: "Built-in image_gen",
+    generation_date: "2026-10-05",
+    dimensions: { hero: [512, 512], medium: [256, 256], thumbnail: [96, 96] },
+    source,
+    cell: null,
+    image: `/avatars/${name}.webp`,
+    thumbnail: `/avatars/${name}-96.webp`,
+    medium: `/avatars/${name}-256.webp`,
+    selectable: true,
+  });
+}
 writeFileSync(
   `${sources}/catalog.json`,
   JSON.stringify(manifest, null, 2) + "\n",
 );
-console.log("Exported 24 individual portraits with 256px and 96px variants.");
+console.log(`Exported ${manifest.length} individual portraits with 256px and 96px variants.`);

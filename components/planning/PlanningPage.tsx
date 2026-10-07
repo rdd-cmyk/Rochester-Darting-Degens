@@ -628,6 +628,7 @@ function PollCard({
   const [ballotRevision, setBallotRevision] = useState(poll.ballot_revision);
   const [dirty, setDirty] = useState(false);
   const [suggest, setSuggest] = useState(false);
+  const [showResults, setShowResults] = useState(false);
   const [kind, setKind] = useState<"date" | "venue">(
     poll.scope === "venue" ? "venue" : "date",
   );
@@ -643,7 +644,7 @@ function PollCard({
   const draftDirty = dirty && !ballotConfirmed(poll, ballotRevision, selected, dateResponses, confirmedBallot);
   const shown = closed ? poll.mine : draftDirty ? selected : poll.mine;
   const shownDates = closed || !draftDirty ? (poll.date_responses ?? {}) : dateResponses;
-  const reveal = organizer || closed;
+  const reveal = closed || (organizer && showResults);
   const bestDate = reveal && poll.availability_enabled
     ? poll.options.filter((o) => o.kind === "date" && !o.withdrawn && (o.votes ?? 0) > 0).sort(compareDateSupport)[0]
     : undefined;
@@ -700,6 +701,17 @@ function PollCard({
             : "Select every option that works for you. Votes can change until closing."}
       </p>
       {!closed && !organizer && <p className="plan-muted">Results stay hidden until voting closes.</p>}
+      {!closed && organizer && (
+        <div className="plan-row">
+          <ActionButton
+            aria-pressed={showResults}
+            onClick={() => setShowResults((visible) => !visible)}
+          >
+            {showResults ? "Hide results" : "Show results"}
+          </ActionButton>
+          {!showResults && <span className="plan-muted">Results are hidden while you choose.</span>}
+        </div>
+      )}
       <div className="plan-grid">
         {(["date", "venue"] as const)
           .filter((k) => poll.scope === "both" || poll.scope === k)
@@ -763,7 +775,7 @@ function PollCard({
                         </small>
                       </span>
                       <span className="plan-option-actions">
-                        {organizer || closed ? (o.votes === null ? "Refresh to see results" : `${o.votes} ${o.votes === 1 ? "vote" : "votes"}`) : "Results after voting closes"}
+                        {reveal ? (o.votes === null ? "Refresh to see results" : `${o.votes} ${o.votes === 1 ? "vote" : "votes"}`) : organizer ? "Results hidden" : "Results after voting closes"}
                       </span>
                     </label>}
                     {!closed && !o.withdrawn && (o.is_mine ?? o.suggested_by === userId) && (

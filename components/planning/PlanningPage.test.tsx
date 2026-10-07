@@ -99,7 +99,7 @@ describe("planning page", () => {
       availability: { can: 9, preferred: 3, maybe: 0, cannot: 0, unknown: 0 } });
     return data;
   }
-  it.each([[false, "open", false], [true, "open", true], [false, "closed", true]] as const)(
+  it.each([[false, "open", false], [true, "open", false], [false, "closed", true], [true, "closed", true]] as const)(
     "only reveals availability when authorized (organizer %s, status %s)", async (organizer, status, reveal) => {
       const data = availabilityFixture(); data.organizer = organizer; data.polls[0].status = status;
       mocks.read.mockResolvedValue(data);
@@ -122,6 +122,45 @@ describe("planning page", () => {
     fireEvent.click(screen.getByRole("button", { name: "Save my responses" }));
     await waitFor(() => expect(mocks.write).toHaveBeenCalled());
     expect(mocks.write.mock.calls[0][0]).toMatchObject({ action: "vote", payload: { revision: 0, options: ["venue"], date_responses: { date: "preferred", date2: "maybe" } } });
+  });
+  it("lets organizers reveal and hide all live results without saving a preference", async () => {
+    const data = availabilityFixture(); data.organizer = true;
+    data.polls[0].options[1].votes = 4;
+    mocks.read.mockResolvedValue(data);
+    const view = render(<PlanningPage userId="organizer" />);
+    const toggle = await screen.findByRole("button", { name: "Show results" });
+    expect(toggle).toHaveAttribute("aria-pressed", "false");
+    expect(screen.queryByText(/9 people responded/)).not.toBeInTheDocument();
+    expect(screen.queryByText("4 votes")).not.toBeInTheDocument();
+    expect(screen.queryByText("Best availability")).not.toBeInTheDocument();
+    fireEvent.click(toggle);
+    expect(screen.getByRole("button", { name: "Hide results" })).toHaveAttribute("aria-pressed", "true");
+    expect(screen.getByText(/9 people responded/)).toBeVisible();
+    expect(screen.getByText("4 votes")).toBeVisible();
+    expect(screen.getByText("Best availability")).toBeVisible();
+    expect(screen.getByText((_, node) => node?.tagName === "SPAN" && node.textContent === "6 can attend (5 preferred)")).toBeVisible();
+    fireEvent.click(screen.getByRole("button", { name: "Hide results" }));
+    expect(screen.queryByText(/9 people responded/)).not.toBeInTheDocument();
+    expect(screen.queryByText("4 votes")).not.toBeInTheDocument();
+    expect(screen.queryByText("Best availability")).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Show results" }));
+    view.unmount();
+    render(<PlanningPage userId="organizer" />);
+    await screen.findByRole("button", { name: "Show results" });
+    expect(screen.queryByText("4 votes")).not.toBeInTheDocument();
+    expect(mocks.write).not.toHaveBeenCalled();
+  });
+  it("only reveals the active poll whose toggle was clicked", async () => {
+    const data = fixture(); data.organizer = true;
+    data.polls[0].options[0].votes = 42;
+    data.polls.push({ ...data.polls[0], id: "other-poll", title: "Another plan" });
+    mocks.read.mockResolvedValue(data);
+    render(<PlanningPage userId="organizer" />);
+    const toggles = await screen.findAllByRole("button", { name: "Show results" });
+    expect(toggles).toHaveLength(2);
+    fireEvent.click(toggles[0]);
+    expect(screen.getAllByText("42 votes")).toHaveLength(1);
+    expect(screen.getAllByRole("button", { name: "Show results" })).toHaveLength(1);
   });
   it("clears a date to unknown without clearing venue choices", async () => {
     const data = availabilityFixture(); data.polls[0].date_responses = { date: "cannot" }; data.polls[0].mine = ["venue"];
@@ -189,7 +228,7 @@ describe("planning page", () => {
     mocks.read.mockResolvedValue(data);
     render(<PlanningPage userId="member" />);
     await screen.findByText("Choose a plan");
-    expect(!!screen.queryByText(/42 votes/)).toBe(organizer);
+    expect(screen.queryByText(/42 votes/)).not.toBeInTheDocument();
     expect(!!screen.queryByText(/Suggested by Secret suggester/)).toBe(organizer);
   });
   it("reveals closed results and lets members withdraw their own masked suggestion while open", async () => {

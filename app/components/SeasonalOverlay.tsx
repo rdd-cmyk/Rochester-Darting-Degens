@@ -23,13 +23,13 @@ function Dart() {
   );
 }
 
-const PARTICLES = Array.from({ length: 14 }, (_, index) => {
+const PARTICLES = Array.from({ length: 18 }, (_, index) => {
   const left = (index * 23) % 100; // deterministic spread across the viewport
-  const size = 16 + ((index * 7) % 12);
+  const size = 20 + ((index * 7) % 12);
   const delay = (index * 79) % 20;
   const duration = 15 + ((index * 5) % 11);
   const drift = ((index % 2 === 0 ? 1 : -1) * (8 + (index % 7))) * 2;
-  const opacity = 0.12 + ((index * 13) % 10) / 100;
+  const opacity = 0.20 + ((index * 13) % 10) / 100;
 
   return { left, size, delay, duration, drift, opacity };
 });
@@ -44,10 +44,10 @@ export default function SeasonalOverlay({ season }: { season: Season }) {
           className="seasonal-particle"
           style={{
             left: `${particle.left}%`,
-            fontSize: `${particle.size}px`,
+            ["--particle-size" as string]: `${particle.size}px`,
             animationDelay: `-${particle.delay}s`,
             animationDuration: `${particle.duration}s`,
-            opacity: particle.opacity,
+            ["--particle-opacity" as string]: particle.opacity,
             ["--drift" as string]: `${particle.drift}px`,
           }}
         >

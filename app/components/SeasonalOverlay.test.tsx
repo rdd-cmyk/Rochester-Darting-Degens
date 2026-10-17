@@ -10,8 +10,8 @@ it.each<[Season, string]>([
   const layer = container.firstElementChild!;
   expect(layer).toHaveAttribute("aria-hidden", "true");
   expect(layer).toHaveAttribute("data-season", season);
-  expect(layer.querySelectorAll(".seasonal-particle")).toHaveLength(14);
-  expect(layer.querySelectorAll("svg")).toHaveLength(4);
+  expect(layer.querySelectorAll(".seasonal-particle")).toHaveLength(18);
+  expect(layer.querySelectorAll("svg")).toHaveLength(5);
   expect(layer.textContent).toContain(icon);
   if (season === "fall") expect(layer.textContent).not.toContain("🌴");
   unmount();

@@ -710,10 +710,24 @@ textarea:disabled {
 .seasonal-particle {
   position: absolute;
   top: -10%;
+  font-size: var(--particle-size);
+  opacity: var(--particle-opacity);
   animation-name: seasonal-float;
   animation-timing-function: linear;
   animation-iteration-count: infinite;
   filter: drop-shadow(0 2px 6px rgba(251, 146, 60, 0.35));
+}
+
+@media (max-width: 640px) {
+  /* Keep the increase gentler on phones: 16 decorations at 18–29px. */
+  .seasonal-particle {
+    font-size: calc(var(--particle-size) - 2px);
+    opacity: calc(var(--particle-opacity) - 0.02);
+  }
+  .seasonal-particle:nth-child(n + 17) {
+    display: none;
+    animation: none;
+  }
 }
 
 .stats-page-shell {

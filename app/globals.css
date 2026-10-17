@@ -699,7 +699,7 @@ textarea:disabled {
   }
 }
 
-.summer-overlay {
+.seasonal-overlay {
   position: fixed;
   inset: 0;
   pointer-events: none;
@@ -707,10 +707,10 @@ textarea:disabled {
   z-index: 5;
 }
 
-.summer-particle {
+.seasonal-particle {
   position: absolute;
   top: -10%;
-  animation-name: summer-float;
+  animation-name: seasonal-float;
   animation-timing-function: linear;
   animation-iteration-count: infinite;
   filter: drop-shadow(0 2px 6px rgba(251, 146, 60, 0.35));
@@ -1349,7 +1349,7 @@ textarea:disabled {
   }
 }
 
-@keyframes summer-float {
+@keyframes seasonal-float {
   0% {
     transform: translate3d(0, -10%, 0) rotate(-10deg) scale(0.95);
   }
@@ -1447,7 +1447,7 @@ textarea:disabled {
 .navbar-auth { min-width: 116px; display: flex; justify-content: flex-end; }
 .navbar-auth-loading { width: 100%; height: 44px; border-radius: 0.55rem; background: rgba(255,255,255,0.12); }
 .navbar-auth-action,
-.navbar-summer-toggle,
+.navbar-seasonal-toggle,
 .navbar-toggle {
   display: inline-flex;
   justify-content: center;
@@ -1465,11 +1465,11 @@ textarea:disabled {
 }
 .navbar-auth-action { width: 100%; }
 .navbar-toggle { display: none; }
-.navbar-summer-toggle[aria-pressed="true"] { background: var(--rdd-orange); border-color: var(--rdd-orange); color: #08264d; }
+.navbar-seasonal-toggle[aria-pressed="true"] { background: var(--rdd-orange); border-color: var(--rdd-orange); color: #08264d; }
 .navbar-auth-action:hover,
-.navbar-summer-toggle:hover,
+.navbar-seasonal-toggle:hover,
 .navbar-toggle:hover { background: rgba(255,255,255,0.18); }
-.navbar-summer-toggle[aria-pressed="true"]:hover { background: #ffc28f; }
+.navbar-seasonal-toggle[aria-pressed="true"]:hover { background: #ffc28f; }
 .rdd-page-header { display: grid; gap: 0.55rem; padding: clamp(1.3rem, 3vw, 2.2rem); border-radius: 1rem; color: #fff; background: linear-gradient(120deg, #08264d, #164b80); }
 .rdd-page-header h1 { font-size: clamp(1.65rem, 3vw, 2.5rem); line-height: 1.14; letter-spacing: -0.025em; font-weight: 800; }
 .rdd-page-header p { color: #e2eaf4; line-height: 1.55; max-width: 68ch; }
@@ -1770,12 +1770,12 @@ html { scrollbar-gutter: stable; }
   .navbar-links a { width: 100%; }
   .navbar-actions { gap: 0.4rem; }
   .navbar-auth { min-width: 84px; }
-  .navbar-auth-action, .navbar-summer-toggle { padding-inline: 0.55rem; font-size: 0.84rem; }
+  .navbar-auth-action, .navbar-seasonal-toggle { padding-inline: 0.55rem; font-size: 0.84rem; }
   .rdd-actions > :is(a, button) { flex: 1 1 100%; }
 }
 @media (max-width: 360px) {
   .navbar-shell { padding-inline: 0.45rem; gap: 0.25rem; }
-  .navbar-toggle, .navbar-auth-action, .navbar-summer-toggle { padding-inline: 0.4rem; font-size: 0.78rem; }
+  .navbar-toggle, .navbar-auth-action, .navbar-seasonal-toggle { padding-inline: 0.4rem; font-size: 0.78rem; }
   .navbar-actions { gap: 0.25rem; }
   .navbar-auth { min-width: 72px; }
 }
@@ -1787,13 +1787,13 @@ html { scrollbar-gutter: stable; }
   .navbar-links a { width: 100%; }
   .navbar-actions { margin-left: auto; }
 }
-.summer-overlay { z-index: 0; }
+.seasonal-overlay { z-index: 0; }
 @media (max-width: 640px) {
   .navbar-links { background: var(--rdd-navy); }
   .navbar-links a { width: 100%; }
 }
 @media (prefers-reduced-motion: reduce) {
-  .summer-overlay { display: none; }
+  .seasonal-overlay { display: none; }
   *, *::before, *::after {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;

@@ -9,8 +9,9 @@ import { usePathname, useRouter } from "next/navigation";
 import type { User } from "@supabase/supabase-js";
 
 type NavbarProps = {
-  summerEnabled: boolean;
-  onToggleSummer: () => void;
+  seasonLabel: string;
+  seasonalEnabled: boolean;
+  onToggleSeasonal: () => void;
 };
 
 const pageGroups = [
@@ -18,7 +19,7 @@ const pageGroups = [
   { title: "Around the League", pages: [["/rivalries", "Rivalry Room"], ["/profiles", "Players"], ["/board", "League Board"], ["/solo", "Solo"]] },
 ];
 
-export default function Navbar({ summerEnabled, onToggleSummer }: NavbarProps) {
+export default function Navbar({ seasonalEnabled, onToggleSeasonal, seasonLabel }: NavbarProps) {
   const [user, setUser] = useState<User | null>(null);
   const [memberId, setMemberId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
@@ -167,11 +168,11 @@ export default function Navbar({ summerEnabled, onToggleSummer }: NavbarProps) {
             <div className="navbar-actions">
               <button
                 type="button"
-                onClick={onToggleSummer}
-                aria-pressed={summerEnabled}
-                className="navbar-summer-toggle"
+                onClick={onToggleSeasonal}
+                aria-pressed={seasonalEnabled}
+                className="navbar-seasonal-toggle"
               >
-                {summerEnabled ? "Summer: On" : "Summer: Off"}
+                {seasonLabel}: {seasonalEnabled ? "On" : "Off"}
               </button>
               <div className="navbar-auth">
                 {loading ? (

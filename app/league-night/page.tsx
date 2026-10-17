@@ -63,6 +63,8 @@ import { loadChallenge } from '@/lib/rivalries/api';
 import type { Challenge } from '@/lib/rivalries/types';
 import { PlayerAvatar } from '@/components/avatars/PlayerAvatar';
 import { presetLabel } from '@/lib/games/catalog';
+import { BoardPhotoAutofill } from '@/components/board-photo/BoardPhotoAutofill';
+import { applyPhotoPatch } from '@/lib/board-photo/mapping';
 
 function NightLandingHeader() {
   return <PageHeader title="League Night" eyebrow="Rochester Darting Degens" description="The next night, the latest results, and your way to the board." identity={<Image src="/rdd-logo.png" alt="Rochester Darting Degens logo" width={320} height={320} className="home-logo-image" priority />} />;
@@ -1093,6 +1095,17 @@ function NightSession({
                   </select>
                 </label>
               )}
+                <BoardPhotoAutofill disabled={locked}
+                  contextKey={JSON.stringify([night.id,draft.editId,draft.playedAt,draft.liveTime,draft.notes,draft.revision,view])}
+                  entry={{game:draft.game,config:draft.gameConfig??null,mode:draft.mode,winner:draft.winnerId,
+                    players:draft.players.map(p=>({id:p.playerId,name:names.get(p.playerId)??'Choose player',score:p.score,points:p.points}))}}
+                  onApply={patch=>{
+                    if(locked || saveLock.current)return;
+                    const next=applyPhotoPatch({game:draft.game,config:draft.gameConfig??null,mode:draft.mode,winner:draft.winnerId,
+                      players:draft.players.map(p=>({id:p.playerId,name:'',score:p.score,points:p.points}))},patch);
+                    update({players:next.players.map(p=>({playerId:p.id,score:p.score,points:p.points})),gameConfig:next.config??undefined,mode:next.mode});
+                    setCorrection(null);setReceipt('Photo values filled. Review the match, then save when ready.');
+                  }} />
               <div className="night-scorecards">
                 {draft.players.map((p, index) => (
                   <article

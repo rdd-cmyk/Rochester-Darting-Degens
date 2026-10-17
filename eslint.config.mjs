@@ -15,6 +15,8 @@ export const baseConfig = defineConfig([
     "build/**",
     ".local/**",
     ".qa-artifacts/**",
+    // Pinned upstream OCR bundles are verified byte-for-byte by assets.test.ts.
+    "public/ocr/v7/*.js",
     "next-env.d.ts",
   ]),
 ]);

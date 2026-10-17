@@ -1,6 +1,10 @@
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { afterEach, beforeEach, expect, it, vi } from 'vitest';
 import MatchesPage from './page';
+import type {PhotoEntry,PhotoPatch} from '@/lib/board-photo/types';
+// The review/worker are tested separately. Exercise the actual editor adapter
+// with an already reviewed patch, including canonical 3DA and team storage.
+vi.mock('@/components/board-photo/BoardPhotoAutofill',()=>({BoardPhotoAutofill:({entry,disabled,onApply}:{entry:PhotoEntry;disabled:boolean;onApply:(p:PhotoPatch)=>void})=><button type="button" disabled={disabled} onClick={()=>onApply(entry.config?.format!=='individual'&&entry.config?{players:[],teamScores:{A:400}}:{players:[{id:entry.players[0].id,score:'53.12'}],teamScores:{}})}>Apply reviewed photo fixture</button>}));
 
 const { from, rpc, identity, nightRead } = vi.hoisted(() => ({
   from: vi.fn(), rpc: vi.fn(), nightRead: vi.fn(),
@@ -126,9 +130,9 @@ it('keeps a 2v2 shared score out of personal scores and sends both winning teamm
   for (let index = 0; index < 4; index++) {
     fireEvent.change(screen.getByLabelText(`Member ${index + 1} team`), { target: { value: index < 2 ? 'A' : 'B' } });
   }
-  fireEvent.change(screen.getByLabelText('Team A score'), { target: { value: '400' } });
   fireEvent.change(screen.getByLabelText('Team B score'), { target: { value: '350' } });
   fireEvent.change(screen.getByLabelText('Winning team'), { target: { value: 'A' } });
+  fireEvent.click(screen.getByRole('button',{name:'Apply reviewed photo fixture'}));
   expect(screen.getByLabelText('Winner', { exact: true })).not.toBeVisible();
   fireEvent.click(screen.getByRole('button', { name: 'Save match' }));
   await screen.findByText('✓ Saved match #42.');
@@ -137,6 +141,22 @@ it('keeps a 2v2 shared score out of personal scores and sends both winning teamm
   expect(payload.game_config.teamScores).toEqual({ A: 400, B: 350 });
   expect(payload.players.map((player: { score: number | null; is_winner: boolean }) => [player.score, player.is_winner]))
     .toEqual([[null, true], [null, true], [null, false], [null, false]]);
+});
+
+it('applies reviewed photo averages without saving and converts untouched PPD once',async()=>{
+  await open();selectPlayer(0);selectPlayer(1);
+  fireEvent.change(screen.getByLabelText('Winner',{exact:true}),{target:{value:players[0].id}});
+  fireEvent.change(screen.getByLabelText('Stat entry'),{target:{value:'ppd'}});
+  fireEvent.change(screen.getByLabelText('Player 1 PPD'),{target:{value:'20'}});
+  fireEvent.change(screen.getByLabelText('Player 2 PPD'),{target:{value:'18.11'}});
+  fireEvent.click(screen.getByRole('button',{name:'Apply reviewed photo fixture'}));
+  expect(screen.getByLabelText('Stat entry')).toHaveValue('3da');
+  expect(screen.getByLabelText('Player 1 3DA')).toHaveValue(53.12);
+  expect(screen.getByLabelText('Player 2 3DA')).toHaveValue(54.33);
+  expect(rpc).not.toHaveBeenCalled();
+  fireEvent.click(screen.getByRole('button',{name:'Save match'}));
+  await screen.findByText('✓ Saved match #42.');
+  expect(rpc.mock.calls[0][1].p_payload.players.map((p:{score:number})=>p.score)).toEqual([53.12,54.33]);
 });
 
 it.each(['42501', 'PGRST202'])('retains a dispatched ordinary save after reload when its retry cannot check the receipt (%s)', async code => {

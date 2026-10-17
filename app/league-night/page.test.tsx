@@ -4,6 +4,8 @@ import LeagueNightPage from "./page";
 import { draftKey, freshDraft, nightEntryKey, nightOperationKey, readNightSavedEntries, type StoredDraft } from "@/lib/league-night/draft";
 import type { LeagueNight, MatchWrite, NightMatch } from "@/lib/league-night/types";
 import { defaultConfig } from "@/lib/games/catalog";
+import type {PhotoEntry,PhotoPatch} from '@/lib/board-photo/types';
+vi.mock('@/components/board-photo/BoardPhotoAutofill',()=>({BoardPhotoAutofill:({entry,disabled,onApply}:{entry:PhotoEntry;disabled:boolean;onApply:(p:PhotoPatch)=>void})=><button type="button" disabled={disabled} onClick={()=>onApply({players:[{id:entry.players[0].id,score:'53.12'}],teamScores:{}})}>Apply reviewed photo fixture</button>}));
 
 vi.mock("@/components/league-night/NightLobbyOverview", () => ({ NightLobbyOverview: () => null }));
 
@@ -79,6 +81,15 @@ beforeEach(() => {
   vi.spyOn(window, "confirm").mockReturnValue(true);
 });
 afterEach(() => { vi.restoreAllMocks(); vi.unstubAllEnvs(); });
+
+it('applies a reviewed photo through the normal draft and recovery path without saving',async()=>{
+  const stored=seed('photo','20',null);stored.draft.pending=null;stored.draft.mode='ppd';stored.draft.players[1].score='18.11';
+  localStorage.removeItem(nightOperationKey(key,'photo'));localStorage.setItem(key,JSON.stringify(stored));
+  await openRecovery();fireEvent.click(screen.getByRole('button',{name:'Apply reviewed photo fixture'}));
+  expect(screen.getAllByRole('textbox',{name:'3DA optional'}).map(input=>(input as HTMLInputElement).value)).toEqual(['53.12','54.33']);
+  expect(mocks.save).not.toHaveBeenCalled();
+  expect(JSON.parse(localStorage.getItem(key)!).draft.players[0].score).toBe('53.12');
+});
 
 it.each(["tied", "abandoned"] as const)("starts a completed rematch after recording a %s game", async (status) => {
   const stored = seed("unrated", "60", null);

@@ -74,7 +74,7 @@ BEGIN
      'issue',CASE WHEN rivalry_private.eligible(m,c) IS NOT TRUE THEN 'Changed result needs review' WHEN winner IS NULL THEN 'After the deciding game' ELSE NULL END));
  END LOOP;
  effective:=c.state;
- IF c.state='pending' AND (now()>=least(c.expires_at,s.starts_at) OR s.status='cancelled') THEN effective:=CASE WHEN s.status='cancelled' THEN 'cancelled' ELSE 'expired' END;
+ IF c.state='pending' AND (now()>=least(c.expires_at,s.starts_at+interval '12 hours') OR s.status='cancelled') THEN effective:=CASE WHEN s.status='cancelled' THEN 'cancelled' ELSE 'expired' END;
  ELSIF c.state='accepted' THEN
    IF invalid>0 OR extra>0 THEN effective:='needs_review';
    ELSIF a>=target OR b>=target THEN effective:='completed';
@@ -115,8 +115,8 @@ BEGIN
   'avatars',coalesce((SELECT jsonb_agg(to_jsonb(q)) FROM (SELECT a.* FROM rivalry_private.avatars a JOIN public.league_members lm ON lm.user_id=a.user_id AND lm.status='active' ORDER BY a.user_id LIMIT 500 OFFSET p_offset) q),'[]'),
   'avatar_total',(SELECT count(*) FROM rivalry_private.avatars a JOIN public.league_members lm ON lm.user_id=a.user_id AND lm.status='active'),
   'nights',coalesce((SELECT jsonb_agg(to_jsonb(q)) FROM (SELECT s.night_id,n.title,n.venue,s.starts_at,s.event_revision FROM rdd_private.planning_schedules s JOIN public.league_nights n ON n.id=s.night_id
-    WHERE s.status='scheduled' AND s.starts_at>now() ORDER BY s.starts_at,s.night_id LIMIT 500 OFFSET p_offset) q),'[]'),
-  'night_total',(SELECT count(*) FROM rdd_private.planning_schedules WHERE status='scheduled' AND starts_at>now()),
+    WHERE s.status='scheduled' AND s.starts_at+interval '12 hours'>now() ORDER BY s.starts_at,s.night_id LIMIT 500 OFFSET p_offset) q),'[]'),
+  'night_total',(SELECT count(*) FROM rdd_private.planning_schedules WHERE status='scheduled' AND starts_at+interval '12 hours'>now()),
   'active_users',coalesce((SELECT jsonb_agg(user_id ORDER BY user_id) FROM (SELECT user_id FROM public.league_members WHERE status='active' ORDER BY user_id LIMIT 500 OFFSET p_offset) q),'[]'),
   'member_total',(SELECT count(*) FROM public.league_members WHERE status='active'),
   'organizer',EXISTS(SELECT 1 FROM rdd_private.planning_organizers WHERE user_id=auth.uid()),
@@ -159,7 +159,7 @@ BEGIN
  ELSIF action='create' THEN
   target:=(p_payload->>'id')::uuid;
   SELECT * INTO s FROM rdd_private.planning_schedules WHERE night_id=(p_payload->>'night_id')::uuid FOR UPDATE;
-  IF NOT FOUND OR s.status<>'scheduled' OR s.starts_at<=now() THEN RAISE EXCEPTION 'Choose an upcoming scheduled League Night.' USING ERRCODE='22023'; END IF;
+  IF NOT FOUND OR s.status<>'scheduled' OR s.starts_at+interval '12 hours'<=now() THEN RAISE EXCEPTION 'Choose a current or upcoming scheduled League Night.' USING ERRCODE='22023'; END IF;
   IF (p_payload->>'recipient')::uuid=actor OR NOT EXISTS(SELECT 1 FROM public.league_members lm JOIN public.profiles p ON p.id=lm.user_id WHERE lm.user_id=(p_payload->>'recipient')::uuid AND lm.status='active') THEN
    RAISE EXCEPTION 'Choose a different active league member.' USING ERRCODE='22023'; END IF;
   IF (SELECT count(*) FROM rivalry_private.challenges x WHERE x.sender=actor AND x.state='pending' AND x.expires_at>now()
@@ -171,7 +171,7 @@ BEGIN
    RAISE EXCEPTION 'An unfinished challenge or a 24-hour invitation cooldown exists for this pair.' USING ERRCODE='22023'; END IF;
   INSERT INTO rivalry_private.challenges(id,sender,recipient,night_id,game,preset,board,best_of,expires_at,event_revision)
    VALUES(target,actor,(p_payload->>'recipient')::uuid,s.night_id,p_payload->>'game',p_payload->>'preset',p_payload->>'board',(p_payload->>'best_of')::integer,
-    least(now()+interval '7 days',s.starts_at),s.event_revision) RETURNING * INTO c;
+    least(now()+interval '7 days',s.starts_at+interval '12 hours'),s.event_revision) RETURNING * INTO c;
   result:=jsonb_build_object('challenge',rivalry_private.summary(c.id));
  ELSE
   SELECT * INTO c FROM rivalry_private.challenges WHERE id=(p_payload->>'id')::uuid FOR UPDATE;

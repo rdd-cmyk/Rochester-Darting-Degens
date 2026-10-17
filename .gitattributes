@@ -1,0 +1,2 @@
+# Preserve the exact bytes of pinned upstream OCR assets on Windows and Linux.
+public/ocr/v7/** -text

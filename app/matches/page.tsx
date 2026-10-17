@@ -24,6 +24,8 @@ import { loadMatches } from '@/lib/league-night/api';
 import { previewCorrection } from '@/lib/games/correction';
 import { GameOptions, GameResultDetails } from '@/components/GameOptions';
 import { GAME_TYPES, defaultConfig, gameDefinition, gameUnit, hasCricketPoints, isX01, type GameConfig } from '@/lib/games/catalog';
+import { BoardPhotoAutofill } from '@/components/board-photo/BoardPhotoAutofill';
+import { applyPhotoPatch } from '@/lib/board-photo/mapping';
 
 // Simple types
 type Profile = {
@@ -722,6 +724,19 @@ function MatchesWorkspace({ user }: { user: User }) {
           </div>
 
           {/* Dynamic players */}
+          <BoardPhotoAutofill
+            contextKey={JSON.stringify([user.id,editingMatchId,playedAt,boardType,venue,notes,editSnapshot?.revision])}
+            disabled={saving || Boolean(pendingSave) || otherRecoveries > 0 || previewing}
+            entry={{game:gameType, config:gameConfig, mode:o1StatInputMode, winner:winnerPlayerId,
+              players:playerEntries.slice(0,numPlayers).map(p=>{const profile=profiles.find(v=>v.id===p.playerId);return {id:p.playerId,name:profile?formatPlayerName(profile.display_name,profile.first_name,profile.include_first_name_in_display):'Choose player',score:p.stat,points:p.cricketPoints};})}}
+            onApply={patch=>{
+              if(saveLock.current || saving || pendingSave || otherRecoveries > 0) return;
+              const next=applyPhotoPatch({game:gameType,config:gameConfig,mode:o1StatInputMode,winner:winnerPlayerId,
+                players:playerEntries.slice(0,numPlayers).map(p=>({id:p.playerId,name:'',score:p.stat,points:p.cricketPoints}))},patch);
+              setPlayerEntries(next.players.map(p=>({playerId:p.id,stat:p.score,cricketPoints:p.points})));
+              setGameConfig(next.config);setO1StatInputMode(next.mode);setCorrection(null);setSaveReceipt('Photo values filled. Review the match, then save when ready.');
+            }}
+          />
           {playerEntries.slice(0, numPlayers).map((entry, index) => {
             const playerLabel = `Player ${index + 1}`;
             const statLabel = `${playerLabel} ${isO1 && o1StatInputMode === 'ppd' ? 'PPD' : gameUnit(gameType)}`;

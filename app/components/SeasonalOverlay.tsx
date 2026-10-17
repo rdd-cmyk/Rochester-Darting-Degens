@@ -29,7 +29,7 @@ const PARTICLES = Array.from({ length: 18 }, (_, index) => {
   const delay = (index * 79) % 20;
   const duration = 15 + ((index * 5) % 11);
   const drift = ((index % 2 === 0 ? 1 : -1) * (8 + (index % 7))) * 2;
-  const opacity = 0.20 + ((index * 13) % 10) / 100;
+  const opacity = 0.35 + ((index * 13) % 10) / 100;
 
   return { left, size, delay, duration, drift, opacity };
 });

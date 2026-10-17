@@ -236,8 +236,8 @@ function Room({
   const actualRight = right || rivals[0]?.opponent || "";
   const sortedRivals = sortOpponents(rivals, opponentSort, left, powerRatings,
     new Map(data?.profiles.map(profile => [profile.id, nameOf(profile)])));
-  const upcomingNights = data?.feed.nights.filter(n =>
-    n.night_id !== runBackFrom && Date.parse(n.starts_at) > Date.parse(data.feed.server_time)) ?? [];
+  const availableNights = data?.feed.nights.filter(n =>
+    n.night_id !== runBackFrom && Date.parse(n.starts_at) + 12 * 60 * 60 * 1000 > Date.parse(data.feed.server_time)) ?? [];
   const pairHistory = buildRivalry(data?.matches ?? [], left, actualRight);
   const rivalry = buildRivalry(
     data?.matches ?? [],
@@ -947,7 +947,7 @@ function Room({
             <form
               onSubmit={(e) => {
                 e.preventDefault();
-                if (locked || !upcomingNights.some(option => option.night_id === night)) return;
+                if (locked || !availableNights.some(option => option.night_id === night)) return;
                 void op.submit({
                   action: "create",
                   id: crypto.randomUUID(),
@@ -961,7 +961,7 @@ function Room({
               }}
             >
               <p>{names.join(" vs ")} · Competitive singles</p>
-              {runBackFrom && <p className="rr-muted">Same rivals, fresh challenge. Choose a different upcoming night. Your opponent will need to accept again.</p>}
+              {runBackFrom && <p className="rr-muted">Same rivals, fresh challenge. Choose a different current or upcoming night. Your opponent will need to accept again.</p>}
               <div className="rr-form-grid">
                 <label>
                   Game
@@ -1025,8 +1025,8 @@ function Room({
                     value={night}
                     onChange={(e) => setNight(e.target.value)}
                   >
-                    <option value="">Choose an upcoming night</option>
-                    {upcomingNights.map((n) => (
+                    <option value="">Choose a current or upcoming night</option>
+                    {availableNights.map((n) => (
                       <option key={n.night_id} value={n.night_id}>
                         {n.title} · {new Date(n.starts_at).toLocaleString()}
                       </option>
@@ -1035,15 +1035,15 @@ function Room({
                 </label>
               </div>
               <p className="rr-muted">
-                The invitation expires in seven days or when the night starts.
+                The invitation expires in seven days or 12 hours after the night starts, whichever comes first.
                 Acceptance keeps RSVP and attendance separate.
               </p>
-              <ActionButton type="submit" variant="primary" disabled={locked || !upcomingNights.some(option => option.night_id === night)}>
+              <ActionButton type="submit" variant="primary" disabled={locked || !availableNights.some(option => option.night_id === night)}>
                 Send challenge ↗
               </ActionButton>
-              {!upcomingNights.length && (
+              {!availableNights.length && (
                 <p>
-                  No upcoming scheduled nights.{" "}
+                  No current or upcoming scheduled nights.{" "}
                   <Link href="/league-night/plan">Plan one first</Link>.
                 </p>
               )}

@@ -669,11 +669,11 @@ let moved = unwrap(
   await write({ ...create, id: crypto.randomUUID(), recipient: b.id }),
 ).challenge;
 sql(
-  `UPDATE rdd_private.planning_schedules SET starts_at=now()-interval '1 second',rsvp_closes_at=now()-interval '2 seconds',event_revision=event_revision+1 WHERE night_id='${night.id}'`,
+  `UPDATE rdd_private.planning_schedules SET starts_at=now()-interval '12 hours',rsvp_closes_at=now()-interval '13 hours',event_revision=event_revision+1 WHERE night_id='${night.id}'`,
 );
 ok(
   (await read(moved.id)).state === "expired",
-  "Moving a night earlier expires invitations at the new start time",
+  "Moving a night earlier expires invitations at the new 12-hour cutoff",
 );
 sql(
   `UPDATE rdd_private.planning_schedules SET starts_at=now()+interval '2 days',event_revision=event_revision+1 WHERE night_id='${night.id}'; UPDATE rivalry_private.challenges SET expires_at=now()-interval '1 second' WHERE id='${moved.id}';`,

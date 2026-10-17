@@ -234,3 +234,22 @@ it('keeps the selected rival when sorting and filtering the available opponents'
   expect(chooser).toHaveValue('c');
   expect(screen.getAllByRole('button', { name: /recorded singles wins$/ })[0]).toHaveAccessibleName(/^Bravo/);
 });
+
+// Server time avoids client timezone/clock differences around an ongoing night.
+it("can send a challenge for the night in progress and excludes nights at the cutoff", async () => {
+  mocks.feed.mockResolvedValue({ ...baseFeed, nights: [
+    { night_id: "current", title: "Tonight", starts_at: "2026-09-29T10:00:00Z" },
+    { night_id: "future", title: "Next week", starts_at: "2026-10-06T10:00:00Z" },
+    { night_id: "closed", title: "Closed night", starts_at: "2026-09-29T00:00:00Z" },
+    { night_id: "old", title: "Old night", starts_at: "2026-09-28T23:59:59Z" },
+  ] });
+  render(<RivalryRoom />);
+  fireEvent.click(await screen.findByRole("button", { name: /Challenge Bravo/ }));
+  const dialog = within(screen.getByRole("dialog"));
+  expect(dialog.getByRole("option", { name: /Tonight/ })).toBeInTheDocument();
+  expect(dialog.getByRole("option", { name: /Next week/ })).toBeInTheDocument();
+  expect(dialog.queryByRole("option", { name: /Closed night|Old night/ })).not.toBeInTheDocument();
+  fireEvent.change(dialog.getByLabelText("Scheduled League Night"), { target: { value: "current" } });
+  fireEvent.click(dialog.getByRole("button", { name: /Send challenge/ }));
+  expect(mocks.submit).toHaveBeenCalledWith(expect.objectContaining({ action: "create", night_id: "current" }));
+});
